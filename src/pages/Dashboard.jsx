@@ -67,6 +67,11 @@ export default function Dashboard({ session }) {
       setLoading(false);
     };
     fetchMember();
+    const script = document.createElement("script");
+    script.src = "https://chat.karikounkel.com/widget.js";
+    script.defer = true;
+    document.body.appendChild(script);
+    return () => { if (document.body.contains(script)) document.body.removeChild(script); };
   }, [session]);
 
   const handleLogout = async () => {
@@ -244,7 +249,6 @@ export default function Dashboard({ session }) {
         )}
       </div>
 
-      <script src="https://chat.karikounkel.com/widget.js" defer></script>
     </div>
   );
 }

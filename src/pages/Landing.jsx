@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 const MONTHLY_URL = "https://buy.stripe.com/7sY5kD7Nl2HgeLp1Q818c06";
 const ANNUAL_URL = "https://buy.stripe.com/5kQ8wPd7F3Lk6eT3Yg18c07";
 
@@ -30,6 +31,13 @@ const memberTools = [
 ];
 
 export default function Landing({ session }) {
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://chat.karikounkel.com/widget.js";
+    script.defer = true;
+    document.body.appendChild(script);
+    return () => document.body.removeChild(script);
+  }, []);
   return (
     <div style={{ fontFamily: "'Figtree', sans-serif", background: S.paper, color: S.ink, lineHeight: 1.65 }}>
       <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -69,7 +77,7 @@ export default function Landing({ session }) {
           <a href={MONTHLY_URL} style={{ display: "inline-block", background: S.orange, color: "#fff", fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", padding: "14px 32px", borderRadius: 6, textDecoration: "none", marginBottom: 12 }}>
             Join CARES Works — $27/month
           </a>
-          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>or $197/year · cancel anytime</div>
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>or <a href={ANNUAL_URL} style={{ color: S.gold, textDecoration: "none", fontWeight: 700 }}>$197/year</a> · cancel anytime</div>
         </div>
       </div>
       <div style={{ height: 4, background: S.orange }} />
@@ -198,7 +206,6 @@ export default function Landing({ session }) {
         <a href="https://karikounkel.store" style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: S.muted, textDecoration: "none", letterSpacing: "0.08em" }}>Full Store at karikounkel.store →</a>
       </footer>
 
-      <script src="https://chat.karikounkel.com/widget.js" defer></script>
     </div>
   );
 }
