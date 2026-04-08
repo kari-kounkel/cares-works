@@ -1,0 +1,250 @@
+import { useState, useEffect } from "react";
+import { supabase } from "../supabaseClient";
+
+const S = {
+  slate: "#3d4560",
+  orange: "#e8773a",
+  orangeDark: "#c95f22",
+  orangeLight: "#fdf0e8",
+  paper: "#faf8f4",
+  cream: "#f2ede3",
+  ink: "#1e1e2a",
+  rule: "#ddd8cc",
+  muted: "#7a7585",
+  gold: "#C9A84C",
+  grad: "linear-gradient(135deg, #e8773a, #c95f22)",
+};
+
+const TOOLS = {
+  money: [
+    { icon: "📊", title: "Net Profit Ratios + What's Your Number", desc: "The worksheet that shows you what revenue actually needs to be — starting from what you need to take home.", tag: "NEW" },
+    { icon: "📗", title: "Year-End QuickBooks Triage", desc: "8 diagnostic zones. Find the fires, name the fires, put out the ones that matter. Full version." },
+    { icon: "📈", title: "Chart of Accounts Cheat Sheet", desc: "The categories you actually need, the ones you don't, and why your P&L is lying to you." },
+    { icon: "📥", title: "QuickBooks IIF Import — The Right Way", desc: "Stop manually entering transactions. Build and import IIF files without losing your mind." },
+    { icon: "💰", title: "Pricing Metrics Framework", desc: "Cost of goods, labor burden, overhead allocation, margin vs markup. The math people are too embarrassed to ask about." },
+    { icon: "🧾", title: "Finding a CPA — The Right Questions", desc: "What to ask before you hire one. What red flags to run from. Most people pick whoever answers the phone." },
+  ],
+  people: [
+    { icon: "🗂️", title: "New Hire First 30 Days", desc: "The sequence that makes you look like you have a whole HR team behind you when it's just you." },
+    { icon: "📝", title: "Separation Script + Resignation Templates", desc: "Word for word. Walk in, say this, walk out. No drama, no liability." },
+    { icon: "🤝", title: "Building Your Advisory Team", desc: "Who you actually need in your corner. CPA, attorney, banker, insurance, mentor. What to ask each one." },
+  ],
+  communication: [
+    { icon: "✉️", title: "What to Actually Say", desc: "10 templates for late invoices, scope creep, bad news, after-hours texters, and the client you need to fire." },
+    { icon: "⏱️", title: "Buying Time Scripts", desc: "Exactly what to say when a client asks something you don't know the answer to. Sound confident while you go figure it out." },
+    { icon: "📋", title: "Post-Meeting Debrief One-Pager", desc: "Fill it out in the parking lot, send it before you get home. Never forget what you committed to again." },
+  ],
+  leadership: [
+    { icon: "📅", title: "Planning Meetings That Actually Work", desc: "The agenda, the time blocks, and the follow-up protocol. One page. Laminate it." },
+    { icon: "🔍", title: "Busy vs. Profitable — The Busyness Audit", desc: "Revenue is vanity. Net profit is sanity. This shows you whether your busyness is profitable or just exhausting." },
+    { icon: "🏗️", title: "In-House vs. Contract Decision Matrix", desc: "HR, bookkeeping, marketing, IT, legal. When you're big enough to bring it in, when you're not." },
+    { icon: "📚", title: "Founders Series — Module 1", desc: "The business foundation framework. Where it all starts." },
+  ],
+};
+
+const DEBRIEF_PLACEHOLDER = {
+  title: "The Debrief — April 2026",
+  desc: "This month: Net profit ratios, what your numbers are actually telling you, and member questions answered.",
+  available: false,
+};
+
+const COURT_CHAPTERS = [
+  { num: 1, title: "The Kingdom of Eggerton", available: true },
+  { num: 2, title: "Lady Delia and the Court", available: false },
+  { num: 3, title: "The Record Keepers", available: false },
+];
+
+export default function Dashboard({ session }) {
+  const [member, setMember] = useState(null);
+  const [activeTab, setActiveTab] = useState("tools");
+  const [activeCategory, setActiveCategory] = useState("money");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchMember = async () => {
+      const { data } = await supabase.from("members").select("*").eq("email", session.user.email).single();
+      setMember(data);
+      setLoading(false);
+    };
+    fetchMember();
+  }, [session]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    window.location.href = "/";
+  };
+
+  const plan = member?.plan || "monthly";
+  const isAnnual = plan === "annual";
+
+  const tabs = ["tools", "debrief", "court", "account"];
+  const tabLabels = { tools: "Tool Library", debrief: "The Debrief", court: "Court of Accounts", account: "Account" };
+  const categories = Object.keys(TOOLS);
+  const catLabels = { money: "Money", people: "People", communication: "Communication", leadership: "Leadership" };
+
+  return (
+    <div style={{ minHeight: "100vh", background: S.paper, fontFamily: "'Figtree', sans-serif", color: S.ink }}>
+      <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+      {/* HEADER */}
+      <header style={{ background: S.slate, padding: "0 32px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 58, boxShadow: "0 2px 12px rgba(0,0,0,0.15)", position: "sticky", top: 0, zIndex: 100 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
+          <a href="/" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: "#fff", textDecoration: "none" }}>
+            CARES <span style={{ color: S.orange }}>Works.</span>
+          </a>
+          <div style={{ display: "flex", gap: 2, background: "rgba(0,0,0,0.2)", borderRadius: 8, padding: 3 }}>
+            {tabs.map(t => (
+              <button key={t} onClick={() => setActiveTab(t)}
+                style={{ padding: "5px 14px", borderRadius: 6, border: "none", background: activeTab === t ? "#fff" : "transparent", color: activeTab === t ? S.slate : "rgba(255,255,255,0.7)", fontSize: 12, fontWeight: activeTab === t ? 700 : 400, cursor: "pointer", fontFamily: "'Figtree', sans-serif", transition: "all 0.15s", whiteSpace: "nowrap" }}>
+                {tabLabels[t]}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", background: isAnnual ? "linear-gradient(135deg,#C9A84C,#e0c060)" : S.orange, color: isAnnual ? S.ink : "#fff", padding: "4px 10px", borderRadius: 100, fontWeight: 700 }}>
+            {isAnnual ? "Annual" : "Monthly"}
+          </div>
+          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", fontFamily: "'DM Mono', monospace" }}>{session.user.email}</span>
+          <button onClick={handleLogout} style={{ padding: "5px 12px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.25)", background: "transparent", color: "#fff", fontSize: 11, cursor: "pointer", fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>Log out</button>
+        </div>
+      </header>
+
+      <div style={{ maxWidth: 1000, margin: "0 auto", padding: "40px 24px 80px" }}>
+
+        {/* WELCOME */}
+        {activeTab === "tools" && (
+          <>
+            <div style={{ marginBottom: 36 }}>
+              <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, color: S.slate, marginBottom: 6 }}>
+                Welcome back{member?.full_name ? ", " + member.full_name.split(" ")[0] : ""}.
+              </h1>
+              <p style={{ color: S.muted, fontSize: 15 }}>Your full tool library. New drops every week.</p>
+            </div>
+
+            {/* CATEGORY TABS */}
+            <div style={{ display: "flex", gap: 8, marginBottom: 32, flexWrap: "wrap" }}>
+              {categories.map(c => (
+                <button key={c} onClick={() => setActiveCategory(c)}
+                  style={{ padding: "8px 20px", borderRadius: 100, border: "1.5px solid " + (activeCategory === c ? S.orange : S.rule), background: activeCategory === c ? S.orange : "#fff", color: activeCategory === c ? "#fff" : S.muted, fontSize: 13, fontWeight: activeCategory === c ? 700 : 400, cursor: "pointer", fontFamily: "'Figtree', sans-serif", transition: "all 0.15s" }}>
+                  {catLabels[c]}
+                </button>
+              ))}
+            </div>
+
+            {/* TOOLS GRID */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 20 }}>
+              {TOOLS[activeCategory].map(t => (
+                <div key={t.title} style={{ background: "#fff", border: "1px solid " + S.rule, borderRadius: 12, padding: "24px", display: "flex", flexDirection: "column", gap: 10, position: "relative" }}>
+                  {t.tag && <div style={{ position: "absolute", top: 16, right: 16, background: S.orange, color: "#fff", fontFamily: "'DM Mono', monospace", fontSize: 9, fontWeight: 700, letterSpacing: "0.12em", padding: "3px 8px", borderRadius: 100 }}>{t.tag}</div>}
+                  <div style={{ width: 44, height: 44, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, background: S.orangeLight }}>{t.icon}</div>
+                  <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, lineHeight: 1.3, color: S.slate }}>{t.title}</div>
+                  <div style={{ fontSize: 13, color: S.muted, lineHeight: 1.55, flex: 1 }}>{t.desc}</div>
+                  <button style={{ marginTop: 8, padding: "10px 16px", background: S.grad, border: "none", borderRadius: 8, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'Figtree', sans-serif", textAlign: "left" }}>
+                    Get this tool →
+                  </button>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* THE DEBRIEF */}
+        {activeTab === "debrief" && (
+          <div>
+            <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, color: S.slate, marginBottom: 6 }}>The Debrief</h1>
+            <p style={{ color: S.muted, fontSize: 15, marginBottom: 40 }}>Monthly teaching + real member questions answered by Kari.</p>
+
+            <div style={{ background: S.slate, borderRadius: 14, padding: "40px", color: "#fff", position: "relative", overflow: "hidden" }}>
+              <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 80% 50%, rgba(232,119,58,0.15) 0%, transparent 60%)" }} />
+              <div style={{ position: "relative" }}>
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase", color: S.orange, marginBottom: 12 }}>Latest Episode</div>
+                <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 28, marginBottom: 12 }}>{DEBRIEF_PLACEHOLDER.title}</h2>
+                <p style={{ fontSize: 15, color: "rgba(255,255,255,0.7)", marginBottom: 28, maxWidth: 500 }}>{DEBRIEF_PLACEHOLDER.desc}</p>
+                <div style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 10, padding: "16px 20px", display: "inline-block", fontFamily: "'DM Mono', monospace", fontSize: 12, color: "rgba(255,255,255,0.5)", letterSpacing: "0.08em" }}>
+                  Dropping soon — check back April 30
+                </div>
+              </div>
+            </div>
+
+            <div style={{ marginTop: 32, background: S.cream, border: "1px solid " + S.rule, borderRadius: 12, padding: "24px 28px" }}>
+              <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: S.slate, marginBottom: 8 }}>Submit a question for next month</h3>
+              <p style={{ color: S.muted, fontSize: 14, marginBottom: 16 }}>Kari answers real member questions every month. What are you stuck on?</p>
+              <textarea placeholder="What's your question for Kari?" rows={4}
+                style={{ width: "100%", padding: "12px 16px", background: "#fff", border: "1px solid " + S.rule, borderRadius: 8, color: S.ink, fontSize: 14, fontFamily: "'Figtree', sans-serif", outline: "none", resize: "none", boxSizing: "border-box", lineHeight: 1.5 }} />
+              <button style={{ marginTop: 12, padding: "10px 24px", background: S.orange, border: "none", borderRadius: 8, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'Figtree', sans-serif" }}>
+                Submit Question →
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* COURT OF ACCOUNTS */}
+        {activeTab === "court" && (
+          <div>
+            <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, color: S.slate, marginBottom: 6 }}>Court of Accounts</h1>
+            <p style={{ color: S.muted, fontSize: 15, marginBottom: 8 }}>A business parable set in the Kingdom of Eggerton. One chapter drops per month.</p>
+            {isAnnual && <div style={{ display: "inline-block", background: "linear-gradient(135deg,#C9A84C,#e0c060)", color: S.ink, fontFamily: "'DM Mono', monospace", fontSize: 11, fontWeight: 700, padding: "4px 12px", borderRadius: 100, marginBottom: 32 }}>Annual member — full book available</div>}
+            {!isAnnual && <p style={{ fontSize: 13, color: S.muted, fontFamily: "'DM Mono', monospace", marginBottom: 32 }}>Upgrade to annual to unlock the full book on day one.</p>}
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              {COURT_CHAPTERS.map(ch => (
+                <div key={ch.num} style={{ background: "#fff", border: "1px solid " + S.rule, borderRadius: 12, padding: "24px 28px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+                  <div>
+                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase", color: S.muted, marginBottom: 4 }}>Chapter {ch.num}</div>
+                    <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: S.slate }}>{ch.title}</div>
+                  </div>
+                  {ch.available || isAnnual ? (
+                    <button style={{ padding: "10px 20px", background: S.orange, border: "none", borderRadius: 8, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'Figtree', sans-serif", whiteSpace: "nowrap" }}>Read →</button>
+                  ) : (
+                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: S.muted, letterSpacing: "0.08em", whiteSpace: "nowrap" }}>Unlocks next month</div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ACCOUNT */}
+        {activeTab === "account" && (
+          <div>
+            <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, color: S.slate, marginBottom: 6 }}>Your Account</h1>
+            <p style={{ color: S.muted, fontSize: 15, marginBottom: 40 }}>Membership details and billing.</p>
+
+            <div style={{ background: "#fff", border: "1px solid " + S.rule, borderRadius: 12, padding: "28px", marginBottom: 20 }}>
+              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase", color: S.muted, marginBottom: 16 }}>Membership</div>
+              <div style={{ display: "flex", gap: 32, flexWrap: "wrap" }}>
+                <div>
+                  <div style={{ fontSize: 12, color: S.muted, marginBottom: 4 }}>Email</div>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: S.ink }}>{session.user.email}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 12, color: S.muted, marginBottom: 4 }}>Plan</div>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: S.ink, textTransform: "capitalize" }}>{plan}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 12, color: S.muted, marginBottom: 4 }}>Status</div>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: "#5a9a5a" }}>{member?.status || "Active"}</div>
+                </div>
+              </div>
+            </div>
+
+            {!isAnnual && (
+              <div style={{ background: "linear-gradient(135deg, #fff8e0, #fff)", border: "1.5px solid #e8d080", borderRadius: 12, padding: "24px 28px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+                <div>
+                  <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: S.slate, marginBottom: 4 }}>Upgrade to Annual</div>
+                  <p style={{ fontSize: 14, color: S.muted }}>$197/year — save two months. Get the full Court of Accounts book on day one.</p>
+                </div>
+                <a href="https://buy.stripe.com/5kQ8wPd7F3Lk6eT3Yg18c07" style={{ padding: "12px 24px", background: "linear-gradient(135deg,#C9A84C,#e0c060)", border: "none", borderRadius: 8, color: S.ink, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'Figtree', sans-serif", textDecoration: "none", whiteSpace: "nowrap" }}>
+                  Upgrade →
+                </a>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      <script src="https://chat.karikounkel.com/widget.js" defer></script>
+    </div>
+  );
+}
