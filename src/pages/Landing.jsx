@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "../supabaseClient";
 const MONTHLY_URL = "https://buy.stripe.com/7sY5kD7Nl2HgeLp1Q818c06";
 const ANNUAL_URL = "https://buy.stripe.com/5kQ8wPd7F3Lk6eT3Yg18c07";
 
@@ -38,7 +39,17 @@ const memberTools = [
 ];
 
 export default function Landing({ session }) {
+  const [newTools, setNewTools] = useState([]);
+
   useEffect(() => {
+    supabase
+      .from("tools")
+      .select("title, category, is_free, published_at")
+      .eq("is_published", true)
+      .order("published_at", { ascending: false })
+      .limit(8)
+      .then(({ data }) => { if (data) setNewTools(data); });
+
     const script = document.createElement("script");
     script.src = "https://chat.karikounkel.com/widget.js";
     script.defer = true;
@@ -89,7 +100,40 @@ export default function Landing({ session }) {
       </div>
       <div style={{ height: 4, background: S.orange }} />
 
-      {/* MAIN */}
+      {/* NEW ARRIVALS SCROLLER */}
+      {newTools.length > 0 && (
+        <div style={{ background: S.slate, overflow: "hidden", borderBottom: "1px solid rgba(255,255,255,0.08)", position: "relative" }}>
+          <style>{`
+            @keyframes scroll-left {
+              0% { transform: translateX(0); }
+              100% { transform: translateX(-50%); }
+            }
+            .scroller-track {
+              display: flex;
+              width: max-content;
+              animation: scroll-left 28s linear infinite;
+            }
+            .scroller-track:hover { animation-play-state: paused; }
+          `}</style>
+          <div style={{ display: "flex", alignItems: "center", padding: "0 0", height: 40 }}>
+            <div style={{ background: S.orange, height: "100%", display: "flex", alignItems: "center", padding: "0 16px", flexShrink: 0, zIndex: 2 }}>
+              <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.18em", textTransform: "uppercase", color: "#fff", fontWeight: 700, whiteSpace: "nowrap" }}>New in the library</span>
+            </div>
+            <div style={{ overflow: "hidden", flex: 1 }}>
+              <div className="scroller-track">
+                {[...newTools, ...newTools].map((t, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 32px", borderRight: "1px solid rgba(255,255,255,0.1)", height: 40, flexShrink: 0 }}>
+                    <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase", background: t.is_free ? S.orangeLight : "rgba(255,255,255,0.1)", color: t.is_free ? S.orange : "rgba(255,255,255,0.5)", padding: "2px 8px", borderRadius: 100, fontWeight: 700, whiteSpace: "nowrap" }}>
+                      {t.is_free ? "Free" : "Members"}
+                    </span>
+                    <span style={{ fontFamily: "'Figtree', sans-serif", fontSize: 13, color: "rgba(255,255,255,0.8)", whiteSpace: "nowrap" }}>{t.title}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <div style={{ maxWidth: 1000, margin: "0 auto", padding: "56px 24px 80px" }}>
 
         {/* VANITY */}
