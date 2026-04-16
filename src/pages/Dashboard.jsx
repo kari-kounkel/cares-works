@@ -63,10 +63,6 @@ export default function Dashboard({ session }) {
   useEffect(() => {
     const fetchMember = async () => {
       const { data } = await supabase.from("members").select("*").eq("email", session.user.email).single();
-      if (!data) {
-        window.location.href = "https://buy.stripe.com/7sY5kD7Nl2HgeLp1Q818c06";
-        return;
-      }
       setMember(data);
       setLoading(false);
     };
@@ -82,6 +78,36 @@ export default function Dashboard({ session }) {
     await supabase.auth.signOut();
     window.location.href = "/";
   };
+
+  if (!loading && !member) {
+    return (
+      <div style={{ minHeight: "100vh", background: "#faf8f4", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Figtree', sans-serif", padding: 20 }}>
+        <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <div style={{ textAlign: "center", maxWidth: 480 }}>
+          <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 28, color: "#3d4560", marginBottom: 12 }}>
+            CARES <span style={{ color: "#e8773a" }}>Works.</span>
+          </div>
+          <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 26, color: "#3d4560", marginBottom: 12, lineHeight: 1.2 }}>
+            You don't have a membership yet.
+          </h2>
+          <p style={{ fontSize: 15, color: "#7a7585", marginBottom: 32, lineHeight: 1.6 }}>
+            CARES Works is a membership — new tools every week, real answers when you need them. Join to get access to the full library.
+          </p>
+          <a href="https://buy.stripe.com/7sY5kD7Nl2HgeLp1Q818c06" style={{ display: "inline-block", background: "#e8773a", color: "#fff", fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", padding: "14px 32px", borderRadius: 6, textDecoration: "none", marginBottom: 12 }}>
+            Join Monthly — $27/mo
+          </a>
+          <div style={{ marginBottom: 24 }}>
+            <a href="https://buy.stripe.com/5kQ8wPd7F3Lk6eT3Yg18c07" style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#C9A84C", textDecoration: "none", letterSpacing: "0.08em", fontWeight: 700 }}>
+              Or join annual — $197/year
+            </a>
+          </div>
+          <button onClick={async () => { await supabase.auth.signOut(); window.location.href = "/"; }} style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#7a7585", background: "none", border: "none", cursor: "pointer", letterSpacing: "0.08em", textDecoration: "underline" }}>
+            Sign out
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const plan = member?.plan || "monthly";
   const isAnnual = plan === "annual";
