@@ -16,18 +16,25 @@ const S = {
 };
 
 const freeTools = [
-  { icon: "📥", title: "Stop Drowning in Email Attachments", desc: "The Python script that pulls every invoice and vendor doc out of your inbox — sorted, named, waiting for you every morning.", cta: "Get the Guide + Script", href: "/email-freebie-landing.html" },
-  { icon: "📋", title: "Client Visit Summary", desc: "A fillable, printable leave-behind for every client visit. What got done, what's still needed, what happens next. Looks professional even if you're working out of your car.", cta: "Get the Template", href: "/client-visit-summary.html" },
-  { icon: "✉️", title: "What to Actually Say", desc: "10 client communication templates for the situations nobody teaches you — late invoices, scope creep, bad news, after-hours texters, and the client you need to fire.", cta: "Get the Templates", href: "/client-communication-templates.html" },
+  { icon: "✅", title: "The Payroll Checklist Nobody Gave You", desc: "Pay period, quarterly, annual, and 1099 — three checklists in one. Each tracks independently so nothing gets tangled.", cta: "Get the Checklist", href: "/tools/payroll-checklist" },
+  { icon: "📥", title: "Stop Drowning in Email Attachments", desc: "The Python script that pulls every invoice and vendor doc out of your inbox — sorted, named, waiting for you every morning.", cta: "Get the Guide + Script", href: "/tools/email-attachments" },
+  { icon: "📋", title: "Client Visit Summary", desc: "A fillable, printable leave-behind for every client visit. What got done, what's still needed, what happens next. Looks professional even if you're working out of your car.", cta: "Get the Template", href: "/tools/client-visit-summary" },
+  { icon: "✉️", title: "What to Actually Say", desc: "10 client communication templates for the situations nobody teaches you — late invoices, scope creep, bad news, after-hours texters, and the client you need to fire.", cta: "Get the Templates", href: "/tools/communication-templates" },
 ];
 
 const memberTools = [
-  { icon: "📊", title: "Net Profit Ratios + What's Your Number", desc: "The worksheet that shows you what revenue actually needs to be — starting from what you need to take home. Most owners have never done this math once." },
-  { icon: "📥", title: "QuickBooks IIF Import — The Right Way", desc: "Stop manually entering transactions. Build and import IIF files into QuickBooks Desktop without losing your mind." },
-  { icon: "🗂️", title: "HR Onboarding Without the Chaos", desc: "The new hire sequence for small businesses that don't have a full HR team — just someone who wants to do it right." },
-  { icon: "🧮", title: "Job Costing That Actually Makes Sense", desc: "Know what each job cost you before the invoice goes out. For small shops, print companies, and service businesses." },
-  { icon: "📅", title: "Planning Meetings That Actually Work", desc: "The agenda, the time blocks, and the follow-up protocol that turns a meeting into decisions. One page. Laminate it." },
-  { icon: "📖", title: "Court of Accounts — Serialized", desc: "The business parable set in the Kingdom of Eggerton. One chapter per month. Annual members get the full book on day one." },
+  { icon: "📊", title: "Net Profit Ratios + What's Your Number", desc: "The worksheet that shows you what revenue actually needs to be — starting from what you need to take home.", tag: "NEW" },
+  { icon: "📗", title: "Year-End QuickBooks Triage", desc: "8 diagnostic zones. Find the fires, name the fires, put out the ones that matter. Full version." },
+  { icon: "📈", title: "Chart of Accounts Cheat Sheet", desc: "The categories you actually need, the ones you don't, and why your P&L is lying to you." },
+  { icon: "💰", title: "Pricing Metrics Framework", desc: "Cost of goods, labor burden, overhead allocation, margin vs markup. The math people are too embarrassed to ask about." },
+  { icon: "🗂️", title: "New Hire First 30 Days", desc: "The sequence that makes you look like you have a whole HR team behind you when it's just you." },
+  { icon: "📝", title: "Separation Script + Resignation Templates", desc: "Word for word. Walk in, say this, walk out. No drama, no liability." },
+  { icon: "🤝", title: "Building Your Advisory Team", desc: "Who you actually need in your corner. CPA, attorney, banker, insurance, mentor. What to ask each one." },
+  { icon: "📅", title: "Planning Meetings That Actually Work", desc: "The agenda, the time blocks, and the follow-up protocol. One page. Laminate it." },
+  { icon: "🔍", title: "Busy vs. Profitable — The Busyness Audit", desc: "Revenue is vanity. Net profit is sanity. This shows you whether your busyness is profitable or just exhausting." },
+  { icon: "📖", title: "Court of Accounts — Serialized", desc: "A business parable set in the Kingdom of Eggerton. One chapter per month. Annual members get the full book on day one." },
+  { icon: "🧾", title: "Finding a CPA — The Right Questions", desc: "What to ask before you hire one. What red flags to run from." },
+  { icon: "🏗️", title: "In-House vs. Contract Decision Matrix", desc: "HR, bookkeeping, marketing, IT, legal. When you're big enough to bring it in, when you're not." },
 ];
 
 export default function Landing({ session }) {
@@ -156,7 +163,7 @@ export default function Landing({ session }) {
         {/* MEMBER TOOLS */}
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
           <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", color: "#5a6481" }}>Member Tools</p>
-          <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", background: "#fdf0e8", color: "#c95f22", padding: "3px 10px", borderRadius: 100 }}>New tool every week</span>
+          <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", background: "#fdf0e8", color: "#c95f22", padding: "3px 10px", borderRadius: 100 }}>12 tools + new every week</span>
         </div>
         <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(22px, 3vw, 30px)", marginBottom: 32, color: S.slate }}>What's waiting inside.</h2>
 

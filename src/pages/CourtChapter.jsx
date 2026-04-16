@@ -119,6 +119,7 @@ function AudioPlayer({ src }) {
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
+    audio.volume = 1.0;
     const onTimeUpdate = () => { if (!dragging) setCurrentTime(audio.currentTime); };
     const onLoaded = () => setDuration(audio.duration);
     const onEnded = () => setPlaying(false);
