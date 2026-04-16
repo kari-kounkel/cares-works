@@ -31,5 +31,9 @@ export default function App() {
     if (!session) { window.location.href = "/login"; return null; }
     return <Dashboard session={session} />;
   }
+  if (window.location.hash.includes("error=access_denied") || window.location.hash.includes("error_code=otp_expired")) {
+    window.location.href = "https://buy.stripe.com/7sY5kD7Nl2HgeLp1Q818c06";
+    return null;
+  }
   return <Landing session={session} />;
 }
