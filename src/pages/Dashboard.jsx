@@ -17,28 +17,28 @@ const S = {
 
 const TOOLS = {
   money: [
-    { icon: "📊", title: "Net Profit Ratios + What's Your Number", desc: "The worksheet that shows you what revenue actually needs to be — starting from what you need to take home.", tag: "NEW" },
-    { icon: "📗", title: "Year-End QuickBooks Triage", desc: "8 diagnostic zones. Find the fires, name the fires, put out the ones that matter. Full version." },
-    { icon: "📈", title: "Chart of Accounts Cheat Sheet", desc: "The categories you actually need, the ones you don't, and why your P&L is lying to you." },
-    { icon: "📥", title: "QuickBooks IIF Import — The Right Way", desc: "Stop manually entering transactions. Build and import IIF files without losing your mind." },
-    { icon: "💰", title: "Pricing Metrics Framework", desc: "Cost of goods, labor burden, overhead allocation, margin vs markup. The math people are too embarrassed to ask about." },
-    { icon: "🧾", title: "Finding a CPA — The Right Questions", desc: "What to ask before you hire one. What red flags to run from. Most people pick whoever answers the phone." },
+    { icon: "📊", title: "Net Profit Ratios + What's Your Number", slug: "net-profit-ratios", desc: "The worksheet that shows you what revenue actually needs to be — starting from what you need to take home.", tag: "NEW" },
+    { icon: "📗", title: "Year-End QuickBooks Triage", slug: "quickbooks-triage", desc: "8 diagnostic zones. Find the fires, name the fires, put out the ones that matter. Full version." },
+    { icon: "📈", title: "Chart of Accounts Cheat Sheet", slug: "chart-of-accounts", desc: "The categories you actually need, the ones you don't, and why your P&L is lying to you." },
+    { icon: "📥", title: "QuickBooks IIF Import — The Right Way", slug: "iif-import", desc: "Stop manually entering transactions. Build and import IIF files without losing your mind." },
+    { icon: "💰", title: "Pricing Metrics Framework", slug: "pricing-metrics", desc: "Cost of goods, labor burden, overhead allocation, margin vs markup. The math people are too embarrassed to ask about." },
+    { icon: "🧾", title: "Finding a CPA — The Right Questions", slug: "finding-a-cpa", desc: "What to ask before you hire one. What red flags to run from. Most people pick whoever answers the phone." },
   ],
   people: [
-    { icon: "🗂️", title: "New Hire First 30 Days", desc: "The sequence that makes you look like you have a whole HR team behind you when it's just you." },
-    { icon: "📝", title: "Separation Script + Resignation Templates", desc: "Word for word. Walk in, say this, walk out. No drama, no liability." },
-    { icon: "🤝", title: "Building Your Advisory Team", desc: "Who you actually need in your corner. CPA, attorney, banker, insurance, mentor. What to ask each one." },
+    { icon: "🗂️", title: "New Hire First 30 Days", slug: "new-hire-30-days", desc: "The sequence that makes you look like you have a whole HR team behind you when it's just you." },
+    { icon: "📝", title: "Separation Script + Resignation Templates", slug: "separation-script", desc: "Word for word. Walk in, say this, walk out. No drama, no liability." },
+    { icon: "🤝", title: "Building Your Advisory Team", slug: "advisory-team", desc: "Who you actually need in your corner. CPA, attorney, banker, insurance, mentor. What to ask each one." },
   ],
   communication: [
-    { icon: "✉️", title: "What to Actually Say", desc: "10 templates for late invoices, scope creep, bad news, after-hours texters, and the client you need to fire." },
-    { icon: "⏱️", title: "Buying Time Scripts", desc: "Exactly what to say when a client asks something you don't know the answer to. Sound confident while you go figure it out." },
-    { icon: "📋", title: "Post-Meeting Debrief One-Pager", desc: "Fill it out in the parking lot, send it before you get home. Never forget what you committed to again." },
+    { icon: "✉️", title: "What to Actually Say", slug: "communication-templates", desc: "10 templates for late invoices, scope creep, bad news, after-hours texters, and the client you need to fire." },
+    { icon: "⏱️", title: "Buying Time Scripts", slug: "buying-time-scripts", desc: "Exactly what to say when a client asks something you don't know the answer to. Sound confident while you go figure it out." },
+    { icon: "📋", title: "Post-Meeting Debrief One-Pager", slug: "post-meeting-debrief", desc: "Fill it out in the parking lot, send it before you get home. Never forget what you committed to again." },
   ],
   leadership: [
-    { icon: "📅", title: "Planning Meetings That Actually Work", desc: "The agenda, the time blocks, and the follow-up protocol. One page. Laminate it." },
-    { icon: "🔍", title: "Busy vs. Profitable — The Busyness Audit", desc: "Revenue is vanity. Net profit is sanity. This shows you whether your busyness is profitable or just exhausting." },
-    { icon: "🏗️", title: "In-House vs. Contract Decision Matrix", desc: "HR, bookkeeping, marketing, IT, legal. When you're big enough to bring it in, when you're not." },
-    { icon: "📚", title: "Founders Series — Module 1", desc: "The business foundation framework. Where it all starts." },
+    { icon: "📅", title: "Planning Meetings That Actually Work", slug: "meeting-planning", desc: "The agenda, the time blocks, and the follow-up protocol. One page. Laminate it." },
+    { icon: "🔍", title: "Busy vs. Profitable — The Busyness Audit", slug: "busyness-audit", desc: "Revenue is vanity. Net profit is sanity. This shows you whether your busyness is profitable or just exhausting." },
+    { icon: "🏗️", title: "In-House vs. Contract Decision Matrix", slug: "inhouse-vs-contract", desc: "HR, bookkeeping, marketing, IT, legal. When you're big enough to bring it in, when you're not." },
+    { icon: "📚", title: "Founders Series — Module 1", slug: "founders-series-1", desc: "The business foundation framework. Where it all starts." },
   ],
 };
 
@@ -147,12 +147,12 @@ export default function Dashboard({ session }) {
 
       <div style={{ maxWidth: 1000, margin: "0 auto", padding: "40px 24px 80px" }}>
 
-        {/* WELCOME */}
+        {/* TOOLS TAB */}
         {activeTab === "tools" && (
           <>
             <div style={{ marginBottom: 36 }}>
               <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, color: S.slate, marginBottom: 6 }}>
-                Welcome back{member?.full_name ? ", " + member.full_name.split(" ")[0] : ""}.
+                {"Welcome back" + (member?.full_name ? ", " + member.full_name.split(" ")[0] : "") + "."}
               </h1>
               <p style={{ color: S.muted, fontSize: 15 }}>Your full tool library. New drops every week.</p>
             </div>
@@ -175,7 +175,9 @@ export default function Dashboard({ session }) {
                   <div style={{ width: 44, height: 44, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, background: S.orangeLight }}>{t.icon}</div>
                   <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, lineHeight: 1.3, color: S.slate }}>{t.title}</div>
                   <div style={{ fontSize: 13, color: S.muted, lineHeight: 1.55, flex: 1 }}>{t.desc}</div>
-                  <button style={{ marginTop: 8, padding: "10px 16px", background: S.grad, border: "none", borderRadius: 8, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'Figtree', sans-serif", textAlign: "left" }}>
+                  <button
+                    onClick={() => { window.location.href = "/tools/" + t.slug; }}
+                    style={{ marginTop: 8, padding: "10px 16px", background: S.grad, border: "none", borderRadius: 8, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'Figtree', sans-serif", textAlign: "left" }}>
                     Get this tool →
                   </button>
                 </div>
@@ -226,11 +228,15 @@ export default function Dashboard({ session }) {
               {COURT_CHAPTERS.map(ch => (
                 <div key={ch.num} style={{ background: "#fff", border: "1px solid " + S.rule, borderRadius: 12, padding: "24px 28px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
                   <div>
-                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase", color: S.muted, marginBottom: 4 }}>Chapter {ch.num}</div>
+                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase", color: S.muted, marginBottom: 4 }}>{"Chapter " + ch.num}</div>
                     <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: S.slate }}>{ch.title}</div>
                   </div>
                   {ch.available || isAnnual ? (
-                    <button style={{ padding: "10px 20px", background: S.orange, border: "none", borderRadius: 8, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'Figtree', sans-serif", whiteSpace: "nowrap" }}>Read →</button>
+                    <button
+                      onClick={() => { window.location.href = "/court/chapter-" + ch.num; }}
+                      style={{ padding: "10px 20px", background: S.orange, border: "none", borderRadius: 8, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'Figtree', sans-serif", whiteSpace: "nowrap" }}>
+                      Read →
+                    </button>
                   ) : (
                     <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: S.muted, letterSpacing: "0.08em", whiteSpace: "nowrap" }}>Unlocks next month</div>
                   )}
