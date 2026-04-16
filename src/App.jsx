@@ -7,9 +7,15 @@ import Dashboard from "./pages/Dashboard";
 export default function App() {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isPasswordReset, setIsPasswordReset] = useState(false);
   const path = window.location.pathname;
 
   useEffect(() => {
+    const hash = window.location.hash;
+    if (hash.includes("type=recovery")) {
+      setIsPasswordReset(true);
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setLoading(false);
@@ -26,6 +32,7 @@ export default function App() {
     </div>
   );
 
+  if (isPasswordReset) return <Login session={session} forceReset={true} />;
   if (path === "/login") return <Login session={session} />;
   if (path === "/dashboard") {
     if (!session) { window.location.href = "/login"; return null; }

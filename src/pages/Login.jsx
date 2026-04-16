@@ -13,13 +13,63 @@ const S = {
   border: "#e8cfc0",
 };
 
-export default function Login({ session }) {
+export default function Login({ session, forceReset = false }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState("login");
   const [resetSent, setResetSent] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [passwordUpdated, setPasswordUpdated] = useState(false);
+
+  const handleNewPassword = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    const { error: err } = await supabase.auth.updateUser({ password: newPassword });
+    if (err) setError(err.message);
+    else setPasswordUpdated(true);
+    setLoading(false);
+  };
+
+  if (forceReset) {
+    return (
+      <div style={{ minHeight: "100vh", background: S.paper, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Figtree', sans-serif", padding: 20 }}>
+        <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <div style={{ width: "100%", maxWidth: 420 }}>
+          <div style={{ textAlign: "center", marginBottom: 32 }}>
+            <a href="/" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 28, color: S.ink, textDecoration: "none" }}>
+              CARES <span style={{ color: S.orange }}>Works.</span>
+            </a>
+          </div>
+          <div style={{ background: "#fff", border: "1px solid " + S.rule, borderRadius: 16, padding: "36px 32px" }}>
+            {passwordUpdated ? (
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: S.slate, marginBottom: 12 }}>Password updated.</div>
+                <p style={{ fontSize: 14, color: S.muted, marginBottom: 24 }}>You can now log in with your new password.</p>
+                <a href="/login" style={{ display: "inline-block", background: S.orange, color: "#fff", fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", padding: "12px 28px", borderRadius: 6, textDecoration: "none" }}>Go to Login →</a>
+              </div>
+            ) : (
+              <form onSubmit={handleNewPassword}>
+                <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: S.slate, marginBottom: 6 }}>Set a new password</div>
+                <p style={{ fontSize: 13, color: S.muted, marginBottom: 24 }}>Choose something you'll remember.</p>
+                {error && <div style={{ background: "#fff8f0", border: "1px solid " + S.border, borderRadius: 8, padding: "10px 14px", color: S.orange, fontSize: 13, marginBottom: 20 }}>{error}</div>}
+                <label style={{ display: "block", color: S.muted, fontSize: 11, textTransform: "uppercase", letterSpacing: 1, marginBottom: 6, fontFamily: "'DM Mono', monospace" }}>New Password</label>
+                <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} required minLength={8}
+                  style={{ width: "100%", padding: "12px 16px", background: S.paper, border: "1px solid " + S.rule, borderRadius: 8, color: S.ink, fontSize: 15, fontFamily: "'Figtree', sans-serif", outline: "none", boxSizing: "border-box", marginBottom: 24 }}
+                  placeholder="Minimum 8 characters" />
+                <button type="submit" disabled={loading}
+                  style={{ width: "100%", padding: 14, background: loading ? S.rule : S.orange, border: "none", borderRadius: 8, color: loading ? S.muted : "#fff", fontSize: 14, fontWeight: 700, cursor: loading ? "default" : "pointer", fontFamily: "'Figtree', sans-serif" }}>
+                  {loading ? "Updating..." : "Update Password →"}
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (session) { window.location.href = "/dashboard"; return null; }
 
