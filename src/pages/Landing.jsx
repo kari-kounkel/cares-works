@@ -125,22 +125,22 @@ export default function Landing({ session }) {
             .scroller-track { display: flex; width: max-content; animation: scroll-left 60s linear infinite; }
             .scroller-track:hover { animation-play-state: paused; }
           `}</style>
-          <div style={{ display: "flex", alignItems: "center", height: 40 }}>
-            <div style={{ background: S.orange, height: "100%", display: "flex", alignItems: "center", padding: "0 16px", flexShrink: 0, zIndex: 2 }}>
-              <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.18em", textTransform: "uppercase", color: "#fff", fontWeight: 700, whiteSpace: "nowrap" }}>New in the library</span>
-            </div>
-            <div style={{ overflow: "hidden", flex: 1 }}>
+          <div style={{ overflow: "hidden", height: 40 }}>
               <div className="scroller-track">
                 {[...newTools, ...newTools].map((t, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 32px", borderRight: "1px solid rgba(255,255,255,0.1)", height: 40, flexShrink: 0 }}>
-                    <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase", background: t.is_free ? S.orangeLight : "rgba(255,255,255,0.1)", color: t.is_free ? S.orange : "rgba(255,255,255,0.5)", padding: "2px 8px", borderRadius: 100, fontWeight: 700, whiteSpace: "nowrap" }}>
-                      {t.is_free ? "Free" : "Members"}
-                    </span>
-                    <span style={{ fontFamily: "'Figtree', sans-serif", fontSize: 13, color: "rgba(255,255,255,0.8)", whiteSpace: "nowrap" }}>{t.title}</span>
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, height: 40, flexShrink: 0 }}>
+                    <div style={{ background: S.orange, height: "100%", display: "flex", alignItems: "center", padding: "0 20px" }}>
+                      <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.18em", textTransform: "uppercase", color: "#fff", fontWeight: 700, whiteSpace: "nowrap" }}>New in the library</span>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 28px 0 20px", borderRight: "1px solid rgba(255,255,255,0.1)", height: "100%" }}>
+                      <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase", background: t.is_free ? S.orangeLight : "rgba(255,255,255,0.1)", color: t.is_free ? S.orange : "rgba(255,255,255,0.5)", padding: "2px 8px", borderRadius: 100, fontWeight: 700, whiteSpace: "nowrap" }}>
+                        {t.is_free ? "Free" : "Members"}
+                      </span>
+                      <span style={{ fontFamily: "'Figtree', sans-serif", fontSize: 13, color: "rgba(255,255,255,0.8)", whiteSpace: "nowrap" }}>{t.title}</span>
+                    </div>
                   </div>
                 ))}
               </div>
-            </div>
           </div>
         </div>
       )}
