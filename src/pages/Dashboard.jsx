@@ -18,6 +18,8 @@ const S = {
 const TOOLS = {
   money: [
     { icon: "📊", title: "Net Profit Ratios + What's Your Number", slug: "net-profit-ratios", desc: "The worksheet that shows you what revenue actually needs to be — starting from what you need to take home.", tag: "NEW" },
+    { icon: "✅", title: "The Payroll Checklist Nobody Gave You", slug: "payroll-checklist", desc: "Pay period, quarterly, annual, and 1099 — three checklists in one. Each tracks independently.", tag: "FREE" },
+    { icon: "📥", title: "Stop Drowning in Email Attachments", slug: "email-attachments", desc: "The Python script that pulls every invoice and vendor doc out of your inbox — sorted, named, waiting for you every morning.", tag: "FREE" },
     { icon: "📗", title: "Year-End QuickBooks Triage", slug: "quickbooks-triage", desc: "8 diagnostic zones. Find the fires, name the fires, put out the ones that matter. Full version." },
     { icon: "📈", title: "Chart of Accounts Cheat Sheet", slug: "chart-of-accounts", desc: "The categories you actually need, the ones you don't, and why your P&L is lying to you." },
     { icon: "📥", title: "QuickBooks IIF Import — The Right Way", slug: "iif-import", desc: "Stop manually entering transactions. Build and import IIF files without losing your mind." },
@@ -30,7 +32,8 @@ const TOOLS = {
     { icon: "🤝", title: "Building Your Advisory Team", slug: "advisory-team", desc: "Who you actually need in your corner. CPA, attorney, banker, insurance, mentor. What to ask each one." },
   ],
   communication: [
-    { icon: "✉️", title: "What to Actually Say", slug: "communication-templates", desc: "10 templates for late invoices, scope creep, bad news, after-hours texters, and the client you need to fire." },
+    { icon: "✉️", title: "What to Actually Say", slug: "communication-templates", desc: "10 templates for late invoices, scope creep, bad news, after-hours texters, and the client you need to fire.", tag: "FREE" },
+    { icon: "📋", title: "Client Visit Summary", slug: "client-visit-summary", desc: "Fill it out in the parking lot. Leave it behind. Your client knows what happened and what is next.", tag: "FREE" },
     { icon: "⏱️", title: "Buying Time Scripts", slug: "buying-time-scripts", desc: "Exactly what to say when a client asks something you don't know the answer to. Sound confident while you go figure it out." },
     { icon: "📋", title: "Post-Meeting Debrief One-Pager", slug: "post-meeting-debrief", desc: "Fill it out in the parking lot, send it before you get home. Never forget what you committed to again." },
   ],
@@ -49,9 +52,10 @@ const DEBRIEF_PLACEHOLDER = {
 };
 
 const COURT_CHAPTERS = [
-  { num: 1, title: "The Kingdom of Eggerton", available: true },
-  { num: 2, title: "Lady Delia and the Court", available: false },
-  { num: 3, title: "The Record Keepers", available: false },
+  { slug: "prologue", label: "Prologue", title: "The Kingdom of Eggerton", available: true, hasAudio: true },
+  { slug: "chapter-1", label: "Chapter 1", title: "The Kingdom of Eggerton", available: true },
+  { slug: "chapter-2", label: "Chapter 2", title: "Lady Delia and the Court", available: false },
+  { slug: "chapter-3", label: "Chapter 3", title: "The Record Keepers", available: false },
 ];
 
 export default function Dashboard({ session }) {
@@ -226,14 +230,17 @@ export default function Dashboard({ session }) {
 
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               {COURT_CHAPTERS.map(ch => (
-                <div key={ch.num} style={{ background: "#fff", border: "1px solid " + S.rule, borderRadius: 12, padding: "24px 28px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+                <div key={ch.slug} style={{ background: "#fff", border: "1px solid " + S.rule, borderRadius: 12, padding: "24px 28px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
                   <div>
-                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase", color: S.muted, marginBottom: 4 }}>{"Chapter " + ch.num}</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase", color: S.muted }}>{ch.label}</div>
+                      {ch.hasAudio && <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.1em", textTransform: "uppercase", background: S.orangeLight, color: S.orange, padding: "2px 7px", borderRadius: 100, fontWeight: 700 }}>🎧 Audio</div>}
+                    </div>
                     <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: S.slate }}>{ch.title}</div>
                   </div>
                   {ch.available || isAnnual ? (
                     <button
-                      onClick={() => { window.location.href = "/court/chapter-" + ch.num; }}
+                      onClick={() => { window.location.href = "/court/" + ch.slug; }}
                       style={{ padding: "10px 20px", background: S.orange, border: "none", borderRadius: 8, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'Figtree', sans-serif", whiteSpace: "nowrap" }}>
                       Read →
                     </button>
