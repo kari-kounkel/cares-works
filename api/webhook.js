@@ -12,6 +12,16 @@ const PRICE_PLANS = {
   "price_1TJwROEOQJdY217bxCXVJ6Z6": "annual",
 };
 
+function safeDate(timestamp) {
+  if (!timestamp) return null;
+  try {
+    const d = new Date(timestamp * 1000);
+    return isNaN(d.getTime()) ? null : d.toISOString();
+  } catch {
+    return null;
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
@@ -43,10 +53,17 @@ export default async function handler(req, res) {
 
     if (!email) return res.status(400).send("No email in session");
 
-    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-    const priceId = subscription.items.data[0]?.price?.id;
-    const plan = PRICE_PLANS[priceId] || "monthly";
-    const periodEnd = new Date(subscription.current_period_end * 1000).toISOString();
+    let plan = "monthly";
+    let periodEnd = null;
+
+    try {
+      const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+      const priceId = subscription.items.data[0]?.price?.id;
+      plan = PRICE_PLANS[priceId] || "monthly";
+      periodEnd = safeDate(subscription.current_period_end);
+    } catch (err) {
+      console.error("Subscription retrieve error:", err.message);
+    }
 
     const { error } = await supabase.from("members").upsert(
       {
@@ -64,7 +81,7 @@ export default async function handler(req, res) {
 
     if (error) {
       console.error("Supabase error:", error);
-      return res.status(500).send("Database error");
+      return res.status(500).send("Database error: " + error.message);
     }
   }
 
@@ -78,7 +95,7 @@ export default async function handler(req, res) {
 
   if (event.type === "customer.subscription.updated") {
     const subscription = event.data.object;
-    const periodEnd = new Date(subscription.current_period_end * 1000).toISOString();
+    const periodEnd = safeDate(subscription.current_period_end);
     await supabase
       .from("members")
       .update({
