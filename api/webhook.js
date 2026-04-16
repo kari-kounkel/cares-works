@@ -17,10 +17,17 @@ export default async function handler(req, res) {
 
   const sig = req.headers["stripe-signature"];
   let event;
+  let rawBody = "";
+
+  await new Promise((resolve, reject) => {
+    req.on("data", (chunk) => { rawBody += chunk.toString(); });
+    req.on("end", resolve);
+    req.on("error", reject);
+  });
 
   try {
     event = stripe.webhooks.constructEvent(
-      req.body,
+      rawBody,
       sig,
       process.env.STRIPE_WEBHOOK_SECRET
     );
@@ -63,29 +70,23 @@ export default async function handler(req, res) {
 
   if (event.type === "customer.subscription.deleted") {
     const subscription = event.data.object;
-    const customerId = subscription.customer;
-
     await supabase
       .from("members")
       .update({ status: "cancelled" })
-      .eq("stripe_customer_id", customerId);
+      .eq("stripe_customer_id", subscription.customer);
   }
 
   if (event.type === "customer.subscription.updated") {
     const subscription = event.data.object;
-    const customerId = subscription.customer;
     const periodEnd = new Date(subscription.current_period_end * 1000).toISOString();
-    const cancelAtPeriodEnd = subscription.cancel_at_period_end;
-    const status = subscription.status === "active" ? "active" : subscription.status;
-
     await supabase
       .from("members")
       .update({
-        status,
+        status: subscription.status === "active" ? "active" : subscription.status,
         current_period_end: periodEnd,
-        cancel_at_period_end: cancelAtPeriodEnd,
+        cancel_at_period_end: subscription.cancel_at_period_end,
       })
-      .eq("stripe_customer_id", customerId);
+      .eq("stripe_customer_id", subscription.customer);
   }
 
   res.status(200).json({ received: true });
