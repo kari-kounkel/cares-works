@@ -63,6 +63,10 @@ export default function Dashboard({ session }) {
   useEffect(() => {
     const fetchMember = async () => {
       const { data } = await supabase.from("members").select("*").eq("email", session.user.email).single();
+      if (!data) {
+        window.location.href = "https://buy.stripe.com/7sY5kD7Nl2HgeLp1Q818c06";
+        return;
+      }
       setMember(data);
       setLoading(false);
     };
