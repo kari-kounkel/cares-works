@@ -1,5 +1,15 @@
+import { navigate } from "../App";
 import { useState } from "react";
 import { supabase } from "../supabaseClient";
+
+
+const MOBILE_LOGIN = `
+  @media (max-width: 640px) {
+    .login-wrap { padding: 16px !important; }
+    .login-card { padding: 24px 20px !important; }
+    .login-logo { font-size: 22px !important; }
+  }
+`;
 
 const S = {
   slate: "#3d4560",
@@ -36,7 +46,8 @@ export default function Login({ session, forceReset = false }) {
   if (forceReset) {
     return (
       <div style={{ minHeight: "100vh", background: S.paper, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Figtree', sans-serif", padding: 20 }}>
-        <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <style>{MOBILE_LOGIN}</style>
+      <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
         <div style={{ width: "100%", maxWidth: 420 }}>
           <div style={{ textAlign: "center", marginBottom: 32 }}>
             <a href="/" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 28, color: S.ink, textDecoration: "none" }}>
@@ -71,7 +82,7 @@ export default function Login({ session, forceReset = false }) {
     );
   }
 
-  if (session) { window.location.href = "/dashboard"; return null; }
+  if (session) { navigate("/dashboard"); return null; }
 
   const handleReset = async (e) => {
     e.preventDefault();
@@ -92,7 +103,7 @@ export default function Login({ session, forceReset = false }) {
     if (mode === "login") {
       const { error: err } = await supabase.auth.signInWithPassword({ email, password });
       if (err) setError(err.message);
-      else window.location.href = "/dashboard";
+      else navigate("/dashboard");
     } else {
       const { error: err } = await supabase.auth.signUp({ email, password });
       if (err) setError(err.message);

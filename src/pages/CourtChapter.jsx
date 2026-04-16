@@ -1,3 +1,4 @@
+import { navigate } from "../App";
 import { useState, useRef, useEffect } from "react";
 
 const S = {
@@ -13,6 +14,18 @@ const S = {
   gold: "#C9A84C",
   grad: "linear-gradient(135deg, #e8773a, #c95f22)",
 };
+
+const MOBILE_COURT = `
+  @media (max-width: 640px) {
+    .court-header { padding: 0 16px !important; }
+    .court-page { padding: 28px 16px 60px !important; }
+    .court-h1 { font-size: 26px !important; }
+    .court-audio { padding: 18px 16px !important; }
+    .court-pdf { height: 55vh !important; }
+    .court-player-row { gap: 12px !important; }
+  }
+`;
+
 
 const SUFFIX = " from COURT OF ACCOUNTS A Tale of Ledgers Loyalty and Fancy Chickens";
 
@@ -213,7 +226,7 @@ export default function CourtChapter({ slug }) {
         <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
         <div style={{ textAlign: "center" }}>
           <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 28, color: S.slate, marginBottom: 12 }}>Chapter not found.</div>
-          <a href="/dashboard" style={{ color: S.orange, fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.1em" }}>← Back to dashboard</a>
+          <a onClick={(e) => { e.preventDefault(); navigate("/dashboard"); }} href="/dashboard" style={{ color: S.orange, fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.1em" }}>← Back to dashboard</a>
         </div>
       </div>
     );
@@ -221,19 +234,20 @@ export default function CourtChapter({ slug }) {
 
   return (
     <div style={{ minHeight: "100vh", background: S.paper, fontFamily: "'Figtree', sans-serif", color: S.ink }}>
+      <style>{MOBILE_COURT}</style>
       <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
       {/* HEADER */}
-      <header style={{ background: S.slate, padding: "0 32px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 58, boxShadow: "0 2px 12px rgba(0,0,0,0.15)", position: "sticky", top: 0, zIndex: 100 }}>
+      <header className="court-header" style={{ background: S.slate, padding: "0 32px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 58, boxShadow: "0 2px 12px rgba(0,0,0,0.15)", position: "sticky", top: 0, zIndex: 100 }}>
         <a href="/" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: "#fff", textDecoration: "none" }}>
           CARES <span style={{ color: S.orange }}>Works.</span>
         </a>
-        <a href="/dashboard" style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "rgba(255,255,255,0.6)", letterSpacing: "0.08em", textDecoration: "none" }}>
+        <a onClick={(e) => { e.preventDefault(); navigate("/dashboard"); }} href="/dashboard" style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "rgba(255,255,255,0.6)", letterSpacing: "0.08em", textDecoration: "none" }}>
           ← Back to dashboard
         </a>
       </header>
 
-      <div style={{ maxWidth: 860, margin: "0 auto", padding: "48px 24px 80px" }}>
+      <div className="court-page" style={{ maxWidth: 860, margin: "0 auto", padding: "48px 24px 80px" }}>
 
         {/* CHAPTER LABEL + TITLE */}
         <div style={{ marginBottom: 32 }}>
@@ -255,7 +269,7 @@ export default function CourtChapter({ slug }) {
         <div style={{ background: "#fff", border: "1px solid " + S.rule, borderRadius: 12, overflow: "hidden", boxShadow: "0 2px 16px rgba(0,0,0,0.06)" }}>
           <iframe
             src={chapter.pdf + "#toolbar=0&navpanes=0&scrollbar=1"}
-            style={{ width: "100%", height: "82vh", border: "none", display: "block" }}
+            className="court-pdf" style={{ width: "100%", height: "82vh", border: "none", display: "block" }}
             title={chapter.label}
           />
         </div>

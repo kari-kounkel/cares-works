@@ -1,3 +1,4 @@
+import { navigate } from "../App";
 import { useState } from "react";
 
 const S = {
@@ -6,6 +7,18 @@ const S = {
   rule: "#ddd8cc", muted: "#7a7585", gold: "#C9A84C",
   grad: "linear-gradient(135deg, #e8773a, #c95f22)",
 };
+
+const MOBILE_TOOL = `
+  @media (max-width: 640px) {
+    .tool-header { padding: 0 16px !important; }
+    .tool-page { padding: 28px 16px 60px !important; }
+    .tool-h1 { font-size: 26px !important; }
+    .tool-cta { padding: 24px 20px !important; }
+    .tool-cta h3 { font-size: 20px !important; }
+    .tool-section { padding: 20px 16px !important; }
+  }
+`;
+
 
 const inp = (extra = {}) => ({
   width: "100%", padding: "10px 14px", background: "#fff",
@@ -103,6 +116,7 @@ export default function ClientVisitSummary() {
 
   return (
     <div style={{ minHeight: "100vh", background: S.paper, fontFamily: "'Figtree', sans-serif", color: S.ink }}>
+      <style>{MOBILE_TOOL}</style>
       <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
       <style>{`@media print { .no-print { display: none !important; } header { display: none !important; } body { background: #fff; } .print-summary { page-break-inside: avoid; } }`}</style>
 
@@ -110,11 +124,11 @@ export default function ClientVisitSummary() {
         <a href="/" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: "#fff", textDecoration: "none" }}>CARES <span style={{ color: S.orange }}>Works.</span></a>
         <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
           <button onClick={() => window.print()} style={{ padding: "6px 16px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.25)", background: "transparent", color: "#fff", fontSize: 11, cursor: "pointer", fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>Print / Save PDF</button>
-          <a href="/dashboard" style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "rgba(255,255,255,0.6)", letterSpacing: "0.08em", textDecoration: "none" }}>{"<- Dashboard"}</a>
+          <a onClick={(e) => { e.preventDefault(); navigate("/dashboard"); }} href="/dashboard" style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "rgba(255,255,255,0.6)", letterSpacing: "0.08em", textDecoration: "none" }}>{"<- Dashboard"}</a>
         </div>
       </header>
 
-      <div style={{ maxWidth: 800, margin: "0 auto", padding: "48px 24px 80px" }}>
+      <div className="tool-page" style={{ maxWidth: 800, margin: "0 auto", padding: "48px 24px 80px" }}>
 
         <div className="no-print" style={{ marginBottom: 40 }}>
           <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase", color: S.orange, marginBottom: 10 }}>Free Tool — Client Management</div>

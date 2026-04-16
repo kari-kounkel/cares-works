@@ -1,5 +1,23 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
+import { navigate } from "../App";
+
+const MOBILE_DASH = `
+  @media (max-width: 640px) {
+    .dash-header { padding: 0 16px !important; height: auto !important; min-height: 58px; flex-wrap: wrap; gap: 8px; padding-top: 10px !important; padding-bottom: 10px !important; }
+    .dash-header-tabs { gap: 1px !important; }
+    .dash-header-tabs button { padding: 5px 8px !important; font-size: 10px !important; }
+    .dash-header-right { gap: 8px !important; }
+    .dash-page { padding: 24px 16px 60px !important; }
+    .dash-h1 { font-size: 24px !important; }
+    .dash-cat-tabs { gap: 6px !important; }
+    .dash-cat-tabs button { padding: 6px 14px !important; font-size: 12px !important; }
+    .dash-tools-grid { grid-template-columns: 1fr !important; }
+    .dash-account-row { flex-direction: column !important; gap: 16px !important; }
+    .dash-upgrade { flex-direction: column !important; }
+    .dash-membership-block { padding: 28px 20px !important; }
+  }
+`;
 
 const S = {
   slate: "#3d4560",
@@ -53,7 +71,7 @@ const DEBRIEF_PLACEHOLDER = {
 
 const COURT_CHAPTERS = [
   { slug: "prologue", label: "Prologue", title: "The Kingdom of Eggerton", available: true, hasAudio: true },
-  { slug: "chapter-1", label: "Chapter 1", title: "The Kingdom of Eggerton", available: true },
+  { slug: "chapter-1", label: "Chapter 1", title: "The Kingdom of Eggerton", available: false },
   { slug: "chapter-2", label: "Chapter 2", title: "Lady Delia and the Court", available: false },
   { slug: "chapter-3", label: "Chapter 3", title: "The Record Keepers", available: false },
 ];
@@ -123,15 +141,16 @@ export default function Dashboard({ session }) {
 
   return (
     <div style={{ minHeight: "100vh", background: S.paper, fontFamily: "'Figtree', sans-serif", color: S.ink }}>
+      <style>{MOBILE_DASH}</style>
       <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
       {/* HEADER */}
-      <header style={{ background: S.slate, padding: "0 32px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 58, boxShadow: "0 2px 12px rgba(0,0,0,0.15)", position: "sticky", top: 0, zIndex: 100 }}>
+      <header className="dash-header" style={{ background: S.slate, padding: "0 32px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 58, boxShadow: "0 2px 12px rgba(0,0,0,0.15)", position: "sticky", top: 0, zIndex: 100 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
           <a href="/" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: "#fff", textDecoration: "none" }}>
             CARES <span style={{ color: S.orange }}>Works.</span>
           </a>
-          <div style={{ display: "flex", gap: 2, background: "rgba(0,0,0,0.2)", borderRadius: 8, padding: 3 }}>
+          <div className="dash-header-tabs" style={{ display: "flex", gap: 2, background: "rgba(0,0,0,0.2)", borderRadius: 8, padding: 3 }}>
             {tabs.map(t => (
               <button key={t} onClick={() => setActiveTab(t)}
                 style={{ padding: "5px 14px", borderRadius: 6, border: "none", background: activeTab === t ? "#fff" : "transparent", color: activeTab === t ? S.slate : "rgba(255,255,255,0.7)", fontSize: 12, fontWeight: activeTab === t ? 700 : 400, cursor: "pointer", fontFamily: "'Figtree', sans-serif", transition: "all 0.15s", whiteSpace: "nowrap" }}>
@@ -140,7 +159,7 @@ export default function Dashboard({ session }) {
             ))}
           </div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+        <div className="dash-header-right" style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", background: isAnnual ? "linear-gradient(135deg,#C9A84C,#e0c060)" : S.orange, color: isAnnual ? S.ink : "#fff", padding: "4px 10px", borderRadius: 100, fontWeight: 700 }}>
             {isAnnual ? "Annual" : "Monthly"}
           </div>
@@ -149,7 +168,7 @@ export default function Dashboard({ session }) {
         </div>
       </header>
 
-      <div style={{ maxWidth: 1000, margin: "0 auto", padding: "40px 24px 80px" }}>
+      <div className="dash-page" style={{ maxWidth: 1000, margin: "0 auto", padding: "40px 24px 80px" }}>
 
         {/* TOOLS TAB */}
         {activeTab === "tools" && (
@@ -180,7 +199,7 @@ export default function Dashboard({ session }) {
                   <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, lineHeight: 1.3, color: S.slate }}>{t.title}</div>
                   <div style={{ fontSize: 13, color: S.muted, lineHeight: 1.55, flex: 1 }}>{t.desc}</div>
                   <button
-                    onClick={() => { window.location.href = "/tools/" + t.slug; }}
+                    onClick={() => { navigate("/tools/" + t.slug); }}
                     style={{ marginTop: 8, padding: "10px 16px", background: S.grad, border: "none", borderRadius: 8, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'Figtree', sans-serif", textAlign: "left" }}>
                     Get this tool →
                   </button>
@@ -240,7 +259,7 @@ export default function Dashboard({ session }) {
                   </div>
                   {ch.available || isAnnual ? (
                     <button
-                      onClick={() => { window.location.href = "/court/" + ch.slug; }}
+                      onClick={() => { navigate("/court/" + ch.slug); }}
                       style={{ padding: "10px 20px", background: S.orange, border: "none", borderRadius: 8, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'Figtree', sans-serif", whiteSpace: "nowrap" }}>
                       Read →
                     </button>
