@@ -19,8 +19,21 @@ export default function Login({ session }) {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState("login");
+  const [resetSent, setResetSent] = useState(false);
 
   if (session) { window.location.href = "/dashboard"; return null; }
+
+  const handleReset = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: "https://tools.caresmn.com/login?mode=reset",
+    });
+    if (err) setError(err.message);
+    else setResetSent(true);
+    setLoading(false);
+  };
 
   const handle = async (e) => {
     e.preventDefault();
@@ -51,9 +64,9 @@ export default function Login({ session }) {
 
         <div style={{ background: "#fff", border: "1px solid " + S.rule, borderRadius: 16, padding: "36px 32px", boxShadow: "0 8px 32px rgba(0,0,0,0.06)" }}>
           <div style={{ display: "flex", gap: 4, background: S.paper, borderRadius: 8, padding: 4, marginBottom: 28 }}>
-            {["login", "signup"].map(m => (
+            {["login", "signup", "reset"].map(m => (
               <button key={m} onClick={() => setMode(m)} style={{ flex: 1, padding: "8px 16px", borderRadius: 6, border: "none", background: mode === m ? "#fff" : "transparent", color: mode === m ? S.ink : S.muted, fontSize: 13, fontWeight: mode === m ? 700 : 400, cursor: "pointer", fontFamily: "'Figtree', sans-serif", boxShadow: mode === m ? "0 1px 4px rgba(0,0,0,0.08)" : "none", transition: "all 0.15s" }}>
-                {m === "login" ? "Log In" : "Sign Up"}
+                {m === "login" ? "Log In" : m === "signup" ? "Sign Up" : "Reset"}
               </button>
             ))}
           </div>
@@ -62,7 +75,26 @@ export default function Login({ session }) {
             <div style={{ background: "#fff8f0", border: "1px solid " + S.border, borderRadius: 8, padding: "10px 14px", color: S.orange, fontSize: 13, marginBottom: 20 }}>{error}</div>
           )}
 
-          <form onSubmit={handle}>
+          {mode === "reset" && resetSent && (
+            <div style={{ background: "#f0f9f4", border: "1px solid #b8e0c8", borderRadius: 8, padding: "14px 16px", color: "#2d6e4e", fontSize: 14, marginBottom: 20, lineHeight: 1.5 }}>
+              Check your email — a password reset link is on its way.
+            </div>
+          )}
+
+          {mode === "reset" && !resetSent && (
+            <form onSubmit={handleReset}>
+              <label style={{ display: "block", color: S.muted, fontSize: 11, textTransform: "uppercase", letterSpacing: 1, marginBottom: 6, fontFamily: "'DM Mono', monospace" }}>Email</label>
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} required
+                style={{ width: "100%", padding: "12px 16px", background: S.paper, border: "1px solid " + S.rule, borderRadius: 8, color: S.ink, fontSize: 15, fontFamily: "'Figtree', sans-serif", outline: "none", boxSizing: "border-box", marginBottom: 20 }}
+                placeholder="you@email.com" />
+              <button type="submit" disabled={loading}
+                style={{ width: "100%", padding: 14, background: loading ? S.rule : S.orange, border: "none", borderRadius: 8, color: loading ? S.muted : "#fff", fontSize: 14, fontWeight: 700, cursor: loading ? "default" : "pointer", fontFamily: "'Figtree', sans-serif" }}>
+                {loading ? "Sending..." : "Send Reset Link →"}
+              </button>
+            </form>
+          )}
+
+          {mode !== "reset" && <form onSubmit={handle}>
             <label style={{ display: "block", color: S.muted, fontSize: 11, textTransform: "uppercase", letterSpacing: 1, marginBottom: 6, fontFamily: "'DM Mono', monospace" }}>Email</label>
             <input type="email" value={email} onChange={e => setEmail(e.target.value)} required autoComplete="email"
               style={{ width: "100%", padding: "12px 16px", background: S.paper, border: "1px solid " + S.rule, borderRadius: 8, color: S.ink, fontSize: 15, fontFamily: "'Figtree', sans-serif", outline: "none", boxSizing: "border-box", marginBottom: 16 }}
@@ -75,7 +107,7 @@ export default function Login({ session }) {
               style={{ width: "100%", padding: 14, background: loading ? S.rule : S.orange, border: "none", borderRadius: 8, color: loading ? S.muted : "#fff", fontSize: 14, fontWeight: 700, cursor: loading ? "default" : "pointer", fontFamily: "'Figtree', sans-serif", transition: "all 0.2s" }}>
               {loading ? "One moment..." : mode === "login" ? "Log In →" : "Create Account →"}
             </button>
-          </form>
+          </form>}
         </div>
 
         <div style={{ textAlign: "center", marginTop: 20 }}>
