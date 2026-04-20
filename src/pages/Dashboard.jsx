@@ -134,8 +134,8 @@ export default function Dashboard({ session }) {
   const plan = member?.plan || "monthly";
   const isAnnual = plan === "annual";
 
-  const tabs = ["tools", "debrief", "court", "account"];
-  const tabLabels = { tools: "Tool Library", debrief: "The Debrief", court: "Court of Accounts", account: "Account" };
+  const tabs = ["tools", "debrief", "court", "shop", "account"];
+  const tabLabels = { tools: "Tool Library", debrief: "The Debrief", court: "Court of Accounts", shop: "Shop", account: "Account" };
   const categories = Object.keys(TOOLS);
   const catLabels = { money: "Money", people: "People", communication: "Communication", leadership: "Leadership" };
 
@@ -304,6 +304,50 @@ export default function Dashboard({ session }) {
           </div>
         )}
 
+        {/* SHOP */}
+        {activeTab === "shop" && (
+          <div>
+            <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, color: S.slate, marginBottom: 6 }}>Shop</h1>
+            <p style={{ color: S.muted, fontSize: 15, marginBottom: 8 }}>Bundles — the tools grouped the way you actually need them. One-time purchase, yours forever.</p>
+            {isAnnual && <div style={{ display: "inline-block", background: "linear-gradient(135deg,#C9A84C,#e0c060)", color: S.ink, fontFamily: "'DM Mono', monospace", fontSize: 11, fontWeight: 700, padding: "4px 12px", borderRadius: 100, marginBottom: 32, letterSpacing: "0.08em" }}>🏷️ Annual members save $20 on every bundle</div>}
+            {!isAnnual && <p style={{ fontSize: 13, color: S.muted, fontFamily: "'DM Mono', monospace", marginBottom: 32, letterSpacing: "0.05em" }}>Annual members get $20 off every bundle.</p>}
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 20 }}>
+              <div style={{ background: "#fff", border: "1px solid " + S.rule, borderRadius: 12, padding: "24px", display: "flex", flexDirection: "column", gap: 10, opacity: 0.9 }}>
+                <div style={{ width: 48, height: 48, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, background: S.orangeLight }}>💼</div>
+                <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 19, lineHeight: 1.25, color: S.slate }}>The Bookkeeping Starter Kit</div>
+                <div style={{ fontSize: 13, color: S.muted, lineHeight: 1.55, flex: 1 }}>Chart of Accounts template. IIF import files. Monthly close checklist. QuickBooks setup guide. Everything you need to start keeping books that make sense.</div>
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "#9a7820", marginTop: 8, fontWeight: 700 }}>🔨 Coming soon</div>
+              </div>
+
+              <div style={{ background: "#fff", border: "1px solid " + S.rule, borderRadius: 12, padding: "24px", display: "flex", flexDirection: "column", gap: 10, opacity: 0.9 }}>
+                <div style={{ width: 48, height: 48, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, background: S.orangeLight }}>👥</div>
+                <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 19, lineHeight: 1.25, color: S.slate }}>The HR Starter Kit</div>
+                <div style={{ fontSize: 13, color: S.muted, lineHeight: 1.55, flex: 1 }}>Offer letter templates. Employee handbook starter. New hire 30-day sequence. Separation scripts. Progressive discipline docs. HR without the HR team.</div>
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "#9a7820", marginTop: 8, fontWeight: 700 }}>🔨 Coming soon</div>
+              </div>
+
+              <div style={{ background: "#fff", border: "1px solid " + S.rule, borderRadius: 12, padding: "24px", display: "flex", flexDirection: "column", gap: 10, opacity: 0.9 }}>
+                <div style={{ width: 48, height: 48, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, background: S.orangeLight }}>📊</div>
+                <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 19, lineHeight: 1.25, color: S.slate }}>The Founder's Operating System</div>
+                <div style={{ fontSize: 13, color: S.muted, lineHeight: 1.55, flex: 1 }}>Busyness audit. Net profit ratios. Pricing framework. Advisory team builder. Meeting planner. The thinking tools that separate busy from profitable.</div>
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "#9a7820", marginTop: 8, fontWeight: 700 }}>🔨 Coming soon</div>
+              </div>
+
+              <div style={{ background: "#fff", border: "1px solid " + S.rule, borderRadius: 12, padding: "24px", display: "flex", flexDirection: "column", gap: 10, opacity: 0.9 }}>
+                <div style={{ width: 48, height: 48, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, background: S.orangeLight }}>💰</div>
+                <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 19, lineHeight: 1.25, color: S.slate }}>The Year-End Panic Button</div>
+                <div style={{ fontSize: 13, color: S.muted, lineHeight: 1.55, flex: 1 }}>Everything you need in December: 1099 prep, W-2 checklist, QuickBooks cleanup protocol, CPA handoff packet. For when it's suddenly January.</div>
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "#9a7820", marginTop: 8, fontWeight: 700 }}>🔨 Coming soon</div>
+              </div>
+            </div>
+
+            <div style={{ marginTop: 40, background: S.cream, border: "1px solid " + S.rule, borderRadius: 10, padding: "20px 24px", fontSize: 13, color: S.muted, lineHeight: 1.6, fontFamily: "'DM Serif Display', serif", fontStyle: "italic" }}>
+              Bundles are coming. Each one is the curated answer to a specific question — "what do I actually need to start bookkeeping," "how do I hire someone without getting sued," "how do I survive year-end." Built once, yours forever.
+            </div>
+          </div>
+        )}
+
         {/* ACCOUNT */}
         {activeTab === "account" && (
           <div>
@@ -348,6 +392,30 @@ export default function Dashboard({ session }) {
                     <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 16, color: S.slate, lineHeight: 1.3 }}>Early Access</div>
                     <div style={{ fontSize: 13, color: S.muted, lineHeight: 1.5 }}>New tools land for you 7 days before monthly members.</div>
                     <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: S.muted, letterSpacing: "0.08em", marginTop: 4 }}>Always on</div>
+                  </div>
+                  <div style={{ background: "#fff", border: "1px solid " + S.rule, borderRadius: 10, padding: "18px 20px", display: "flex", flexDirection: "column", gap: 8, opacity: 0.85 }}>
+                    <div style={{ fontSize: 22 }}>🎧</div>
+                    <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 16, color: S.slate, lineHeight: 1.3 }}>Court of Accounts Audiobook</div>
+                    <div style={{ fontSize: 13, color: S.muted, lineHeight: 1.5 }}>Every chapter, read aloud. Download or stream.</div>
+                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "#9a7820", marginTop: 4, fontWeight: 700 }}>🔨 Coming soon</div>
+                  </div>
+                  <div style={{ background: "#fff", border: "1px solid " + S.rule, borderRadius: 10, padding: "18px 20px", display: "flex", flexDirection: "column", gap: 8, opacity: 0.85 }}>
+                    <div style={{ fontSize: 22 }}>📋</div>
+                    <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 16, color: S.slate, lineHeight: 1.3 }}>Printable One-Pagers</div>
+                    <div style={{ fontSize: 13, color: S.muted, lineHeight: 1.5 }}>Every checklist as a PDF. Print, laminate, tape to the wall.</div>
+                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "#9a7820", marginTop: 4, fontWeight: 700 }}>🔨 Coming soon</div>
+                  </div>
+                  <div style={{ background: "#fff", border: "1px solid " + S.rule, borderRadius: 10, padding: "18px 20px", display: "flex", flexDirection: "column", gap: 8, opacity: 0.85 }}>
+                    <div style={{ fontSize: 22 }}>🎟️</div>
+                    <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 16, color: S.slate, lineHeight: 1.3 }}>Quarterly Office Hours</div>
+                    <div style={{ fontSize: 13, color: S.muted, lineHeight: 1.5 }}>Live Q&A with Kari. One hour. Annual members only.</div>
+                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "#9a7820", marginTop: 4, fontWeight: 700 }}>🔨 Coming soon</div>
+                  </div>
+                  <div style={{ background: "#fff", border: "1px solid " + S.rule, borderRadius: 10, padding: "18px 20px", display: "flex", flexDirection: "column", gap: 8, opacity: 0.85 }}>
+                    <div style={{ fontSize: 22 }}>🏷️</div>
+                    <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 16, color: S.slate, lineHeight: 1.3 }}>$20 Off Every Bundle</div>
+                    <div style={{ fontSize: 13, color: S.muted, lineHeight: 1.5 }}>Your annual discount code for any Shop bundle.</div>
+                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "#9a7820", marginTop: 4, fontWeight: 700 }}>🔨 Coming soon</div>
                   </div>
                 </div>
               </div>
