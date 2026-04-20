@@ -257,7 +257,12 @@ export default function Dashboard({ session }) {
                   A business parable set in the Kingdom of Eggerton. One chapter drops per month — a tiny kingdom learns the difference between busy and profitable, the cost of loyalty, and what to do when the chickens get fancy.
                 </p>
                 {isAnnual ? (
-                  <div style={{ display: "inline-block", background: "linear-gradient(135deg,#C9A84C,#e0c060)", color: S.ink, fontFamily: "'DM Mono', monospace", fontSize: 11, fontWeight: 700, padding: "5px 14px", borderRadius: 100, letterSpacing: "0.08em" }}>Annual member — full book unlocked</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10, alignItems: "flex-start" }}>
+                    <div style={{ display: "inline-block", background: "linear-gradient(135deg,#C9A84C,#e0c060)", color: S.ink, fontFamily: "'DM Mono', monospace", fontSize: 11, fontWeight: 700, padding: "5px 14px", borderRadius: 100, letterSpacing: "0.08em" }}>Annual member — full book unlocked</div>
+                    <a href="/court-of-accounts.pdf" download style={{ display: "inline-flex", alignItems: "center", gap: 8, fontFamily: "'DM Mono', monospace", fontSize: 12, color: S.orange, textDecoration: "none", letterSpacing: "0.08em", fontWeight: 700 }}>
+                      📖 Download full book PDF ↓
+                    </a>
+                  </div>
                 ) : (
                   <div style={{ fontSize: 13, color: S.muted, fontFamily: "'DM Mono', monospace", letterSpacing: "0.05em" }}>Monthly members read one chapter at a time. Annual members get the full book on day one.</div>
                 )}
@@ -271,31 +276,6 @@ export default function Dashboard({ session }) {
                 Enter only if you have a whimsical sense of humor. Numbered accounts, fancy chickens, and a court that takes itself only mostly seriously. Hats encouraged. Hardhats not required.
               </div>
             </div>
-
-            {/* ANNUAL MEMBER EXTRAS — only visible to annual members */}
-            {isAnnual && (
-              <div style={{ background: "linear-gradient(135deg, #fff8e0, #fff)", border: "1.5px solid #e8d080", borderRadius: 14, padding: "28px 32px", marginBottom: 36 }}>
-                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.22em", textTransform: "uppercase", color: "#9a7820", marginBottom: 12, fontWeight: 700 }}>✨ Annual Member Extras</div>
-                <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: S.slate, marginBottom: 18, lineHeight: 1.2 }}>The Vault</h3>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
-                  <a href="/court-of-accounts.pdf" download
-                    style={{ background: "#fff", border: "1px solid " + S.rule, borderRadius: 10, padding: "18px 20px", textDecoration: "none", color: "inherit", display: "flex", flexDirection: "column", gap: 8, transition: "transform 0.15s, box-shadow 0.15s" }}
-                    onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 6px 18px rgba(201,168,76,0.2)"; }}
-                    onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}>
-                    <div style={{ fontSize: 22 }}>📖</div>
-                    <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 16, color: S.slate, lineHeight: 1.3 }}>Court of Accounts — Full Book</div>
-                    <div style={{ fontSize: 13, color: S.muted, lineHeight: 1.5 }}>Download the complete PDF. Yours to keep.</div>
-                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: S.orange, letterSpacing: "0.08em", fontWeight: 700, marginTop: 4 }}>Download PDF ↓</div>
-                  </a>
-                  <div style={{ background: "#fff", border: "1px solid " + S.rule, borderRadius: 10, padding: "18px 20px", display: "flex", flexDirection: "column", gap: 8 }}>
-                    <div style={{ fontSize: 22 }}>🚪</div>
-                    <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 16, color: S.slate, lineHeight: 1.3 }}>Early Access</div>
-                    <div style={{ fontSize: 13, color: S.muted, lineHeight: 1.5 }}>New tools land for you 7 days before monthly members.</div>
-                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: S.muted, letterSpacing: "0.08em", marginTop: 4 }}>Always on</div>
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* CHAPTER LIST */}
             <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: S.slate, marginBottom: 16 }}>Chapters</h3>
@@ -347,6 +327,31 @@ export default function Dashboard({ session }) {
                 </div>
               </div>
             </div>
+
+            {isAnnual && (
+              <div style={{ background: "linear-gradient(135deg, #fff8e0, #fff)", border: "1.5px solid #e8d080", borderRadius: 14, padding: "28px 32px", marginBottom: 20 }}>
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.22em", textTransform: "uppercase", color: "#9a7820", marginBottom: 12, fontWeight: 700 }}>✨ Annual Member Perks</div>
+                <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: S.slate, marginBottom: 6, lineHeight: 1.2 }}>The Vault</h3>
+                <p style={{ fontSize: 14, color: S.muted, marginBottom: 20, lineHeight: 1.5 }}>Everything you get for being here early.</p>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
+                  <a href="/court-of-accounts.pdf" download
+                    style={{ background: "#fff", border: "1px solid " + S.rule, borderRadius: 10, padding: "18px 20px", textDecoration: "none", color: "inherit", display: "flex", flexDirection: "column", gap: 8, transition: "transform 0.15s, box-shadow 0.15s" }}
+                    onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 6px 18px rgba(201,168,76,0.2)"; }}
+                    onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}>
+                    <div style={{ fontSize: 22 }}>📖</div>
+                    <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 16, color: S.slate, lineHeight: 1.3 }}>Court of Accounts — Full Book</div>
+                    <div style={{ fontSize: 13, color: S.muted, lineHeight: 1.5 }}>Download the complete PDF. Yours to keep.</div>
+                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: S.orange, letterSpacing: "0.08em", fontWeight: 700, marginTop: 4 }}>Download PDF ↓</div>
+                  </a>
+                  <div style={{ background: "#fff", border: "1px solid " + S.rule, borderRadius: 10, padding: "18px 20px", display: "flex", flexDirection: "column", gap: 8 }}>
+                    <div style={{ fontSize: 22 }}>🚪</div>
+                    <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 16, color: S.slate, lineHeight: 1.3 }}>Early Access</div>
+                    <div style={{ fontSize: 13, color: S.muted, lineHeight: 1.5 }}>New tools land for you 7 days before monthly members.</div>
+                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: S.muted, letterSpacing: "0.08em", marginTop: 4 }}>Always on</div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {!isAnnual && (
               <div style={{ background: "linear-gradient(135deg, #fff8e0, #fff)", border: "1.5px solid #e8d080", borderRadius: 12, padding: "24px 28px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
