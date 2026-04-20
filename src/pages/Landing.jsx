@@ -3,7 +3,7 @@ import { supabase } from "../supabaseClient";
 import { navigate } from "../App";
 
 const MONTHLY_URL = "https://buy.stripe.com/7sY5kD7Nl2HgeLp1Q818c06";
-const ANNUAL_URL = "https://buy.stripe.com/dRmaEXgjRdlUav91Q818c08";
+const ANNUAL_URL = "https://buy.stripe.com/14A5kD4B981AgTxcuM18c09";
 
 const S = {
   slate: "#3d4560", orange: "#e8773a", orangeDark: "#c95f22",

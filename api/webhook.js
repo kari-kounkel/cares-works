@@ -10,6 +10,7 @@ const supabase = createClient(
 const PRICE_PLANS = {
   "price_1TJwPREOQJdY217bI1nakAtl": "monthly",
   "price_1TJwROEOQJdY217bxCXVJ6Z6": "annual",
+  "price_1TO6PhEOQJdY217bG0GVh53U": "annual",
 };
 
 function safeDate(timestamp) {
@@ -96,14 +97,26 @@ export default async function handler(req, res) {
   if (event.type === "customer.subscription.updated") {
     const subscription = event.data.object;
     const periodEnd = safeDate(subscription.current_period_end);
-    await supabase
+    const priceId = subscription.items.data[0]?.price?.id;
+    const plan = PRICE_PLANS[priceId] || null;
+
+    const updateData = {
+      status: subscription.status === "active" ? "active" : subscription.status,
+      current_period_end: periodEnd,
+      cancel_at_period_end: subscription.cancel_at_period_end,
+    };
+
+    if (plan) updateData.plan = plan;
+
+    const { error } = await supabase
       .from("members")
-      .update({
-        status: subscription.status === "active" ? "active" : subscription.status,
-        current_period_end: periodEnd,
-        cancel_at_period_end: subscription.cancel_at_period_end,
-      })
+      .update(updateData)
       .eq("stripe_customer_id", subscription.customer);
+
+    if (error) {
+      console.error("Supabase update error:", error);
+      return res.status(500).send("Database error: " + error.message);
+    }
   }
 
   res.status(200).json({ received: true });

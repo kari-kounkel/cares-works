@@ -119,7 +119,7 @@ export default function Dashboard({ session }) {
             Join Monthly — $27/mo
           </a>
           <div style={{ marginBottom: 24 }}>
-            <a href="https://buy.stripe.com/dRmaEXgjRdlUav91Q818c08" style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#C9A84C", textDecoration: "none", letterSpacing: "0.08em", fontWeight: 700 }}>
+            <a href="https://buy.stripe.com/14A5kD4B981AgTxcuM18c09" style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#C9A84C", textDecoration: "none", letterSpacing: "0.08em", fontWeight: 700 }}>
               Or join annual — $270/year
             </a>
           </div>
@@ -354,7 +354,7 @@ export default function Dashboard({ session }) {
                   <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: S.slate, marginBottom: 4 }}>Upgrade to Annual</div>
                   <p style={{ fontSize: 14, color: S.muted }}>$270/year — save two months. Get the full Court of Accounts book on day one.</p>
                 </div>
-                <a href="https://buy.stripe.com/dRmaEXgjRdlUav91Q818c08" style={{ padding: "12px 24px", background: "linear-gradient(135deg,#C9A84C,#e0c060)", border: "none", borderRadius: 8, color: S.ink, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'Figtree', sans-serif", textDecoration: "none", whiteSpace: "nowrap" }}>
+                <a href="https://buy.stripe.com/14A5kD4B981AgTxcuM18c09" style={{ padding: "12px 24px", background: "linear-gradient(135deg,#C9A84C,#e0c060)", border: "none", borderRadius: 8, color: S.ink, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'Figtree', sans-serif", textDecoration: "none", whiteSpace: "nowrap" }}>
                   Upgrade →
                 </a>
               </div>

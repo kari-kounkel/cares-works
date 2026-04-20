@@ -220,7 +220,7 @@ export default function EmailAttachmentTutorial() {
             <p style={{ fontSize: 15, color: "rgba(255,255,255,0.7)", marginBottom: 24, maxWidth: 460 }}>New tools added monthly. Monthly Debrief with real answers. Court of Accounts — a business parable that actually teaches something. $27/month.</p>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
               <a href="https://buy.stripe.com/7sY5kD7Nl2HgeLp1Q818c06" style={{ display: "inline-block", background: S.grad, color: "#fff", fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.1em", textTransform: "uppercase", padding: "12px 28px", borderRadius: 8, textDecoration: "none", fontWeight: 700 }}>Join Monthly — $27/mo</a>
-              <a href="https://buy.stripe.com/dRmaEXgjRdlUav91Q818c08" style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: S.gold, textDecoration: "none", letterSpacing: "0.08em", fontWeight: 700 }}>Or annual — $270/year</a>
+              <a href="https://buy.stripe.com/14A5kD4B981AgTxcuM18c09" style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: S.gold, textDecoration: "none", letterSpacing: "0.08em", fontWeight: 700 }}>Or annual — $270/year</a>
             </div>
           </div>
         </div>
