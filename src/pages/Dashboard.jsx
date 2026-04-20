@@ -113,14 +113,14 @@ export default function Dashboard({ session }) {
             You don't have a membership yet.
           </h2>
           <p style={{ fontSize: 15, color: "#7a7585", marginBottom: 32, lineHeight: 1.6 }}>
-            CARES Works is a membership — new tools every week, real answers when you need them. Join to get access to the full library.
+            CARES Works is a membership — new tools added monthly, real answers when you need them. Join to get access to the full library.
           </p>
           <a href="https://buy.stripe.com/7sY5kD7Nl2HgeLp1Q818c06" style={{ display: "inline-block", background: "#e8773a", color: "#fff", fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", padding: "14px 32px", borderRadius: 6, textDecoration: "none", marginBottom: 12 }}>
             Join Monthly — $27/mo
           </a>
           <div style={{ marginBottom: 24 }}>
-            <a href="https://buy.stripe.com/5kQ8wPd7F3Lk6eT3Yg18c07" style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#C9A84C", textDecoration: "none", letterSpacing: "0.08em", fontWeight: 700 }}>
-              Or join annual — $197/year
+            <a href="https://buy.stripe.com/dRmaEXgjRdlUav91Q818c08" style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#C9A84C", textDecoration: "none", letterSpacing: "0.08em", fontWeight: 700 }}>
+              Or join annual — $270/year
             </a>
           </div>
           <button onClick={async () => { await supabase.auth.signOut(); window.location.href = "/"; }} style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#7a7585", background: "none", border: "none", cursor: "pointer", letterSpacing: "0.08em", textDecoration: "underline" }}>
@@ -177,7 +177,7 @@ export default function Dashboard({ session }) {
               <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, color: S.slate, marginBottom: 6 }}>
                 {"Welcome back" + (member?.full_name ? ", " + member.full_name.split(" ")[0] : "") + "."}
               </h1>
-              <p style={{ color: S.muted, fontSize: 15 }}>Your full tool library. New drops every week.</p>
+              <p style={{ color: S.muted, fontSize: 15 }}>Your full tool library. New tools added monthly.</p>
             </div>
 
             {/* CATEGORY TABS */}
@@ -242,11 +242,63 @@ export default function Dashboard({ session }) {
         {/* COURT OF ACCOUNTS */}
         {activeTab === "court" && (
           <div>
-            <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, color: S.slate, marginBottom: 6 }}>Court of Accounts</h1>
-            <p style={{ color: S.muted, fontSize: 15, marginBottom: 8 }}>A business parable set in the Kingdom of Eggerton. One chapter drops per month.</p>
-            {isAnnual && <div style={{ display: "inline-block", background: "linear-gradient(135deg,#C9A84C,#e0c060)", color: S.ink, fontFamily: "'DM Mono', monospace", fontSize: 11, fontWeight: 700, padding: "4px 12px", borderRadius: 100, marginBottom: 32 }}>Annual member — full book available</div>}
-            {!isAnnual && <p style={{ fontSize: 13, color: S.muted, fontFamily: "'DM Mono', monospace", marginBottom: 32 }}>Upgrade to annual to unlock the full book on day one.</p>}
+            {/* HERO with cover image + title */}
+            <div style={{ display: "flex", gap: 32, alignItems: "flex-start", marginBottom: 36, flexWrap: "wrap" }}>
+              <img
+                src="/court-of-accounts-cover.jpg"
+                alt="Court of Accounts — A Tale of Ledgers, Loyalty, and Fancy Chickens"
+                style={{ width: 180, height: "auto", borderRadius: 8, boxShadow: "0 8px 24px rgba(0,0,0,0.15)", flexShrink: 0 }}
+              />
+              <div style={{ flex: 1, minWidth: 240 }}>
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase", color: S.orange, marginBottom: 10 }}>The Serialized Parable</div>
+                <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 34, color: S.slate, marginBottom: 12, lineHeight: 1.15 }}>Court of Accounts</h1>
+                <p style={{ color: S.slate, fontSize: 15, marginBottom: 16, fontStyle: "italic", fontFamily: "'DM Serif Display', serif" }}>A Tale of Ledgers, Loyalty, and Fancy Chickens.</p>
+                <p style={{ color: S.muted, fontSize: 14, marginBottom: 16, lineHeight: 1.6 }}>
+                  A business parable set in the Kingdom of Eggerton. One chapter drops per month — a tiny kingdom learns the difference between busy and profitable, the cost of loyalty, and what to do when the chickens get fancy.
+                </p>
+                {isAnnual ? (
+                  <div style={{ display: "inline-block", background: "linear-gradient(135deg,#C9A84C,#e0c060)", color: S.ink, fontFamily: "'DM Mono', monospace", fontSize: 11, fontWeight: 700, padding: "5px 14px", borderRadius: 100, letterSpacing: "0.08em" }}>Annual member — full book unlocked</div>
+                ) : (
+                  <div style={{ fontSize: 13, color: S.muted, fontFamily: "'DM Mono', monospace", letterSpacing: "0.05em" }}>Monthly members read one chapter at a time. Annual members get the full book on day one.</div>
+                )}
+              </div>
+            </div>
 
+            {/* WHIMSY WARNING BANNER */}
+            <div style={{ background: S.cream, border: "1px dashed " + S.orange, borderRadius: 10, padding: "16px 22px", marginBottom: 36, display: "flex", alignItems: "center", gap: 14 }}>
+              <span style={{ fontSize: 22, flexShrink: 0 }}>⚠️</span>
+              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 15, color: S.slate, fontStyle: "italic", lineHeight: 1.5 }}>
+                Enter only if you have a whimsical sense of humor. Numbered accounts, fancy chickens, and a court that takes itself only mostly seriously. Hats encouraged. Hardhats not required.
+              </div>
+            </div>
+
+            {/* ANNUAL MEMBER EXTRAS — only visible to annual members */}
+            {isAnnual && (
+              <div style={{ background: "linear-gradient(135deg, #fff8e0, #fff)", border: "1.5px solid #e8d080", borderRadius: 14, padding: "28px 32px", marginBottom: 36 }}>
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.22em", textTransform: "uppercase", color: "#9a7820", marginBottom: 12, fontWeight: 700 }}>✨ Annual Member Extras</div>
+                <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: S.slate, marginBottom: 18, lineHeight: 1.2 }}>The Vault</h3>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
+                  <a href="/court-of-accounts.pdf" download
+                    style={{ background: "#fff", border: "1px solid " + S.rule, borderRadius: 10, padding: "18px 20px", textDecoration: "none", color: "inherit", display: "flex", flexDirection: "column", gap: 8, transition: "transform 0.15s, box-shadow 0.15s" }}
+                    onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 6px 18px rgba(201,168,76,0.2)"; }}
+                    onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}>
+                    <div style={{ fontSize: 22 }}>📖</div>
+                    <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 16, color: S.slate, lineHeight: 1.3 }}>Court of Accounts — Full Book</div>
+                    <div style={{ fontSize: 13, color: S.muted, lineHeight: 1.5 }}>Download the complete PDF. Yours to keep.</div>
+                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: S.orange, letterSpacing: "0.08em", fontWeight: 700, marginTop: 4 }}>Download PDF ↓</div>
+                  </a>
+                  <div style={{ background: "#fff", border: "1px solid " + S.rule, borderRadius: 10, padding: "18px 20px", display: "flex", flexDirection: "column", gap: 8 }}>
+                    <div style={{ fontSize: 22 }}>🚪</div>
+                    <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 16, color: S.slate, lineHeight: 1.3 }}>Early Access</div>
+                    <div style={{ fontSize: 13, color: S.muted, lineHeight: 1.5 }}>New tools land for you 7 days before monthly members.</div>
+                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: S.muted, letterSpacing: "0.08em", marginTop: 4 }}>Always on</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* CHAPTER LIST */}
+            <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: S.slate, marginBottom: 16 }}>Chapters</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               {COURT_CHAPTERS.map(ch => (
                 <div key={ch.slug} style={{ background: "#fff", border: "1px solid " + S.rule, borderRadius: 12, padding: "24px 28px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
@@ -300,9 +352,9 @@ export default function Dashboard({ session }) {
               <div style={{ background: "linear-gradient(135deg, #fff8e0, #fff)", border: "1.5px solid #e8d080", borderRadius: 12, padding: "24px 28px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
                 <div>
                   <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: S.slate, marginBottom: 4 }}>Upgrade to Annual</div>
-                  <p style={{ fontSize: 14, color: S.muted }}>$197/year — save two months. Get the full Court of Accounts book on day one.</p>
+                  <p style={{ fontSize: 14, color: S.muted }}>$270/year — save two months. Get the full Court of Accounts book on day one.</p>
                 </div>
-                <a href="https://buy.stripe.com/5kQ8wPd7F3Lk6eT3Yg18c07" style={{ padding: "12px 24px", background: "linear-gradient(135deg,#C9A84C,#e0c060)", border: "none", borderRadius: 8, color: S.ink, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'Figtree', sans-serif", textDecoration: "none", whiteSpace: "nowrap" }}>
+                <a href="https://buy.stripe.com/dRmaEXgjRdlUav91Q818c08" style={{ padding: "12px 24px", background: "linear-gradient(135deg,#C9A84C,#e0c060)", border: "none", borderRadius: 8, color: S.ink, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'Figtree', sans-serif", textDecoration: "none", whiteSpace: "nowrap" }}>
                   Upgrade →
                 </a>
               </div>

@@ -1,5 +1,6 @@
 import { navigate } from "../App";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "../supabaseClient";
 
 const S = {
   slate: "#3d4560", orange: "#e8773a", orangeDark: "#c95f22",
@@ -77,6 +78,26 @@ const PAY_PERIOD_SECTIONS = [
       "Distribute pay stubs or confirm employee self-service access",
       "Update payroll register for the period",
       "Flag anything that needs to be corrected next cycle",
+    ],
+  },
+  {
+    label: "New Hires + Terminations This Period", icon: "👥",
+    memberOnly: true,
+    items: [
+      "New hire: I-9 completed within 3 days of start date — section 1 by employee, section 2 by employer",
+      "New hire: W-4 (federal) and state W-4 equivalent on file before first paycheck",
+      "New hire: Direct deposit form completed and verified — confirm routing/account",
+      "New hire: Benefits enrollment window opened — track 30-day deadline",
+      "New hire: Confirm pay rate matches offer letter exactly — no rounding, no assumptions",
+      "New hire: Add to workers comp class code roster",
+      "New hire: Background check and any required licenses/certifications on file",
+      "Termination: Final paycheck issued by state-required deadline (varies — some states require day-of)",
+      "Termination: Pay out unused PTO per state law and company policy",
+      "Termination: COBRA notice sent within 14 days of qualifying event if applicable",
+      "Termination: Collect company property (laptop, keys, badge, credit card) and document",
+      "Termination: Disable system access (email, payroll portal, software) on last day",
+      "Termination: Flag final 401k contribution and confirm rollover paperwork sent",
+      "Termination: Update workers comp roster and benefits census within 30 days",
     ],
   },
 ];
@@ -193,6 +214,26 @@ function initChecks(sections) {
   return init;
 }
 
+function BlurredLock({ children, title, subtitle }) {
+  return (
+    <div style={{ position: "relative", marginBottom: 24 }}>
+      <div style={{ filter: "blur(5px)", pointerEvents: "none", userSelect: "none", opacity: 0.55 }}>
+        {children}
+      </div>
+      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+        <div style={{ background: "#fff", border: "2px solid " + S.orange, borderRadius: 14, padding: "28px 32px", maxWidth: 440, textAlign: "center", boxShadow: "0 12px 40px rgba(232,119,58,0.25)" }}>
+          <div style={{ fontSize: 28, marginBottom: 8 }}>🔒</div>
+          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase", color: S.orange, marginBottom: 10, fontWeight: 700 }}>Members Only</div>
+          <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: S.slate, marginBottom: 10, lineHeight: 1.2 }}>{title}</h3>
+          <p style={{ fontSize: 14, color: S.muted, marginBottom: 20, lineHeight: 1.55 }}>{subtitle}</p>
+          <a href="https://buy.stripe.com/7sY5kD7Nl2HgeLp1Q818c06" style={{ display: "inline-block", background: S.grad, color: "#fff", fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.1em", textTransform: "uppercase", padding: "12px 28px", borderRadius: 8, textDecoration: "none", fontWeight: 700, marginBottom: 8 }}>Join — $27/mo</a>
+          <div style={{ fontSize: 11, color: S.muted, fontFamily: "'DM Mono', monospace", letterSpacing: "0.05em" }}>or annual — save two months</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ChecklistSection({ section, checked, toggle }) {
   return (
     <div style={{ marginBottom: 24 }}>
@@ -237,11 +278,18 @@ function ProgressBar({ checked, total }) {
   );
 }
 
-export default function PayrollChecklist() {
+export default function PayrollChecklist({ session }) {
   const [tab, setTab] = useState("payperiod");
   const [quarterTab, setQuarterTab] = useState("Q1");
+  const [isMember, setIsMember] = useState(false);
 
-  const totalPayPeriod = PAY_PERIOD_SECTIONS.reduce((a, s) => a + s.items.length, 0);
+  useEffect(() => {
+    if (!session) { setIsMember(false); return; }
+    supabase.from("members").select("status").eq("email", session.user.email).single()
+      .then(({ data }) => { setIsMember(data && data.status === "active"); });
+  }, [session]);
+
+  const totalPayPeriod = (isMember ? PAY_PERIOD_SECTIONS : PAY_PERIOD_SECTIONS.filter(s => !s.memberOnly)).reduce((a, s) => a + s.items.length, 0);
   const [ppChecked, setPpChecked] = useState(() => initChecks(PAY_PERIOD_SECTIONS));
   const togglePP = (k) => setPpChecked(prev => ({ ...prev, [k]: !prev[k] }));
   const resetPP = () => setPpChecked(initChecks(PAY_PERIOD_SECTIONS));
@@ -263,8 +311,8 @@ export default function PayrollChecklist() {
 
   const tabs = [
     { id: "payperiod", label: "Pay Period" },
-    { id: "quarterly", label: "Quarterly" },
-    { id: "annual", label: "Annual + 1099" },
+    { id: "quarterly", label: isMember ? "Quarterly" : "🔒 Quarterly" },
+    { id: "annual", label: isMember ? "Annual + 1099" : "🔒 Annual + 1099" },
   ];
 
   return (
@@ -283,12 +331,12 @@ export default function PayrollChecklist() {
       <div className="tool-page" style={{ maxWidth: 760, margin: "0 auto", padding: "48px 24px 80px" }}>
 
         <div style={{ marginBottom: 36 }}>
-          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase", color: S.orange, marginBottom: 10 }}>Free Tool — Payroll</div>
-          <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 40, color: S.slate, lineHeight: 1.15, marginBottom: 16 }}>
+          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase", color: S.orange, marginBottom: 10 }}>Free Tool · Members get the rest</div>
+          <h1 className="tool-h1" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 40, color: S.slate, lineHeight: 1.15, marginBottom: 16 }}>
             The Payroll Checklist<br /><em style={{ color: S.muted, fontSize: 32 }}>Nobody Gave You.</em>
           </h1>
           <p style={{ fontSize: 16, color: S.muted, lineHeight: 1.7, maxWidth: 560, marginBottom: 24 }}>
-            Three checklists in one — pay period runs, quarterly filings, and year-end. Each tracks independently so nothing gets tangled.
+            Pay period runs are free. Quarterly filings, year-end + 1099, and the new hire/termination workflow are member-only.
           </p>
           <div style={{ width: 48, height: 3, background: S.grad, borderRadius: 100 }} />
         </div>
@@ -311,7 +359,19 @@ export default function PayrollChecklist() {
               <button onClick={resetPP} style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: S.muted, background: "none", border: "1px solid " + S.rule, borderRadius: 6, padding: "5px 12px", cursor: "pointer", letterSpacing: "0.08em" }}>Reset</button>
             </div>
             <ProgressBar checked={ppChecked} total={totalPayPeriod} />
-            {PAY_PERIOD_SECTIONS.map(s => <ChecklistSection key={s.label} section={s} checked={ppChecked} toggle={togglePP} />)}
+            {PAY_PERIOD_SECTIONS.filter(s => !s.memberOnly).map(s => <ChecklistSection key={s.label} section={s} checked={ppChecked} toggle={togglePP} />)}
+
+            {/* MEMBER-ONLY: New Hires + Terminations */}
+            {PAY_PERIOD_SECTIONS.filter(s => s.memberOnly).map(s => (
+              isMember ? (
+                <ChecklistSection key={s.label} section={s} checked={ppChecked} toggle={togglePP} />
+              ) : (
+                <BlurredLock key={s.label} title="New Hires + Terminations" subtitle="Onboarding and offboarding paperwork is where small businesses get sued. Members get the full 14-point checklist for every new hire and every termination — every pay period.">
+                  <ChecklistSection section={s} checked={ppChecked} toggle={togglePP} />
+                </BlurredLock>
+              )
+            ))}
+
             {Object.values(ppChecked).filter(Boolean).length === totalPayPeriod && (
               <div style={{ background: "linear-gradient(135deg, #f0faf0, #fff)", border: "1.5px solid #a8d8a8", borderRadius: 12, padding: "24px 28px", textAlign: "center", marginTop: 8 }}>
                 <div style={{ fontSize: 28, marginBottom: 6 }}>✅</div>
@@ -324,65 +384,87 @@ export default function PayrollChecklist() {
 
         {/* QUARTERLY TAB */}
         {tab === "quarterly" && (
-          <>
-            <div style={{ display: "flex", gap: 8, marginBottom: 28, flexWrap: "wrap" }}>
-              {PERIODS.map(p => {
-                const count = Object.values(qChecked[p]).filter(Boolean).length;
-                const done = count === totalQuarterly;
-                return (
-                  <button key={p} onClick={() => setQuarterTab(p)}
-                    style={{ padding: "8px 22px", borderRadius: 100, border: "1.5px solid " + (quarterTab === p ? S.orange : S.rule), background: quarterTab === p ? S.orange : "#fff", color: quarterTab === p ? "#fff" : S.muted, fontSize: 13, fontWeight: quarterTab === p ? 700 : 400, cursor: "pointer", fontFamily: "'Figtree', sans-serif", display: "flex", alignItems: "center", gap: 8 }}>
-                    {p}
-                    {done && <span style={{ fontSize: 12 }}>✅</span>}
-                    {!done && count > 0 && <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, opacity: 0.7 }}>{count}/{totalQuarterly}</span>}
-                  </button>
-                );
-              })}
-            </div>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
-              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase", color: S.muted }}>{quarterTab} Filing</div>
-              <button onClick={() => resetQ(quarterTab)} style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: S.muted, background: "none", border: "1px solid " + S.rule, borderRadius: 6, padding: "5px 12px", cursor: "pointer", letterSpacing: "0.08em" }}>Reset {quarterTab}</button>
-            </div>
-            <ProgressBar checked={qChecked[quarterTab]} total={totalQuarterly} />
-            {QUARTERLY_SECTIONS.map(s => (
-              <ChecklistSection key={s.label} section={s} checked={qChecked[quarterTab]} toggle={(k) => toggleQ(quarterTab, k)} />
-            ))}
-          </>
+          isMember ? (
+            <>
+              <div style={{ display: "flex", gap: 8, marginBottom: 28, flexWrap: "wrap" }}>
+                {PERIODS.map(p => {
+                  const count = Object.values(qChecked[p]).filter(Boolean).length;
+                  const done = count === totalQuarterly;
+                  return (
+                    <button key={p} onClick={() => setQuarterTab(p)}
+                      style={{ padding: "8px 22px", borderRadius: 100, border: "1.5px solid " + (quarterTab === p ? S.orange : S.rule), background: quarterTab === p ? S.orange : "#fff", color: quarterTab === p ? "#fff" : S.muted, fontSize: 13, fontWeight: quarterTab === p ? 700 : 400, cursor: "pointer", fontFamily: "'Figtree', sans-serif", display: "flex", alignItems: "center", gap: 8 }}>
+                      {p}
+                      {done && <span style={{ fontSize: 12 }}>✅</span>}
+                      {!done && count > 0 && <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, opacity: 0.7 }}>{count}/{totalQuarterly}</span>}
+                    </button>
+                  );
+                })}
+              </div>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase", color: S.muted }}>{quarterTab} Filing</div>
+                <button onClick={() => resetQ(quarterTab)} style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: S.muted, background: "none", border: "1px solid " + S.rule, borderRadius: 6, padding: "5px 12px", cursor: "pointer", letterSpacing: "0.08em" }}>Reset {quarterTab}</button>
+              </div>
+              <ProgressBar checked={qChecked[quarterTab]} total={totalQuarterly} />
+              {QUARTERLY_SECTIONS.map(s => (
+                <ChecklistSection key={s.label} section={s} checked={qChecked[quarterTab]} toggle={(k) => toggleQ(quarterTab, k)} />
+              ))}
+            </>
+          ) : (
+            <BlurredLock title="Quarterly Filings" subtitle="941, SUTA, FUTA, estimated tax payments — all the things you can't afford to miss. Members get the full quarterly checklist with separate trackers for Q1, Q2, Q3, and Q4.">
+              <div style={{ display: "flex", gap: 8, marginBottom: 28, flexWrap: "wrap" }}>
+                {PERIODS.map(p => (
+                  <div key={p} style={{ padding: "8px 22px", borderRadius: 100, border: "1.5px solid " + S.rule, background: "#fff", color: S.muted, fontSize: 13, fontFamily: "'Figtree', sans-serif" }}>{p}</div>
+                ))}
+              </div>
+              <ProgressBar checked={qChecked.Q1} total={totalQuarterly} />
+              {QUARTERLY_SECTIONS.map(s => (
+                <ChecklistSection key={s.label} section={s} checked={qChecked.Q1} toggle={() => {}} />
+              ))}
+            </BlurredLock>
+          )
         )}
 
         {/* ANNUAL TAB */}
         {tab === "annual" && (
-          <>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
-              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase", color: S.muted }}>Year-End Filing</div>
-              <button onClick={resetAnn} style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: S.muted, background: "none", border: "1px solid " + S.rule, borderRadius: 6, padding: "5px 12px", cursor: "pointer", letterSpacing: "0.08em" }}>Reset</button>
-            </div>
-            <ProgressBar checked={annChecked} total={totalAnnual} />
-            {ANNUAL_SECTIONS.map(s => <ChecklistSection key={s.label} section={s} checked={annChecked} toggle={toggleAnn} />)}
-            {Object.values(annChecked).filter(Boolean).length === totalAnnual && (
-              <div style={{ background: "linear-gradient(135deg, #f0faf0, #fff)", border: "1.5px solid #a8d8a8", borderRadius: 12, padding: "24px 28px", textAlign: "center", marginTop: 8 }}>
-                <div style={{ fontSize: 28, marginBottom: 6 }}>✅</div>
-                <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: S.slate, marginBottom: 6 }}>Year-end is closed. You did it.</div>
-                <p style={{ fontSize: 14, color: S.muted }}>W-2s out. 1099s filed. 940 done. Go into January like a professional.</p>
+          isMember ? (
+            <>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase", color: S.muted }}>Year-End Filing</div>
+                <button onClick={resetAnn} style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: S.muted, background: "none", border: "1px solid " + S.rule, borderRadius: 6, padding: "5px 12px", cursor: "pointer", letterSpacing: "0.08em" }}>Reset</button>
               </div>
-            )}
-          </>
+              <ProgressBar checked={annChecked} total={totalAnnual} />
+              {ANNUAL_SECTIONS.map(s => <ChecklistSection key={s.label} section={s} checked={annChecked} toggle={toggleAnn} />)}
+              {Object.values(annChecked).filter(Boolean).length === totalAnnual && (
+                <div style={{ background: "linear-gradient(135deg, #f0faf0, #fff)", border: "1.5px solid #a8d8a8", borderRadius: 12, padding: "24px 28px", textAlign: "center", marginTop: 8 }}>
+                  <div style={{ fontSize: 28, marginBottom: 6 }}>✅</div>
+                  <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: S.slate, marginBottom: 6 }}>Year-end is closed. You did it.</div>
+                  <p style={{ fontSize: 14, color: S.muted }}>W-2s out. 1099s filed. 940 done. Go into January like a professional.</p>
+                </div>
+              )}
+            </>
+          ) : (
+            <BlurredLock title="Annual + 1099 Filings" subtitle="W-2s, 1099-NEC, 1099-MISC, Form 940, year-end reconciliation. Members get the full year-end checklist with deadlines and reconciliation steps. Miss this one and the IRS notices in February.">
+              <ProgressBar checked={annChecked} total={totalAnnual} />
+              {ANNUAL_SECTIONS.map(s => <ChecklistSection key={s.label} section={s} checked={annChecked} toggle={() => {}} />)}
+            </BlurredLock>
+          )
         )}
 
-        {/* CTA */}
-        <div style={{ marginTop: 48, background: S.slate, borderRadius: 14, padding: "36px 40px", color: "#fff", position: "relative", overflow: "hidden" }}>
-          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 80% 50%, rgba(232,119,58,0.15) 0%, transparent 60%)" }} />
-          <div style={{ position: "relative" }}>
-            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase", color: S.orange, marginBottom: 10 }}>CARES Works Membership</div>
-            <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 26, marginBottom: 10, lineHeight: 1.2 }}>There are 15 more tools like this one.</h3>
-            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.7)", marginBottom: 24, maxWidth: 460 }}>New tool every week. Monthly Debrief with real answers. Court of Accounts — a business parable that actually teaches something. $27/month.</p>
-            <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-              <a href="https://buy.stripe.com/7sY5kD7Nl2HgeLp1Q818c06" style={{ display: "inline-block", background: S.grad, color: "#fff", fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.1em", textTransform: "uppercase", padding: "12px 28px", borderRadius: 8, textDecoration: "none", fontWeight: 700 }}>Join Monthly — $27/mo</a>
-              <a href="https://buy.stripe.com/5kQ8wPd7F3Lk6eT3Yg18c07" style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: S.gold, textDecoration: "none", letterSpacing: "0.08em", fontWeight: 700 }}>Or annual — $197/year</a>
+        {/* CTA — only for non-members */}
+        {!isMember && (
+          <div style={{ marginTop: 48, background: S.slate, borderRadius: 14, padding: "36px 40px", color: "#fff", position: "relative", overflow: "hidden" }}>
+            <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 80% 50%, rgba(232,119,58,0.15) 0%, transparent 60%)" }} />
+            <div style={{ position: "relative" }}>
+              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase", color: S.orange, marginBottom: 10 }}>CARES Works Membership</div>
+              <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 26, marginBottom: 10, lineHeight: 1.2 }}>Unlock the rest of this checklist + 14 more tools.</h3>
+              <p style={{ fontSize: 15, color: "rgba(255,255,255,0.7)", marginBottom: 24, maxWidth: 460 }}>New tools added monthly. Monthly Debrief with real answers. Court of Accounts — a business parable that actually teaches something. $27/month.</p>
+              <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+                <a href="https://buy.stripe.com/7sY5kD7Nl2HgeLp1Q818c06" style={{ display: "inline-block", background: S.grad, color: "#fff", fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.1em", textTransform: "uppercase", padding: "12px 28px", borderRadius: 8, textDecoration: "none", fontWeight: 700 }}>Join Monthly — $27/mo</a>
+                <a href="https://buy.stripe.com/dRmaEXgjRdlUav91Q818c08" style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: S.gold, textDecoration: "none", letterSpacing: "0.08em", fontWeight: 700 }}>Or annual — $270/year (2 months free)</a>
+              </div>
             </div>
           </div>
-        </div>
-
+        )}
       </div>
       <script src="https://chat.karikounkel.com/widget.js" defer></script>
     </div>

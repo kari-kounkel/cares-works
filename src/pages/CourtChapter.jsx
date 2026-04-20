@@ -255,11 +255,24 @@ export default function CourtChapter({ slug }) {
             Court of Accounts — {chapter.label}
           </div>
           {chapter.title ? (
-            <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 36, color: S.slate, margin: 0, lineHeight: 1.2 }}>
+            <h1 className="court-h1" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 36, color: S.slate, margin: 0, lineHeight: 1.2 }}>
               {chapter.title}
             </h1>
           ) : null}
           <div style={{ marginTop: 16, width: 48, height: 3, background: S.grad, borderRadius: 100 }} />
+        </div>
+
+        {/* WHIMSY BANNER with cover */}
+        <div style={{ background: S.cream, border: "1px dashed " + S.orange, borderRadius: 12, padding: "20px 24px", marginBottom: 32, display: "flex", alignItems: "center", gap: 20 }}>
+          <img
+            src="/court-of-accounts-cover.jpg"
+            alt="Court of Accounts cover"
+            style={{ width: 72, height: "auto", borderRadius: 4, boxShadow: "0 4px 12px rgba(0,0,0,0.12)", flexShrink: 0 }}
+          />
+          <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 14, color: S.slate, fontStyle: "italic", lineHeight: 1.55 }}>
+            <strong style={{ fontStyle: "normal", color: S.orange, fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", display: "block", marginBottom: 6 }}>⚠️ A Tiny Warning</strong>
+            You are about to enter the Kingdom of Eggerton. Numbered accounts. Fancy chickens. A court that takes itself only mostly seriously. Enter only if you have a whimsical sense of humor — and possibly a pencil.
+          </div>
         </div>
 
         {/* AUDIO PLAYER — only if audio exists */}

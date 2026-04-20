@@ -3,7 +3,7 @@ import { supabase } from "../supabaseClient";
 import { navigate } from "../App";
 
 const MONTHLY_URL = "https://buy.stripe.com/7sY5kD7Nl2HgeLp1Q818c06";
-const ANNUAL_URL = "https://buy.stripe.com/5kQ8wPd7F3Lk6eT3Yg18c07";
+const ANNUAL_URL = "https://buy.stripe.com/dRmaEXgjRdlUav91Q818c08";
 
 const S = {
   slate: "#3d4560", orange: "#e8773a", orangeDark: "#c95f22",
@@ -102,45 +102,39 @@ export default function Landing({ session }) {
             Built from real work.<br /><em style={{ fontStyle: "italic", color: S.orange }}>Not a course. Not a coach.</em>
           </h1>
           <p style={{ fontSize: 18, color: "rgba(255,255,255,0.7)", maxWidth: 500, margin: "0 auto 32px" }}>
-            Plain-English tools for the business problems nobody taught you how to solve. New tool every week.
+            Plain-English tools for the business problems nobody taught you how to solve. New tools added monthly.
           </p>
           <div className="lp-pills" style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginBottom: 32 }}>
-            {["New tool every week", "No fluff", "Ask Kari — real answers"].map(p => (
+            {["New tools monthly", "No fluff", "Ask Kari — real answers"].map(p => (
               <div key={p} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 100, padding: "7px 16px", fontSize: 13, color: "rgba(255,255,255,0.75)", fontFamily: "'DM Mono', monospace", letterSpacing: "0.05em" }}>{p}</div>
             ))}
           </div>
           <a href={MONTHLY_URL} style={{ display: "inline-block", background: S.orange, color: "#fff", fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", padding: "14px 32px", borderRadius: 6, textDecoration: "none", marginBottom: 12 }}>
             Join CARES Works — $27/month
           </a>
-          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>or <a href={ANNUAL_URL} style={{ color: S.gold, textDecoration: "none", fontWeight: 700 }}>$197/year</a> · cancel anytime</div>
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>or <a href={ANNUAL_URL} style={{ color: S.gold, textDecoration: "none", fontWeight: 700 }}>$270/year</a> · cancel anytime</div>
         </div>
       </div>
       <div style={{ height: 4, background: S.orange }} />
 
-      {/* NEW ARRIVALS SCROLLER */}
+      {/* LIBRARY SCROLLER — framed left, items scroll out */}
       {newTools.length > 0 && (
-        <div style={{ background: S.slate, overflow: "hidden", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-          <style>{`
-            @keyframes scroll-left { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-            .scroller-track { display: flex; width: max-content; animation: scroll-left 60s linear infinite; }
-            .scroller-track:hover { animation-play-state: paused; }
-          `}</style>
-          <div style={{ overflow: "hidden", height: 40 }}>
-              <div className="scroller-track">
-                {[...newTools, ...newTools].map((t, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, height: 40, flexShrink: 0 }}>
-                    <div style={{ background: S.orange, height: "100%", display: "flex", alignItems: "center", padding: "0 20px" }}>
-                      <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.18em", textTransform: "uppercase", color: "#fff", fontWeight: 700, whiteSpace: "nowrap" }}>New in the library</span>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 28px 0 20px", borderRight: "1px solid rgba(255,255,255,0.1)", height: "100%" }}>
-                      <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase", background: t.is_free ? S.orangeLight : "rgba(255,255,255,0.1)", color: t.is_free ? S.orange : "rgba(255,255,255,0.5)", padding: "2px 8px", borderRadius: 100, fontWeight: 700, whiteSpace: "nowrap" }}>
-                        {t.is_free ? "Free" : "Members"}
-                      </span>
-                      <span style={{ fontFamily: "'Figtree', sans-serif", fontSize: 13, color: "rgba(255,255,255,0.8)", whiteSpace: "nowrap" }}>{t.title}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+        <div style={{ background: S.slate, overflow: "hidden", borderBottom: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "stretch" }}>
+          <style>{"@keyframes scroll-left { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } } .lib-track { display: flex; width: max-content; animation: scroll-left 80s linear infinite; align-items: center; } .lib-track:hover { animation-play-state: paused; } @media (max-width: 640px) { .lib-banner { padding: 0 14px !important; } .lib-banner-label { font-size: 10px !important; letter-spacing: 0.1em !important; } .lib-banner-icon { font-size: 16px !important; } }"}</style>
+          {/* LEFT BANNER — the cute "Library" frame */}
+          <div className="lib-banner" style={{ background: "linear-gradient(135deg, #e8773a, #c95f22)", padding: "0 24px", display: "flex", alignItems: "center", gap: 10, flexShrink: 0, height: 48, boxShadow: "4px 0 12px rgba(0,0,0,0.15)", zIndex: 2, position: "relative" }}>
+            <span className="lib-banner-icon" style={{ fontSize: 20 }}>📚</span>
+            <span className="lib-banner-label" style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", color: "#fff", fontWeight: 700, whiteSpace: "nowrap" }}>The Library</span>
+          </div>
+          {/* SCROLLING TRACK — items flow out of the banner */}
+          <div style={{ overflow: "hidden", height: 48, flex: 1, position: "relative" }}>
+            <div className="lib-track">
+              {[...newTools, ...newTools].map((t, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", height: 48, flexShrink: 0, padding: "0 22px", borderRight: "1px solid " + S.orange }}>
+                  <span style={{ fontFamily: "'Figtree', sans-serif", fontSize: 13, color: "rgba(255,255,255,0.85)", whiteSpace: "nowrap", fontWeight: 500 }}>{t.title}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}
@@ -188,10 +182,10 @@ export default function Landing({ session }) {
                 Everything you need.<br /><em style={{ fontStyle: "italic" }}>One tool at a time.</em>
               </h2>
               <p style={{ fontSize: 15, color: "rgba(255,255,255,0.7)", marginBottom: 20, lineHeight: 1.65 }}>
-                A new tool drops every week. The Debrief — Kari's monthly video — answers real member questions. Court of Accounts serialized chapter by chapter.
+                New tools drop monthly. The Debrief — Kari's monthly video — answers real member questions. Court of Accounts serialized chapter by chapter.
               </p>
               <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 8 }}>
-                {["Full tool library — Money, People, Communication, Leadership", "New tool every single week — no reruns, no filler", "The Debrief — monthly video: teaching + your questions answered", "Court of Accounts — one chapter per month (annual = full book day one)", "Ask Kari — real answers from someone who's seen your exact situation"].map(p => (
+                {["Full tool library — Money, People, Communication, Leadership", "New tools added monthly — sometimes more", "The Debrief — monthly video: teaching + your questions answered", "Court of Accounts — one chapter per month (annual = full book day one)", "Ask Kari — real answers from someone who's seen your exact situation"].map(p => (
                   <li key={p} style={{ fontSize: 14, color: "rgba(255,255,255,0.8)", display: "flex", alignItems: "flex-start", gap: 10 }}>
                     <span style={{ color: S.orange, fontWeight: 700, flexShrink: 0 }}>→</span> {p}
                   </li>
@@ -200,10 +194,10 @@ export default function Landing({ session }) {
             </div>
             <div className="lp-membership-price" style={{ textAlign: "center", flexShrink: 0, minWidth: 200 }}>
               <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 52, color: "#fff", lineHeight: 1, marginBottom: 4 }}>$27<span style={{ fontFamily: "'Figtree', sans-serif", fontSize: 16, color: "rgba(255,255,255,0.5)", fontWeight: 400 }}>/mo</span></div>
-              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "rgba(255,255,255,0.45)", marginBottom: 20, letterSpacing: "0.05em" }}>or <strong style={{ color: S.gold }}>$197/year</strong> — 2 months free</div>
+              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "rgba(255,255,255,0.45)", marginBottom: 20, letterSpacing: "0.05em" }}>or <strong style={{ color: S.gold }}>$270/year</strong> — 2 months free</div>
               <a href={MONTHLY_URL} style={{ display: "block", background: S.orange, color: "#fff", fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", padding: "14px 28px", borderRadius: 6, textDecoration: "none", marginBottom: 8, textAlign: "center" }}>Join Monthly — $27/mo</a>
-              <a href={ANNUAL_URL} style={{ display: "block", background: "linear-gradient(135deg,#C9A84C,#e0c060)", color: "#1e1e2a", fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", padding: "14px 28px", borderRadius: 6, textDecoration: "none", marginBottom: 10, textAlign: "center", fontWeight: 700 }}>Join Annual — $197/yr</a>
-              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "rgba(255,255,255,0.35)", letterSpacing: "0.05em" }}>Full tool library. New weekly drops.<br />Monthly Debrief. Cancel anytime.</div>
+              <a href={ANNUAL_URL} style={{ display: "block", background: "linear-gradient(135deg,#C9A84C,#e0c060)", color: "#1e1e2a", fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", padding: "14px 28px", borderRadius: 6, textDecoration: "none", marginBottom: 10, textAlign: "center", fontWeight: 700 }}>Join Annual — $270/yr</a>
+              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "rgba(255,255,255,0.35)", letterSpacing: "0.05em" }}>Full tool library. New monthly drops.<br />Monthly Debrief. Cancel anytime.</div>
             </div>
           </div>
         </div>
@@ -211,7 +205,7 @@ export default function Landing({ session }) {
         {/* MEMBER TOOLS */}
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
           <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", color: "#5a6481" }}>Member Tools</p>
-          <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", background: "#fdf0e8", color: "#c95f22", padding: "3px 10px", borderRadius: 100 }}>12 tools + new every week</span>
+          <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", background: "#fdf0e8", color: "#c95f22", padding: "3px 10px", borderRadius: 100 }}>New tools added monthly</span>
         </div>
         <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(22px, 3vw, 30px)", marginBottom: 8, color: S.slate }}>What's waiting inside.</h2>
         <p style={{ fontSize: 14, color: S.muted, marginBottom: 32, lineHeight: 1.6 }}>These are member-only. Join to unlock the full library.</p>
