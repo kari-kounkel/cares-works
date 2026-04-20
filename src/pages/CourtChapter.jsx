@@ -32,7 +32,7 @@ const SUFFIX = " from COURT OF ACCOUNTS A Tale of Ledgers Loyalty and Fancy Chic
 const CHAPTERS = {
   prologue: {
     label: "Prologue",
-    title: "The Kingdom of Eggerton",
+    title: "Introduction and Prologue",
     pdf: "/pdf/CHAPTER 0 PROLOGUE" + SUFFIX + ".pdf",
     audio: "/audio/The Court of Accounts Prologue.mp3",
   },
