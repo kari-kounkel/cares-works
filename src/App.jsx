@@ -8,6 +8,9 @@ import PayrollChecklist from "./pages/PayrollChecklist";
 import ClientVisitSummary from "./pages/ClientVisitSummary";
 import CommunicationTemplates from "./pages/CommunicationTemplates";
 import EmailAttachmentTutorial from "./pages/EmailAttachmentTutorial";
+import EmailAttachmentsAdvanced from "./pages/EmailAttachmentsAdvanced";
+import BookkeeperScope from "./pages/BookkeeperScope";
+import FractionalCFOScope from "./pages/FractionalCFOScope";
 
 export function navigate(path) {
   window.history.pushState({}, "", path);
@@ -56,10 +59,13 @@ export default function App() {
     if (COURT_SLUGS.includes(slug)) return <CourtChapter slug={slug} />;
   }
 
-  if (path === "/tools/payroll-checklist") return <PayrollChecklist />;
+  if (path === "/tools/payroll-checklist") return <PayrollChecklist session={session} />;
   if (path === "/tools/client-visit-summary") return <ClientVisitSummary />;
   if (path === "/tools/communication-templates") return <CommunicationTemplates />;
   if (path === "/tools/email-attachments") return <EmailAttachmentTutorial />;
+  if (path === "/tools/email-attachments-advanced") return <EmailAttachmentsAdvanced session={session} />;
+  if (path === "/tools/bookkeeper-scope") return <BookkeeperScope session={session} />;
+  if (path === "/tools/fractional-cfo-scope") return <FractionalCFOScope session={session} />;
 
   if (path.startsWith("/tools/")) {
     const slug = path.replace("/tools/", "");
