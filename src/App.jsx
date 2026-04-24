@@ -11,6 +11,7 @@ import EmailAttachmentTutorial from "./pages/EmailAttachmentTutorial";
 import EmailAttachmentsAdvanced from "./pages/EmailAttachmentsAdvanced";
 import BookkeeperScope from "./pages/BookkeeperScope";
 import FractionalCFOScope from "./pages/FractionalCFOScope";
+import QBODiscovery from "./pages/QBODiscovery";
 
 export function navigate(path) {
   window.history.pushState({}, "", path);
@@ -66,6 +67,7 @@ export default function App() {
   if (path === "/tools/email-attachments-advanced") return <EmailAttachmentsAdvanced session={session} />;
   if (path === "/tools/bookkeeper-scope") return <BookkeeperScope session={session} />;
   if (path === "/tools/fractional-cfo-scope") return <FractionalCFOScope session={session} />;
+  if (path === "/tools/qbo-discovery") return <QBODiscovery />;
 
   if (path.startsWith("/tools/")) {
     const slug = path.replace("/tools/", "");

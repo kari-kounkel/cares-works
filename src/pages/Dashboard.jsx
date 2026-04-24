@@ -46,6 +46,7 @@ const TOOLS = {
     { icon: "📧", title: "Advanced Email Attachments", slug: "email-attachments-advanced", desc: "The enhanced Python script that writes a full email-detail.csv with auto-categorization. Six workflows: Monday rhythm, QuickBooks bridge, monthly recon, year-end 1099 prep, and more.", tag: "NEW" },
     { icon: "📋", title: "Bookkeeper Scope Matrix", slug: "bookkeeper-scope", desc: "30 bookkeeping tasks. Three answers: your bookkeeper owns it, it stays out of their lane, or it needs a specialist. Stop giving away access you will regret.", tag: "NEW" },
     { icon: "📊", title: "Fractional CFO Scope Matrix", slug: "fractional-cfo-scope", desc: "Three columns: what a fractional CFO does, what they do not touch, and where your authority stays yours. Know the scope before you sign the contract.", tag: "NEW" },
+    { icon: "🔍", title: "QBO Discovery Assessment", slug: "qbo-discovery", desc: "Thirteen sections for scoping a new QBO client. Chart of accounts, payroll, reconciliation, pain points. Walk in knowing nothing. Walk out with scope, price, and a verdict.", tag: "NEW" },
   ],
   people: [
     { icon: "🗂️", title: "New Hire First 30 Days", slug: "new-hire-30-days", desc: "The sequence that makes you look like you have a whole HR team behind you when it's just you." },
