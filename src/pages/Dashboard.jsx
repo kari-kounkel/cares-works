@@ -65,6 +65,9 @@ const TOOLS = {
     { icon: "🏗️", title: "In-House vs. Contract Decision Matrix", slug: "inhouse-vs-contract", desc: "HR, bookkeeping, marketing, IT, legal. When you're big enough to bring it in, when you're not." },
     { icon: "📚", title: "Founders Series — Module 1", slug: "founders-series-1", desc: "The business foundation framework. Where it all starts." },
   ],
+  utilities: [
+    { icon: "✅", title: "Build Your Own Checklist", slug: "checklist-builder", desc: "Multi-section checklist with status circles and notes. Drag rows to rearrange. Save as many as you want. For audits, project tracking, decision matrices, anything.", tag: "FREE" },
+  ],
 };
 
 const DEBRIEF_PLACEHOLDER = {
@@ -141,7 +144,7 @@ export default function Dashboard({ session }) {
   const tabs = ["tools", "debrief", "court", "shop", "account"];
   const tabLabels = { tools: "Tool Library", debrief: "The Debrief", court: "Court of Accounts", shop: "Shop", account: "Account" };
   const categories = Object.keys(TOOLS);
-  const catLabels = { money: "Money", people: "People", communication: "Communication", leadership: "Leadership" };
+  const catLabels = { money: "Money", people: "People", communication: "Communication", leadership: "Leadership", utilities: "Utilities" };
 
   return (
     <div style={{ minHeight: "100vh", background: S.paper, fontFamily: "'Figtree', sans-serif", color: S.ink }}>
