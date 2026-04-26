@@ -69,7 +69,7 @@ export default function App() {
   if (path === "/tools/bookkeeper-scope") return <BookkeeperScope session={session} />;
   if (path === "/tools/fractional-cfo-scope") return <FractionalCFOScope session={session} />;
   if (path === "/tools/qbo-discovery") return <QBODiscovery />;
-  if (path === "/tools/checklist-builder") return <ChecklistBuilder />;
+  if (path === "/tools/checklist-builder") return <ChecklistBuilder session={session} />;
 
   if (path.startsWith("/tools/")) {
     const slug = path.replace("/tools/", "");

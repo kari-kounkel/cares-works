@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { navigate } from "../App";
+import { supabase } from "../supabaseClient";
 
 const S = {
   slate: "#3d4560",
@@ -42,6 +43,138 @@ function saveAll(obj) {
   }
 }
 
+function flowSuiteAuditChecklist() {
+  return {
+    name: "FlowSuite Audit — V1 vs Pro",
+    updated: Date.now(),
+    sections: [
+      {
+        id: uid(),
+        name: "Dashboard / TaskFlow",
+        columns: ["In Old FlowSuite (V1)", "In FlowSuite Pro"],
+        items: [
+          { id: uid(), text: "There is no dashboard", states: ["", ""], notes: "" },
+        ],
+      },
+      {
+        id: uid(),
+        name: "PeopleFlow",
+        columns: ["In Old FlowSuite (V1)", "In FlowSuite Pro"],
+        items: [
+          { id: uid(), text: "Home shows stuff that doesn't matter (need real home page)", states: ["", ""], notes: "" },
+          { id: uid(), text: "Team list useable for managers — alphabetically under their manager", states: ["", ""], notes: "" },
+          { id: uid(), text: "Admin team (Kari, Frank, Des) sees everything; managers see their team; people see only themselves", states: ["", ""], notes: "" },
+          { id: uid(), text: "Org chart click-through gated by permission level", states: ["", ""], notes: "" },
+          { id: uid(), text: "HR Inbox — Reports, Formal Discipline, Separations, Injuries", states: ["", ""], notes: "" },
+          { id: uid(), text: "HR Inbox unified with PR Requests section", states: ["", ""], notes: "" },
+          { id: uid(), text: "Formal Discipline button — employees see their records", states: ["", ""], notes: "" },
+          { id: uid(), text: "Reports button — for adding incident reports", states: ["", ""], notes: "" },
+          { id: uid(), text: "Discipline ↔ Policy linkage (pull related policy + push it)", states: ["", ""], notes: "" },
+          { id: uid(), text: "Injuries module functional", states: ["", ""], notes: "" },
+          { id: uid(), text: "Onboarding — full lifecycle tested", states: ["", ""], notes: "" },
+          { id: uid(), text: "Resources clarity — what they are, how they work", states: ["", ""], notes: "" },
+        ],
+      },
+      {
+        id: uid(),
+        name: "PaperFlow",
+        columns: ["In Old FlowSuite (V1)", "In FlowSuite Pro"],
+        items: [
+          { id: uid(), text: "Payroll Request flow — clear submit process", states: ["", ""], notes: "" },
+          { id: uid(), text: "Employees see their own requests + approval/denial status", states: ["", ""], notes: "" },
+          { id: uid(), text: "Records preserved — no deletes (live HR data)", states: ["", ""], notes: "" },
+          { id: uid(), text: "HR dashboard for PR requests works", states: ["", ""], notes: "" },
+          { id: uid(), text: "Contract / policy manual upload system (replace hardcoded)", states: ["", ""], notes: "" },
+          { id: uid(), text: "Commentary section with checkbox tags (change / proposed update / negotiation point)", states: ["", ""], notes: "" },
+          { id: uid(), text: "Negotiation notes section (for summer bargaining)", states: ["", ""], notes: "" },
+          { id: uid(), text: "Push policies to employees + history visible", states: ["", ""], notes: "" },
+          { id: uid(), text: "Acks as a per-employee history list", states: ["", ""], notes: "" },
+        ],
+      },
+      {
+        id: uid(),
+        name: "ScanFlow",
+        columns: ["In Old FlowSuite (V1)", "In FlowSuite Pro"],
+        items: [
+          { id: uid(), text: "Core scanning works (job intake, lifecycle, departments, statuses)", states: ["", ""], notes: "" },
+          { id: uid(), text: "Upload OR scan toggle (intake_mode)", states: ["", ""], notes: "" },
+          { id: uid(), text: "Quality Control section", states: ["", ""], notes: "" },
+          { id: uid(), text: "Deliver / Ship section", states: ["", ""], notes: "" },
+          { id: uid(), text: "Print delivery / ship lists", states: ["", ""], notes: "" },
+          { id: uid(), text: "Delivery acknowledgment (signature from recipient)", states: ["", ""], notes: "" },
+          { id: uid(), text: "Print labels for final envelope (admin)", states: ["", ""], notes: "" },
+          { id: uid(), text: "Release sleeve number back to available queue", states: ["", ""], notes: "" },
+          { id: uid(), text: "Quoting / Estimates (later phase)", states: ["", ""], notes: "" },
+        ],
+      },
+      {
+        id: uid(),
+        name: "MoneyFlow",
+        columns: ["In Old FlowSuite (V1)", "In FlowSuite Pro"],
+        items: [
+          { id: uid(), text: "Upload P&L and Balance Sheet", states: ["", ""], notes: "" },
+          { id: uid(), text: "Two companies appear together (Frank's real financial picture)", states: ["", ""], notes: "" },
+          { id: uid(), text: "Merge / consolidate financial views across entities", states: ["", ""], notes: "" },
+          { id: uid(), text: "AP listing functional", states: ["", ""], notes: "" },
+          { id: uid(), text: "\"Frank selects what to pay\" — pay selector for AP", states: ["", ""], notes: "" },
+          { id: uid(), text: "Calendar view of scheduled payments", states: ["", ""], notes: "" },
+          { id: uid(), text: "Add non-AP payments to schedule (bills not yet on AP list)", states: ["", ""], notes: "" },
+          { id: uid(), text: "Parse uploaded reports into useable data", states: ["", ""], notes: "" },
+          { id: uid(), text: "Sales tax entries", states: ["", ""], notes: "" },
+          { id: uid(), text: "Payroll entries", states: ["", ""], notes: "" },
+          { id: uid(), text: "\"Reviewed by accounting\" + Pay system in one spot", states: ["", ""], notes: "" },
+          { id: uid(), text: "Frank sees last-reviewed date + pending payments", states: ["", ""], notes: "" },
+          { id: uid(), text: "CashFlow shows MORE than just AP (everything moving today)", states: ["", ""], notes: "" },
+          { id: uid(), text: "Track bills that never appear as AP (paid same day they arrive)", states: ["", ""], notes: "" },
+          { id: uid(), text: "CC Purchase form (replace Jotform — multi-card, full purchase context)", states: ["", ""], notes: "" },
+          { id: uid(), text: "Import existing Jotform CC submissions", states: ["", ""], notes: "" },
+          { id: uid(), text: "Budget shows P&L + BS info", states: ["", ""], notes: "" },
+          { id: uid(), text: "Budget built from past percentages, editable", states: ["", ""], notes: "" },
+          { id: uid(), text: "Chart of accounts updateable per-org", states: ["", ""], notes: "" },
+          { id: uid(), text: "Accounting worksheet improvements", states: ["", ""], notes: "" },
+          { id: uid(), text: "Payroll/Sales tax pushes WITH intermediary tag/review step", states: ["", ""], notes: "" },
+          { id: uid(), text: "Payroll pushes actually arriving (currently broken in V1)", states: ["", ""], notes: "" },
+          { id: uid(), text: "IIF Factory functional", states: ["", ""], notes: "" },
+          { id: uid(), text: "Customization request system + pricing pipeline (per-customer features)", states: ["", ""], notes: "" },
+          { id: uid(), text: "AP Recon mixed into CashFlow", states: ["", ""], notes: "" },
+          { id: uid(), text: "Scheduled payments — pull non-AP items + CC payments", states: ["", ""], notes: "" },
+          { id: uid(), text: "JE workspace — IIF + recurring + CPA + amortization, all in one", states: ["", ""], notes: "" },
+          { id: uid(), text: "Excel/IIF import for bulk JE entry", states: ["", ""], notes: "" },
+          { id: uid(), text: "Record JEs from CPA", states: ["", ""], notes: "" },
+          { id: uid(), text: "True amortization (declining balance, monthly interest entries)", states: ["", ""], notes: "" },
+          { id: uid(), text: "Payroll orders (mail-in items: garnishments, child support, advances pay-back)", states: ["", ""], notes: "" },
+          { id: uid(), text: "Employees see their own payroll-order items", states: ["", ""], notes: "" },
+          { id: uid(), text: "PaperFlow PR requests visible in MoneyFlow", states: ["", ""], notes: "" },
+          { id: uid(), text: "Close checklist complete and functional", states: ["", ""], notes: "" },
+          { id: uid(), text: "Resources categorized + employee/admin scoping toggle", states: ["", ""], notes: "" },
+          { id: uid(), text: "ONE unified resource list", states: ["", ""], notes: "" },
+          { id: uid(), text: "Task History complete and useable", states: ["", ""], notes: "" },
+        ],
+      },
+      {
+        id: uid(),
+        name: "TaskFlow",
+        columns: ["In Old FlowSuite (V1)", "In FlowSuite Pro"],
+        items: [
+          { id: uid(), text: "Core TaskFlow works", states: ["", ""], notes: "" },
+          { id: uid(), text: "Integrated with other modules' tasks", states: ["", ""], notes: "" },
+          { id: uid(), text: "Actually being used by team", states: ["", ""], notes: "" },
+        ],
+      },
+      {
+        id: uid(),
+        name: "ChatFlow (New from V1 audit)",
+        columns: ["In Old FlowSuite (V1)", "In FlowSuite Pro"],
+        items: [
+          { id: uid(), text: "Chat channels (Slack/WhatsApp replacement)", states: ["", ""], notes: "" },
+          { id: uid(), text: "Import from WhatsApp → create task", states: ["", ""], notes: "" },
+          { id: uid(), text: "Available to admin team + managers", states: ["", ""], notes: "" },
+        ],
+      },
+    ],
+  };
+}
+
 function emptyChecklist(name) {
   return {
     name: name || "Untitled checklist",
@@ -75,30 +208,84 @@ const PRINT_CSS = `
   }
 `;
 
-export default function ChecklistBuilder() {
-  const [allChecklists, setAllChecklists] = useState(getAll());
-  const [currentId, setCurrentId] = useState(() => {
-    const stored = localStorage.getItem(CURRENT_KEY);
-    const all = getAll();
-    if (stored && stored !== "NEW" && all[stored]) return stored;
-    if (Object.keys(all).length > 0) {
-      const sorted = Object.entries(all).sort((a, b) => (b[1].updated || 0) - (a[1].updated || 0));
-      return sorted[0][0];
-    }
-    return "NEW";
-  });
-  const [checklist, setChecklist] = useState(() => {
-    const stored = localStorage.getItem(CURRENT_KEY);
-    const all = getAll();
-    if (stored && stored !== "NEW" && all[stored]) return all[stored];
-    if (Object.keys(all).length > 0) {
-      const sorted = Object.entries(all).sort((a, b) => (b[1].updated || 0) - (a[1].updated || 0));
-      return sorted[0][1];
-    }
-    return emptyChecklist();
-  });
+export default function ChecklistBuilder({ session }) {
+  const userEmail = session?.user?.email || null;
+  const isCloud = !!userEmail;
+
+  const [allChecklists, setAllChecklists] = useState({});
+  const [currentId, setCurrentId] = useState("NEW");
+  const [checklist, setChecklist] = useState(emptyChecklist());
+  const [loadingCloud, setLoadingCloud] = useState(isCloud);
   const [toast, setToast] = useState(null);
   const dragSrcRef = useRef(null);
+
+  // ─── INITIAL LOAD: Cloud if signed in, otherwise localStorage ───
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      if (isCloud) {
+        // Cloud mode — pull from Supabase
+        const { data, error } = await supabase
+          .from("user_checklists")
+          .select("*")
+          .eq("user_email", userEmail)
+          .order("updated_at", { ascending: false });
+        if (cancelled) return;
+        if (error) {
+          console.error("Failed to load checklists from cloud:", error);
+          showToastImmediate("Cloud load failed — using local only", "danger");
+          loadFromLocal();
+          setLoadingCloud(false);
+          return;
+        }
+        const cloudMap = {};
+        (data || []).forEach((row) => {
+          cloudMap[row.id] = {
+            name: row.name,
+            updated: new Date(row.updated_at).getTime(),
+            sections: row.data?.sections || [],
+          };
+        });
+        setAllChecklists(cloudMap);
+        if (Object.keys(cloudMap).length > 0) {
+          const firstId = Object.keys(cloudMap)[0];
+          setCurrentId(firstId);
+          setChecklist(cloudMap[firstId]);
+        } else {
+          // No cloud checklists yet — start with FlowSuite audit as a fresh starter
+          setCurrentId("NEW");
+          setChecklist(flowSuiteAuditChecklist());
+        }
+        setLoadingCloud(false);
+      } else {
+        loadFromLocal();
+      }
+    }
+    function loadFromLocal() {
+      const all = getAll();
+      setAllChecklists(all);
+      const stored = localStorage.getItem(CURRENT_KEY);
+      if (stored && stored !== "NEW" && all[stored]) {
+        setCurrentId(stored);
+        setChecklist(all[stored]);
+      } else if (Object.keys(all).length > 0) {
+        const sorted = Object.entries(all).sort((a, b) => (b[1].updated || 0) - (a[1].updated || 0));
+        setCurrentId(sorted[0][0]);
+        setChecklist(sorted[0][1]);
+      } else {
+        setCurrentId("NEW");
+        setChecklist(flowSuiteAuditChecklist());
+      }
+    }
+    load();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userEmail]);
+
+  function showToastImmediate(msg, type) {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 2200);
+  }
 
   // Inject font + print/responsive CSS
   useEffect(() => {
@@ -119,21 +306,31 @@ export default function ChecklistBuilder() {
     }
   }, []);
 
-  // Persist current id whenever it changes
+  // Persist current id locally so reloads in local mode remember
   useEffect(() => {
-    localStorage.setItem(CURRENT_KEY, currentId);
-  }, [currentId]);
+    if (!isCloud) {
+      localStorage.setItem(CURRENT_KEY, currentId);
+    }
+  }, [currentId, isCloud]);
 
   // Auto-save every 30s if checklist is already saved
   useEffect(() => {
-    const interval = setInterval(() => {
+    const interval = setInterval(async () => {
       if (currentId === "NEW") return;
       const updated = { ...checklist, updated: Date.now() };
-      const next = { ...allChecklists, [currentId]: updated };
-      saveAll(next);
+      if (isCloud) {
+        await supabase
+          .from("user_checklists")
+          .update({ name: updated.name, data: { sections: updated.sections } })
+          .eq("id", currentId)
+          .eq("user_email", userEmail);
+      } else {
+        const next = { ...allChecklists, [currentId]: updated };
+        saveAll(next);
+      }
     }, 30000);
     return () => clearInterval(interval);
-  }, [checklist, currentId, allChecklists]);
+  }, [checklist, currentId, allChecklists, isCloud, userEmail]);
 
   const showToast = (msg, type) => {
     setToast({ msg, type });
@@ -141,17 +338,54 @@ export default function ChecklistBuilder() {
   };
 
   // ─── ACTIONS ───
-  const handleSave = () => {
+  const handleSave = async () => {
     const updated = { ...checklist, updated: Date.now() };
-    let id = currentId;
-    if (id === "NEW") id = uid();
-    const next = { ...allChecklists, [id]: updated };
-    if (saveAll(next)) {
-      setAllChecklists(next);
-      setCurrentId(id);
-      showToast("Saved.", "success");
+    if (isCloud) {
+      if (currentId === "NEW") {
+        // Insert new row
+        const { data, error } = await supabase
+          .from("user_checklists")
+          .insert({
+            user_email: userEmail,
+            name: updated.name,
+            data: { sections: updated.sections },
+          })
+          .select()
+          .single();
+        if (error) {
+          showToast("Save failed: " + error.message, "danger");
+          return;
+        }
+        const newId = data.id;
+        const next = { ...allChecklists, [newId]: updated };
+        setAllChecklists(next);
+        setCurrentId(newId);
+        showToast("Saved to cloud.", "success");
+      } else {
+        const { error } = await supabase
+          .from("user_checklists")
+          .update({ name: updated.name, data: { sections: updated.sections } })
+          .eq("id", currentId)
+          .eq("user_email", userEmail);
+        if (error) {
+          showToast("Save failed: " + error.message, "danger");
+          return;
+        }
+        const next = { ...allChecklists, [currentId]: updated };
+        setAllChecklists(next);
+        showToast("Saved to cloud.", "success");
+      }
     } else {
-      showToast("Save failed.", "danger");
+      let id = currentId;
+      if (id === "NEW") id = uid();
+      const next = { ...allChecklists, [id]: updated };
+      if (saveAll(next)) {
+        setAllChecklists(next);
+        setCurrentId(id);
+        showToast("Saved.", "success");
+      } else {
+        showToast("Save failed.", "danger");
+      }
     }
   };
 
@@ -169,16 +403,27 @@ export default function ChecklistBuilder() {
     setChecklist(allChecklists[id]);
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (currentId === "NEW") {
       showToast("Nothing saved to delete.");
       return;
     }
     const name = checklist.name || "this checklist";
     if (!window.confirm("Delete the saved checklist \"" + name + "\"?")) return;
+    if (isCloud) {
+      const { error } = await supabase
+        .from("user_checklists")
+        .delete()
+        .eq("id", currentId)
+        .eq("user_email", userEmail);
+      if (error) {
+        showToast("Delete failed: " + error.message, "danger");
+        return;
+      }
+    }
     const next = { ...allChecklists };
     delete next[currentId];
-    saveAll(next);
+    if (!isCloud) saveAll(next);
     setAllChecklists(next);
     if (Object.keys(next).length > 0) {
       const firstId = Object.keys(next)[0];
@@ -186,7 +431,7 @@ export default function ChecklistBuilder() {
       setChecklist(next[firstId]);
     } else {
       setCurrentId("NEW");
-      setChecklist(emptyChecklist());
+      setChecklist(flowSuiteAuditChecklist());
     }
     showToast("Deleted.", "danger");
   };
@@ -438,7 +683,7 @@ export default function ChecklistBuilder() {
         {/* PICKER */}
         <div className="cb-picker no-print" style={{
           background: S.slate, color: "#fff", padding: "18px 24px", borderRadius: 12,
-          marginBottom: 20, display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap",
+          marginBottom: 12, display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap",
         }}>
           <span style={{
             fontFamily: "'DM Mono', monospace", fontSize: 10,
@@ -478,6 +723,26 @@ export default function ChecklistBuilder() {
           </select>
           <button onClick={handleNew} style={subtleBtn()}>+ New</button>
           <button onClick={handleDelete} style={{ ...subtleBtn(), color: "#ffb3a0" }}>Delete current</button>
+        </div>
+
+        {/* STATUS BAR */}
+        <div className="no-print" style={{
+          marginBottom: 20, display: "flex", alignItems: "center", gap: 8,
+          fontFamily: "'DM Mono', monospace", fontSize: 11, color: S.muted,
+          letterSpacing: "0.05em",
+        }}>
+          {isCloud ? (
+            <>
+              <span style={{ width: 8, height: 8, borderRadius: "50%", background: S.green, display: "inline-block" }}></span>
+              <span>Cloud saves on. Signed in as {userEmail}.</span>
+            </>
+          ) : (
+            <>
+              <span style={{ width: 8, height: 8, borderRadius: "50%", background: S.gold, display: "inline-block" }}></span>
+              <span>Browser saves only. <a href="/login" onClick={(e) => { e.preventDefault(); navigate("/login"); }} style={{ color: S.orange, textDecoration: "none", fontWeight: 700 }}>Sign in</a> to save to your CARES Works vault.</span>
+            </>
+          )}
+          {loadingCloud && <span style={{ marginLeft: 12, fontStyle: "italic" }}>Loading from cloud…</span>}
         </div>
 
         {/* CONTROLS */}
