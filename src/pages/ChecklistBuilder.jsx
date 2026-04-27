@@ -192,18 +192,21 @@ function emptyChecklist(name) {
 
 const PRINT_CSS = `
   @media print {
+    @page { margin: 0.4in; size: letter; }
     .no-print { display: none !important; }
-    body { background: #fff !important; font-size: 9pt !important; }
-    .cb-page { padding: 12px 16px 24px !important; }
-    .cb-h1 { font-size: 16pt !important; margin-bottom: 2px !important; }
-    .cb-section { box-shadow: none !important; border: 1px solid #ccc !important; page-break-inside: avoid; padding: 10px 12px !important; margin-bottom: 10px !important; }
-    .cb-section h2 { font-size: 10pt !important; margin-bottom: 4px !important; }
-    .cb-table { font-size: 8pt !important; }
-    .cb-table th { padding: 3px 6px !important; font-size: 7pt !important; }
-    .cb-table td { padding: 3px 6px !important; line-height: 1.3 !important; }
-    .cb-table td [contenteditable] { padding: 1px 3px !important; min-height: 0 !important; font-size: 8pt !important; }
-    .cb-table td.notes-cell [contenteditable] { font-size: 7.5pt !important; }
-    .col-notes { width: 32% !important; }
+    body { background: #fff !important; font-size: 8pt !important; }
+    .cb-page { padding: 6px 0 16px !important; }
+    .cb-h1 { font-size: 14pt !important; margin-bottom: 1px !important; }
+    .cb-section { box-shadow: none !important; border: 1px solid #ddd !important; page-break-inside: auto; padding: 6px 8px !important; margin-bottom: 6px !important; }
+    .cb-section h2 { font-size: 9pt !important; margin-bottom: 3px !important; padding-bottom: 3px !important; }
+    .cb-table { font-size: 7.5pt !important; }
+    .cb-table th { padding: 2px 5px !important; font-size: 6.5pt !important; }
+    .cb-table td { padding: 2px 5px !important; line-height: 1.25 !important; }
+    .cb-table td:first-child { width: 20px !important; max-width: 20px !important; padding: 0 !important; }
+    .cb-table td [contenteditable] { padding: 0 2px !important; min-height: 0 !important; font-size: 7.5pt !important; line-height: 1.25 !important; }
+    .cb-table td.notes-cell [contenteditable] { font-size: 7pt !important; }
+    .col-notes { width: 36% !important; }
+    .cb-table tr { page-break-inside: avoid; }
   }
   @media (max-width: 640px) {
     .cb-page { padding: 24px 16px 60px !important; }
