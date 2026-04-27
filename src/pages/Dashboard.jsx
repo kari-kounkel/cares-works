@@ -379,6 +379,28 @@ export default function Dashboard({ session }) {
               </div>
             </div>
 
+            {/* SHARE WITH A FRIEND */}
+            <div style={{ background: "#fff", border: "1px solid " + S.rule, borderRadius: 12, padding: "28px", marginBottom: 20 }}>
+              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase", color: S.muted, marginBottom: 12 }}>Share With a Friend</div>
+              <p style={{ fontSize: 14, color: S.muted, marginBottom: 18, lineHeight: 1.55 }}>
+                Know someone who needs CARES Works? Send them <strong style={{ color: S.ink, fontFamily: "'DM Mono', monospace", fontSize: 13 }}>tools.caresmn.com</strong> — when they visit without a login, they'll see the public landing page. Want to peek at what they'll see?
+              </p>
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                <a href="/?public=1" target="_blank" rel="noopener noreferrer"
+                  style={{ display: "inline-block", padding: "10px 18px", background: "transparent", border: "1.5px solid " + S.orange, borderRadius: 8, color: S.orange, fontSize: 13, fontWeight: 700, fontFamily: "'Figtree', sans-serif", textDecoration: "none" }}>
+                  Preview public site →
+                </a>
+                <button
+                  onClick={() => {
+                    navigator.clipboard?.writeText("https://tools.caresmn.com");
+                    alert("Copied! tools.caresmn.com is on your clipboard.");
+                  }}
+                  style={{ padding: "10px 18px", background: "transparent", border: "1.5px solid " + S.rule, borderRadius: 8, color: S.muted, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'Figtree', sans-serif" }}>
+                  Copy link to share
+                </button>
+              </div>
+            </div>
+
             {isAnnual && (
               <div style={{ background: "linear-gradient(135deg, #fff8e0, #fff)", border: "1.5px solid #e8d080", borderRadius: 14, padding: "28px 32px", marginBottom: 20 }}>
                 <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.22em", textTransform: "uppercase", color: "#9a7820", marginBottom: 12, fontWeight: 700 }}>✨ Annual Member Perks</div>

@@ -27,6 +27,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [isPasswordReset, setIsPasswordReset] = useState(false);
   const [path, setPath] = useState(window.location.pathname);
+  const [memberStatus, setMemberStatus] = useState(null); // null = checking, "member" = subscriber, "none" = no membership
 
   useEffect(() => {
     if (window.location.hash.includes("type=recovery")) setIsPasswordReset(true);
@@ -36,6 +37,21 @@ export default function App() {
     window.addEventListener("popstate", onPop);
     return () => { subscription.unsubscribe(); window.removeEventListener("popstate", onPop); };
   }, []);
+
+  // Check member status whenever session changes — used to redirect subscribers from landing page to dashboard
+  useEffect(() => {
+    if (!session?.user?.email) { setMemberStatus(null); return; }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("members")
+        .select("email")
+        .eq("email", session.user.email)
+        .maybeSingle();
+      if (!cancelled) setMemberStatus(data ? "member" : "none");
+    })();
+    return () => { cancelled = true; };
+  }, [session?.user?.email]);
 
   if (loading) return (
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#faf8f4", fontFamily: "'Figtree', sans-serif", color: "#a07060", fontSize: 15 }}>Loading...</div>
@@ -86,6 +102,24 @@ export default function App() {
           </div>
         </div>
       );
+    }
+  }
+
+  // Landing fallback — auto-redirect subscribers to /dashboard.
+  // Escape hatch: ?public=1 lets subscribers preview/share the public landing page.
+  const params = new URLSearchParams(window.location.search);
+  const isPublicView = params.get("public") === "1";
+
+  if (session && !isPublicView) {
+    if (memberStatus === null) {
+      // Brief loader while we check the members table — prevents flash of landing before redirect
+      return (
+        <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#faf8f4", fontFamily: "'Figtree', sans-serif", color: "#a07060", fontSize: 15 }}>Loading...</div>
+      );
+    }
+    if (memberStatus === "member") {
+      navigate("/dashboard");
+      return null;
     }
   }
 
