@@ -113,9 +113,9 @@ export default function FractionalCFOScope({ session }) {
         const { data } = await supabase
           .from("members")
           .select("plan")
-          .eq("user_id", session.user.id)
+          .eq("email", session.user.email)
           .single();
-        setIsMember(!!(data && data.plan));
+        setIsMember(!!data);
       } catch (_) {
         setIsMember(false);
       }
