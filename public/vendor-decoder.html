@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vendor Decoder — CARES Works.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Figtree:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --slate: #3d4560;
+    --orange: #e8773a;
+    --orange-light: #fdf0e8;
+    --paper: #faf8f4;
+    --cream: #f2ede3;
+    --ink: #1e1e2a;
+    --rule: #ddd8cc;
+    --muted: #7a7585;
+    --gold: #C9A84C;
+    --green: #5a9a5a;
+    --red: #c95f22;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Figtree', -apple-system, sans-serif;
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.5;
+  }
+
+  /* TOPBAR */
+  .topbar {
+    background: var(--slate);
+    padding: 0 32px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .brand {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    color: #fff;
+    text-decoration: none;
+    letter-spacing: -0.01em;
+  }
+  .brand-period { color: var(--orange); }
+  .topbar-right {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: rgba(255,255,255,0.7);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* HERO */
+  .hero {
+    background: var(--cream);
+    border-bottom: 1px solid var(--rule);
+    padding: 48px 32px 32px;
+  }
+  .hero-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 12px;
+  }
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 44px;
+    line-height: 1.05;
+    margin: 0 0 12px;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+  h1 .accent {
+    font-style: italic;
+    color: var(--orange);
+  }
+  .tagline {
+    font-family: 'DM Serif Display', serif;
+    font-style: italic;
+    font-size: 18px;
+    color: var(--gold);
+    margin: 0 0 16px;
+  }
+  .hero-desc {
+    font-size: 16px;
+    color: var(--muted);
+    max-width: 720px;
+    margin: 0;
+  }
+
+  /* MAIN */
+  main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px;
+  }
+
+  /* TIER BADGE */
+  .tier-toggle {
+    display: inline-flex;
+    background: #fff;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 4px;
+    margin-bottom: 24px;
+  }
+  .tier-btn {
+    font-family: 'Figtree', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 16px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.15s;
+  }
+  .tier-btn.active {
+    background: var(--slate);
+    color: #fff;
+  }
+  .tier-note {
+    display: inline-block;
+    margin-left: 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* SECTION */
+  section {
+    background: #fff;
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  section h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    margin: 0 0 8px;
+    color: var(--ink);
+  }
+  section .section-desc {
+    font-size: 14px;
+    color: var(--muted);
+    margin: 0 0 20px;
+  }
+
+  /* IMPORT */
+  .import-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 16px;
+    align-items: end;
+  }
+  textarea {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    width: 100%;
+    min-height: 120px;
+    padding: 12px;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    resize: vertical;
+    background: var(--paper);
+  }
+  textarea:focus {
+    outline: none;
+    border-color: var(--orange);
+  }
+  .import-help {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+
+  /* BUTTONS */
+  .btn {
+    font-family: 'Figtree', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .btn-primary {
+    background: var(--orange);
+    color: #fff;
+  }
+  .btn-primary:hover { background: var(--red); }
+  .btn-secondary {
+    background: #fff;
+    color: var(--slate);
+    border: 1px solid var(--rule);
+  }
+  .btn-secondary:hover { background: var(--cream); }
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+  .btn-ghost:hover { color: var(--red); }
+
+  /* TABLE */
+  .vendor-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  .vendor-table thead th {
+    text-align: left;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    padding: 10px 12px;
+    border-bottom: 2px solid var(--slate);
+    background: var(--cream);
+  }
+  .vendor-table td {
+    padding: 12px;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  .vendor-table input,
+  .vendor-table select,
+  .vendor-table textarea {
+    font-family: 'Figtree', sans-serif;
+    font-size: 13px;
+    padding: 6px 8px;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    background: #fff;
+    width: 100%;
+  }
+  .vendor-table textarea {
+    min-height: 36px;
+    font-family: 'Figtree', sans-serif;
+  }
+  .vendor-table .vendor-name {
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  /* MAPPING ROW */
+  .mapping-block {
+    background: var(--cream);
+    border-left: 3px solid var(--orange);
+    padding: 12px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+  }
+  .mapping-block:last-child { margin-bottom: 0; }
+  .mapping-grid {
+    display: grid;
+    grid-template-columns: 120px 140px 1fr 24px;
+    gap: 8px;
+    align-items: start;
+  }
+  .mapping-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 4px;
+    display: block;
+  }
+  .add-mapping-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--orange);
+    background: transparent;
+    border: 1px dashed var(--orange);
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 8px;
+    width: 100%;
+  }
+  .add-mapping-btn:hover { background: var(--orange-light); }
+  .add-mapping-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .gated-badge {
+    display: inline-block;
+    background: var(--gold);
+    color: var(--ink);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 3px 8px;
+    border-radius: 3px;
+    margin-left: 8px;
+    font-weight: 600;
+  }
+
+  /* ACTIONS BAR */
+  .actions-bar {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+
+  /* PREVIEW */
+  .preview-pane {
+    background: #fff;
+    border: 2px solid var(--slate);
+    border-radius: 8px;
+    padding: 24px;
+    font-family: 'Figtree', sans-serif;
+  }
+  .preview-pane h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    margin: 0 0 4px;
+  }
+  .preview-pane .preview-meta {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 16px;
+  }
+  .preview-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+  }
+  .preview-table th {
+    text-align: left;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    padding: 6px 8px;
+    border-bottom: 1.5px solid var(--ink);
+  }
+  .preview-table td {
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  .preview-table .acct {
+    font-family: 'DM Mono', monospace;
+    font-weight: 600;
+    color: var(--slate);
+    white-space: nowrap;
+  }
+  .preview-table .vendor {
+    font-weight: 600;
+  }
+  .preview-table .logic {
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  /* FOOTER */
+  footer {
+    background: var(--slate);
+    color: rgba(255,255,255,0.85);
+    padding: 24px 32px;
+    text-align: center;
+    font-size: 13px;
+  }
+  footer .footer-brand {
+    font-family: 'DM Serif Display', serif;
+    color: #fff;
+    font-size: 16px;
+  }
+  footer .footer-brand-period { color: var(--orange); }
+  footer .tagline-footer {
+    font-style: italic;
+    color: var(--gold);
+    font-family: 'DM Serif Display', serif;
+    margin-top: 4px;
+  }
+
+  /* PRINT */
+  @media print {
+    .topbar, .hero, .actions-bar, .tier-toggle, .tier-note,
+    section.import-section, section.editor-section, footer,
+    .preview-pane { 
+      display: none !important; 
+    }
+    .print-only { display: block !important; }
+    body { background: #fff; }
+    main { padding: 0; max-width: none; }
+    .preview-pane { 
+      display: block !important; 
+      border: none; 
+      padding: 0; 
+    }
+  }
+  .print-only { display: none; }
+
+  @media (max-width: 700px) {
+    h1 { font-size: 32px; }
+    main { padding: 16px; }
+    .mapping-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="https://tools.caresmn.com" class="brand">CARES Works<span class="brand-period">.</span></a>
+  <span class="topbar-right">Vendor Decoder</span>
+</div>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow">A CARES Works Tool</div>
+    <h1>Vendor <span class="accent">Decoder</span></h1>
+    <div class="tagline">Revenue is vanity. Net profit is sanity.</div>
+    <p class="hero-desc">Turn your vendor list into a posting playbook. The new bookkeeper inherits clarity instead of chaos — every vendor mapped to the right account, with the logic that tells them when it's something else.</p>
+  </div>
+</div>
+
+<main>
+
+  <div class="tier-toggle">
+    <button class="tier-btn active" id="tier-free" onclick="setTier('free')">Free</button>
+    <button class="tier-btn" id="tier-pro" onclick="setTier('pro')">CARES Works Member</button>
+    <span class="tier-note" id="tier-note">One account per vendor + basic printable sheet</span>
+  </div>
+
+  <!-- IMPORT -->
+  <section class="import-section">
+    <h2>1. Import vendor list</h2>
+    <p class="section-desc">Paste from Excel, QuickBooks vendor export, or type one per line. We'll parse it and load the table below.</p>
+    <div class="import-row">
+      <div>
+        <textarea id="import-text" placeholder="Priority Envelope&#10;Hello Print Supply&#10;Office Depot&#10;Acme HVAC&#10;..."></textarea>
+        <div class="import-help">One vendor per line. Or paste a column from Excel — first column is treated as vendor name.</div>
+      </div>
+      <button class="btn btn-primary" onclick="importVendors()">Load vendors →</button>
+    </div>
+  </section>
+
+  <!-- EDITOR -->
+  <section class="editor-section" id="editor-section" style="display:none;">
+    <h2>2. Map each vendor to its account</h2>
+    <p class="section-desc">Assign the primary GL account. Add notes about anything tricky. <span id="pro-mapping-note" style="display:none;">Add multiple mappings with decision logic when the same vendor lands in different accounts depending on what they're billing for.</span></p>
+    
+    <div class="actions-bar">
+      <button class="btn btn-secondary" onclick="addBlankVendor()">+ Add vendor</button>
+      <button class="btn btn-secondary" onclick="generatePreview()">Generate reference sheet</button>
+      <button class="btn btn-secondary" onclick="exportJSON()">Save (download)</button>
+      <button class="btn btn-secondary" onclick="document.getElementById('load-file').click()">Load file</button>
+      <input type="file" id="load-file" style="display:none;" accept=".json" onchange="loadJSON(event)">
+      <button class="btn btn-ghost" onclick="clearAll()">Clear all</button>
+    </div>
+
+    <table class="vendor-table">
+      <thead>
+        <tr>
+          <th style="width: 22%;">Vendor</th>
+          <th>Account mapping(s)</th>
+          <th style="width: 18%;">PO usage</th>
+          <th style="width: 22%;">Notes</th>
+          <th style="width: 30px;"></th>
+        </tr>
+      </thead>
+      <tbody id="vendor-tbody"></tbody>
+    </table>
+  </section>
+
+  <!-- PREVIEW -->
+  <section id="preview-section" style="display:none;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px;">
+      <h2 style="margin:0;">3. Reference sheet preview</h2>
+      <button class="btn btn-primary" onclick="window.print()">Print this sheet</button>
+    </div>
+    <p class="section-desc">Dense, usable. Print it, fold it, tape it next to the desk. The new bookkeeper actually uses this.</p>
+    <div class="preview-pane" id="preview-content"></div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="footer-brand">CARES Works<span class="footer-brand-period">.</span></div>
+  <div class="tagline-footer">Revenue is vanity. Net profit is sanity.</div>
+  <div style="margin-top: 8px; font-size: 11px; opacity: 0.6;">tools.caresmn.com</div>
+</footer>
+
+<script>
+  const STORAGE_KEY = 'cares_vendor_decoder_v1';
+  let tier = 'free';
+  let vendors = [];
+
+  // Load from storage
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      vendors = parsed.vendors || [];
+      tier = parsed.tier || 'free';
+      if (vendors.length > 0) {
+        document.getElementById('editor-section').style.display = 'block';
+        renderVendors();
+      }
+      setTier(tier);
+    }
+  } catch(e) { console.warn('No saved data'); }
+
+  function save() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ vendors, tier }));
+  }
+
+  function setTier(t) {
+    tier = t;
+    document.getElementById('tier-free').classList.toggle('active', t === 'free');
+    document.getElementById('tier-pro').classList.toggle('active', t === 'pro');
+    document.getElementById('tier-note').textContent = t === 'free'
+      ? 'One account per vendor + basic printable sheet'
+      : 'Multiple mappings + decision logic + dense reference sheet';
+    document.getElementById('pro-mapping-note').style.display = t === 'pro' ? 'inline' : 'none';
+    if (vendors.length > 0) renderVendors();
+    save();
+  }
+
+  function importVendors() {
+    const text = document.getElementById('import-text').value.trim();
+    if (!text) {
+      alert('Paste a vendor list first.');
+      return;
+    }
+    const lines = text.split('\n').map(l => l.split(/[,\t]/)[0].trim()).filter(l => l && l.length > 0);
+    if (lines.length === 0) {
+      alert('No vendors found.');
+      return;
+    }
+    lines.forEach(name => {
+      vendors.push(blankVendor(name));
+    });
+    document.getElementById('import-text').value = '';
+    document.getElementById('editor-section').style.display = 'block';
+    renderVendors();
+    save();
+  }
+
+  function blankVendor(name) {
+    return {
+      id: Date.now() + Math.random(),
+      name: name || '',
+      mappings: [{ account: '', logicType: '', logicValue: '' }],
+      poUsage: '',
+      notes: ''
+    };
+  }
+
+  function addBlankVendor() {
+    vendors.push(blankVendor(''));
+    document.getElementById('editor-section').style.display = 'block';
+    renderVendors();
+    save();
+  }
+
+  function renderVendors() {
+    const tbody = document.getElementById('vendor-tbody');
+    tbody.innerHTML = '';
+    vendors.forEach((v, i) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><input type="text" class="vendor-name" value="${escapeHtml(v.name)}" oninput="updateField(${i}, 'name', this.value)" placeholder="Vendor name"></td>
+        <td>${renderMappings(v, i)}</td>
+        <td><select onchange="updateField(${i}, 'poUsage', this.value)">
+          <option value="" ${v.poUsage===''?'selected':''}>—</option>
+          <option value="Always" ${v.poUsage==='Always'?'selected':''}>Always required</option>
+          <option value="Sometimes" ${v.poUsage==='Sometimes'?'selected':''}>Sometimes</option>
+          <option value="Never" ${v.poUsage==='Never'?'selected':''}>Not used</option>
+        </select></td>
+        <td><textarea oninput="updateField(${i}, 'notes', this.value)" placeholder="Anything the new person needs to know">${escapeHtml(v.notes)}</textarea></td>
+        <td><button class="btn btn-ghost" onclick="deleteVendor(${i})" title="Delete">×</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function renderMappings(v, vIdx) {
+    let html = '';
+    v.mappings.forEach((m, mIdx) => {
+      const isFirst = mIdx === 0;
+      const showLogic = tier === 'pro' || isFirst === false;
+      html += `<div class="mapping-block">
+        <div class="mapping-grid">
+          <div>
+            <label class="mapping-label">Account #</label>
+            <input type="text" value="${escapeHtml(m.account)}" oninput="updateMapping(${vIdx}, ${mIdx}, 'account', this.value)" placeholder="5210">
+          </div>
+          ${tier === 'pro' || mIdx > 0 ? `
+          <div>
+            <label class="mapping-label">When</label>
+            <select onchange="updateMapping(${vIdx}, ${mIdx}, 'logicType', this.value)">
+              <option value="" ${m.logicType===''?'selected':''}>Default</option>
+              <option value="po" ${m.logicType==='po'?'selected':''}>PO pattern</option>
+              <option value="amount" ${m.logicType==='amount'?'selected':''}>Dollar amount</option>
+              <option value="keyword" ${m.logicType==='keyword'?'selected':''}>Description keyword</option>
+              <option value="location" ${m.logicType==='location'?'selected':''}>Ship from / location</option>
+              <option value="other" ${m.logicType==='other'?'selected':''}>Other rule</option>
+            </select>
+          </div>
+          <div>
+            <label class="mapping-label">Detail</label>
+            <input type="text" value="${escapeHtml(m.logicValue)}" oninput="updateMapping(${vIdx}, ${mIdx}, 'logicValue', this.value)" placeholder="${logicPlaceholder(m.logicType)}">
+          </div>
+          ${mIdx > 0 ? `<button class="btn btn-ghost" onclick="deleteMapping(${vIdx}, ${mIdx})" style="margin-top:18px;" title="Remove this rule">×</button>` : '<div></div>'}
+          ` : '<div style="grid-column: span 3; color: var(--muted); font-size: 12px; align-self: center;">Default account for this vendor</div><div></div>'}
+        </div>
+      </div>`;
+    });
+    if (tier === 'pro') {
+      html += `<button class="add-mapping-btn" onclick="addMapping(${vIdx})">+ Add another mapping rule</button>`;
+    } else {
+      html += `<button class="add-mapping-btn" disabled title="Available for CARES Works members">+ Add rule <span class="gated-badge">Member</span></button>`;
+    }
+    return html;
+  }
+
+  function logicPlaceholder(type) {
+    switch(type) {
+      case 'po': return 'PO starts with PR-';
+      case 'amount': return 'Over $500';
+      case 'keyword': return 'Invoice says "install"';
+      case 'location': return 'Ships from St. Paul';
+      case 'other': return 'Rule description';
+      default: return '';
+    }
+  }
+
+  function updateField(vIdx, field, value) {
+    vendors[vIdx][field] = value;
+    save();
+  }
+
+  function updateMapping(vIdx, mIdx, field, value) {
+    vendors[vIdx].mappings[mIdx][field] = value;
+    if (field === 'logicType') renderVendors();
+    save();
+  }
+
+  function addMapping(vIdx) {
+    vendors[vIdx].mappings.push({ account: '', logicType: 'po', logicValue: '' });
+    renderVendors();
+    save();
+  }
+
+  function deleteMapping(vIdx, mIdx) {
+    vendors[vIdx].mappings.splice(mIdx, 1);
+    renderVendors();
+    save();
+  }
+
+  function deleteVendor(vIdx) {
+    if (confirm('Delete ' + (vendors[vIdx].name || 'this vendor') + '?')) {
+      vendors.splice(vIdx, 1);
+      renderVendors();
+      save();
+    }
+  }
+
+  function clearAll() {
+    if (confirm('Clear all vendors? This cannot be undone.')) {
+      vendors = [];
+      localStorage.removeItem(STORAGE_KEY);
+      document.getElementById('editor-section').style.display = 'none';
+      document.getElementById('preview-section').style.display = 'none';
+    }
+  }
+
+  function generatePreview() {
+    const sect = document.getElementById('preview-section');
+    const content = document.getElementById('preview-content');
+    sect.style.display = 'block';
+    
+    const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    let html = `
+      <h3>Vendor Posting Reference</h3>
+      <div class="preview-meta">Generated ${today} • CARES Works Vendor Decoder</div>
+      <table class="preview-table">
+        <thead>
+          <tr>
+            <th style="width: 20%;">Vendor</th>
+            <th style="width: 12%;">Account</th>
+            <th>Decision logic / notes</th>
+            <th style="width: 12%;">PO</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+    vendors.forEach(v => {
+      v.mappings.forEach((m, i) => {
+        const isFirst = i === 0;
+        const logic = m.logicType ? `${formatLogicType(m.logicType)}: ${m.logicValue}` : (isFirst ? 'Default' : '');
+        const notes = isFirst && v.notes ? ` <span class="logic">— ${escapeHtml(v.notes)}</span>` : '';
+        html += `<tr>
+          <td class="vendor">${isFirst ? escapeHtml(v.name || '—') : ''}</td>
+          <td class="acct">${escapeHtml(m.account || '—')}</td>
+          <td><span class="logic">${escapeHtml(logic)}</span>${notes}</td>
+          <td>${isFirst ? escapeHtml(v.poUsage || '—') : ''}</td>
+        </tr>`;
+      });
+    });
+    html += `</tbody></table>
+      <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--rule); font-size: 10px; color: var(--muted); font-family: 'DM Mono', monospace; text-transform: uppercase; letter-spacing: 0.06em; text-align: center;">
+        CARES Works · tools.caresmn.com · Revenue is vanity. Net profit is sanity.
+      </div>
+    `;
+    content.innerHTML = html;
+    sect.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function formatLogicType(t) {
+    switch(t) {
+      case 'po': return 'PO';
+      case 'amount': return 'Amount';
+      case 'keyword': return 'Keyword';
+      case 'location': return 'Location';
+      case 'other': return 'Rule';
+      default: return '';
+    }
+  }
+
+  function exportJSON() {
+    const blob = new Blob([JSON.stringify({ vendors, tier, exportedAt: new Date().toISOString() }, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'vendor-decoder-' + new Date().toISOString().slice(0,10) + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function loadJSON(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const parsed = JSON.parse(e.target.result);
+        if (parsed.vendors) {
+          vendors = parsed.vendors;
+          if (parsed.tier) setTier(parsed.tier);
+          document.getElementById('editor-section').style.display = 'block';
+          renderVendors();
+          save();
+        }
+      } catch(err) {
+        alert('Could not load that file.');
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function escapeHtml(s) {
+    if (!s) return '';
+    return String(s).replace(/[&<>"']/g, m => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[m]));
+  }
+</script>
+
+</body>
+</html>

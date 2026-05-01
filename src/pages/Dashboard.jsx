@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "../supabaseClient";
 import { navigate } from "../App";
 
@@ -16,6 +16,8 @@ const MOBILE_DASH = `
     .dash-account-row { flex-direction: column !important; gap: 16px !important; }
     .dash-upgrade { flex-direction: column !important; }
     .dash-membership-block { padding: 28px 20px !important; }
+    .dash-filter-bar { flex-direction: column !important; align-items: stretch !important; }
+    .dash-filter-search { width: 100% !important; }
   }
 `;
 
@@ -30,50 +32,60 @@ const S = {
   rule: "#ddd8cc",
   muted: "#7a7585",
   gold: "#C9A84C",
+  green: "#5a9a5a",
   grad: "linear-gradient(135deg, #e8773a, #c95f22)",
 };
 
+// Tools grouped by category. Each tool: icon, title, slug OR href, desc, optional tag, optional tier
+// tier: "free" or "member" (defaults to "member" if omitted)
+// tag: "NEW" or "FREE" (visual badge — FREE tag implies tier "free")
+// href: external static URL — used INSTEAD of slug for non-React routes (like /vendor-decoder.html)
 const TOOLS = {
-  money: [
-    { icon: "📊", title: "Net Profit Ratios + What's Your Number", slug: "net-profit-ratios", desc: "The worksheet that shows you what revenue actually needs to be — starting from what you need to take home.", tag: "NEW" },
-    { icon: "✅", title: "The Payroll Checklist Nobody Gave You", slug: "payroll-checklist", desc: "Pay period, quarterly, annual, and 1099 — three checklists in one. Each tracks independently.", tag: "FREE" },
-    { icon: "📥", title: "Stop Drowning in Email Attachments", slug: "email-attachments", desc: "The Python script that pulls every invoice and vendor doc out of your inbox — sorted, named, waiting for you every morning.", tag: "FREE" },
+  bookkeeping: [
+    { icon: "🗂️", title: "Vendor Decoder", href: "/vendor-decoder.html", desc: "Turn your vendor list into a posting playbook. Map every vendor to its account so the new bookkeeper inherits clarity instead of chaos.", tag: "NEW", tier: "free" },
     { icon: "📗", title: "Year-End QuickBooks Triage", slug: "quickbooks-triage", desc: "8 diagnostic zones. Find the fires, name the fires, put out the ones that matter. Full version." },
     { icon: "📈", title: "Chart of Accounts Cheat Sheet", slug: "chart-of-accounts", desc: "The categories you actually need, the ones you don't, and why your P&L is lying to you." },
     { icon: "📥", title: "QuickBooks IIF Import — The Right Way", slug: "iif-import", desc: "Stop manually entering transactions. Build and import IIF files without losing your mind." },
-    { icon: "💰", title: "Pricing Metrics Framework", slug: "pricing-metrics", desc: "Cost of goods, labor burden, overhead allocation, margin vs markup. The math people are too embarrassed to ask about." },
-    { icon: "🧾", title: "Finding a CPA — The Right Questions", slug: "finding-a-cpa", desc: "What to ask before you hire one. What red flags to run from. Most people pick whoever answers the phone." },
+    { icon: "🔍", title: "QBO Discovery Assessment", slug: "qbo-discovery", desc: "Thirteen sections for scoping a new QBO client. Chart of accounts, payroll, reconciliation, pain points. Walk in knowing nothing. Walk out with scope, price, and a verdict.", tag: "NEW" },
+    { icon: "📥", title: "Stop Drowning in Email Attachments", slug: "email-attachments", desc: "The Python script that pulls every invoice and vendor doc out of your inbox — sorted, named, waiting for you every morning.", tag: "FREE", tier: "free" },
     { icon: "📧", title: "Advanced Email Attachments", slug: "email-attachments-advanced", desc: "The enhanced Python script that writes a full email-detail.csv with auto-categorization. Six workflows: Monday rhythm, QuickBooks bridge, monthly recon, year-end 1099 prep, and more.", tag: "NEW" },
     { icon: "📋", title: "Bookkeeper Scope Matrix", slug: "bookkeeper-scope", desc: "30 bookkeeping tasks. Three answers: your bookkeeper owns it, it stays out of their lane, or it needs a specialist. Stop giving away access you will regret.", tag: "NEW" },
+  ],
+  money: [
+    { icon: "📊", title: "Net Profit Ratios + What's Your Number", slug: "net-profit-ratios", desc: "The worksheet that shows you what revenue actually needs to be — starting from what you need to take home.", tag: "NEW" },
+    { icon: "💰", title: "Pricing Metrics Framework", slug: "pricing-metrics", desc: "Cost of goods, labor burden, overhead allocation, margin vs markup. The math people are too embarrassed to ask about." },
+    { icon: "🧾", title: "Finding a CPA — The Right Questions", slug: "finding-a-cpa", desc: "What to ask before you hire one. What red flags to run from. Most people pick whoever answers the phone." },
     { icon: "📊", title: "Fractional CFO Scope Matrix", slug: "fractional-cfo-scope", desc: "Three columns: what a fractional CFO does, what they do not touch, and where your authority stays yours. Know the scope before you sign the contract.", tag: "NEW" },
-    { icon: "🔍", title: "QBO Discovery Assessment", slug: "qbo-discovery", desc: "Thirteen sections for scoping a new QBO client. Chart of accounts, payroll, reconciliation, pain points. Walk in knowing nothing. Walk out with scope, price, and a verdict.", tag: "NEW" },
+    { icon: "🔍", title: "Busy vs. Profitable — The Busyness Audit", slug: "busyness-audit", desc: "Revenue is vanity. Net profit is sanity. This shows you whether your busyness is profitable or just exhausting." },
   ],
   people: [
+    { icon: "✅", title: "The Payroll Checklist Nobody Gave You", slug: "payroll-checklist", desc: "Pay period, quarterly, annual, and 1099 — three checklists in one. Each tracks independently.", tag: "FREE", tier: "free" },
     { icon: "🗂️", title: "New Hire First 30 Days", slug: "new-hire-30-days", desc: "The sequence that makes you look like you have a whole HR team behind you when it's just you." },
     { icon: "📝", title: "Separation Script + Resignation Templates", slug: "separation-script", desc: "Word for word. Walk in, say this, walk out. No drama, no liability." },
-    { icon: "🤝", title: "Building Your Advisory Team", slug: "advisory-team", desc: "Who you actually need in your corner. CPA, attorney, banker, insurance, mentor. What to ask each one." },
   ],
-  communication: [
-    { icon: "✉️", title: "What to Actually Say", slug: "communication-templates", desc: "10 templates for late invoices, scope creep, bad news, after-hours texters, and the client you need to fire.", tag: "FREE" },
-    { icon: "📋", title: "Client Visit Summary", slug: "client-visit-summary", desc: "Fill it out in the parking lot. Leave it behind. Your client knows what happened and what is next.", tag: "FREE" },
+  clientwork: [
+    { icon: "✉️", title: "What to Actually Say", slug: "communication-templates", desc: "10 templates for late invoices, scope creep, bad news, after-hours texters, and the client you need to fire.", tag: "FREE", tier: "free" },
+    { icon: "📋", title: "Client Visit Summary", slug: "client-visit-summary", desc: "Fill it out in the parking lot. Leave it behind. Your client knows what happened and what is next.", tag: "FREE", tier: "free" },
     { icon: "⏱️", title: "Buying Time Scripts", slug: "buying-time-scripts", desc: "Exactly what to say when a client asks something you don't know the answer to. Sound confident while you go figure it out." },
     { icon: "📋", title: "Post-Meeting Debrief One-Pager", slug: "post-meeting-debrief", desc: "Fill it out in the parking lot, send it before you get home. Never forget what you committed to again." },
   ],
   leadership: [
+    { icon: "🤝", title: "Building Your Advisory Team", slug: "advisory-team", desc: "Who you actually need in your corner. CPA, attorney, banker, insurance, mentor. What to ask each one." },
     { icon: "📅", title: "Planning Meetings That Actually Work", slug: "meeting-planning", desc: "The agenda, the time blocks, and the follow-up protocol. One page. Laminate it." },
-    { icon: "🔍", title: "Busy vs. Profitable — The Busyness Audit", slug: "busyness-audit", desc: "Revenue is vanity. Net profit is sanity. This shows you whether your busyness is profitable or just exhausting." },
     { icon: "🏗️", title: "In-House vs. Contract Decision Matrix", slug: "inhouse-vs-contract", desc: "HR, bookkeeping, marketing, IT, legal. When you're big enough to bring it in, when you're not." },
     { icon: "📚", title: "Founders Series — Module 1", slug: "founders-series-1", desc: "The business foundation framework. Where it all starts." },
   ],
   utilities: [
-    { icon: "✅", title: "Build Your Own Checklist", slug: "checklist-builder", desc: "Multi-section checklist with status circles and notes. Drag rows to rearrange. Save as many as you want. For audits, project tracking, decision matrices, anything.", tag: "FREE" },
+    { icon: "✅", title: "Build Your Own Checklist", slug: "checklist-builder", desc: "Multi-section checklist with status circles and notes. Drag rows to rearrange. Save as many as you want. For audits, project tracking, decision matrices, anything.", tag: "FREE", tier: "free" },
   ],
 };
+
+const CAT_LABELS = { bookkeeping: "Bookkeeping", money: "Money", people: "People", clientwork: "Client Work", leadership: "Leadership", utilities: "Utilities" };
+const CAT_ICONS = { bookkeeping: "📒", money: "💰", people: "👥", clientwork: "🤝", leadership: "🎯", utilities: "🛠️" };
 
 const DEBRIEF_PLACEHOLDER = {
   title: "The Debrief — April 2026",
   desc: "This month: Net profit ratios, what your numbers are actually telling you, and member questions answered.",
-  available: false,
 };
 
 const COURT_CHAPTERS = [
@@ -86,8 +98,13 @@ const COURT_CHAPTERS = [
 export default function Dashboard({ session }) {
   const [member, setMember] = useState(null);
   const [activeTab, setActiveTab] = useState("tools");
-  const [activeCategory, setActiveCategory] = useState("money");
   const [loading, setLoading] = useState(true);
+
+  // Filter state for Tool Library
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCats, setSelectedCats] = useState([]); // empty = all
+  const [tierFilter, setTierFilter] = useState("all"); // all | free | member
+  const [newOnly, setNewOnly] = useState(false);
 
   useEffect(() => {
     const fetchMember = async () => {
@@ -107,6 +124,41 @@ export default function Dashboard({ session }) {
     await supabase.auth.signOut();
     window.location.href = "/";
   };
+
+  // Flatten all tools with category attached
+  const allTools = useMemo(() => {
+    return Object.entries(TOOLS).flatMap(([cat, tools]) =>
+      tools.map(t => ({ ...t, category: cat, tier: t.tier || "member" }))
+    );
+  }, []);
+
+  // Apply filters
+  const filteredTools = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return allTools.filter(t => {
+      if (selectedCats.length > 0 && !selectedCats.includes(t.category)) return false;
+      if (tierFilter !== "all" && t.tier !== tierFilter) return false;
+      if (newOnly && t.tag !== "NEW") return false;
+      if (q) {
+        const haystack = (t.title + " " + t.desc).toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [allTools, searchQuery, selectedCats, tierFilter, newOnly]);
+
+  const toggleCat = (cat) => {
+    setSelectedCats(prev => prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]);
+  };
+
+  const clearFilters = () => {
+    setSearchQuery("");
+    setSelectedCats([]);
+    setTierFilter("all");
+    setNewOnly(false);
+  };
+
+  const hasActiveFilters = searchQuery || selectedCats.length > 0 || tierFilter !== "all" || newOnly;
 
   if (!loading && !member) {
     return (
@@ -144,7 +196,6 @@ export default function Dashboard({ session }) {
   const tabs = ["tools", "debrief", "court", "shop", "account"];
   const tabLabels = { tools: "Tool Library", debrief: "The Debrief", court: "Court of Accounts", shop: "Shop", account: "Account" };
   const categories = Object.keys(TOOLS);
-  const catLabels = { money: "Money", people: "People", communication: "Communication", leadership: "Leadership", utilities: "Utilities" };
 
   return (
     <div style={{ minHeight: "100vh", background: S.paper, fontFamily: "'Figtree', sans-serif", color: S.ink }}>
@@ -175,44 +226,119 @@ export default function Dashboard({ session }) {
         </div>
       </header>
 
-      <div className="dash-page" style={{ maxWidth: 1000, margin: "0 auto", padding: "40px 24px 80px" }}>
+      <div className="dash-page" style={{ maxWidth: 1100, margin: "0 auto", padding: "40px 24px 80px" }}>
 
         {/* TOOLS TAB */}
         {activeTab === "tools" && (
           <>
-            <div style={{ marginBottom: 36 }}>
-              <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, color: S.slate, marginBottom: 6 }}>
+            <div style={{ marginBottom: 28 }}>
+              <h1 className="dash-h1" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, color: S.slate, marginBottom: 6 }}>
                 {"Welcome back" + (member?.full_name ? ", " + member.full_name.split(" ")[0] : "") + "."}
               </h1>
-              <p style={{ color: S.muted, fontSize: 15 }}>Your full tool library. New tools added monthly.</p>
+              <p style={{ color: S.muted, fontSize: 15 }}>Your full tool library. New tools added monthly. Search, filter, find what you need.</p>
             </div>
 
-            {/* CATEGORY TABS */}
-            <div style={{ display: "flex", gap: 8, marginBottom: 32, flexWrap: "wrap" }}>
-              {categories.map(c => (
-                <button key={c} onClick={() => setActiveCategory(c)}
-                  style={{ padding: "8px 20px", borderRadius: 100, border: "1.5px solid " + (activeCategory === c ? S.orange : S.rule), background: activeCategory === c ? S.orange : "#fff", color: activeCategory === c ? "#fff" : S.muted, fontSize: 13, fontWeight: activeCategory === c ? 700 : 400, cursor: "pointer", fontFamily: "'Figtree', sans-serif", transition: "all 0.15s" }}>
-                  {catLabels[c]}
+            {/* SEARCH BAR */}
+            <div style={{ marginBottom: 16, position: "relative" }} className="dash-filter-search">
+              <input
+                type="text"
+                placeholder="Search tools…"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                style={{ width: "100%", padding: "12px 40px 12px 44px", fontSize: 14, fontFamily: "'Figtree', sans-serif", background: "#fff", border: "1.5px solid " + S.rule, borderRadius: 10, outline: "none", color: S.ink, boxSizing: "border-box" }}
+                onFocus={e => { e.target.style.borderColor = S.orange; }}
+                onBlur={e => { e.target.style.borderColor = S.rule; }}
+              />
+              <span style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", fontSize: 16, color: S.muted, pointerEvents: "none" }}>🔍</span>
+              {searchQuery && (
+                <button onClick={() => setSearchQuery("")}
+                  style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "transparent", border: "none", color: S.muted, fontSize: 18, cursor: "pointer", padding: 4 }}>×</button>
+              )}
+            </div>
+
+            {/* CATEGORY CHIPS */}
+            <div className="dash-cat-tabs" style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+              <button onClick={() => setSelectedCats([])}
+                style={{ padding: "7px 16px", borderRadius: 100, border: "1.5px solid " + (selectedCats.length === 0 ? S.slate : S.rule), background: selectedCats.length === 0 ? S.slate : "#fff", color: selectedCats.length === 0 ? "#fff" : S.muted, fontSize: 12, fontWeight: selectedCats.length === 0 ? 700 : 500, cursor: "pointer", fontFamily: "'Figtree', sans-serif", transition: "all 0.15s" }}>
+                All
+              </button>
+              {categories.map(c => {
+                const isActive = selectedCats.includes(c);
+                return (
+                  <button key={c} onClick={() => toggleCat(c)}
+                    style={{ padding: "7px 16px", borderRadius: 100, border: "1.5px solid " + (isActive ? S.orange : S.rule), background: isActive ? S.orange : "#fff", color: isActive ? "#fff" : S.muted, fontSize: 12, fontWeight: isActive ? 700 : 500, cursor: "pointer", fontFamily: "'Figtree', sans-serif", transition: "all 0.15s", display: "flex", alignItems: "center", gap: 6 }}>
+                    <span>{CAT_ICONS[c]}</span>{CAT_LABELS[c]}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* TIER + NEW FILTER ROW */}
+            <div className="dash-filter-bar" style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 24, flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: 4, background: "#fff", border: "1px solid " + S.rule, borderRadius: 100, padding: 3 }}>
+                {[{ k: "all", l: "All" }, { k: "free", l: "Free" }, { k: "member", l: "Member" }].map(opt => (
+                  <button key={opt.k} onClick={() => setTierFilter(opt.k)}
+                    style={{ padding: "5px 14px", borderRadius: 100, border: "none", background: tierFilter === opt.k ? S.cream : "transparent", color: tierFilter === opt.k ? S.ink : S.muted, fontSize: 11, fontWeight: tierFilter === opt.k ? 700 : 500, cursor: "pointer", fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                    {opt.l}
+                  </button>
+                ))}
+              </div>
+              <button onClick={() => setNewOnly(!newOnly)}
+                style={{ padding: "6px 14px", borderRadius: 100, border: "1.5px solid " + (newOnly ? S.gold : S.rule), background: newOnly ? "linear-gradient(135deg,#C9A84C,#e0c060)" : "#fff", color: newOnly ? S.ink : S.muted, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                ✨ New only
+              </button>
+              {hasActiveFilters && (
+                <button onClick={clearFilters}
+                  style={{ background: "transparent", border: "none", color: S.orange, fontSize: 12, cursor: "pointer", fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", textTransform: "uppercase", padding: "6px 8px" }}>
+                  Clear filters
                 </button>
-              ))}
+              )}
+              <div style={{ marginLeft: "auto", fontFamily: "'DM Mono', monospace", fontSize: 11, color: S.muted, letterSpacing: "0.06em" }}>
+                Showing {filteredTools.length} of {allTools.length} tools
+              </div>
             </div>
 
             {/* TOOLS GRID */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 20 }}>
-              {TOOLS[activeCategory].map(t => (
-                <div key={t.title} style={{ background: "#fff", border: "1px solid " + S.rule, borderRadius: 12, padding: "24px", display: "flex", flexDirection: "column", gap: 10, position: "relative" }}>
-                  {t.tag && <div style={{ position: "absolute", top: 16, right: 16, background: S.orange, color: "#fff", fontFamily: "'DM Mono', monospace", fontSize: 9, fontWeight: 700, letterSpacing: "0.12em", padding: "3px 8px", borderRadius: 100 }}>{t.tag}</div>}
-                  <div style={{ width: 44, height: 44, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, background: S.orangeLight }}>{t.icon}</div>
-                  <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, lineHeight: 1.3, color: S.slate }}>{t.title}</div>
-                  <div style={{ fontSize: 13, color: S.muted, lineHeight: 1.55, flex: 1 }}>{t.desc}</div>
-                  <button
-                    onClick={() => { navigate("/tools/" + t.slug); }}
-                    style={{ marginTop: 8, padding: "10px 16px", background: S.grad, border: "none", borderRadius: 8, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'Figtree', sans-serif", textAlign: "left" }}>
-                    Get this tool →
-                  </button>
-                </div>
-              ))}
-            </div>
+            {filteredTools.length === 0 ? (
+              <div style={{ background: S.cream, border: "1px dashed " + S.rule, borderRadius: 12, padding: "48px 24px", textAlign: "center", color: S.muted }}>
+                <div style={{ fontSize: 32, marginBottom: 12 }}>🔍</div>
+                <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: S.slate, marginBottom: 8 }}>No tools match your filters.</div>
+                <p style={{ fontSize: 14, marginBottom: 16 }}>Try clearing the filters or searching for something else.</p>
+                <button onClick={clearFilters}
+                  style={{ padding: "8px 18px", background: S.orange, border: "none", borderRadius: 8, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'Figtree', sans-serif" }}>
+                  Clear filters
+                </button>
+              </div>
+            ) : (
+              <div className="dash-tools-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 20 }}>
+                {filteredTools.map(t => {
+                  const buttonText = t.href ? "Open tool →" : "Get this tool →";
+                  return (
+                    <div key={t.title} style={{ background: "#fff", border: "1px solid " + S.rule, borderRadius: 12, padding: "22px 24px", display: "flex", flexDirection: "column", gap: 10, position: "relative" }}>
+                      {t.tag && <div style={{ position: "absolute", top: 14, right: 14, background: t.tag === "FREE" ? S.green : S.orange, color: "#fff", fontFamily: "'DM Mono', monospace", fontSize: 9, fontWeight: 700, letterSpacing: "0.12em", padding: "3px 8px", borderRadius: 100 }}>{t.tag}</div>}
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <div style={{ width: 42, height: 42, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, background: S.orangeLight }}>{t.icon}</div>
+                        <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase", color: S.muted }}>{CAT_LABELS[t.category]}</div>
+                      </div>
+                      <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, lineHeight: 1.3, color: S.slate }}>{t.title}</div>
+                      <div style={{ fontSize: 13, color: S.muted, lineHeight: 1.55, flex: 1 }}>{t.desc}</div>
+                      {t.href ? (
+                        <a href={t.href} target="_blank" rel="noopener noreferrer"
+                          style={{ marginTop: 8, padding: "10px 16px", background: S.grad, border: "none", borderRadius: 8, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'Figtree', sans-serif", textAlign: "left", textDecoration: "none", display: "block" }}>
+                          {buttonText}
+                        </a>
+                      ) : (
+                        <button
+                          onClick={() => { navigate("/tools/" + t.slug); }}
+                          style={{ marginTop: 8, padding: "10px 16px", background: S.grad, border: "none", borderRadius: 8, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'Figtree', sans-serif", textAlign: "left" }}>
+                          {buttonText}
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </>
         )}
 

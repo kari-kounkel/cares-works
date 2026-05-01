@@ -13,6 +13,21 @@ import BookkeeperScope from "./pages/BookkeeperScope";
 import FractionalCFOScope from "./pages/FractionalCFOScope";
 import QBODiscovery from "./pages/QBODiscovery";
 import ChecklistBuilder from "./pages/ChecklistBuilder";
+// Batch wired in — Money, People, Client Work, Leadership tools
+import NetProfitRatios from "./pages/NetProfitRatios";
+import QuickbooksTriage from "./pages/QuickbooksTriage";
+import PricingMetrics from "./pages/PricingMetrics";
+import FindingACPA from "./pages/FindingACPA";
+import ChartOfAccounts from "./pages/ChartOfAccounts";
+import IIFImport from "./pages/IIFImport";
+import NewHire30Days from "./pages/NewHire30Days";
+import SeparationScript from "./pages/SeparationScript";
+import AdvisoryTeam from "./pages/AdvisoryTeam";
+import InHouseVsContract from "./pages/InHouseVsContract";
+import BuyingTimeScripts from "./pages/BuyingTimeScripts";
+import PostMeetingDebrief from "./pages/PostMeetingDebrief";
+import MeetingPlanning from "./pages/MeetingPlanning";
+import BusynessAudit from "./pages/BusynessAudit";
 
 export function navigate(path) {
   window.history.pushState({}, "", path);
@@ -20,7 +35,8 @@ export function navigate(path) {
 }
 
 const COURT_SLUGS = ["prologue","chapter-1","chapter-2","chapter-3","chapter-4","chapter-5","chapter-6","chapter-7","chapter-8","chapter-9","chapter-10","chapter-11","chapter-12","chapter-13","epilogue"];
-const MEMBER_SLUGS = ["net-profit-ratios","quickbooks-triage","chart-of-accounts","iif-import","pricing-metrics","finding-a-cpa","new-hire-30-days","separation-script","advisory-team","buying-time-scripts","post-meeting-debrief","meeting-planning","busyness-audit","inhouse-vs-contract","founders-series-1"];
+// Tools still showing "Coming Soon" placeholder — remove from this array as each one ships
+const MEMBER_SLUGS = ["founders-series-1"];
 
 export default function App() {
   const [session, setSession] = useState(null);
@@ -77,6 +93,7 @@ export default function App() {
     if (COURT_SLUGS.includes(slug)) return <CourtChapter slug={slug} />;
   }
 
+  // Existing tool routes
   if (path === "/tools/payroll-checklist") return <PayrollChecklist session={session} />;
   if (path === "/tools/client-visit-summary") return <ClientVisitSummary />;
   if (path === "/tools/communication-templates") return <CommunicationTemplates />;
@@ -86,6 +103,28 @@ export default function App() {
   if (path === "/tools/fractional-cfo-scope") return <FractionalCFOScope session={session} />;
   if (path === "/tools/qbo-discovery") return <QBODiscovery />;
   if (path === "/tools/checklist-builder") return <ChecklistBuilder session={session} />;
+
+  // Batch wired in — Money
+  if (path === "/tools/net-profit-ratios") return <NetProfitRatios session={session} />;
+  if (path === "/tools/quickbooks-triage") return <QuickbooksTriage session={session} />;
+  if (path === "/tools/pricing-metrics") return <PricingMetrics session={session} />;
+  if (path === "/tools/finding-a-cpa") return <FindingACPA session={session} />;
+  if (path === "/tools/chart-of-accounts") return <ChartOfAccounts session={session} />;
+  if (path === "/tools/iif-import") return <IIFImport session={session} />;
+
+  // Batch wired in — People
+  if (path === "/tools/new-hire-30-days") return <NewHire30Days session={session} />;
+  if (path === "/tools/separation-script") return <SeparationScript session={session} />;
+
+  // Batch wired in — Client Work
+  if (path === "/tools/buying-time-scripts") return <BuyingTimeScripts session={session} />;
+  if (path === "/tools/post-meeting-debrief") return <PostMeetingDebrief session={session} />;
+
+  // Batch wired in — Leadership
+  if (path === "/tools/advisory-team") return <AdvisoryTeam session={session} />;
+  if (path === "/tools/inhouse-vs-contract") return <InHouseVsContract session={session} />;
+  if (path === "/tools/meeting-planning") return <MeetingPlanning session={session} />;
+  if (path === "/tools/busyness-audit") return <BusynessAudit session={session} />;
 
   if (path.startsWith("/tools/")) {
     const slug = path.replace("/tools/", "");
