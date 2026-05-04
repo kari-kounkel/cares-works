@@ -1,5 +1,9 @@
 {
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/" }
+  "redirects": [
+    {
+      "source": "/vendor-decoder.html",
+      "destination": "/tools/vendor-decoder",
+      "permanent": true
+    }
   ]
 }

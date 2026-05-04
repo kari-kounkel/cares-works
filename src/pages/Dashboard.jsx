@@ -42,7 +42,7 @@ const S = {
 // href: external static URL — used INSTEAD of slug for non-React routes (like /vendor-decoder.html)
 const TOOLS = {
   bookkeeping: [
-    { icon: "🗂️", title: "Vendor Decoder", href: "/vendor-decoder.html", desc: "Turn your vendor list into a posting playbook. Map every vendor to its account so the new bookkeeper inherits clarity instead of chaos.", tag: "NEW", tier: "free" },
+    { icon: "🗂️", title: "Vendor Decoder", slug: "vendor-decoder", desc: "Turn your vendor list into a posting playbook. Map every vendor to its account so the new bookkeeper inherits clarity instead of chaos.", tag: "NEW", tier: "free" },
     { icon: "📗", title: "Year-End QuickBooks Triage", slug: "quickbooks-triage", desc: "8 diagnostic zones. Find the fires, name the fires, put out the ones that matter. Full version." },
     { icon: "📈", title: "Chart of Accounts Cheat Sheet", slug: "chart-of-accounts", desc: "The categories you actually need, the ones you don't, and why your P&L is lying to you." },
     { icon: "📥", title: "QuickBooks IIF Import — The Right Way", slug: "iif-import", desc: "Stop manually entering transactions. Build and import IIF files without losing your mind." },

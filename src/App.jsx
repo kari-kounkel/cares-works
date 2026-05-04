@@ -12,6 +12,7 @@ import EmailAttachmentsAdvanced from "./pages/EmailAttachmentsAdvanced";
 import BookkeeperScope from "./pages/BookkeeperScope";
 import FractionalCFOScope from "./pages/FractionalCFOScope";
 import QBODiscovery from "./pages/QBODiscovery";
+import VendorDecoder from "./pages/VendorDecoder";
 import ChecklistBuilder from "./pages/ChecklistBuilder";
 // Batch wired in — Money, People, Client Work, Leadership tools
 import NetProfitRatios from "./pages/NetProfitRatios";
@@ -102,6 +103,7 @@ export default function App() {
   if (path === "/tools/bookkeeper-scope") return <BookkeeperScope session={session} />;
   if (path === "/tools/fractional-cfo-scope") return <FractionalCFOScope session={session} />;
   if (path === "/tools/qbo-discovery") return <QBODiscovery />;
+  if (path === "/tools/vendor-decoder") return <VendorDecoder />;
   if (path === "/tools/checklist-builder") return <ChecklistBuilder session={session} />;
 
   // Batch wired in — Money
