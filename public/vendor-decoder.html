@@ -562,9 +562,6 @@
       <button class="btn btn-secondary owner-only" onclick="removeDuplicates()">Remove duplicates</button>
       <button class="btn btn-secondary" onclick="generatePreview()">Generate reference sheet</button>
       <button class="btn btn-primary owner-only" id="send-button" onclick="shareViaLink()">Share via link →</button>
-      <button class="btn btn-secondary owner-only" onclick="exportJSON()">Backup (.json)</button>
-      <button class="btn btn-secondary owner-only" onclick="document.getElementById('load-file').click()">Load backup</button>
-      <input type="file" id="load-file" style="display:none;" accept=".json" onchange="loadJSON(event)">
       <button class="btn btn-ghost owner-only" onclick="clearAll()">Clear all</button>
       <span id="save-indicator" style="margin-left: auto; align-self: center; font-size: 12px; color: var(--muted); font-family: 'DM Mono', monospace;"></span>
     </div>
@@ -816,6 +813,7 @@
   // Lock down the UI when this is a review session (either URL token or embedded data)
   function applyReviewMode() {
     const isReview = !!(sessionToken || embeddedPayload);
+    populateHowItWorks(isReview);
     if (!isReview) return;
     const vSec = document.getElementById('vendor-import-section');
     const cSec = document.getElementById('coa-import-section');
@@ -826,29 +824,42 @@
     if (tierToggle) tierToggle.style.display = 'none';
     const tierNote = document.getElementById('tier-note');
     if (tierNote) tierNote.style.display = 'none';
+  }
+
+  function populateHowItWorks(isReview) {
     const how = document.getElementById('how-it-works-body');
-    if (how) {
-      if (sessionToken) {
-        // URL-based session — instructions for the LINK flow
-        how.innerHTML =
-          '<p>No account, no downloads. Your edits save automatically as you make them.</p>' +
-          '<ol>' +
-            '<li><strong>Edit any cell below.</strong> Account numbers, notes, PO usage — change anything.</li>' +
-            '<li><strong>Watch the top right of the action bar</strong> for "Saving…" then "Saved ✓" so you know your changes stuck.</li>' +
-            '<li><strong>Close this tab whenever you\'re done.</strong> No "submit" needed. Whoever sent you this link will see your edits.</li>' +
-            '<li><strong>Come back any time</strong> using the same link. Your work is waiting.</li>' +
-          '</ol>';
-      } else {
-        // Embedded-payload (email attachment) — old instructions
-        how.innerHTML =
-          '<p>No account needed. Everything is in this file.</p>' +
-          '<ol>' +
-            '<li><strong>Edit any cell below.</strong> Your changes save automatically.</li>' +
-            '<li><strong>Click <em>Send back (.html)</em></strong> at the top of the table when you\'re done.</li>' +
-            '<li><strong>A new file will download</strong> to your Downloads folder.</li>' +
-            '<li><strong>Reply to the email</strong> that sent you this file, and attach the new one.</li>' +
-          '</ol>';
-      }
+    if (!how) return;
+    if (isReview && sessionToken) {
+      how.innerHTML =
+        '<p>No account, no downloads. Your edits save automatically as you make them.</p>' +
+        '<ol>' +
+          '<li><strong>Edit any cell below.</strong> Account numbers, notes, PO usage — change anything.</li>' +
+          '<li><strong>Use the checkboxes</strong> to select multiple vendors at once and map them all to the same account in one click.</li>' +
+          '<li><strong>Watch the action bar</strong> for "Saving…" then "Saved ✓" so you know your changes stuck.</li>' +
+          '<li><strong>Close the tab whenever you\'re done.</strong> No submit button. Whoever sent you this link will see your edits.</li>' +
+          '<li><strong>Come back any time</strong> using the same link. Your work is waiting.</li>' +
+        '</ol>';
+    } else if (isReview && embeddedPayload) {
+      how.innerHTML =
+        '<p>No account needed. Everything is in this file.</p>' +
+        '<ol>' +
+          '<li><strong>Edit any cell below.</strong> Your changes save automatically.</li>' +
+          '<li><strong>Click <em>Send back (.html)</em></strong> at the top of the table when you\'re done.</li>' +
+          '<li><strong>A new file will download</strong> to your Downloads folder.</li>' +
+          '<li><strong>Reply to the email</strong> that sent you this file, and attach the new one.</li>' +
+        '</ol>';
+    } else {
+      // Owner mode — Kari setting up and sharing
+      how.innerHTML =
+        '<ol>' +
+          '<li><strong>Paste your vendor list</strong> in section 1. One per line. Duplicates get skipped automatically.</li>' +
+          '<li><strong>Paste your chart of accounts</strong> in section 2. The mapping field below becomes a typeahead once it\'s loaded.</li>' +
+          '<li><strong>Map vendors to accounts.</strong> Type the account number and the name fills in. Use the checkboxes + bulk action bar to map many vendors to the same account at once.</li>' +
+          '<li><strong>Click <em>Share via link →</em></strong> to create a copy for a reviewer. Type their name (Frank, Tim, Laurie). You get a unique URL copied to your clipboard.</li>' +
+          '<li><strong>Email them the link.</strong> They click, edit, close the tab. Their edits save automatically to that session.</li>' +
+          '<li><strong>Open their link any time</strong> to see their work. Each reviewer has their own session — they don\'t see each other\'s edits.</li>' +
+        '</ol>' +
+        '<p style="margin-top: 12px; padding-top: 8px; border-top: 1px solid var(--rule); font-size: 12px;"><strong>Save your share links somewhere</strong> — that\'s how you\'ll get back to each reviewer\'s work later.</p>';
     }
   }
 
