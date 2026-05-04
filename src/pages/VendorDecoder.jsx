@@ -152,6 +152,7 @@ export default function VendorDecoder() {
           setCoa(data.coa || []);
           setReviewerName(data.reviewer_name || '');
           setSenderName(data.sender_name || '');
+          setTier('pro'); // reviewers always get full editing power, regardless of owner's tier
           setVendorImportCollapsed(true);
           setCoaImportCollapsed(true);
           supabase.from('vendor_decoder_sessions')
