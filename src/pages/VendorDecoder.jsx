@@ -23,6 +23,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { supabase } from '../supabaseClient';
+import { navigate } from '../App';
 
 // =============================================================================
 // Helpers
@@ -79,11 +80,21 @@ function formatLogic(t) {
 const LOCAL_KEY = 'cares_vendor_decoder_v1';
 
 export default function VendorDecoder() {
-  // Read session token from URL — works without react-router-dom
-  const sessionToken = useMemo(() => {
+  // Read session token from URL — re-reads on popstate so soft navigation works
+  const [sessionToken, setSessionToken] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get('s');
+  });
+
+  useEffect(() => {
+    function onPop() {
+      const params = new URLSearchParams(window.location.search);
+      setSessionToken(params.get('s'));
+    }
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
   }, []);
+
   const isReview = !!sessionToken;
 
   // -------- Core data state --------
@@ -114,6 +125,14 @@ export default function VendorDecoder() {
 
   // -------- Initial load --------
   useEffect(() => {
+    let cancelled = false;
+    initialLoadDone.current = false;
+    // Reset transient UI state when switching sessions
+    setBulkSelected(new Set());
+    setShareBanner(null);
+    setErrorBanner(null);
+    setShowPreview(false);
+
     async function load() {
       if (sessionToken) {
         try {
@@ -122,6 +141,7 @@ export default function VendorDecoder() {
             .select('*')
             .eq('id', sessionToken)
             .maybeSingle();
+          if (cancelled) return;
           if (error) throw error;
           if (!data) {
             setErrorBanner('Session not found. This link may have been deleted or never existed.');
@@ -138,11 +158,12 @@ export default function VendorDecoder() {
             .update({ last_viewed_at: new Date().toISOString() })
             .eq('id', sessionToken).then(() => {});
         } catch (e) {
-          setErrorBanner('Could not load session. ' + (e?.message || 'Network or config issue.'));
+          if (!cancelled) setErrorBanner('Could not load session. ' + (e?.message || 'Network or config issue.'));
         }
       } else {
         try {
           const saved = localStorage.getItem(LOCAL_KEY);
+          if (cancelled) return;
           if (saved) {
             const parsed = JSON.parse(saved);
             setVendors(parsed.vendors || []);
@@ -150,14 +171,23 @@ export default function VendorDecoder() {
             setTier(parsed.tier || 'free');
             if ((parsed.vendors || []).length > 0) setVendorImportCollapsed(true);
             if ((parsed.coa || []).length > 0) setCoaImportCollapsed(true);
+          } else {
+            // Fresh owner view, no local cache — clear any stale data
+            setVendors([]);
+            setCoa([]);
+            setReviewerName('');
+            setSenderName('');
+            setVendorImportCollapsed(false);
+            setCoaImportCollapsed(false);
           }
         } catch (e) {
           console.warn('Could not load local cache', e);
         }
       }
-      initialLoadDone.current = true;
+      if (!cancelled) initialLoadDone.current = true;
     }
     load();
+    return () => { cancelled = true; };
   }, [sessionToken]);
 
   // -------- Auto-save on data change --------
@@ -215,11 +245,11 @@ export default function VendorDecoder() {
 
   function openSession(token) {
     if (!token) return;
-    window.location.search = '?s=' + token;
+    navigate('/tools/vendor-decoder?s=' + token);
   }
 
   function backToOwnerView() {
-    window.location.search = '';
+    navigate('/tools/vendor-decoder');
   }
 
   // -------- COA lookup map --------
