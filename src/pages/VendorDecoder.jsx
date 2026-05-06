@@ -1069,7 +1069,7 @@ function VendorRow({
           className="vd-input vd-textarea-cell"
           value={v.notes}
           onChange={e => onUpdateField('notes', e.target.value)}
-          placeholder="Anything the new person needs to know"
+          placeholder="Add additional notes"
         />
       </td>
       <td>
