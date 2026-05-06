@@ -724,10 +724,9 @@ export default function VendorDecoder() {
                       title="Select all"
                     />
                   </th>
-                  <th style={{ width: '22%' }}>Vendor</th>
+                  <th style={{ width: '26%' }}>Vendor</th>
                   <th>Account mapping(s)</th>
-                  <th style={{ width: '16%' }}>PO usage</th>
-                  <th style={{ width: '20%' }}>Notes</th>
+                  <th style={{ width: '24%' }}>Notes</th>
                   <th style={{ width: 30 }}></th>
                 </tr>
               </thead>
@@ -780,11 +779,10 @@ export default function VendorDecoder() {
               <table className="vd-preview-table">
                 <thead>
                   <tr>
-                    <th style={{ width: '18%' }}>Vendor</th>
-                    <th style={{ width: '11%' }}>Account</th>
+                    <th style={{ width: '22%' }}>Vendor</th>
+                    <th style={{ width: '12%' }}>Account</th>
                     <th>Decision logic / notes</th>
-                    <th style={{ width: '10%' }}>PO</th>
-                    <th style={{ width: '11%' }}>Pay</th>
+                    <th style={{ width: '12%' }}>Pay</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -796,7 +794,6 @@ export default function VendorDecoder() {
                         <td className="vd-preview-vendor">{isFirst ? (v.name || '—') : ''}</td>
                         <td className="vd-preview-acct">{m.account || '—'}</td>
                         <td><span className="vd-preview-logic">{logic}</span>{isFirst && v.notes ? <span className="vd-preview-logic"> — {v.notes}</span> : null}</td>
-                        <td>{isFirst ? (v.poUsage || '—') : ''}</td>
                         <td>{isFirst ? (v.paymentMethod || '—') : ''}</td>
                       </tr>
                     );
@@ -930,18 +927,6 @@ function VendorRow({
             + Add rule <span className="vd-gated-badge">Member</span>
           </button>
         )}
-      </td>
-      <td>
-        <select
-          className="vd-input"
-          value={v.poUsage}
-          onChange={e => onUpdateField('poUsage', e.target.value)}
-        >
-          <option value="">—</option>
-          <option value="Always">Always required</option>
-          <option value="Sometimes">Sometimes</option>
-          <option value="Never">Not used</option>
-        </select>
       </td>
       <td>
         <textarea
