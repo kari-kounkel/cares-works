@@ -937,9 +937,7 @@ function VendorRow({
         />
       </td>
       <td>
-        {!isReview && (
-          <button className="vd-btn-ghost" onClick={onDelete} title="Delete">×</button>
-        )}
+        <button className="vd-btn-ghost" onClick={onDelete} title="Delete vendor">×</button>
       </td>
     </tr>
   );
