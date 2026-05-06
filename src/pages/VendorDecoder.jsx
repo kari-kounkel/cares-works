@@ -44,6 +44,7 @@ function blankVendor(name) {
     name: name || '',
     mappings: [{ account: '', logicType: '', logicValue: '' }],
     poUsage: '',
+    paymentMethod: '',
     notes: ''
   };
 }
@@ -101,6 +102,7 @@ export default function VendorDecoder() {
   const [tier, setTier] = useState('free');
   const [vendors, setVendors] = useState([]);
   const [coa, setCoa] = useState([]);
+  const [poConventions, setPoConventions] = useState('');
   const [reviewerName, setReviewerName] = useState('');
   const [senderName, setSenderName] = useState('');
 
@@ -150,6 +152,7 @@ export default function VendorDecoder() {
           }
           setVendors(data.vendors || []);
           setCoa(data.coa || []);
+          setPoConventions(data.po_conventions || '');
           setReviewerName(data.reviewer_name || '');
           setSenderName(data.sender_name || '');
           setTier('pro'); // reviewers always get full editing power, regardless of owner's tier
@@ -169,6 +172,7 @@ export default function VendorDecoder() {
             const parsed = JSON.parse(saved);
             setVendors(parsed.vendors || []);
             setCoa(parsed.coa || []);
+            setPoConventions(parsed.poConventions || '');
             setTier(parsed.tier || 'free');
             if ((parsed.vendors || []).length > 0) setVendorImportCollapsed(true);
             if ((parsed.coa || []).length > 0) setCoaImportCollapsed(true);
@@ -176,6 +180,7 @@ export default function VendorDecoder() {
             // Fresh owner view, no local cache — clear any stale data
             setVendors([]);
             setCoa([]);
+            setPoConventions('');
             setReviewerName('');
             setSenderName('');
             setVendorImportCollapsed(false);
@@ -201,7 +206,7 @@ export default function VendorDecoder() {
         try {
           const { error } = await supabase
             .from('vendor_decoder_sessions')
-            .update({ vendors, coa, status: 'in_progress' })
+            .update({ vendors, coa, po_conventions: poConventions, status: 'in_progress' })
             .eq('id', sessionToken);
           if (error) throw error;
           setSaveStatus('Saved ✓');
@@ -215,12 +220,12 @@ export default function VendorDecoder() {
       }, 800);
     } else {
       try {
-        localStorage.setItem(LOCAL_KEY, JSON.stringify({ vendors, coa, tier }));
+        localStorage.setItem(LOCAL_KEY, JSON.stringify({ vendors, coa, tier, poConventions }));
       } catch (e) {
         console.warn('Local save failed', e);
       }
     }
-  }, [vendors, coa, tier, sessionToken]);
+  }, [vendors, coa, tier, poConventions, sessionToken]);
 
   // -------- Fetch my sessions list (owner mode only) --------
   useEffect(() => {
@@ -371,6 +376,7 @@ export default function VendorDecoder() {
     if (!window.confirm('Clear all vendors and accounts?')) return;
     setVendors([]);
     setCoa([]);
+    setPoConventions('');
     setVendorImportCollapsed(false);
     setCoaImportCollapsed(false);
     setShowPreview(false);
@@ -467,6 +473,7 @@ export default function VendorDecoder() {
           sender_name: sender.trim() || null,
           vendors,
           coa,
+          po_conventions: poConventions,
           status: 'active'
         });
       if (error) throw error;
@@ -671,6 +678,22 @@ export default function VendorDecoder() {
               {saveStatus && <span className="vd-save-indicator">{saveStatus}</span>}
             </div>
 
+            <details className="vd-po-notes" open={!!poConventions}>
+              <summary>PO conventions {poConventions ? '· filled in' : '· optional'}</summary>
+              <div className="vd-po-notes-body">
+                <p className="vd-po-notes-help">
+                  Document your PO numbering system here so anyone using this reference sheet knows what the prefixes mean. Example: <em>PR- = print job, OF- = office supplies, JT- = job tracking</em>.
+                </p>
+                <textarea
+                  className="vd-textarea"
+                  value={poConventions}
+                  onChange={e => setPoConventions(e.target.value)}
+                  placeholder="PR- = print jobs (charge to job costing)&#10;OF- = office supplies&#10;JT- = job-tracked materials..."
+                  style={{ minHeight: '90px' }}
+                />
+              </div>
+            </details>
+
             {bulkSelected.size > 0 && (
               <div className="vd-bulk-bar">
                 <span><strong>{bulkSelected.size}</strong> selected</span>
@@ -701,10 +724,11 @@ export default function VendorDecoder() {
                       title="Select all"
                     />
                   </th>
-                  <th style={{ width: '22%' }}>Vendor</th>
+                  <th style={{ width: '18%' }}>Vendor</th>
                   <th>Account mapping(s)</th>
-                  <th style={{ width: '16%' }}>PO usage</th>
-                  <th style={{ width: '20%' }}>Notes</th>
+                  <th style={{ width: '13%' }}>PO usage</th>
+                  <th style={{ width: '14%' }}>Pay method</th>
+                  <th style={{ width: '18%' }}>Notes</th>
                   <th style={{ width: 30 }}></th>
                 </tr>
               </thead>
@@ -748,13 +772,20 @@ export default function VendorDecoder() {
             <div className="vd-preview-pane">
               <h3 className="vd-preview-h3">Vendor Posting Reference</h3>
               <div className="vd-preview-meta">Generated {todayStr} • CARES Works Vendor Decoder</div>
+              {poConventions && (
+                <div className="vd-preview-conventions">
+                  <div className="vd-preview-conventions-label">PO Conventions</div>
+                  <div className="vd-preview-conventions-body">{poConventions}</div>
+                </div>
+              )}
               <table className="vd-preview-table">
                 <thead>
                   <tr>
-                    <th style={{ width: '20%' }}>Vendor</th>
-                    <th style={{ width: '12%' }}>Account</th>
+                    <th style={{ width: '18%' }}>Vendor</th>
+                    <th style={{ width: '11%' }}>Account</th>
                     <th>Decision logic / notes</th>
-                    <th style={{ width: '12%' }}>PO</th>
+                    <th style={{ width: '10%' }}>PO</th>
+                    <th style={{ width: '11%' }}>Pay</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -767,6 +798,7 @@ export default function VendorDecoder() {
                         <td className="vd-preview-acct">{m.account || '—'}</td>
                         <td><span className="vd-preview-logic">{logic}</span>{isFirst && v.notes ? <span className="vd-preview-logic"> — {v.notes}</span> : null}</td>
                         <td>{isFirst ? (v.poUsage || '—') : ''}</td>
+                        <td>{isFirst ? (v.paymentMethod || '—') : ''}</td>
                       </tr>
                     );
                   }))}
@@ -890,6 +922,24 @@ function VendorRow({
         </select>
       </td>
       <td>
+        <div className="vd-paymethod-group">
+          {['Online', 'Check', 'AmEx', 'ACH', 'Auto', 'Other'].map(method => {
+            const active = v.paymentMethod === method;
+            return (
+              <button
+                key={method}
+                type="button"
+                className={'vd-paymethod-btn' + (active ? ' vd-paymethod-active' : '')}
+                onClick={() => onUpdateField('paymentMethod', active ? '' : method)}
+                title={(active ? 'Pays by ' : 'Set payment method to ') + method}
+              >
+                {method}
+              </button>
+            );
+          })}
+        </div>
+      </td>
+      <td>
         <textarea
           className="vd-input vd-textarea-cell"
           value={v.notes}
@@ -946,6 +996,21 @@ function Styles() {
     ".vd-sessions-select { font-family: inherit; font-size: 13px; padding: 6px 10px; border: 1px solid var(--vd-rule); border-radius: 6px; background: var(--vd-paper); flex: 1; min-width: 240px; }" +
     ".vd-sessions-count { font-size: 12px; color: var(--vd-muted); font-family: 'DM Mono', monospace; }" +
     '.vd-back-bar { margin-bottom: 16px; }' +
+    ".vd-po-notes { background: var(--vd-cream); border: 1px solid var(--vd-rule); border-left: 3px solid var(--vd-gold); border-radius: 8px; margin-bottom: 16px; }" +
+    ".vd-po-notes summary { cursor: pointer; padding: 10px 14px; font-family: 'DM Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--vd-slate); font-weight: 600; list-style: none; }" +
+    '.vd-po-notes summary::-webkit-details-marker { display: none; }' +
+    ".vd-po-notes summary::before { content: '▸'; margin-right: 8px; color: var(--vd-gold); display: inline-block; transition: transform 0.15s; }" +
+    ".vd-po-notes[open] summary::before { transform: rotate(90deg); }" +
+    ".vd-po-notes-body { padding: 0 14px 14px; }" +
+    ".vd-po-notes-help { font-size: 12px; color: var(--vd-muted); margin: 0 0 8px; line-height: 1.5; }" +
+    ".vd-paymethod-group { display: flex; flex-wrap: wrap; gap: 3px; }" +
+    ".vd-paymethod-btn { font-family: 'DM Mono', monospace; font-size: 10px; padding: 3px 6px; border: 1px solid var(--vd-rule); border-radius: 3px; background: #fff; color: var(--vd-muted); cursor: pointer; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; }" +
+    ".vd-paymethod-btn:hover { border-color: var(--vd-orange); color: var(--vd-slate); }" +
+    ".vd-paymethod-active { background: var(--vd-slate); border-color: var(--vd-slate); color: #fff; }" +
+    ".vd-paymethod-active:hover { background: var(--vd-orange); border-color: var(--vd-orange); color: #fff; }" +
+    ".vd-preview-conventions { background: var(--vd-cream); border-left: 3px solid var(--vd-gold); padding: 10px 14px; margin-bottom: 16px; border-radius: 4px; }" +
+    ".vd-preview-conventions-label { font-family: 'DM Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--vd-muted); margin-bottom: 4px; font-weight: 600; }" +
+    ".vd-preview-conventions-body { font-size: 11px; color: var(--vd-ink); white-space: pre-wrap; line-height: 1.5; }" +
     '.vd-section { background: #fff; border: 1px solid var(--vd-rule); border-radius: 10px; padding: 24px; margin-bottom: 24px; }' +
     ".vd-h2 { font-family: 'DM Serif Display', serif; font-size: 22px; margin: 0 0 8px; color: var(--vd-ink); }" +
     '.vd-section-desc { font-size: 14px; color: var(--vd-muted); margin: 0 0 20px; }' +
