@@ -724,11 +724,10 @@ export default function VendorDecoder() {
                       title="Select all"
                     />
                   </th>
-                  <th style={{ width: '18%' }}>Vendor</th>
+                  <th style={{ width: '22%' }}>Vendor</th>
                   <th>Account mapping(s)</th>
-                  <th style={{ width: '13%' }}>PO usage</th>
-                  <th style={{ width: '14%' }}>Pay method</th>
-                  <th style={{ width: '18%' }}>Notes</th>
+                  <th style={{ width: '16%' }}>PO usage</th>
+                  <th style={{ width: '20%' }}>Notes</th>
                   <th style={{ width: 30 }}></th>
                 </tr>
               </thead>
@@ -833,6 +832,29 @@ function VendorRow({
           onChange={e => onUpdateField('name', e.target.value)}
           placeholder="Vendor name"
         />
+        <div className="vd-paymethod-group">
+          {[
+            { key: 'Online', cls: 'vd-pm-online' },
+            { key: 'Check',  cls: 'vd-pm-check'  },
+            { key: 'AmEx',   cls: 'vd-pm-amex'   },
+            { key: 'ACH',    cls: 'vd-pm-ach'    },
+            { key: 'Auto',   cls: 'vd-pm-auto'   },
+            { key: 'Other',  cls: 'vd-pm-other'  },
+          ].map(({ key, cls }) => {
+            const active = v.paymentMethod === key;
+            return (
+              <button
+                key={key}
+                type="button"
+                className={'vd-paymethod-btn ' + cls + (active ? ' vd-paymethod-active' : '')}
+                onClick={() => onUpdateField('paymentMethod', active ? '' : key)}
+                title={(active ? 'Pays by ' : 'Set payment method to ') + key}
+              >
+                {key}
+              </button>
+            );
+          })}
+        </div>
       </td>
       <td>
         {v.mappings.map((m, mIdx) => {
@@ -922,24 +944,6 @@ function VendorRow({
         </select>
       </td>
       <td>
-        <div className="vd-paymethod-group">
-          {['Online', 'Check', 'AmEx', 'ACH', 'Auto', 'Other'].map(method => {
-            const active = v.paymentMethod === method;
-            return (
-              <button
-                key={method}
-                type="button"
-                className={'vd-paymethod-btn' + (active ? ' vd-paymethod-active' : '')}
-                onClick={() => onUpdateField('paymentMethod', active ? '' : method)}
-                title={(active ? 'Pays by ' : 'Set payment method to ') + method}
-              >
-                {method}
-              </button>
-            );
-          })}
-        </div>
-      </td>
-      <td>
         <textarea
           className="vd-input vd-textarea-cell"
           value={v.notes}
@@ -1003,11 +1007,23 @@ function Styles() {
     ".vd-po-notes[open] summary::before { transform: rotate(90deg); }" +
     ".vd-po-notes-body { padding: 0 14px 14px; }" +
     ".vd-po-notes-help { font-size: 12px; color: var(--vd-muted); margin: 0 0 8px; line-height: 1.5; }" +
-    ".vd-paymethod-group { display: flex; flex-wrap: wrap; gap: 3px; }" +
-    ".vd-paymethod-btn { font-family: 'DM Mono', monospace; font-size: 10px; padding: 3px 6px; border: 1px solid var(--vd-rule); border-radius: 3px; background: #fff; color: var(--vd-muted); cursor: pointer; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; }" +
-    ".vd-paymethod-btn:hover { border-color: var(--vd-orange); color: var(--vd-slate); }" +
-    ".vd-paymethod-active { background: var(--vd-slate); border-color: var(--vd-slate); color: #fff; }" +
-    ".vd-paymethod-active:hover { background: var(--vd-orange); border-color: var(--vd-orange); color: #fff; }" +
+    ".vd-paymethod-group { display: flex; gap: 3px; margin-top: 6px; }" +
+    ".vd-paymethod-btn { flex: 1; min-width: 0; font-family: 'DM Mono', monospace; font-size: 9px; padding: 4px 2px; border: 1px solid var(--vd-rule); border-radius: 3px; background: #fff; color: var(--vd-muted); cursor: pointer; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 700; text-align: center; transition: all 0.12s; }" +
+    ".vd-paymethod-btn:hover { color: var(--vd-ink); }" +
+    /* Per-method active colors: each chip lights up in its own color */
+    ".vd-pm-online.vd-paymethod-active  { background: #e8773a; border-color: #e8773a; color: #fff; }" +
+    ".vd-pm-check.vd-paymethod-active   { background: #3d4560; border-color: #3d4560; color: #fff; }" +
+    ".vd-pm-amex.vd-paymethod-active    { background: #5a9a5a; border-color: #5a9a5a; color: #fff; }" +
+    ".vd-pm-ach.vd-paymethod-active     { background: #C9A84C; border-color: #C9A84C; color: #fff; }" +
+    ".vd-pm-auto.vd-paymethod-active    { background: #9b7bb8; border-color: #9b7bb8; color: #fff; }" +
+    ".vd-pm-other.vd-paymethod-active   { background: #7a7585; border-color: #7a7585; color: #fff; }" +
+    /* Inactive hover hint of each color so user sees what they're picking */
+    ".vd-pm-online:hover  { border-color: #e8773a; }" +
+    ".vd-pm-check:hover   { border-color: #3d4560; }" +
+    ".vd-pm-amex:hover    { border-color: #5a9a5a; }" +
+    ".vd-pm-ach:hover     { border-color: #C9A84C; }" +
+    ".vd-pm-auto:hover    { border-color: #9b7bb8; }" +
+    ".vd-pm-other:hover   { border-color: #7a7585; }" +
     ".vd-preview-conventions { background: var(--vd-cream); border-left: 3px solid var(--vd-gold); padding: 10px 14px; margin-bottom: 16px; border-radius: 4px; }" +
     ".vd-preview-conventions-label { font-family: 'DM Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--vd-muted); margin-bottom: 4px; font-weight: 600; }" +
     ".vd-preview-conventions-body { font-size: 11px; color: var(--vd-ink); white-space: pre-wrap; line-height: 1.5; }" +
