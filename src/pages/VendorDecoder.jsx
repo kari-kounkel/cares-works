@@ -109,6 +109,8 @@ export default function VendorDecoder() {
   // -------- UI state --------
   const [importText, setImportText] = useState('');
   const [coaText, setCoaText] = useState('');
+  const [historyCsv, setHistoryCsv] = useState('');
+  const [historyResult, setHistoryResult] = useState(null);
   const [bulkSelected, setBulkSelected] = useState(() => new Set());
   const [bulkAccount, setBulkAccount] = useState('');
   const [saveStatus, setSaveStatus] = useState('');
@@ -117,6 +119,7 @@ export default function VendorDecoder() {
   const [showPreview, setShowPreview] = useState(false);
   const [vendorImportCollapsed, setVendorImportCollapsed] = useState(false);
   const [coaImportCollapsed, setCoaImportCollapsed] = useState(false);
+  const [historyImportCollapsed, setHistoryImportCollapsed] = useState(false);
 
   // -------- My sessions dropdown --------
   const [mySessions, setMySessions] = useState([]);
@@ -450,6 +453,138 @@ export default function VendorDecoder() {
   }
 
   // =========================================================================
+  // Posting history import — parse QBO Transaction List by Vendor CSV
+  // and auto-fill payment method chips per vendor.
+  // =========================================================================
+
+  // Parse a single CSV line, respecting quoted fields with embedded commas.
+  function parseCsvLine(line) {
+    const out = [];
+    let cur = '';
+    let inQuote = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') {
+        // Handle escaped quotes ("") inside a quoted field
+        if (inQuote && line[i + 1] === '"') { cur += '"'; i++; }
+        else { inQuote = !inQuote; }
+      } else if (c === ',' && !inQuote) {
+        out.push(cur);
+        cur = '';
+      } else {
+        cur += c;
+      }
+    }
+    out.push(cur);
+    return out.map(s => s.trim());
+  }
+
+  // Normalize a vendor name for matching: lowercase, strip punctuation,
+  // strip QBO suffix tags like (deleted) or (Check), trim.
+  function normalizeVendorName(name) {
+    if (!name) return '';
+    let s = name.toLowerCase();
+    s = s.replace(/\(deleted\)/g, '');
+    s = s.replace(/\(check\)/g, '');
+    s = s.replace(/[.,]/g, '');
+    s = s.replace(/\binc\b|\bllc\b|\bcorp\b|\bco\b|\bltd\b/g, '');
+    s = s.replace(/\s+/g, ' ').trim();
+    return s;
+  }
+
+  // Heuristic: given a transaction Type and Account-full-name, infer which
+  // payment method chip applies. Returns a chip key or null to skip.
+  function inferPaymentMethod(txnType, accountName) {
+    const t = (txnType || '').toLowerCase();
+    const a = (accountName || '').toLowerCase();
+
+    // Skip Bill rows — those are A/P creation, not actual payments
+    if (t === 'bill') return null;
+    // Skip A/P offset rows
+    if (a.includes('accounts payable')) return null;
+    // Skip empty
+    if (!t && !a) return null;
+
+    if (a.includes('american exp') || a.includes('amex')) return 'AmEx';
+    if (a.includes('credit card')) return 'AmEx'; // lump non-AmEx CCs as AmEx for now
+    if (t.includes('check')) return 'Check';
+    if (a.includes('operating')) return 'Online';
+
+    return 'Other';
+  }
+
+  function applyPostingHistory() {
+    if (!historyCsv.trim()) return;
+    if (vendors.length === 0) {
+      window.alert('Load your vendor list first, then import posting history.');
+      return;
+    }
+
+    const lines = historyCsv.split(/\r?\n/);
+    let currentVendor = null;
+    const vendorMethodMap = {}; // normalized vendor name -> Set of methods
+    let totalTxns = 0;
+
+    for (const line of lines) {
+      if (!line.trim()) continue;
+      const cols = parseCsvLine(line);
+      if (cols.length < 2) continue;
+
+      const firstCol = cols[0];
+
+      if (firstCol) {
+        const lower = firstCol.toLowerCase();
+        // Skip preamble and totals
+        if (lower.startsWith('total for')) continue;
+        if (lower.startsWith('transaction list')) continue;
+        if (lower.includes(' a z corporation') || lower.includes('minuteman')) {
+          // Could be the report's company name header
+          if (cols.slice(1).every(c => !c)) continue;
+        }
+        // Skip date-range row like "January 1, 2025-May 6, 2026"
+        if (/^[a-z]+\s+\d+,\s*\d{4}/i.test(firstCol)) continue;
+        // Skip the column header row
+        if (lower === 'date' || cols[1] === 'Date') continue;
+
+        // It's a vendor section header
+        currentVendor = firstCol;
+      } else if (currentVendor) {
+        // Transaction row: cols[2]=Type, cols[6]=Account full name
+        const type = cols[2] || '';
+        const account = cols[6] || '';
+        const method = inferPaymentMethod(type, account);
+        if (method) {
+          const key = normalizeVendorName(currentVendor);
+          if (!vendorMethodMap[key]) vendorMethodMap[key] = new Set();
+          vendorMethodMap[key].add(method);
+          totalTxns++;
+        }
+      }
+    }
+
+    // Apply to existing vendors
+    let matched = 0;
+    setVendors(prev => prev.map(v => {
+      const key = normalizeVendorName(v.name);
+      if (key && vendorMethodMap[key]) {
+        matched++;
+        return { ...v, paymentMethods: Array.from(vendorMethodMap[key]) };
+      }
+      return v;
+    }));
+
+    setHistoryResult({
+      totalVendors: Object.keys(vendorMethodMap).length,
+      totalTxns,
+      matched,
+      unmatched: Object.keys(vendorMethodMap).length - matched
+    });
+
+    // Auto-collapse the section after applying
+    setHistoryImportCollapsed(true);
+  }
+
+  // =========================================================================
   // Share via link
   // =========================================================================
   async function shareViaLink() {
@@ -670,10 +805,10 @@ export default function VendorDecoder() {
             </p>
 
             <div className="vd-actions-bar">
-              {!isReview && <button className="vd-btn-secondary" onClick={addBlankVendor}>+ Add vendor</button>}
-              {!isReview && <button className="vd-btn-secondary" onClick={removeDuplicates}>Remove duplicates</button>}
+              <button className="vd-btn-secondary" onClick={addBlankVendor}>+ Add vendor</button>
+              <button className="vd-btn-secondary" onClick={removeDuplicates}>Remove duplicates</button>
               <button className="vd-btn-secondary" onClick={generatePreview}>Generate reference sheet</button>
-              {!isReview && <button className="vd-btn-primary" onClick={shareViaLink}>Share via link →</button>}
+              <button className="vd-btn-primary" onClick={shareViaLink}>Share via link →</button>
               {!isReview && <button className="vd-btn-ghost" onClick={clearAll}>Clear all</button>}
               {saveStatus && <span className="vd-save-indicator">{saveStatus}</span>}
             </div>
@@ -991,6 +1126,8 @@ function Styles() {
     ".vd-po-notes[open] summary::before { transform: rotate(90deg); }" +
     ".vd-po-notes-body { padding: 0 14px 14px; }" +
     ".vd-po-notes-help { font-size: 12px; color: var(--vd-muted); margin: 0 0 8px; line-height: 1.5; }" +
+    ".vd-section-optional { font-family: 'DM Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--vd-muted); background: var(--vd-cream); padding: 2px 8px; border-radius: 10px; margin-left: 8px; vertical-align: middle; font-weight: 500; }" +
+    ".vd-history-result { margin-top: 12px; padding: 10px 14px; background: #f4f9f1; border-left: 3px solid #5a9a5a; border-radius: 4px; font-size: 13px; line-height: 1.5; color: var(--vd-ink); }" +
     ".vd-paymethod-group { display: flex; gap: 3px; margin-top: 6px; }" +
     ".vd-paymethod-btn { flex: 1; min-width: 0; font-family: 'DM Mono', monospace; font-size: 9px; padding: 4px 2px; border: 1px solid var(--vd-rule); border-radius: 3px; background: #fff; color: var(--vd-muted); cursor: pointer; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 700; text-align: center; transition: all 0.12s; }" +
     ".vd-paymethod-btn:hover { color: var(--vd-ink); }" +
