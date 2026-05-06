@@ -44,7 +44,7 @@ function blankVendor(name) {
     name: name || '',
     mappings: [{ account: '', logicType: '', logicValue: '' }],
     poUsage: '',
-    paymentMethod: '',
+    paymentMethods: [],
     notes: ''
   };
 }
@@ -794,7 +794,7 @@ export default function VendorDecoder() {
                         <td className="vd-preview-vendor">{isFirst ? (v.name || '—') : ''}</td>
                         <td className="vd-preview-acct">{m.account || '—'}</td>
                         <td><span className="vd-preview-logic">{logic}</span>{isFirst && v.notes ? <span className="vd-preview-logic"> — {v.notes}</span> : null}</td>
-                        <td>{isFirst ? (v.paymentMethod || '—') : ''}</td>
+                        <td>{isFirst ? (Array.isArray(v.paymentMethods) && v.paymentMethods.length ? v.paymentMethods.join(', ') : '—') : ''}</td>
                       </tr>
                     );
                   }))}
@@ -838,14 +838,20 @@ function VendorRow({
             { key: 'Auto',   cls: 'vd-pm-auto'   },
             { key: 'Other',  cls: 'vd-pm-other'  },
           ].map(({ key, cls }) => {
-            const active = v.paymentMethod === key;
+            const methods = Array.isArray(v.paymentMethods) ? v.paymentMethods : [];
+            const active = methods.includes(key);
             return (
               <button
                 key={key}
                 type="button"
                 className={'vd-paymethod-btn ' + cls + (active ? ' vd-paymethod-active' : '')}
-                onClick={() => onUpdateField('paymentMethod', active ? '' : key)}
-                title={(active ? 'Pays by ' : 'Set payment method to ') + key}
+                onClick={() => {
+                  const next = active
+                    ? methods.filter(m => m !== key)
+                    : [...methods, key];
+                  onUpdateField('paymentMethods', next);
+                }}
+                title={(active ? 'Remove ' : 'Add ') + key + ' as a payment method'}
               >
                 {key}
               </button>
@@ -856,12 +862,14 @@ function VendorRow({
       <td>
         {v.mappings.map((m, mIdx) => {
           const isFirst = mIdx === 0;
-          const showLogic = tier === 'pro' || !isFirst;
+          // First mapping is always "the default" — show only Account #.
+          // Non-first mappings are conditional rules — show When/Detail.
+          const showLogic = !isFirst;
           return (
-            <div key={mIdx} className="vd-mapping-block">
-              <div className="vd-mapping-grid">
+            <div key={mIdx} className={'vd-mapping-block' + (isFirst ? ' vd-mapping-default' : '')}>
+              <div className={'vd-mapping-grid' + (showLogic ? ' vd-mapping-grid-rule' : '')}>
                 <div>
-                  <label className="vd-mapping-label">Account #</label>
+                  <label className="vd-mapping-label">{isFirst ? 'Default account' : 'Account #'}</label>
                   <input
                     type="text"
                     list="vd-coa-list"
@@ -883,7 +891,7 @@ function VendorRow({
                         value={m.logicType}
                         onChange={e => onUpdateMapping(mIdx, 'logicType', e.target.value)}
                       >
-                        <option value="">Default</option>
+                        <option value="">Choose…</option>
                         <option value="po">PO pattern</option>
                         <option value="amount">Dollar amount</option>
                         <option value="keyword">Description keyword</option>
@@ -901,30 +909,23 @@ function VendorRow({
                         placeholder={logicPlaceholder(m.logicType)}
                       />
                     </div>
-                    {!isFirst ? (
-                      <button
-                        className="vd-btn-ghost"
-                        onClick={() => onDeleteMapping(mIdx)}
-                        style={{ marginTop: '18px' }}
-                        title="Remove this rule"
-                      >×</button>
-                    ) : <div />}
+                    <button
+                      className="vd-btn-ghost"
+                      onClick={() => onDeleteMapping(mIdx)}
+                      style={{ marginTop: '18px' }}
+                      title="Remove this rule"
+                    >×</button>
                   </>
-                ) : (
-                  <>
-                    <div className="vd-default-note">Default account for this vendor</div>
-                    <div />
-                  </>
-                )}
+                ) : null}
               </div>
             </div>
           );
         })}
         {tier === 'pro' ? (
-          <button className="vd-add-mapping" onClick={onAddMapping}>+ Add another mapping rule</button>
+          <button className="vd-add-mapping" onClick={onAddMapping}>+ Add a conditional rule</button>
         ) : (
           <button className="vd-add-mapping" disabled title="Available for CARES Works members">
-            + Add rule <span className="vd-gated-badge">Member</span>
+            + Add a conditional rule <span className="vd-gated-badge">Member</span>
           </button>
         )}
       </td>
@@ -1040,9 +1041,11 @@ function Styles() {
     '.vd-textarea-cell { min-height: 36px; resize: vertical; }' +
     '.vd-vendor-name { font-weight: 600; color: var(--vd-ink); }' +
     '.vd-acct-hint { font-size: 11px; color: var(--vd-muted); margin-top: 2px; font-style: italic; }' +
-    '.vd-mapping-block { background: var(--vd-cream); border-left: 3px solid var(--vd-orange); padding: 12px; border-radius: 4px; margin-bottom: 8px; }' +
+    '.vd-mapping-block { background: var(--vd-cream); border-left: 3px solid var(--vd-orange); padding: 10px 12px; border-radius: 4px; margin-bottom: 6px; }' +
     '.vd-mapping-block:last-child { margin-bottom: 0; }' +
-    '.vd-mapping-grid { display: grid; grid-template-columns: 120px 140px 1fr 24px; gap: 8px; align-items: start; }' +
+    '.vd-mapping-block.vd-mapping-default { background: transparent; border-left: none; padding: 0; }' +
+    '.vd-mapping-grid { display: grid; grid-template-columns: 1fr; gap: 8px; align-items: start; }' +
+    '.vd-mapping-grid.vd-mapping-grid-rule { grid-template-columns: 120px 140px 1fr 24px; }' +
     ".vd-mapping-label { font-family: 'DM Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--vd-muted); margin-bottom: 4px; display: block; }" +
     '.vd-default-note { grid-column: span 3; color: var(--vd-muted); font-size: 12px; align-self: center; }' +
     ".vd-add-mapping { font-family: 'DM Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--vd-orange); background: transparent; border: 1px dashed var(--vd-orange); padding: 6px 12px; border-radius: 4px; cursor: pointer; margin-top: 8px; width: 100%; }" +
