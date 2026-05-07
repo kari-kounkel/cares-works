@@ -425,7 +425,7 @@ export default function PayrollCalculator({ session }) {
 
       {/* DISCLAIMER */}
       <div className="pc-disclaimer">
-        <strong>⚠ Important:</strong> This tool provides estimated calculations based on standard IRS Publication 15-T withholding tables and state withholding schedules. Rates change annually — verify against current publications each January. This is not tax advice. CARES Consulting is not responsible for errors resulting from incorrect data entry. Consult a licensed payroll provider or CPA for your specific situation.
+        <strong>Heads up:</strong> This tool calculates what goes on a pay stub — gross pay, standard withholdings, and deductions. It is not a tax solution. Rates are based on current IRS and state withholding tables and should be verified each January. You are responsible for your payroll. When in doubt, call your CPA.
       </div>
 
       <main className="pc-main">
@@ -710,7 +710,7 @@ export default function PayrollCalculator({ session }) {
                 <div className="pc-stub-note">ℹ️ {result.stateNote}</div>
               )}
               <div className="pc-stub-footer">
-                Calculated using IRS Publication 15-T and state withholding tables. Verify rates annually. Not tax advice. · tools.caresmn.com
+                Pay stub generated using standard IRS and state withholding tables. Verify rates annually. · tools.caresmn.com
               </div>
             </div>
 
