@@ -5,7 +5,7 @@
 // Route: /tools/ach-form
 // =============================================================================
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 
 const MONTHLY_URL = 'https://buy.stripe.com/7sY5kD7Nl2HgeLp1Q818c06';
 const ANNUAL_URL = 'https://buy.stripe.com/14A5kD4B981AgTxcuM18c09';
@@ -42,16 +42,8 @@ export default function AchForm() {
   const [sRecipient, setSRecipient] = useState('');
   const [sPurpose, setSPurpose] = useState('');
 
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://chat.karikounkel.com/widget.js';
-    script.defer = true;
-    document.body.appendChild(script);
-    return () => { if (document.body.contains(script)) document.body.removeChild(script); };
-  }, []);
 
-
-    setMode(m);
+  function switchMode(m) {
     setShowOutput(false);
     setCopyDone(false);
   }
