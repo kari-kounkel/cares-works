@@ -619,7 +619,10 @@ function Styles() {
     '.ach-footer { border-top: 1px solid var(--ach-rule); padding: 24px 40px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }' +
     ".ach-footer { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--ach-muted); letter-spacing: .06em; }" +
     '.ach-footer-link { color: var(--ach-muted); text-decoration: underline; }' +
-    '.ach-footer-link:hover { color: var(--ach-navy); }' + background: #f2ede3; border-bottom: 1px solid var(--ach-rule); padding: 48px 32px 32px; }' +
+    '.ach-footer-link:hover { color: var(--ach-navy); }' +
+
+    // Hero
+    '.ach-hero { background: #f2ede3; border-bottom: 1px solid var(--ach-rule); padding: 48px 32px 32px; }' +
     '.ach-hero-inner { max-width: 820px; margin: 0 auto; }' +
     ".ach-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ach-gold); margin-bottom: 12px; }" +
     ".ach-h1 { font-family: 'Playfair Display', Georgia, serif; font-size: 42px; line-height: 1.1; color: var(--ach-navy); margin-bottom: 10px; }" +
