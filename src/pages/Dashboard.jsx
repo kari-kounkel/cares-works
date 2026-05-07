@@ -67,7 +67,7 @@ const TOOLS = {
     { icon: "✉️", title: "What to Actually Say", slug: "communication-templates", desc: "10 templates for late invoices, scope creep, bad news, after-hours texters, and the client you need to fire.", tag: "FREE", tier: "free" },
     { icon: "📋", title: "Client Visit Summary", slug: "client-visit-summary", desc: "Fill it out in the parking lot. Leave it behind. Your client knows what happened and what is next.", tag: "FREE", tier: "free" },
     { icon: "🏦", title: "ACH Banking Form", slug: "ach-form", desc: "Collect banking details from a vendor or employee — or package your own to share. Printable, fillable, no data stored.", tag: "FREE", tier: "free" },
-    { icon: "💵", title: "Payroll Stub Calculator", slug: "payroll-calculator", desc: "Calculate gross pay, federal and state withholding, FICA, and deductions for all 50 states. Print a clean pay stub. No guessing.", tag: "NEW" },
+    { icon: "💵", title: "Payroll Stub Calculator", slug: "payroll-calculator", desc: "Calculate gross pay, federal and state withholding, FICA, and deductions. Print a clean pay stub. All 50 states — you look up your state table, we do the rest.", tag: "FREE", tier: "free" },
     { icon: "⏱️", title: "Buying Time Scripts", slug: "buying-time-scripts", desc: "Exactly what to say when a client asks something you don't know the answer to. Sound confident while you go figure it out." },
     { icon: "📋", title: "Post-Meeting Debrief One-Pager", slug: "post-meeting-debrief", desc: "Fill it out in the parking lot, send it before you get home. Never forget what you committed to again." },
   ],

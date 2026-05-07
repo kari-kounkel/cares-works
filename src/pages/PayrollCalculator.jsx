@@ -97,49 +97,77 @@ function calcFederalWithholding(grossPeriod, filingStatus, preTaxDedPeriod, addi
 }
 
 // =============================================================================
-// STATE TAX DATA — VERIFIED 2026
-// Only states with confirmed current rates are listed.
-// Other states available via CARES Works customization — contact Ask Kari.
+// STATE DATA
+// type: 'none'   — no state income tax, $0 auto
+// type: 'auto'   — MN only, calculated from tables below
+// type: 'manual' — user looks up their state table and enters the amount
 // =============================================================================
 
-// Minnesota Paid Leave (2026) — employee portion
-// Source: Minnesota DEED / pl.mn.gov
-const MN_PAID_LEAVE_RATE = 0.0044;  // 0.44% employee portion
-const MN_PAID_LEAVE_WAGE_BASE = 185000; // capped at SS wage base rounded to nearest $1,000
-
-const STATES = {
-  MN: {
-    name: 'Minnesota',
-    type: 'bracket',
-    // 2026 MN withholding brackets — Minnesota Dept of Revenue
-    S:   [[0,0.0535,0],[31690,0.068,1695.42],[104090,0.0785,6619.34],[193240,0.0985,13620.19],[Infinity,0.0985,13620.19]],
-    MFJ: [[0,0.0535,0],[46330,0.068,2478.66],[184040,0.0785,9844.92],[321450,0.0985,20633.62],[Infinity,0.0985,20633.62]],
-    stdDed: { S: 14575, MFJ: 29150 },
-    paidLeave: true,
-  },
-  FL: { name: 'Florida',       type: 'none' },
-  IL: { name: 'Illinois',      type: 'flat', rate: 0.0495 },  // flat rate since 2017
-  CO: { name: 'Colorado',      type: 'flat', rate: 0.044  },  // flat rate enacted 2024
-  PA: { name: 'Pennsylvania',  type: 'flat', rate: 0.0307 },  // flat rate since 2004
-  OTHER: { name: 'My state isn\'t listed', type: 'other' },
+const MN_STD_DED = { S: 14575, MFJ: 29150 };
+const MN_BRACKETS = {
+  S:   [[0,0.0535,0],[31690,0.068,1695.42],[104090,0.0785,6619.34],[193240,0.0985,13620.19],[Infinity,0.0985,13620.19]],
+  MFJ: [[0,0.0535,0],[46330,0.068,2478.66],[184040,0.0785,9844.92],[321450,0.0985,20633.62],[Infinity,0.0985,20633.62]],
 };
 
-function calcStateWithholding(annualTaxableIncome, stateCode, filingStatus) {
-  const st = STATES[stateCode];
-  if (!st || st.type === 'none' || st.type === 'other') return 0;
-  if (st.type === 'flat') return Math.max(0, annualTaxableIncome * st.rate);
-  const stdDed = st.stdDed ? (filingStatus === 'MFJ' ? st.stdDed.MFJ : st.stdDed.S) : 0;
-  const taxable = Math.max(0, annualTaxableIncome - stdDed);
-  const brackets = filingStatus === 'MFJ' ? st.MFJ : st.S;
-  if (!brackets) return 0;
-  return calcBracketTax(taxable, brackets);
-}
+const STATES = {
+  AL: { name: 'Alabama',            type: 'manual', link: 'https://www.revenue.alabama.gov/withholding-tax/' },
+  AK: { name: 'Alaska',             type: 'none' },
+  AZ: { name: 'Arizona',            type: 'manual', link: 'https://azdor.gov/business/withholding-tax' },
+  AR: { name: 'Arkansas',           type: 'manual', link: 'https://www.dfa.arkansas.gov/income-tax/withholding-tax/' },
+  CA: { name: 'California',         type: 'manual', link: 'https://www.edd.ca.gov/payroll_taxes/withholding_from_wages.htm' },
+  CO: { name: 'Colorado',           type: 'manual', link: 'https://tax.colorado.gov/withholding-tax' },
+  CT: { name: 'Connecticut',        type: 'manual', link: 'https://portal.ct.gov/DRS/Withholding/Withholding-Tax' },
+  DE: { name: 'Delaware',           type: 'manual', link: 'https://revenue.delaware.gov/business-tax-forms/withholding-tax/' },
+  DC: { name: 'Washington DC',      type: 'manual', link: 'https://otr.cfo.dc.gov/page/dc-employer-withholding' },
+  FL: { name: 'Florida',            type: 'none' },
+  GA: { name: 'Georgia',            type: 'manual', link: 'https://dor.georgia.gov/taxes/business-taxes/withholding-tax' },
+  HI: { name: 'Hawaii',             type: 'manual', link: 'https://tax.hawaii.gov/withholding/' },
+  ID: { name: 'Idaho',              type: 'manual', link: 'https://tax.idaho.gov/taxes/withholding/' },
+  IL: { name: 'Illinois',           type: 'manual', link: 'https://tax.illinois.gov/research/taxinformation/income/payroll.html' },
+  IN: { name: 'Indiana',            type: 'manual', link: 'https://www.in.gov/dor/business-tax/withholding-income-tax/' },
+  IA: { name: 'Iowa',               type: 'manual', link: 'https://tax.iowa.gov/iowa-withholding-tax' },
+  KS: { name: 'Kansas',             type: 'manual', link: 'https://www.ksrevenue.gov/buswithholdingforms.html' },
+  KY: { name: 'Kentucky',           type: 'manual', link: 'https://revenue.ky.gov/Business/Pages/Withholding-Tax.aspx' },
+  LA: { name: 'Louisiana',          type: 'manual', link: 'https://revenue.louisiana.gov/withholding' },
+  ME: { name: 'Maine',              type: 'manual', link: 'https://www.maine.gov/revenue/taxes/income-estate-tax/withholding' },
+  MD: { name: 'Maryland',           type: 'manual', link: 'https://www.marylandtaxes.gov/business/income/withholding/' },
+  MA: { name: 'Massachusetts',      type: 'manual', link: 'https://www.mass.gov/info-details/withholding-tax' },
+  MI: { name: 'Michigan',           type: 'manual', link: 'https://www.michigan.gov/taxes/business-taxes/withholding' },
+  MN: { name: 'Minnesota',          type: 'auto' },
+  MS: { name: 'Mississippi',        type: 'manual', link: 'https://www.dor.ms.gov/tax-rates/withholding' },
+  MO: { name: 'Missouri',           type: 'manual', link: 'https://dor.mo.gov/withholding/' },
+  MT: { name: 'Montana',            type: 'manual', link: 'https://mtrevenue.gov/taxes/withholding/' },
+  NE: { name: 'Nebraska',           type: 'manual', link: 'https://revenue.nebraska.gov/businesses/withholding-tax' },
+  NV: { name: 'Nevada',             type: 'none' },
+  NH: { name: 'New Hampshire',      type: 'none' },
+  NJ: { name: 'New Jersey',         type: 'manual', link: 'https://www.nj.gov/treasury/taxation/businesses/payroll/' },
+  NM: { name: 'New Mexico',         type: 'manual', link: 'https://www.tax.newmexico.gov/businesses/withholding-tax/' },
+  NY: { name: 'New York',           type: 'manual', link: 'https://www.tax.ny.gov/bus/wt/wtidx.htm' },
+  NC: { name: 'North Carolina',     type: 'manual', link: 'https://www.ncdor.gov/taxes-forms/withholding-tax' },
+  ND: { name: 'North Dakota',       type: 'manual', link: 'https://www.nd.gov/tax/user/businesses/businesstopics/withholding' },
+  OH: { name: 'Ohio',               type: 'manual', link: 'https://tax.ohio.gov/business/ohio-employer-withholding-tax' },
+  OK: { name: 'Oklahoma',           type: 'manual', link: 'https://oklahoma.gov/tax/business/withholding.html' },
+  OR: { name: 'Oregon',             type: 'manual', link: 'https://www.oregon.gov/dor/programs/businesses/Pages/withholding.aspx' },
+  PA: { name: 'Pennsylvania',       type: 'manual', link: 'https://www.revenue.pa.gov/TaxTypes/Personal%20Income%20Tax/Employer%20Withholding/Pages/default.aspx' },
+  RI: { name: 'Rhode Island',       type: 'manual', link: 'https://tax.ri.gov/tax-sections/income-taxes/employer-tax-withholding' },
+  SC: { name: 'South Carolina',     type: 'manual', link: 'https://dor.sc.gov/tax/withholding' },
+  SD: { name: 'South Dakota',       type: 'none' },
+  TN: { name: 'Tennessee',          type: 'none' },
+  TX: { name: 'Texas',              type: 'none' },
+  UT: { name: 'Utah',               type: 'manual', link: 'https://incometax.utah.gov/withholding' },
+  VT: { name: 'Vermont',            type: 'manual', link: 'https://tax.vermont.gov/business-and-corp/withholding' },
+  VA: { name: 'Virginia',           type: 'manual', link: 'https://www.tax.virginia.gov/withholding-tax' },
+  WA: { name: 'Washington',         type: 'none' },
+  WV: { name: 'West Virginia',      type: 'manual', link: 'https://tax.wv.gov/Business/WithholdingTax/Pages/WithholdingTax.aspx' },
+  WI: { name: 'Wisconsin',          type: 'manual', link: 'https://www.revenue.wi.gov/Pages/withholding/home.aspx' },
+  WY: { name: 'Wyoming',            type: 'none' },
+};
 
-function calcMNPaidLeave(grossPeriod, payPeriod) {
-  const periods = PAY_PERIODS[payPeriod] || 26;
-  const annualGross = grossPeriod * periods;
-  const cappedAnnual = Math.min(annualGross, MN_PAID_LEAVE_WAGE_BASE);
-  return (cappedAnnual * MN_PAID_LEAVE_RATE) / periods;
+function calcMNWithholding(annualTaxableIncome, filingStatus) {
+  const stdDed = filingStatus === 'MFJ' ? MN_STD_DED.MFJ : MN_STD_DED.S;
+  const taxable = Math.max(0, annualTaxableIncome - stdDed);
+  const brackets = filingStatus === 'MFJ' ? MN_BRACKETS.MFJ : MN_BRACKETS.S;
+  return calcBracketTax(taxable, brackets);
 }
 
 // =============================================================================
@@ -285,14 +313,13 @@ function Gate() {
 
 export default function PayrollCalculator({ session }) {
   const [isMember, setIsMember] = useState(false);
-  const [loading, setLoading]   = useState(true);
 
   // Company
   const [companyName, setCompanyName] = useState('');
 
   // Employee
   const [empName,   setEmpName]   = useState('');
-  const [payType,   setPayType]   = useState('hourly');    // hourly | salary
+  const [payType,   setPayType]   = useState('hourly');
   const [rate,      setRate]      = useState('');
   const [hours,     setHours]     = useState('');
   const [otHours,   setOtHours]   = useState('');
@@ -303,31 +330,28 @@ export default function PayrollCalculator({ session }) {
   const [checkNum,    setCheckNum]    = useState('');
 
   // Tax
-  const [filingStatus, setFilingStatus] = useState('S');
-  const [addlFed,      setAddlFed]      = useState('');
-  const [stateCode,    setStateCode]    = useState('MN');
+  const [filingStatus,    setFilingStatus]    = useState('S');
+  const [addlFed,         setAddlFed]         = useState('');
+  const [stateCode,       setStateCode]       = useState('MN');
+  const [manualStateTax,  setManualStateTax]  = useState('');
 
   // Deductions
   const [deductions, setDeductions] = useState([blankDed()]);
 
   // Output
-  const [result,     setResult]     = useState(null);
-  const [showStub,   setShowStub]   = useState(false);
+  const [result,   setResult]   = useState(null);
+  const [showStub, setShowStub] = useState(false);
 
   useEffect(() => {
     async function check() {
-      if (!session) { setLoading(false); return; }
+      if (!session) return;
       try {
         const { data } = await supabase.from('members').select('plan').eq('email', session.user.email).single();
         setIsMember(!!data);
       } catch { setIsMember(false); }
-      setLoading(false);
     }
     check();
   }, [session]);
-
-  if (loading) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'sans-serif', color: S.muted }}>Loading…</div>;
-  if (!isMember) return <Preview />;
 
   // ---- Deduction helpers ----
   function addDed()         { setDeductions(d => [...d, blankDed()]); }
@@ -351,38 +375,35 @@ export default function PayrollCalculator({ session }) {
     }
 
     const grossPay = regularPay + otPay;
-
     const deds = deductions.map(d => ({ ...d, amt: parseFloat(d.amount) || 0 })).filter(d => d.amt > 0);
     const preTaxTotal  = deds.filter(d => d.type === 'pretax').reduce((s, d) => s + d.amt, 0);
     const postTaxTotal = deds.filter(d => d.type === 'posttax').reduce((s, d) => s + d.amt, 0);
 
-    const addlFedAmt = parseFloat(addlFed) || 0;
-    const federalTax = calcFederalWithholding(grossPay, filingStatus, preTaxTotal, addlFedAmt, payPeriod);
+    const federalTax = calcFederalWithholding(grossPay, filingStatus, preTaxTotal, parseFloat(addlFed) || 0, payPeriod);
+    const ficaWage   = grossPay - preTaxTotal;
+    const ssTax      = Math.max(0, ficaWage * 0.062);
+    const medTax     = Math.max(0, ficaWage * 0.0145);
 
-    const ficaWage = grossPay - preTaxTotal;
-    const ssTax    = Math.max(0, ficaWage * 0.062);
-    const medTax   = Math.max(0, ficaWage * 0.0145);
+    const stateInfo  = STATES[stateCode] || {};
+    let stateTax = 0;
+    if (stateInfo.type === 'auto') {
+      const annualTaxable = ficaWage * periods;
+      stateTax = calcMNWithholding(annualTaxable, filingStatus) / periods;
+    } else if (stateInfo.type === 'manual') {
+      stateTax = parseFloat(manualStateTax) || 0;
+    }
 
-    const annualTaxable = (grossPay - preTaxTotal) * periods;
-    const annualStateTax = calcStateWithholding(annualTaxable, stateCode, filingStatus);
-    const stateTax = annualStateTax / periods;
-
-    const stateInfo = STATES[stateCode] || {};
-    const mnPaidLeave = (stateCode === 'MN') ? calcMNPaidLeave(grossPay, payPeriod) : 0;
-
-    const totalWithholding = federalTax + ssTax + medTax + stateTax + mnPaidLeave + postTaxTotal;
-    const netPay = grossPay - preTaxTotal - federalTax - ssTax - medTax - stateTax - mnPaidLeave - postTaxTotal;
+    const netPay = grossPay - preTaxTotal - federalTax - ssTax - medTax - stateTax - postTaxTotal;
 
     setResult({
       regularPay, otPay, grossPay,
-      preTaxDeds: deds.filter(d => d.type === 'pretax'),
+      preTaxDeds:  deds.filter(d => d.type === 'pretax'),
       postTaxDeds: deds.filter(d => d.type === 'posttax'),
       preTaxTotal, postTaxTotal,
-      federalTax, ssTax, medTax, stateTax, mnPaidLeave,
-      stateNote: stateCode === 'OTHER' ? 'State withholding not calculated. Contact CARES Works — message Ask Kari to add your state.' : null,
+      federalTax, ssTax, medTax, stateTax,
       stateName: stateInfo.name || stateCode,
-      stateIsOther: stateCode === 'OTHER',
-      totalWithholding, netPay,
+      stateType: stateInfo.type,
+      netPay,
     });
     setShowStub(true);
     setTimeout(() => {
@@ -417,7 +438,7 @@ export default function PayrollCalculator({ session }) {
       {/* HERO */}
       <div className="pc-hero">
         <div className="pc-hero-inner">
-          <div className="pc-eyebrow">CARES Works · Member Tool</div>
+          <div className="pc-eyebrow">CARES Works · Free Tool</div>
           <h1 className="pc-h1">Payroll <span className="pc-accent">Stub Calculator</span></h1>
           <div className="pc-tagline">Revenue is vanity. Net profit is sanity.</div>
           <p className="pc-hero-desc">Calculate gross pay, federal and state withholding, FICA, and deductions — then print a clean pay stub. What happens with the employer taxes is on you.</p>
@@ -531,21 +552,54 @@ export default function PayrollCalculator({ session }) {
             </div>
             <div className="pc-field">
               <label className="pc-label">Work State</label>
-              <select className="pc-input" value={stateCode} onChange={e => setStateCode(e.target.value)}>
-                <option value="MN">Minnesota</option>
-                <option value="FL">Florida (no state income tax)</option>
-                <option value="IL">Illinois</option>
-                <option value="CO">Colorado</option>
-                <option value="PA">Pennsylvania</option>
-                <option value="OTHER">My state isn't listed</option>
+              <select className="pc-input" value={stateCode} onChange={e => { setStateCode(e.target.value); setManualStateTax(''); }}>
+                {Object.entries(STATES).sort((a, b) => a[1].name.localeCompare(b[1].name)).map(([code, st]) => (
+                  <option key={code} value={code}>{st.name}{st.type === 'none' ? ' — no state income tax' : st.type === 'auto' ? ' — auto-calculated' : ''}</option>
+                ))}
               </select>
             </div>
           </div>
-          {stateCode === 'MN' && (
-            <div className="pc-state-note">ℹ️ Minnesota Paid Leave (0.44% employee portion, up to $185,000 wage base) is included automatically. Employer portion is separate and not shown on the employee stub.</div>
+
+          {/* MN — auto, no extra UI needed */}
+          {STATES[stateCode] && STATES[stateCode].type === 'auto' && (
+            <div className="pc-state-note">✅ Minnesota state withholding is calculated automatically from current MN Dept of Revenue tables.</div>
           )}
-          {stateCode === 'OTHER' && (
-            <div className="pc-state-note">⚡ State withholding for your state isn't in the tool yet. Message Ask Kari to get your state added to your account — it's included in your membership.</div>
+
+          {/* No-tax state */}
+          {STATES[stateCode] && STATES[stateCode].type === 'none' && (
+            <div className="pc-state-note">✅ {STATES[stateCode].name} has no state income tax. State withholding will show $0.00 on the stub.</div>
+          )}
+
+          {/* Manual state — show link + entry field */}
+          {STATES[stateCode] && STATES[stateCode].type === 'manual' && (
+            <div className="pc-manual-state">
+              <div className="pc-manual-state-head">
+                📋 Look up {STATES[stateCode].name} withholding
+              </div>
+              <p className="pc-manual-state-desc">
+                State withholding tables change annually and vary by filing status, pay period, and wage bracket.
+                Look up the per-period amount for this employee on your state's official withholding publication, then enter it below.
+              </p>
+              <a
+                href={STATES[stateCode].link}
+                target="_blank"
+                rel="noreferrer"
+                className="pc-state-link"
+              >
+                Open {STATES[stateCode].name} Withholding Tables →
+              </a>
+              <div className="pc-manual-entry">
+                <label className="pc-label">{STATES[stateCode].name} State Withholding (per period)</label>
+                <input
+                  className="pc-input pc-manual-input"
+                  type="number"
+                  step="0.01"
+                  value={manualStateTax}
+                  onChange={e => setManualStateTax(e.target.value)}
+                  placeholder="Enter amount from state table"
+                />
+              </div>
+            </div>
           )}
         </div>
 
@@ -764,6 +818,21 @@ export default function PayrollCalculator({ session }) {
         )}
       </main>
 
+      {/* MEMBER UPSELL */}
+      <div className="pc-upsell">
+        <div className="pc-upsell-inner">
+          <div>
+            <div className="pc-upsell-eyebrow">Coming for Members</div>
+            <h3 className="pc-upsell-title">Save employees. Store paycheck history. Track YTD withholding.</h3>
+            <p className="pc-upsell-desc">Right now you re-enter everything each pay period. Members will be able to save employee profiles, run payroll in sequence, and keep a full history — ready for W-2 season.</p>
+          </div>
+          <div className="pc-upsell-ctas">
+            <a href={MONTHLY_URL} className="pc-upsell-btn-primary">Join for $27/month</a>
+            <a href={ANNUAL_URL}  className="pc-upsell-btn-gold">$270/year — save 2 months</a>
+          </div>
+        </div>
+      </div>
+
       <footer className="pc-footer">
         <div>© 2026 CARES Consulting Inc. · <a href="https://caresmn.com" className="pc-footer-link">caresmn.com</a></div>
         <a href="https://karikounkel.store" className="pc-footer-link">Full Store at karikounkel.store →</a>
@@ -817,8 +886,15 @@ function PCStyles() {
     '.pc-input:focus { outline: none; border-color: var(--pc-navy); box-shadow: 0 0 0 3px rgba(26,39,68,.06); }' +
     '.pc-calc-display { padding: 10px 12px; background: #f4f4f8; border-radius: 8px; font-size: 15px; font-weight: 600; color: var(--pc-navy); border: 1.5px solid var(--pc-rule); }' +
 
-    // State note
-    '.pc-state-note { margin-top: 12px; padding: 10px 14px; background: #fff8e8; border-left: 3px solid var(--pc-gold); border-radius: 4px; font-size: 13px; color: #6b4f10; line-height: 1.5; }' +
+    // State note & manual state
+    '.pc-state-note { margin-top: 12px; padding: 10px 14px; background: #f0f9f0; border-left: 3px solid #1a7a4a; border-radius: 4px; font-size: 13px; color: #1a3a2a; line-height: 1.5; }' +
+    '.pc-manual-state { margin-top: 14px; background: #f4f6ff; border: 1.5px solid #d0daf5; border-radius: 10px; padding: 18px 20px; }' +
+    '.pc-manual-state-head { font-size: 13px; font-weight: 600; color: var(--pc-navy); margin-bottom: 6px; }' +
+    '.pc-manual-state-desc { font-size: 13px; color: var(--pc-muted); line-height: 1.55; margin-bottom: 12px; }' +
+    '.pc-state-link { display: inline-block; font-size: 13px; font-weight: 600; color: var(--pc-orange); text-decoration: none; margin-bottom: 14px; }' +
+    '.pc-state-link:hover { text-decoration: underline; }' +
+    '.pc-manual-entry { display: flex; flex-direction: column; gap: 5px; max-width: 280px; }' +
+    '.pc-manual-input { border-color: #b0baf5; }' +
 
     // Deductions
     '.pc-ded-row { display: grid; grid-template-columns: 1fr 120px 120px 36px; gap: 10px; margin-bottom: 10px; align-items: center; }' +
@@ -871,6 +947,16 @@ function PCStyles() {
     '.pc-next-head { font-size: 13px; font-weight: 600; color: var(--pc-navy); margin-bottom: 6px; }' +
     '.pc-next-body { font-size: 12px; color: var(--pc-muted); line-height: 1.55; }' +
     '.pc-next-link { background: transparent; border: none; font-family: var(--pc-font); font-size: 13px; font-weight: 600; color: var(--pc-orange); cursor: pointer; padding: 0; text-decoration: underline; }' +
+
+    // Member upsell strip
+    '.pc-upsell { background: #3d4560; padding: 48px 40px; }' +
+    '.pc-upsell-inner { max-width: 860px; margin: 0 auto; display: flex; gap: 40px; align-items: flex-start; flex-wrap: wrap; }' +
+    ".pc-upsell-eyebrow { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--pc-gold); margin-bottom: 8px; }" +
+    ".pc-upsell-title { font-family: 'Playfair Display', Georgia, serif; font-size: 22px; color: #fff; line-height: 1.25; margin-bottom: 10px; flex: 1; min-width: 260px; }" +
+    '.pc-upsell-desc { font-size: 14px; color: rgba(255,255,255,.6); line-height: 1.6; }' +
+    '.pc-upsell-ctas { display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; min-width: 200px; }' +
+    ".pc-upsell-btn-primary { display: block; text-align: center; background: var(--pc-orange); color: #fff; font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; padding: 13px 22px; border-radius: 7px; text-decoration: none; font-weight: 700; }" +
+    ".pc-upsell-btn-gold { display: block; text-align: center; background: linear-gradient(135deg,#C9A84C,#e0c060); color: #1e1e2a; font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; padding: 13px 22px; border-radius: 7px; text-decoration: none; font-weight: 700; }" +
 
     // Footer
     '.pc-footer { border-top: 1px solid var(--pc-rule); padding: 22px 40px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }' +
