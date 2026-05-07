@@ -803,9 +803,9 @@ export default function PayrollCalculator({ session }) {
       <div className="pc-upsell">
         <div className="pc-upsell-inner">
           <div>
-            <div className="pc-upsell-eyebrow">Coming for Members</div>
-            <h3 className="pc-upsell-title">Auto state withholding. Save employees. Store paycheck history.</h3>
-            <p className="pc-upsell-desc">Members get automatic state withholding calculations — no looking up tables — plus saved employee profiles, paycheck history, and YTD withholding tracking ready for W-2 season.</p>
+            <div className="pc-upsell-eyebrow">Upgrade Your Account</div>
+            <h3 className="pc-upsell-title">Auto state withholding. Saved employees. Paycheck history.</h3>
+            <p className="pc-upsell-desc">Members can request auto state withholding customization for their state — no more looking up tables. Plus saved employee profiles, paycheck history, and YTD withholding tracking. Message Ask Kari to get started.</p>
           </div>
           <div className="pc-upsell-ctas">
             <a href={MONTHLY_URL} className="pc-upsell-btn-primary">Join for $27/month</a>
