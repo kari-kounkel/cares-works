@@ -258,7 +258,109 @@ function blankDed() {
 }
 
 // =============================================================================
-// GATE
+// PREVIEW — shown to non-members so they can see what they're getting
+// =============================================================================
+
+function Preview() {
+  return (
+    <div style={{ fontFamily: "'DM Sans', sans-serif", background: '#faf8f4', minHeight: '100vh', color: '#1e1e2a' }}>
+      <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+      {/* HEADER */}
+      <header style={{ background: '#fff', borderBottom: '1px solid #e8e8ec', padding: '18px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <a href="/" style={{ fontFamily: "'DM Serif Display', serif", fontSize: '20px', color: '#1e1e2a', textDecoration: 'none' }}>
+          CARES <span style={{ color: '#e8773a' }}>Works.</span>
+        </a>
+        <a href={MONTHLY_URL} style={{ background: '#e8773a', color: '#fff', fontFamily: "'DM Mono', monospace", fontSize: '11px', letterSpacing: '.12em', textTransform: 'uppercase', padding: '9px 18px', borderRadius: '4px', textDecoration: 'none' }}>Join — $27/mo</a>
+      </header>
+
+      {/* HERO */}
+      <div style={{ background: '#f2ede3', borderBottom: '1px solid #e8e8ec', padding: '44px 40px 32px' }}>
+        <div style={{ maxWidth: '860px', margin: '0 auto' }}>
+          <div style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '.12em', textTransform: 'uppercase', color: '#c9a84c', marginBottom: '10px' }}>CARES Works · Member Tool</div>
+          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '40px', lineHeight: 1.1, color: '#1a2744', marginBottom: '8px' }}>Payroll <em style={{ fontStyle: 'italic', color: '#c9a84c' }}>Stub Calculator</em></h1>
+          <p style={{ fontSize: '15px', color: '#7a7585', maxWidth: '560px', lineHeight: 1.6 }}>Calculate gross pay, federal and state withholding, FICA, and deductions for all 50 states. Print a clean pay stub every pay period.</p>
+        </div>
+      </div>
+
+      {/* WHAT YOU GET */}
+      <div style={{ maxWidth: '860px', margin: '0 auto', padding: '40px 24px 0' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '40px' }}>
+          {[
+            { icon: '💵', title: 'Hourly & salary', body: 'Regular pay, overtime at 1.5x, salary by pay period.' },
+            { icon: '🗺️', title: 'All 50 states', body: 'Actual state withholding tables — brackets, flat rates, and no-tax states.' },
+            { icon: '📋', title: 'Custom deductions', body: 'Add health insurance, 401(k), garnishments — pre-tax or post-tax.' },
+            { icon: '🖨️', title: 'Printable stub', body: 'Clean, professional pay stub ready to hand to your employee.' },
+          ].map(c => (
+            <div key={c.title} style={{ background: '#fff', border: '1.5px solid #e8e8ec', borderRadius: '10px', padding: '20px 18px' }}>
+              <div style={{ fontSize: '24px', marginBottom: '8px' }}>{c.icon}</div>
+              <div style={{ fontSize: '13px', fontWeight: 600, color: '#1a2744', marginBottom: '5px' }}>{c.title}</div>
+              <div style={{ fontSize: '12px', color: '#7a7585', lineHeight: 1.55 }}>{c.body}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* BLURRED STUB PREVIEW */}
+        <div style={{ position: 'relative', marginBottom: '48px' }}>
+          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: '11px', fontWeight: 600, letterSpacing: '.1em', textTransform: 'uppercase', color: '#c9a84c', marginBottom: '12px' }}>Sample Pay Stub</div>
+
+          {/* Stub — blurred */}
+          <div style={{ filter: 'blur(5px)', pointerEvents: 'none', userSelect: 'none', background: '#fff', border: '2px solid #1a2744', borderRadius: '10px', padding: '28px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '16px', borderBottom: '2px solid #1a2744', marginBottom: '18px' }}>
+              <div>
+                <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '18px', color: '#1a2744', marginBottom: '4px' }}>Acme Business LLC</div>
+                <div style={{ fontSize: '14px', fontWeight: 600 }}>Jane Smith</div>
+              </div>
+              <div style={{ textAlign: 'right', fontSize: '12px', color: '#7a7585' }}>
+                <div>Pay Period: 05/01 — 05/15</div>
+                <div>Check #: 1042</div>
+                <div>Bi-weekly · Minnesota</div>
+              </div>
+            </div>
+            {[
+              ['EARNINGS', [['Regular Pay', '80 hrs', '$22.00', '$1,760.00'], ['Overtime', '4 hrs', '$33.00', '$132.00']]],
+              ['TAXES WITHHELD', [['Federal Income Tax', '', 'Single', '$214.87'], ['Social Security', '', '6.2%', '$117.37'], ['Medicare', '', '1.45%', '$27.44'], ['Minnesota State Tax', '', 'State tables', '$102.48']]],
+              ['DEDUCTIONS', [['Health Insurance', '', 'Pre-tax', '$150.00'], ['401(k)', '', 'Pre-tax', '$95.00']]],
+            ].map(([title, rows]) => (
+              <div key={title} style={{ marginBottom: '16px' }}>
+                <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: '#1a2744', borderBottom: '1px solid #1a2744', paddingBottom: '5px', marginBottom: '8px' }}>{title}</div>
+                {rows.map((r, i) => (
+                  <div key={i} style={{ display: 'grid', gridTemplateColumns: '2fr 80px 100px 100px', fontSize: '13px', padding: '4px 0', borderBottom: '1px solid #e8e8ec' }}>
+                    {r.map((cell, j) => <span key={j} style={{ textAlign: j > 0 ? 'right' : 'left' }}>{cell}</span>)}
+                  </div>
+                ))}
+              </div>
+            ))}
+            <div style={{ borderTop: '2px solid #1a2744', paddingTop: '12px', marginTop: '8px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '18px', fontWeight: 700, color: '#1a2744' }}>
+                <span>Net Pay</span><span>$1,284.84</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Overlay CTA */}
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(250,248,244,0.6)', borderRadius: '10px' }}>
+            <div style={{ background: '#fff', border: '2px solid #1a2744', borderRadius: '14px', padding: '36px 40px', textAlign: 'center', maxWidth: '380px', boxShadow: '0 8px 32px rgba(0,0,0,.12)' }}>
+              <div style={{ fontSize: '36px', marginBottom: '12px' }}>🔒</div>
+              <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: '22px', color: '#1a2744', marginBottom: '8px' }}>Members Only Tool</h3>
+              <p style={{ fontSize: '14px', color: '#7a7585', marginBottom: '24px', lineHeight: 1.6 }}>Unlock the Payroll Stub Calculator and the full CARES Works tool library for $27/month.</p>
+              <a href={MONTHLY_URL} style={{ display: 'block', background: '#e8773a', color: '#fff', fontFamily: "'DM Mono', monospace", fontSize: '12px', letterSpacing: '.12em', textTransform: 'uppercase', padding: '14px 24px', borderRadius: '8px', textDecoration: 'none', fontWeight: 700, marginBottom: '10px' }}>Join for $27/month</a>
+              <a href={ANNUAL_URL} style={{ display: 'block', background: '#fff', color: '#e8773a', fontFamily: "'DM Mono', monospace", fontSize: '12px', letterSpacing: '.12em', textTransform: 'uppercase', padding: '12px 24px', borderRadius: '8px', textDecoration: 'none', fontWeight: 700, border: '2px solid #e8773a' }}>$270/year — save 2 months</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer style={{ borderTop: '1px solid #e8e8ec', padding: '22px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', fontFamily: "'DM Mono', monospace", fontSize: '11px', color: '#7a7585' }}>
+        <div>© 2026 CARES Consulting Inc. · <a href="https://caresmn.com" style={{ color: '#7a7585' }}>caresmn.com</a></div>
+        <a href="https://karikounkel.store" style={{ color: '#7a7585' }}>Full Store at karikounkel.store →</a>
+      </footer>
+    </div>
+  );
+}
+
+// =============================================================================
+// GATE — fallback if Preview is bypassed (shouldn't happen)
 // =============================================================================
 const S = {
   navy: '#1a2744', navy2: '#243260', gold: '#c9a84c', gold2: '#e8c97a',
@@ -319,8 +421,8 @@ export default function PayrollCalculator({ session }) {
     async function check() {
       if (!session) { setLoading(false); return; }
       try {
-        const { data } = await supabase.from('profiles').select('is_member').eq('id', session.user.id).maybeSingle();
-        setIsMember(!!(data && data.is_member));
+        const { data } = await supabase.from('members').select('plan').eq('email', session.user.email).single();
+        setIsMember(!!data);
       } catch { setIsMember(false); }
       setLoading(false);
     }
@@ -328,7 +430,7 @@ export default function PayrollCalculator({ session }) {
   }, [session]);
 
   if (loading) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'sans-serif', color: S.muted }}>Loading…</div>;
-  if (!isMember) return <Gate />;
+  if (!isMember) return <Preview />;
 
   // ---- Deduction helpers ----
   function addDed()         { setDeductions(d => [...d, blankDed()]); }
