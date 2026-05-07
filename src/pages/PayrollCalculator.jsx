@@ -133,7 +133,7 @@ const STATES = {
   MD: { name: 'Maryland',           type: 'manual', link: 'https://www.marylandtaxes.gov/business/income/withholding/' },
   MA: { name: 'Massachusetts',      type: 'manual', link: 'https://www.mass.gov/info-details/withholding-tax' },
   MI: { name: 'Michigan',           type: 'manual', link: 'https://www.michigan.gov/taxes/business-taxes/withholding' },
-  MN: { name: 'Minnesota',          type: 'auto' },
+  MN: { name: 'Minnesota',          type: 'manual', link: 'https://www.revenue.state.mn.us/withholding-income-tax' },
   MS: { name: 'Mississippi',        type: 'manual', link: 'https://www.dor.ms.gov/tax-rates/withholding' },
   MO: { name: 'Missouri',           type: 'manual', link: 'https://dor.mo.gov/withholding/' },
   MT: { name: 'Montana',            type: 'manual', link: 'https://mtrevenue.gov/taxes/withholding/' },
@@ -560,11 +560,6 @@ export default function PayrollCalculator({ session }) {
             </div>
           </div>
 
-          {/* MN — auto, no extra UI needed */}
-          {STATES[stateCode] && STATES[stateCode].type === 'auto' && (
-            <div className="pc-state-note">✅ Minnesota state withholding is calculated automatically from current MN Dept of Revenue tables.</div>
-          )}
-
           {/* No-tax state */}
           {STATES[stateCode] && STATES[stateCode].type === 'none' && (
             <div className="pc-state-note">✅ {STATES[stateCode].name} has no state income tax. State withholding will show $0.00 on the stub.</div>
@@ -823,8 +818,8 @@ export default function PayrollCalculator({ session }) {
         <div className="pc-upsell-inner">
           <div>
             <div className="pc-upsell-eyebrow">Coming for Members</div>
-            <h3 className="pc-upsell-title">Save employees. Store paycheck history. Track YTD withholding.</h3>
-            <p className="pc-upsell-desc">Right now you re-enter everything each pay period. Members will be able to save employee profiles, run payroll in sequence, and keep a full history — ready for W-2 season.</p>
+            <h3 className="pc-upsell-title">Auto state withholding. Save employees. Store paycheck history.</h3>
+            <p className="pc-upsell-desc">Members get automatic state withholding calculations — no looking up tables — plus saved employee profiles, paycheck history, and YTD withholding tracking ready for W-2 season.</p>
           </div>
           <div className="pc-upsell-ctas">
             <a href={MONTHLY_URL} className="pc-upsell-btn-primary">Join for $27/month</a>
