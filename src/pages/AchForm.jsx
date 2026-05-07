@@ -5,7 +5,10 @@
 // Route: /tools/ach-form
 // =============================================================================
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
+
+const MONTHLY_URL = 'https://buy.stripe.com/7sY5kD7Nl2HgeLp1Q818c06';
+const ANNUAL_URL = 'https://buy.stripe.com/14A5kD4B981AgTxcuM18c09';
 
 function today() {
   return new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -39,7 +42,15 @@ export default function AchForm() {
   const [sRecipient, setSRecipient] = useState('');
   const [sPurpose, setSPurpose] = useState('');
 
-  function switchMode(m) {
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://chat.karikounkel.com/widget.js';
+    script.defer = true;
+    document.body.appendChild(script);
+    return () => { if (document.body.contains(script)) document.body.removeChild(script); };
+  }, []);
+
+
     setMode(m);
     setShowOutput(false);
     setCopyDone(false);
@@ -103,6 +114,17 @@ export default function AchForm() {
   return (
     <div className="ach-page">
       <Styles />
+      <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+      {/* HEADER */}
+      <header className="ach-site-header">
+        <a href="/" className="ach-site-brand">CARES <span className="ach-brand-accent">Works.</span></a>
+        <nav className="ach-site-nav">
+          <a href="/" className="ach-nav-link">All Free Tools</a>
+          <a href="/#join" className="ach-nav-link">Membership</a>
+          <a href={MONTHLY_URL} className="ach-nav-join">Join — $27/mo</a>
+        </nav>
+      </header>
 
       <div className="ach-hero">
         <div className="ach-hero-inner">
@@ -472,6 +494,31 @@ export default function AchForm() {
           </div>
         )}
       </main>
+
+      {/* MEMBERSHIP CTA */}
+      <div className="ach-cta-strip">
+        <div className="ach-cta-inner">
+          <div className="ach-cta-left">
+            <div className="ach-cta-eyebrow">CARES Works Membership</div>
+            <h3 className="ach-cta-title">This is one of the free tools.<br /><em>There is a whole library inside.</em></h3>
+            <p className="ach-cta-desc">HR, bookkeeping, operations, communication — new tools added every month. Plus Ask Kari, The Debrief, and Court of Accounts.</p>
+            <a href="/" className="ach-cta-browse">Browse all free tools →</a>
+          </div>
+          <div className="ach-cta-price-block">
+            <div className="ach-cta-price">$27<span>/mo</span></div>
+            <div className="ach-cta-price-sub">or <strong>$270/year</strong> — 2 months free</div>
+            <a href={MONTHLY_URL} className="ach-cta-btn-primary">Join Monthly — $27/mo</a>
+            <a href={ANNUAL_URL} className="ach-cta-btn-gold">Join Annual — $270/yr</a>
+          </div>
+        </div>
+      </div>
+
+      {/* FOOTER */}
+      <footer className="ach-footer">
+        <div>© 2026 CARES Consulting Inc. · <a href="https://caresmn.com" className="ach-footer-link">caresmn.com</a></div>
+        <a href="https://karikounkel.store" className="ach-footer-link">Full Store at karikounkel.store →</a>
+      </footer>
+
     </div>
   );
 }
@@ -538,8 +585,40 @@ function Styles() {
     '}' +
     '.ach-page * { box-sizing: border-box; margin: 0; padding: 0; }' +
 
-    // Hero
-    '.ach-hero { background: #f2ede3; border-bottom: 1px solid var(--ach-rule); padding: 48px 32px 32px; }' +
+    // Header
+    '.ach-site-header { background: #fff; border-bottom: 1px solid var(--ach-rule); padding: 18px 40px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }' +
+    ".ach-site-brand { font-family: 'DM Serif Display', Georgia, serif; font-size: 20px; color: var(--ach-ink); text-decoration: none; }" +
+    '.ach-brand-accent { color: var(--ach-orange); }' +
+    '.ach-site-nav { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }' +
+    ".ach-nav-link { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ach-muted); text-decoration: none; transition: color .15s; }" +
+    '.ach-nav-link:hover { color: var(--ach-navy); }' +
+    ".ach-nav-join { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; background: var(--ach-orange); color: #fff; padding: 9px 18px; border-radius: 4px; text-decoration: none; transition: background .15s; }" +
+    '.ach-nav-join:hover { background: #c95f22; }' +
+
+    // CTA strip
+    '.ach-cta-strip { background: #3d4560; padding: 56px 40px; }' +
+    '.ach-cta-inner { max-width: 820px; margin: 0 auto; display: flex; gap: 48px; align-items: flex-start; flex-wrap: wrap; }' +
+    '.ach-cta-left { flex: 1; min-width: 260px; }' +
+    ".ach-cta-eyebrow { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ach-orange); margin-bottom: 12px; }" +
+    ".ach-cta-title { font-family: 'Playfair Display', Georgia, serif; font-size: 28px; color: #fff; line-height: 1.2; margin-bottom: 12px; }" +
+    '.ach-cta-title em { font-style: italic; color: var(--ach-gold2); }' +
+    '.ach-cta-desc { font-size: 15px; color: rgba(255,255,255,.65); line-height: 1.65; margin-bottom: 16px; }' +
+    ".ach-cta-browse { font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 0.08em; color: var(--ach-gold); text-decoration: none; }" +
+    '.ach-cta-browse:hover { color: var(--ach-gold2); }' +
+    '.ach-cta-price-block { flex-shrink: 0; min-width: 200px; display: flex; flex-direction: column; gap: 8px; }' +
+    ".ach-cta-price { font-family: 'Playfair Display', Georgia, serif; font-size: 52px; color: #fff; line-height: 1; }" +
+    '.ach-cta-price span { font-family: var(--ach-font); font-size: 16px; color: rgba(255,255,255,.45); font-weight: 400; }' +
+    ".ach-cta-price-sub { font-family: 'DM Mono', monospace; font-size: 11px; color: rgba(255,255,255,.4); letter-spacing: .05em; margin-bottom: 4px; }" +
+    '.ach-cta-price-sub strong { color: var(--ach-gold); }' +
+    ".ach-cta-btn-primary { display: block; text-align: center; background: var(--ach-orange); color: #fff; font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; padding: 14px 24px; border-radius: 6px; text-decoration: none; font-weight: 600; transition: background .15s; }" +
+    '.ach-cta-btn-primary:hover { background: #c95f22; }' +
+    ".ach-cta-btn-gold { display: block; text-align: center; background: linear-gradient(135deg,#C9A84C,#e0c060); color: #1e1e2a; font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; padding: 14px 24px; border-radius: 6px; text-decoration: none; font-weight: 700; }" +
+
+    // Footer
+    '.ach-footer { border-top: 1px solid var(--ach-rule); padding: 24px 40px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }' +
+    ".ach-footer { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--ach-muted); letter-spacing: .06em; }" +
+    '.ach-footer-link { color: var(--ach-muted); text-decoration: underline; }' +
+    '.ach-footer-link:hover { color: var(--ach-navy); }' + background: #f2ede3; border-bottom: 1px solid var(--ach-rule); padding: 48px 32px 32px; }' +
     '.ach-hero-inner { max-width: 820px; margin: 0 auto; }' +
     ".ach-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ach-gold); margin-bottom: 12px; }" +
     ".ach-h1 { font-family: 'Playfair Display', Georgia, serif; font-size: 42px; line-height: 1.1; color: var(--ach-navy); margin-bottom: 10px; }" +
