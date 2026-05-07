@@ -29,6 +29,7 @@ import BuyingTimeScripts from "./pages/BuyingTimeScripts";
 import PostMeetingDebrief from "./pages/PostMeetingDebrief";
 import MeetingPlanning from "./pages/MeetingPlanning";
 import BusynessAudit from "./pages/BusynessAudit";
+import AchForm from "./pages/AchForm";
 
 export function navigate(path) {
   window.history.pushState({}, "", path);
@@ -127,6 +128,7 @@ export default function App() {
   if (path === "/tools/inhouse-vs-contract") return <InHouseVsContract session={session} />;
   if (path === "/tools/meeting-planning") return <MeetingPlanning session={session} />;
   if (path === "/tools/busyness-audit") return <BusynessAudit session={session} />;
+  if (path === "/tools/ach-form") return <AchForm />;
 
   if (path.startsWith("/tools/")) {
     const slug = path.replace("/tools/", "");
