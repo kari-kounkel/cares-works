@@ -14,55 +14,57 @@ const MONTHLY_URL = 'https://buy.stripe.com/7sY5kD7Nl2HgeLp1Q818c06';
 const ANNUAL_URL  = 'https://buy.stripe.com/14A5kD4B981AgTxcuM18c09';
 
 // =============================================================================
-// TAX DATA
+// TAX DATA — 2026
+// Source: IRS Revenue Procedure 2025-32, Publication 15-T (2026)
 // =============================================================================
 
-// 2024 Federal Percentage Method (IRS Pub 15-T) — verify annually
-// Standard withholding amounts subtracted before applying brackets
-const FED_STD = { S: 14600, MFJ: 29200, HOH: 21900, MFS: 14600 };
+// 2026 Pub 15-T Withholding Adjustment — amounts subtracted from annualized
+// wages BEFORE applying brackets (from Worksheet 1A, line 1h)
+// Step 2 NOT checked: MFJ = $12,900, all others = $8,600
+const FED_STD = { S: 8600, MFJ: 12900, HOH: 8600, MFS: 8600 };
 
-// Annualized federal brackets [ceiling, rate, base_tax_at_ceiling_of_prev_bracket]
-// Format: [min, rate, base] — base is cumulative tax owed at the start of this bracket
+// 2026 Annualized Federal Brackets (IRS Rev. Proc. 2025-32)
+// Format: [bracket_start, rate, cumulative_tax_at_bracket_start]
 const FED_BRACKETS = {
   S: [
     [0,       0.10, 0],
-    [11600,   0.12, 1160],
-    [47150,   0.22, 5426],
-    [100525,  0.24, 17168.50],
-    [191950,  0.32, 39110.50],
-    [243725,  0.35, 55678.50],
-    [609350,  0.37, 183647.25],
-    [Infinity,0.37, 183647.25],
+    [12400,   0.12, 1240],
+    [50400,   0.22, 5800],
+    [105700,  0.24, 17966],
+    [201775,  0.32, 41024],
+    [256225,  0.35, 58448],
+    [640600,  0.37, 192979.25],
+    [Infinity,0.37, 192979.25],
   ],
   MFJ: [
     [0,       0.10, 0],
-    [23200,   0.12, 2320],
-    [94300,   0.22, 10852],
-    [201050,  0.24, 34337],
-    [383900,  0.32, 78221],
-    [487450,  0.35, 111108],
-    [731200,  0.37, 196669.50],
-    [Infinity,0.37, 196669.50],
+    [24800,   0.12, 2480],
+    [100800,  0.22, 11600],
+    [211400,  0.24, 35932],
+    [403550,  0.32, 82048],
+    [512450,  0.35, 116896],
+    [768700,  0.37, 206583.50],
+    [Infinity,0.37, 206583.50],
   ],
   HOH: [
     [0,       0.10, 0],
-    [16550,   0.12, 1655],
-    [63100,   0.22, 7241],
-    [100500,  0.24, 15469],
-    [191950,  0.32, 37461],
-    [243700,  0.35, 54013],
-    [609350,  0.37, 181954.50],
-    [Infinity,0.37, 181954.50],
+    [17700,   0.12, 1770],
+    [67450,   0.22, 7740],
+    [105700,  0.24, 16155],
+    [201750,  0.32, 39207],
+    [256200,  0.35, 56631],
+    [640600,  0.37, 191171],
+    [Infinity,0.37, 191171],
   ],
   MFS: [
     [0,       0.10, 0],
-    [11600,   0.12, 1160],
-    [47150,   0.22, 5426],
-    [100525,  0.24, 17168.50],
-    [191950,  0.32, 39110.50],
-    [243725,  0.35, 55678.50],
-    [609350,  0.37, 183647.25],
-    [Infinity,0.37, 183647.25],
+    [12400,   0.12, 1240],
+    [50400,   0.22, 5800],
+    [105700,  0.24, 17966],
+    [201775,  0.32, 41024],
+    [256225,  0.35, 58448],
+    [384350,  0.37, 103291.75],
+    [Infinity,0.37, 103291.75],
   ],
 };
 
@@ -95,154 +97,49 @@ function calcFederalWithholding(grossPeriod, filingStatus, preTaxDedPeriod, addi
 }
 
 // =============================================================================
-// STATE TAX DATA
-// type: 'none' | 'flat' | 'bracket'
-// For brackets: { S: [[min,rate,base],...], MFJ: [...] }
-// stdDed: standard deduction used before applying brackets
+// STATE TAX DATA — VERIFIED 2026
+// Only states with confirmed current rates are listed.
+// Other states available via CARES Works customization — contact Ask Kari.
 // =============================================================================
 
+// Minnesota Paid Leave (2026) — employee portion
+// Source: Minnesota DEED / pl.mn.gov
+const MN_PAID_LEAVE_RATE = 0.0044;  // 0.44% employee portion
+const MN_PAID_LEAVE_WAGE_BASE = 185000; // capped at SS wage base rounded to nearest $1,000
+
 const STATES = {
-  AL: { name: 'Alabama',              type: 'bracket',
-        S:   [[0,0.02,0],[500,0.04,10],[3000,0.05,110],[Infinity,0.05,110]],
-        MFJ: [[0,0.02,0],[1000,0.04,20],[6000,0.05,220],[Infinity,0.05,220]],
-        stdDed: { S: 2500, MFJ: 7500 } },
-  AK: { name: 'Alaska',               type: 'none' },
-  AZ: { name: 'Arizona',              type: 'flat', rate: 0.025 },
-  AR: { name: 'Arkansas',             type: 'bracket',
-        S:   [[0,0.02,0],[4299,0.04,86],[8399,0.044,250],[Infinity,0.044,250]],
-        MFJ: [[0,0.02,0],[4299,0.04,86],[8399,0.044,250],[Infinity,0.044,250]],
-        stdDed: { S: 2200, MFJ: 4400 } },
-  CA: { name: 'California',           type: 'bracket',
-        S:   [[0,0.01,0],[10756,0.02,107.56],[25499,0.04,402.42],[40245,0.06,992.26],[55866,0.08,1929.52],[70606,0.093,3107.74],[360659,0.103,29999.97],[432787,0.113,37426.00],[721314,0.123,70060.00],[Infinity,0.123,70060]],
-        MFJ: [[0,0.01,0],[21512,0.02,215.12],[50998,0.04,804.84],[80490,0.06,1984.52],[111732,0.08,3859.04],[141212,0.093,6215.48],[721318,0.103,59998],[865574,0.113,74850],[1000000,0.123,90118],[Infinity,0.123,90118]],
-        stdDed: { S: 5202, MFJ: 10404 } },
-  CO: { name: 'Colorado',             type: 'flat', rate: 0.044 },
-  CT: { name: 'Connecticut',          type: 'bracket',
-        S:   [[0,0.03,0],[10000,0.05,300],[50000,0.055,2300],[100000,0.06,5050],[200000,0.065,11050],[250000,0.069,14300],[500000,0.0699,31550],[Infinity,0.0699,31550]],
-        MFJ: [[0,0.03,0],[20000,0.05,600],[100000,0.055,4600],[200000,0.06,10100],[400000,0.065,22100],[500000,0.069,28600],[1000000,0.0699,63100],[Infinity,0.0699,63100]],
-        stdDed: { S: 0, MFJ: 0 } },
-  DE: { name: 'Delaware',             type: 'bracket',
-        S:   [[0,0,0],[2000,0.022,0],[5000,0.039,66],[10000,0.048,261],[20000,0.052,741],[25000,0.0555,1001],[60000,0.066,2943],[Infinity,0.066,2943]],
-        MFJ: [[0,0,0],[2000,0.022,0],[5000,0.039,66],[10000,0.048,261],[20000,0.052,741],[25000,0.0555,1001],[60000,0.066,2943],[Infinity,0.066,2943]],
-        stdDed: { S: 3250, MFJ: 6500 } },
-  FL: { name: 'Florida',              type: 'none' },
-  GA: { name: 'Georgia',              type: 'flat', rate: 0.0549 },
-  HI: { name: 'Hawaii',               type: 'bracket',
-        S:   [[0,0.014,0],[2400,0.032,33.6],[4800,0.055,110.4],[9600,0.064,374.4],[14400,0.068,681.6],[19200,0.072,1008],[24000,0.076,1353.6],[36000,0.079,2265.6],[48000,0.083,3213.6],[150000,0.09,11679.6],[175000,0.1,13929.6],[200000,0.11,16429.6],[Infinity,0.11,16429.6]],
-        MFJ: [[0,0.014,0],[4800,0.032,67.2],[9600,0.055,220.8],[19200,0.064,748.8],[28800,0.068,1363.2],[38400,0.072,2016],[48000,0.076,2707.2],[72000,0.079,4531.2],[96000,0.083,6427.2],[300000,0.09,23359.2],[350000,0.1,27859.2],[400000,0.11,32859.2],[Infinity,0.11,32859.2]],
-        stdDed: { S: 2200, MFJ: 4400 } },
-  ID: { name: 'Idaho',                type: 'flat', rate: 0.058 },
-  IL: { name: 'Illinois',             type: 'flat', rate: 0.0495 },
-  IN: { name: 'Indiana',              type: 'flat', rate: 0.0305 },
-  IA: { name: 'Iowa',                 type: 'flat', rate: 0.038 },
-  KS: { name: 'Kansas',               type: 'bracket',
-        S:   [[0,0.031,0],[15000,0.057,465],[Infinity,0.057,465]],
-        MFJ: [[0,0.031,0],[30000,0.057,930],[Infinity,0.057,930]],
-        stdDed: { S: 3500, MFJ: 8000 } },
-  KY: { name: 'Kentucky',             type: 'flat', rate: 0.04 },
-  LA: { name: 'Louisiana',            type: 'bracket',
-        S:   [[0,0.0185,0],[12500,0.035,231.25],[50000,0.0425,1543.75],[Infinity,0.0425,1543.75]],
-        MFJ: [[0,0.0185,0],[25000,0.035,462.5],[100000,0.0425,3087.5],[Infinity,0.0425,3087.5]],
-        stdDed: { S: 4500, MFJ: 9000 } },
-  ME: { name: 'Maine',                type: 'bracket',
-        S:   [[0,0.058,0],[24500,0.0675,1421],[58050,0.0715,3684.13],[Infinity,0.0715,3684.13]],
-        MFJ: [[0,0.058,0],[49050,0.0675,2844.9],[116100,0.0715,7369.73],[Infinity,0.0715,7369.73]],
-        stdDed: { S: 14600, MFJ: 29200 } },
-  MD: { name: 'Maryland',             type: 'bracket',
-        S:   [[0,0.02,0],[1000,0.03,20],[2000,0.04,50],[3000,0.0475,90],[100000,0.05,4702.5],[125000,0.0525,5952.5],[150000,0.055,7265],[250000,0.0575,12765],[Infinity,0.0575,12765]],
-        MFJ: [[0,0.02,0],[1000,0.03,20],[2000,0.04,50],[3000,0.0475,90],[150000,0.05,7027.5],[175000,0.0525,8277.5],[225000,0.055,10902.5],[300000,0.0575,14027.5],[Infinity,0.0575,14027.5]],
-        stdDed: { S: 2350, MFJ: 4700 } },
-  MA: { name: 'Massachusetts',        type: 'flat', rate: 0.05 },
-  MI: { name: 'Michigan',             type: 'flat', rate: 0.0425 },
-  MN: { name: 'Minnesota',            type: 'bracket',
-        S:   [[0,0.0535,0],[31690,0.068,1695.42],[104090,0.0785,6619.34],[193240,0.0985,13620.19],[Infinity,0.0985,13620.19]],
-        MFJ: [[0,0.0535,0],[46330,0.068,2478.66],[184040,0.0785,9844.92],[321450,0.0985,20633.62],[Infinity,0.0985,20633.62]],
-        stdDed: { S: 14575, MFJ: 29150 },
-        note: 'Standard MN withholding only. Contact CARES Works for additional MN tax customization.' },
-  MS: { name: 'Mississippi',          type: 'flat', rate: 0.047 },
-  MO: { name: 'Missouri',             type: 'bracket',
-        S:   [[0,0,0],[1207,0.015,0],[2414,0.02,18.11],[3622,0.025,42.25],[4829,0.03,72.45],[5763,0.035,108.46],[6919,0.04,148.92],[8111,0.045,196.55],[9322,0.05,251.05],[Infinity,0.054,311.60]],
-        MFJ: [[0,0,0],[1207,0.015,0],[2414,0.02,18.11],[3622,0.025,42.25],[4829,0.03,72.45],[5763,0.035,108.46],[6919,0.04,148.92],[8111,0.045,196.55],[9322,0.05,251.05],[Infinity,0.054,311.60]],
-        stdDed: { S: 21400, MFJ: 24800 } },
-  MT: { name: 'Montana',              type: 'flat', rate: 0.059 },
-  NE: { name: 'Nebraska',             type: 'bracket',
-        S:   [[0,0.0246,0],[3700,0.0351,91.02],[22170,0.0501,739.73],[33180,0.0664,1291.77],[Infinity,0.0664,1291.77]],
-        MFJ: [[0,0.0246,0],[7380,0.0351,181.49],[44340,0.0501,1479.64],[66360,0.0664,2583.54],[Infinity,0.0664,2583.54]],
-        stdDed: { S: 7900, MFJ: 15800 } },
-  NV: { name: 'Nevada',               type: 'none' },
-  NH: { name: 'New Hampshire',        type: 'none' },
-  NJ: { name: 'New Jersey',           type: 'bracket',
-        S:   [[0,0.014,0],[20000,0.0175,280],[35000,0.035,542.5],[40000,0.05525,717.5],[75000,0.0637,2451],[500000,0.0897,29539],[Infinity,0.1075,38441.6]],
-        MFJ: [[0,0.014,0],[20000,0.0175,280],[50000,0.0245,805],[70000,0.035,1295],[80000,0.05525,1645],[150000,0.0637,5512.5],[500000,0.0897,27807.5],[Infinity,0.1075,39107.8]],
-        stdDed: { S: 1000, MFJ: 2000 } },
-  NM: { name: 'New Mexico',           type: 'bracket',
-        S:   [[0,0.017,0],[5500,0.032,93.5],[11000,0.047,269.5],[16000,0.049,504.5],[210000,0.059,10011.5],[Infinity,0.059,10011.5]],
-        MFJ: [[0,0.017,0],[8000,0.032,136],[16000,0.047,392],[24000,0.049,768],[315000,0.059,15013.5],[Infinity,0.059,15013.5]],
-        stdDed: { S: 14600, MFJ: 29200 } },
-  NY: { name: 'New York',             type: 'bracket',
-        S:   [[0,0.04,0],[8500,0.045,340],[11700,0.0525,484],[13900,0.0585,599.5],[80650,0.0625,4501.73],[215400,0.0685,12932.73],[1077550,0.0965,71996.05],[5000000,0.103,449845.78],[Infinity,0.109,449845.78]],
-        MFJ: [[0,0.04,0],[17150,0.045,686],[23600,0.0525,976.25],[27900,0.0585,1201.75],[161550,0.0625,9018.73],[323200,0.0685,19111.86],[2155350,0.0965,144572.01],[5000000,0.103,419212.43],[Infinity,0.109,419212.43]],
-        stdDed: { S: 8000, MFJ: 16050 } },
-  NC: { name: 'North Carolina',       type: 'flat', rate: 0.045 },
-  ND: { name: 'North Dakota',         type: 'bracket',
-        S:   [[0,0.011,0],[44725,0.204,491.98],[225975,0.0227,36971.46],[Infinity,0.0227,36971.46]],
-        MFJ: [[0,0.011,0],[74750,0.204,822.25],[275925,0.0227,41781.85],[Infinity,0.0227,41781.85]],
-        stdDed: { S: 14600, MFJ: 29200 } },
-  OH: { name: 'Ohio',                 type: 'bracket',
-        S:   [[0,0,0],[26050,0.02765,0],[100000,0.03226,2044.62],[115300,0.03688,4428.95],[Infinity,0.04],[Infinity,0.04,5032.86]],
-        MFJ: [[0,0,0],[26050,0.02765,0],[100000,0.03226,2044.62],[115300,0.03688,4428.95],[Infinity,0.04,5032.86]],
-        stdDed: { S: 0, MFJ: 0 } },
-  OK: { name: 'Oklahoma',             type: 'bracket',
-        S:   [[0,0.0025,0],[1000,0.0075,2.5],[2500,0.0175,13.75],[3750,0.0275,35.63],[4900,0.0375,67.25],[7200,0.0475,153.5],[Infinity,0.0475,153.5]],
-        MFJ: [[0,0.0025,0],[2000,0.0075,5],[5000,0.0175,27.5],[7500,0.0275,71.25],[9800,0.0375,134.5],[12200,0.0475,224.5],[Infinity,0.0475,224.5]],
-        stdDed: { S: 6350, MFJ: 12700 } },
-  OR: { name: 'Oregon',               type: 'bracket',
-        S:   [[0,0.0475,0],[10000,0.0675,475],[125000,0.0875,8200],[Infinity,0.099,18262.5]],
-        MFJ: [[0,0.0475,0],[18400,0.0675,874],[250000,0.0875,16504],[Infinity,0.099,36629]],
-        stdDed: { S: 2420, MFJ: 4840 } },
-  PA: { name: 'Pennsylvania',         type: 'flat', rate: 0.0307 },
-  RI: { name: 'Rhode Island',         type: 'bracket',
-        S:   [[0,0.0375,0],[77450,0.0475,2904.38],[176050,0.0599,7587.75],[Infinity,0.0599,7587.75]],
-        MFJ: [[0,0.0375,0],[77450,0.0475,2904.38],[176050,0.0599,7587.75],[Infinity,0.0599,7587.75]],
-        stdDed: { S: 9500, MFJ: 19000 } },
-  SC: { name: 'South Carolina',       type: 'flat', rate: 0.064 },
-  SD: { name: 'South Dakota',         type: 'none' },
-  TN: { name: 'Tennessee',            type: 'none' },
-  TX: { name: 'Texas',                type: 'none' },
-  UT: { name: 'Utah',                 type: 'flat', rate: 0.0455 },
-  VT: { name: 'Vermont',              type: 'bracket',
-        S:   [[0,0.0335,0],[45400,0.066,1520.9],[110650,0.076,4825.9],[229550,0.0875,13855.5],[Infinity,0.0875,13855.5]],
-        MFJ: [[0,0.0335,0],[75850,0.066,2540.98],[183400,0.076,9640.98],[279450,0.0875,16937.68],[Infinity,0.0875,16937.68]],
-        stdDed: { S: 14600, MFJ: 29200 } },
-  VA: { name: 'Virginia',             type: 'bracket',
-        S:   [[0,0.02,0],[3000,0.03,60],[5000,0.05,120],[17000,0.0575,720],[Infinity,0.0575,720]],
-        MFJ: [[0,0.02,0],[3000,0.03,60],[5000,0.05,120],[17000,0.0575,720],[Infinity,0.0575,720]],
-        stdDed: { S: 4500, MFJ: 9000 } },
-  WA: { name: 'Washington',           type: 'none' },
-  WV: { name: 'West Virginia',        type: 'bracket',
-        S:   [[0,0.0236,0],[10000,0.0315,236],[25000,0.0354,708.5],[40000,0.0472,1239.5],[60000,0.0512,2183.5],[Infinity,0.0512,2183.5]],
-        MFJ: [[0,0.0236,0],[10000,0.0315,236],[25000,0.0354,708.5],[40000,0.0472,1239.5],[60000,0.0512,2183.5],[Infinity,0.0512,2183.5]],
-        stdDed: { S: 0, MFJ: 0 } },
-  WI: { name: 'Wisconsin',            type: 'bracket',
-        S:   [[0,0.035,0],[13810,0.044,483.35],[27630,0.053,1091.63],[304170,0.0765,15731.63],[Infinity,0.0765,15731.63]],
-        MFJ: [[0,0.035,0],[18420,0.044,644.7],[36830,0.053,1455.14],[405550,0.0765,20976.85],[Infinity,0.0765,20976.85]],
-        stdDed: { S: 11930, MFJ: 21820 } },
-  WY: { name: 'Wyoming',              type: 'none' },
-  DC: { name: 'Washington DC',        type: 'bracket',
-        S:   [[0,0.04,0],[10000,0.06,400],[40000,0.065,2200],[60000,0.085,3500],[350000,0.0925,28150],[1000000,0.0975,88287.5],[Infinity,0.1075,88287.5]],
-        MFJ: [[0,0.04,0],[10000,0.06,400],[40000,0.065,2200],[60000,0.085,3500],[350000,0.0925,28150],[1000000,0.0975,88287.5],[Infinity,0.1075,88287.5]],
-        stdDed: { S: 0, MFJ: 0 } },
+  MN: {
+    name: 'Minnesota',
+    type: 'bracket',
+    // 2026 MN withholding brackets — Minnesota Dept of Revenue
+    S:   [[0,0.0535,0],[31690,0.068,1695.42],[104090,0.0785,6619.34],[193240,0.0985,13620.19],[Infinity,0.0985,13620.19]],
+    MFJ: [[0,0.0535,0],[46330,0.068,2478.66],[184040,0.0785,9844.92],[321450,0.0985,20633.62],[Infinity,0.0985,20633.62]],
+    stdDed: { S: 14575, MFJ: 29150 },
+    paidLeave: true,
+  },
+  FL: { name: 'Florida',       type: 'none' },
+  IL: { name: 'Illinois',      type: 'flat', rate: 0.0495 },  // flat rate since 2017
+  CO: { name: 'Colorado',      type: 'flat', rate: 0.044  },  // flat rate enacted 2024
+  PA: { name: 'Pennsylvania',  type: 'flat', rate: 0.0307 },  // flat rate since 2004
+  OTHER: { name: 'My state isn\'t listed', type: 'other' },
 };
 
 function calcStateWithholding(annualTaxableIncome, stateCode, filingStatus) {
   const st = STATES[stateCode];
-  if (!st || st.type === 'none') return 0;
+  if (!st || st.type === 'none' || st.type === 'other') return 0;
   if (st.type === 'flat') return Math.max(0, annualTaxableIncome * st.rate);
   const stdDed = st.stdDed ? (filingStatus === 'MFJ' ? st.stdDed.MFJ : st.stdDed.S) : 0;
   const taxable = Math.max(0, annualTaxableIncome - stdDed);
   const brackets = filingStatus === 'MFJ' ? st.MFJ : st.S;
   if (!brackets) return 0;
   return calcBracketTax(taxable, brackets);
+}
+
+function calcMNPaidLeave(grossPeriod, payPeriod) {
+  const periods = PAY_PERIODS[payPeriod] || 26;
+  const annualGross = grossPeriod * periods;
+  const cappedAnnual = Math.min(annualGross, MN_PAID_LEAVE_WAGE_BASE);
+  return (cappedAnnual * MN_PAID_LEAVE_RATE) / periods;
 }
 
 // =============================================================================
@@ -471,18 +368,20 @@ export default function PayrollCalculator({ session }) {
     const stateTax = annualStateTax / periods;
 
     const stateInfo = STATES[stateCode] || {};
+    const mnPaidLeave = (stateCode === 'MN') ? calcMNPaidLeave(grossPay, payPeriod) : 0;
 
-    const totalWithholding = federalTax + ssTax + medTax + stateTax + postTaxTotal;
-    const netPay = grossPay - preTaxTotal - federalTax - ssTax - medTax - stateTax - postTaxTotal;
+    const totalWithholding = federalTax + ssTax + medTax + stateTax + mnPaidLeave + postTaxTotal;
+    const netPay = grossPay - preTaxTotal - federalTax - ssTax - medTax - stateTax - mnPaidLeave - postTaxTotal;
 
     setResult({
       regularPay, otPay, grossPay,
       preTaxDeds: deds.filter(d => d.type === 'pretax'),
       postTaxDeds: deds.filter(d => d.type === 'posttax'),
       preTaxTotal, postTaxTotal,
-      federalTax, ssTax, medTax, stateTax,
-      stateNote: stateInfo.note || null,
+      federalTax, ssTax, medTax, stateTax, mnPaidLeave,
+      stateNote: stateCode === 'OTHER' ? 'State withholding not calculated. Contact CARES Works — message Ask Kari to add your state.' : null,
       stateName: stateInfo.name || stateCode,
+      stateIsOther: stateCode === 'OTHER',
       totalWithholding, netPay,
     });
     setShowStub(true);
@@ -499,7 +398,7 @@ export default function PayrollCalculator({ session }) {
     setPeriodStart(''); setPeriodEnd(''); setCheckNum('');
   }
 
-  const stateList = Object.entries(STATES).sort((a, b) => a[1].name.localeCompare(b[1].name));
+  const bizLabel = cBiz || '[Your Business Name]';
 
   return (
     <div className="pc-page">
@@ -633,14 +532,20 @@ export default function PayrollCalculator({ session }) {
             <div className="pc-field">
               <label className="pc-label">Work State</label>
               <select className="pc-input" value={stateCode} onChange={e => setStateCode(e.target.value)}>
-                {stateList.map(([code, st]) => (
-                  <option key={code} value={code}>{st.name}{st.type === 'none' ? ' (no income tax)' : ''}</option>
-                ))}
+                <option value="MN">Minnesota</option>
+                <option value="FL">Florida (no state income tax)</option>
+                <option value="IL">Illinois</option>
+                <option value="CO">Colorado</option>
+                <option value="PA">Pennsylvania</option>
+                <option value="OTHER">My state isn't listed</option>
               </select>
             </div>
           </div>
-          {STATES[stateCode] && STATES[stateCode].note && (
-            <div className="pc-state-note">ℹ️ {STATES[stateCode].note}</div>
+          {stateCode === 'MN' && (
+            <div className="pc-state-note">ℹ️ Minnesota Paid Leave (0.44% employee portion, up to $185,000 wage base) is included automatically. Employer portion is separate and not shown on the employee stub.</div>
+          )}
+          {stateCode === 'OTHER' && (
+            <div className="pc-state-note">⚡ State withholding for your state isn't in the tool yet. Message Ask Kari to get your state added to your account — it's included in your membership.</div>
           )}
         </div>
 
@@ -772,9 +677,20 @@ export default function PayrollCalculator({ session }) {
                     <span>${fmt(result.stateTax)}</span>
                   </div>
                 )}
-                {result.stateTax === 0 && STATES[stateCode] && STATES[stateCode].type === 'none' && (
+                {result.stateTax === 0 && !result.stateIsOther && STATES[stateCode] && STATES[stateCode].type === 'none' && (
                   <div className="pc-stub-row pc-stub-zero">
                     <span>{result.stateName} State Tax</span><span></span><span>No state income tax</span><span>$0.00</span>
+                  </div>
+                )}
+                {result.stateIsOther && (
+                  <div className="pc-stub-row pc-stub-zero">
+                    <span>State Tax</span><span></span><span>Not calculated — contact CARES Works</span><span>—</span>
+                  </div>
+                )}
+                {result.mnPaidLeave > 0 && (
+                  <div className="pc-stub-row">
+                    <span>MN Paid Leave (employee)</span><span></span><span>0.44%</span>
+                    <span>${fmt(result.mnPaidLeave)}</span>
                   </div>
                 )}
               </div>
