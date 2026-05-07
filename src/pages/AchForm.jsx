@@ -284,9 +284,7 @@ export default function AchForm() {
             </div>
 
             <div className="ach-security">
-              🔒 This generates a <strong>printable summary</strong> of your banking details.
-              Only share through a trusted channel — in person, encrypted file, or your employer's secure portal.
-              Never email account numbers unprotected.
+              🔒 <span><strong>Before you send this back:</strong> Use your browser to print this page as a PDF (File → Print → Save as PDF). Then password-protect the PDF before sending — most PDF readers and preview apps let you set a password under File → Export or Save As. Only share through a trusted channel — in person, encrypted file, or your employer's secure portal. <strong>Never email account numbers as an unprotected attachment or in the body of an email.</strong></span>
             </div>
 
             <div className="ach-actions">
@@ -447,6 +445,9 @@ export default function AchForm() {
                       <PrintBlank label="Signature" />
                       <PrintBlank label="Date" />
                     </div>
+                    <p className="ach-auth-text" style={{ marginTop: '16px', borderTop: '1px dashed #ddd', paddingTop: '14px' }}>
+                      <strong>How to return this form securely:</strong> Print as PDF (File → Print → Save as PDF), then password-protect it before sending (File → Export or Save As → add password). Do not email banking details as an unprotected attachment or in the body of an email.
+                    </p>
                   </div>
                 </div>
               )}
