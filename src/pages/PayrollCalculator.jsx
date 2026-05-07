@@ -419,7 +419,7 @@ export default function PayrollCalculator({ session }) {
     setPeriodStart(''); setPeriodEnd(''); setCheckNum('');
   }
 
-  const bizLabel = cBiz || '[Your Business Name]';
+  const bizLabel = companyName || '[Company Name]';
 
   return (
     <div className="pc-page">
@@ -726,20 +726,9 @@ export default function PayrollCalculator({ session }) {
                     <span>${fmt(result.stateTax)}</span>
                   </div>
                 )}
-                {result.stateTax === 0 && !result.stateIsOther && STATES[stateCode] && STATES[stateCode].type === 'none' && (
+                {result.stateTax === 0 && STATES[stateCode] && STATES[stateCode].type === 'none' && (
                   <div className="pc-stub-row pc-stub-zero">
                     <span>{result.stateName} State Tax</span><span></span><span>No state income tax</span><span>$0.00</span>
-                  </div>
-                )}
-                {result.stateIsOther && (
-                  <div className="pc-stub-row pc-stub-zero">
-                    <span>State Tax</span><span></span><span>Not calculated — contact CARES Works</span><span>—</span>
-                  </div>
-                )}
-                {result.mnPaidLeave > 0 && (
-                  <div className="pc-stub-row">
-                    <span>MN Paid Leave (employee)</span><span></span><span>0.44%</span>
-                    <span>${fmt(result.mnPaidLeave)}</span>
                   </div>
                 )}
               </div>
@@ -773,9 +762,6 @@ export default function PayrollCalculator({ session }) {
               </div>
 
               {/* STUB NOTE */}
-              {result.stateNote && (
-                <div className="pc-stub-note">ℹ️ {result.stateNote}</div>
-              )}
               <div className="pc-stub-footer">
                 Pay stub generated using standard IRS and state withholding tables. Verify rates annually. · tools.caresmn.com
               </div>
