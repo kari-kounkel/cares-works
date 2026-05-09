@@ -16,6 +16,8 @@ const freeTools = [
   { icon: "📥", title: "Stop Drowning in Email Attachments", desc: "The Python script that pulls every invoice and vendor doc out of your inbox — sorted, named, waiting for you every morning.", cta: "Get the Guide + Script", href: "/tools/email-attachments" },
   { icon: "📋", title: "Client Visit Summary", desc: "A fillable, printable leave-behind for every client visit. What got done, what's still needed, what happens next.", cta: "Get the Template", href: "/tools/client-visit-summary" },
   { icon: "✉️", title: "What to Actually Say", desc: "10 client communication templates — late invoices, scope creep, bad news, after-hours texters, and the client you need to fire.", cta: "Get the Templates", href: "/tools/communication-templates" },
+  { icon: "🏦", title: "ACH Banking Form", desc: "Collect banking details from a vendor or employee — or package your own to share. Printable, fillable, no data stored.", cta: "Use the Form", href: "/tools/ach-form" },
+  { icon: "💵", title: "Payroll Stub Calculator", desc: "Gross pay, federal and state withholding, FICA, deductions, printable stub. All 50 states. You look up your state table — the tool does the math.", cta: "Calculate a Stub", href: "/tools/payroll-calculator" },
 ];
 
 const memberTools = [
