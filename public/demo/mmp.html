@@ -6,7 +6,7 @@
 <title>Minuteman Press Uptown — Online Store Mockup</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@600;700&family=Playfair+Display:wght@700;800;900&family=Source+Sans+3:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
     --green: #1d7a44;
@@ -451,9 +451,397 @@
   .status.done { background: var(--bg-deep); color: var(--ink-fade); }
   .price-cell { font-weight: 700; color: var(--ink); }
 
+  /* ============================
+     STYLE PICKER — floating pill, bottom-right
+     ============================ */
+  .style-picker {
+    position: fixed; bottom: 20px; right: 20px; z-index: 999;
+    background: var(--white); border: 1px solid var(--rule); border-radius: 999px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12), 0 2px 4px rgba(0,0,0,0.04);
+    padding: 6px; display: flex; gap: 4px; align-items: center;
+    font-family: 'Open Sans', sans-serif;
+  }
+  .style-picker .sp-label {
+    font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--ink-fade); padding: 0 10px 0 14px;
+  }
+  .style-picker button {
+    background: var(--white); color: var(--ink-soft);
+    border: 1px solid transparent; padding: 7px 14px;
+    font-family: inherit; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.04em; text-transform: uppercase; cursor: pointer;
+    transition: all 0.15s ease; border-radius: 999px;
+  }
+  .style-picker button:hover { background: var(--green-light); color: var(--green-deep); }
+  .style-picker button.active { background: var(--green); color: var(--white); }
+
+  /* ============================
+     THEME: PRESSROOM — print shop / industrial / paper-and-ink
+     ============================ */
+  body[data-theme="pressroom"] {
+    --green: #2d5234;
+    --green-deep: #1c3a22;
+    --green-light: #e0e9dc;
+    --orange: #c75518;
+    --orange-deep: #9c4413;
+    --ink: #1a1a1a;
+    --ink-soft: #4a4a4a;
+    --ink-fade: #8a8278;
+    --bg: #ede7d8;
+    --bg-deep: #d8d0bc;
+    --rule: #c6bda9;
+    --rule-soft: #d8d0bf;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+  body[data-theme="pressroom"] .hero h1,
+  body[data-theme="pressroom"] .section-divider h2,
+  body[data-theme="pressroom"] .product-card h4,
+  body[data-theme="pressroom"] .pd-info h1,
+  body[data-theme="pressroom"] .cart-view h1,
+  body[data-theme="pressroom"] .admin-head h1,
+  body[data-theme="pressroom"] .sidebar-marketing h3,
+  body[data-theme="pressroom"] .lr-name {
+    font-family: 'IBM Plex Serif', serif;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  body[data-theme="pressroom"] .hero h1 { font-size: 44px; }
+  body[data-theme="pressroom"] .hero { background: #e8e1cf; }
+  body[data-theme="pressroom"] .hero-cta,
+  body[data-theme="pressroom"] .add-to-cart,
+  body[data-theme="pressroom"] .checkout-btn,
+  body[data-theme="pressroom"] .ap-btn,
+  body[data-theme="pressroom"] .cs-new-btn,
+  body[data-theme="pressroom"] .opt-pills button,
+  body[data-theme="pressroom"] .cat-card,
+  body[data-theme="pressroom"] .product-card,
+  body[data-theme="pressroom"] .sidebar-marketing,
+  body[data-theme="pressroom"] .specs-box,
+  body[data-theme="pressroom"] .stat,
+  body[data-theme="pressroom"] .orders-card,
+  body[data-theme="pressroom"] .ap-card,
+  body[data-theme="pressroom"] .cse-card,
+  body[data-theme="pressroom"] .tier-cell,
+  body[data-theme="pressroom"] .client-card,
+  body[data-theme="pressroom"] .ap-input,
+  body[data-theme="pressroom"] .ap-textarea,
+  body[data-theme="pressroom"] .ap-select,
+  body[data-theme="pressroom"] .hero-image,
+  body[data-theme="pressroom"] .cart-items,
+  body[data-theme="pressroom"] .cart-summary { border-radius: 0; }
+  body[data-theme="pressroom"] .header-nav .nav-item.featured { background: var(--orange); }
+  body[data-theme="pressroom"] .header-nav .nav-item.featured:hover { background: var(--orange-deep); }
+  body[data-theme="pressroom"] .pd-info .pd-price { color: var(--orange); }
+  body[data-theme="pressroom"] .product-card { border: 1px solid var(--rule); }
+
+  /* ============================
+     THEME: EDITORIAL — magazine / serif headlines / generous whitespace
+     ============================ */
+  body[data-theme="editorial"] {
+    --green: #2a6b3f;
+    --green-deep: #1d4a2c;
+    --green-light: #eef5ef;
+    --orange: #d96b1c;
+    --orange-deep: #a84f12;
+    --ink: #1f1f1f;
+    --ink-soft: #5c5c5c;
+    --ink-fade: #9b9b9b;
+    --bg: #fafaf7;
+    --rule: #e6e3da;
+    --rule-soft: #eeede7;
+    font-family: 'Source Sans 3', sans-serif;
+  }
+  body[data-theme="editorial"] .hero h1,
+  body[data-theme="editorial"] .section-divider h2,
+  body[data-theme="editorial"] .pd-info h1,
+  body[data-theme="editorial"] .cart-view h1,
+  body[data-theme="editorial"] .admin-head h1,
+  body[data-theme="editorial"] .product-card h4,
+  body[data-theme="editorial"] .sidebar-marketing h3,
+  body[data-theme="editorial"] .lr-name,
+  body[data-theme="editorial"] .lr-hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  body[data-theme="editorial"] .hero h1 { font-size: 56px; line-height: 1.02; }
+  body[data-theme="editorial"] .section-divider h2 { font-size: 36px; }
+  body[data-theme="editorial"] .pd-info h1 { font-size: 38px; }
+  body[data-theme="editorial"] .product-card h4 { font-size: 18px; font-weight: 800; }
+  body[data-theme="editorial"] .hero { background: #fafaf7; padding-top: 90px; padding-bottom: 110px; }
+  body[data-theme="editorial"] .top-bar { background: var(--ink); }
+  body[data-theme="editorial"] .header-nav .nav-item.featured { background: var(--ink); }
+  body[data-theme="editorial"] .header-nav .nav-item.featured:hover { background: var(--green); }
+  body[data-theme="editorial"] .hero-image { background: transparent; box-shadow: none; padding: 0; }
+  body[data-theme="editorial"] .section-divider { padding: 48px 32px; }
+  body[data-theme="editorial"] .lr-hero h1 { font-size: 38px; }
+
+  /* ============================
+     THEME: SHOWROOM — gallery / minimal / dark hero / huge photos
+     ============================ */
+  body[data-theme="showroom"] {
+    --green: #1d7a44;
+    --green-deep: #155a32;
+    --green-light: #eef7f1;
+    --orange: #ff6b1a;
+    --orange-deep: #d8540e;
+    --ink: #0a0a0a;
+    --ink-soft: #555;
+    --ink-fade: #999;
+    --bg: #ffffff;
+    --bg-deep: #f5f5f5;
+    --rule: #e8e8e8;
+    --rule-soft: #f0f0f0;
+    font-family: 'Inter', sans-serif;
+  }
+  body[data-theme="showroom"] header.main-header { border-bottom: 2px solid var(--green); }
+  body[data-theme="showroom"] .hero { background: linear-gradient(135deg, #1d7a44 0%, #155a32 100%); color: var(--white); padding: 90px 60px; }
+  body[data-theme="showroom"] .hero h1 { color: var(--white); font-size: 50px; font-weight: 800; letter-spacing: -0.03em; }
+  body[data-theme="showroom"] .hero p,
+  body[data-theme="showroom"] .hero .hero-lead { color: rgba(255,255,255,0.85); }
+  body[data-theme="showroom"] .hero-cta { background: var(--orange); }
+  body[data-theme="showroom"] .hero-cta:hover { background: var(--orange-deep); }
+  body[data-theme="showroom"] .hero-image { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18); }
+  body[data-theme="showroom"] .hi-item { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.25); color: rgba(255,255,255,0.85); }
+  body[data-theme="showroom"] .product-card,
+  body[data-theme="showroom"] .cat-card,
+  body[data-theme="showroom"] .sidebar-marketing,
+  body[data-theme="showroom"] .stat,
+  body[data-theme="showroom"] .orders-card,
+  body[data-theme="showroom"] .ap-card,
+  body[data-theme="showroom"] .cse-card,
+  body[data-theme="showroom"] .tier-cell,
+  body[data-theme="showroom"] .client-card,
+  body[data-theme="showroom"] .specs-box,
+  body[data-theme="showroom"] .cart-items,
+  body[data-theme="showroom"] .cart-summary,
+  body[data-theme="showroom"] .opt-pills button,
+  body[data-theme="showroom"] .hero-cta,
+  body[data-theme="showroom"] .add-to-cart,
+  body[data-theme="showroom"] .checkout-btn,
+  body[data-theme="showroom"] .cs-new-btn,
+  body[data-theme="showroom"] .ap-btn { border-radius: 0; }
+  body[data-theme="showroom"] .header-nav .nav-item.featured { background: var(--orange); }
+  body[data-theme="showroom"] .header-nav .nav-item.featured:hover { background: var(--orange-deep); }
+
+  /* ============================
+     CLIENT STORES — admin list + tier strip
+     ============================ */
+  .admin-head { align-items: flex-start; }
+  .cs-sub { font-size: 13px; color: var(--ink-soft); margin-top: 6px; max-width: 540px; line-height: 1.5; }
+  .cs-new-btn {
+    background: var(--green); color: var(--white);
+    padding: 11px 18px; border: none; cursor: pointer; border-radius: 3px;
+    font-family: 'Open Sans', sans-serif; font-size: 12px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.04em;
+    transition: background 0.15s ease;
+  }
+  .cs-new-btn:hover { background: var(--green-deep); }
+
+  .tier-strip {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+    margin-bottom: 24px;
+  }
+  .tier-cell {
+    background: var(--white); border: 1px solid var(--rule);
+    border-left: 3px solid var(--orange); padding: 14px 18px; border-radius: 4px;
+  }
+  .tier-cell .tc-tier {
+    font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+    font-weight: 800; color: var(--orange); margin-bottom: 4px;
+  }
+  .tier-cell .tc-price { font-size: 18px; font-weight: 800; color: var(--ink); margin-bottom: 6px; }
+  .tier-cell .tc-desc { font-size: 12px; color: var(--ink-soft); line-height: 1.5; }
+  .tier-cell:nth-child(2) { border-left-color: var(--green); }
+  .tier-cell:nth-child(2) .tc-tier { color: var(--green); }
+  .tier-cell:nth-child(3) { border-left-color: var(--ink); }
+  .tier-cell:nth-child(3) .tc-tier { color: var(--ink); }
+
+  .clients-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+  }
+  .client-card {
+    background: var(--white); border: 1px solid var(--rule); border-radius: 4px;
+    padding: 20px; cursor: pointer; transition: all 0.15s ease;
+  }
+  .client-card:hover { border-color: var(--green); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .cc-brand { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+  .cc-logo {
+    width: 48px; height: 48px; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 800; font-size: 16px; letter-spacing: -0.02em;
+    flex-shrink: 0;
+  }
+  .cc-brand h3 { font-size: 16px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+  .cc-tier {
+    display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 7px;
+    border-radius: 2px; letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .cc-tier.tier-1 { background: #fef3c7; color: #a16207; }
+  .cc-tier.tier-2 { background: #d1fae5; color: #065f46; }
+  .cc-tier.tier-3 { background: #e0e7ff; color: #3730a3; }
+  .cc-meta {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+    padding: 14px 0; border-top: 1px solid var(--rule-soft);
+    border-bottom: 1px solid var(--rule-soft); margin-bottom: 12px;
+  }
+  .cc-meta div { text-align: center; }
+  .cc-meta b { display: block; font-size: 18px; font-weight: 800; color: var(--ink); }
+  .cc-meta span { font-size: 10px; color: var(--ink-fade); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; margin-top: 2px; display: block; }
+  .cc-url {
+    font-size: 11px; color: var(--green); font-family: 'Courier New', monospace;
+    background: var(--bg); padding: 6px 10px; border-radius: 3px; word-break: break-all;
+  }
+
+  /* ============================
+     CLIENT STORE EDIT VIEW
+     ============================ */
+  .cse-layout { display: grid; grid-template-columns: 1fr 340px; gap: 20px; padding: 20px 32px; background: var(--bg); }
+  .cse-card { background: var(--white); border: 1px solid var(--rule); border-radius: 4px; padding: 20px 22px; margin-bottom: 16px; }
+  .cse-card h3 { font-size: 11px; font-weight: 800; color: var(--ink-fade); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--rule-soft); }
+  .cse-field { margin-bottom: 12px; }
+  .cse-field label { display: block; font-size: 12px; font-weight: 700; color: var(--ink); margin-bottom: 5px; }
+  .cse-field input, .cse-field select {
+    width: 100%; padding: 8px 11px; border: 1px solid var(--rule);
+    border-radius: 3px; font-family: inherit; font-size: 13px; color: var(--ink); background: var(--white);
+  }
+  .cse-field input:focus, .cse-field select:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px var(--green-light); }
+  .cse-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .cse-color-row { display: flex; gap: 10px; align-items: center; }
+  .cse-color-swatch { width: 44px; height: 36px; border-radius: 3px; border: 1px solid var(--rule); flex-shrink: 0; }
+  .cse-prod-list { display: flex; flex-direction: column; gap: 8px; }
+  .cse-prod {
+    display: grid; grid-template-columns: 24px 48px 1fr auto; gap: 12px;
+    align-items: center; padding: 10px 12px; border: 1px solid var(--rule-soft);
+    border-radius: 3px; background: var(--white);
+  }
+  .cse-prod.added { border-color: var(--green); background: var(--green-light); }
+  .cse-prod-thumb {
+    aspect-ratio: 1/1; background: #ededed;
+    background-image: repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(0,0,0,0.04) 4px, rgba(0,0,0,0.04) 8px);
+    border-radius: 2px;
+  }
+  .cse-prod-info b { display: block; font-size: 13px; font-weight: 700; color: var(--ink); }
+  .cse-prod-info span { font-size: 11px; color: var(--ink-fade); }
+  .cse-prod-toggle { font-size: 10px; padding: 6px 12px; border: 1px solid var(--rule); border-radius: 3px; background: white; cursor: pointer; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-soft); font-family: inherit; }
+  .cse-prod-toggle:hover { border-color: var(--green); color: var(--green); }
+  .cse-prod-toggle.added { background: var(--green); color: white; border-color: var(--green); }
+  .cse-prod-check { font-size: 18px; color: var(--green); text-align: center; }
+
+  .cse-mockup-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .cse-mockup-slot {
+    aspect-ratio: 1/1; border-radius: 4px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: var(--ink-fade); cursor: pointer;
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    position: relative;
+  }
+  .cse-mockup-slot.empty { border: 2px dashed var(--rule); background: var(--bg); }
+  .cse-mockup-slot.empty:hover { border-color: var(--green); background: var(--green-light); color: var(--green); }
+  .cse-mockup-slot.empty .pi { font-size: 22px; line-height: 1; margin-bottom: 4px; color: var(--green); }
+  .cse-mockup-slot.filled {
+    border: 1px solid var(--rule); background: #ededed;
+    background-image: repeating-linear-gradient(45deg, transparent, transparent 6px, rgba(0,0,0,0.04) 6px, rgba(0,0,0,0.04) 12px);
+  }
+  .cse-mockup-slot.filled::before { content: "📷"; font-size: 26px; opacity: 0.5; filter: grayscale(1); }
+
+  /* Sticky live preview panel */
+  .cse-preview {
+    background: var(--white); border: 1px solid var(--rule); border-radius: 4px;
+    position: sticky; top: 92px; overflow: hidden;
+  }
+  .cse-preview-head {
+    padding: 12px 16px; border-bottom: 1px solid var(--rule);
+    font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--ink-fade); display: flex; justify-content: space-between; align-items: center;
+  }
+  .cse-preview-head a { color: var(--green); font-weight: 700; font-size: 11px; letter-spacing: 0; text-transform: none; }
+  .cse-preview-frame { padding: 16px; background: #0c4a6e; }
+  .cse-pf-bar {
+    background: white; padding: 10px 14px; display: flex; gap: 12px; align-items: center;
+    border-radius: 3px 3px 0 0; border-bottom: 3px solid #fbbf24;
+  }
+  .cse-pf-logo { width: 30px; height: 30px; background: #fbbf24; border-radius: 3px; display: flex; align-items: center; justify-content: center; color: #0c4a6e; font-weight: 800; font-size: 11px; }
+  .cse-pf-name { font-size: 13px; font-weight: 800; color: #0c4a6e; line-height: 1.1; }
+  .cse-pf-name span { display: block; font-size: 8px; color: var(--ink-fade); font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 2px; }
+  .cse-pf-body { background: white; padding: 4px 14px; }
+  .cse-pf-prod {
+    display: grid; grid-template-columns: 36px 1fr auto; gap: 10px;
+    padding: 10px 0; border-bottom: 1px solid var(--rule-soft); align-items: center;
+  }
+  .cse-pf-prod:last-child { border-bottom: none; }
+  .cse-pf-prod .ti { aspect-ratio: 1/1; background: #ededed; background-image: repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(0,0,0,0.04) 4px, rgba(0,0,0,0.04) 8px); border-radius: 2px; }
+  .cse-pf-prod b { font-size: 12px; font-weight: 700; display: block; color: var(--ink); }
+  .cse-pf-prod span { color: var(--ink-fade); font-size: 10px; }
+  .cse-pf-prod em { font-weight: 700; color: #0c4a6e; font-style: normal; font-size: 11px; letter-spacing: 0.04em; }
+  .cse-pf-foot { padding: 9px 14px; background: var(--bg); font-size: 9px; color: var(--ink-fade); text-align: center; border-radius: 0 0 3px 3px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; }
+
+  /* ============================
+     CLIENT BRANDED STOREFRONT — Lakeshore Realty live preview
+     ============================ */
+  .client-brand-bar {
+    background: var(--white); padding: 10px 32px; font-size: 12px;
+    border-bottom: 1px solid var(--rule); color: var(--ink-soft);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .client-brand-bar b { color: var(--ink); font-weight: 700; }
+  .client-brand-bar .pill { background: var(--green-light); color: var(--green-deep); padding: 3px 9px; border-radius: 3px; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+
+  .lr-header {
+    background: #0c4a6e; color: white; padding: 18px 32px;
+    display: flex; align-items: center; gap: 20px;
+  }
+  .lr-logo {
+    width: 50px; height: 50px; background: #fbbf24; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    color: #0c4a6e; font-weight: 800; font-size: 20px; letter-spacing: -0.02em;
+  }
+  .lr-name { font-weight: 800; font-size: 22px; letter-spacing: -0.01em; line-height: 1.1; }
+  .lr-tag { font-size: 10px; color: rgba(255,255,255,0.7); letter-spacing: 0.12em; text-transform: uppercase; font-weight: 600; margin-top: 3px; }
+  .lr-nav { margin-left: auto; display: flex; gap: 22px; font-size: 13px; }
+  .lr-nav a { color: rgba(255,255,255,0.85); font-weight: 600; }
+  .lr-nav a:hover { color: #fbbf24; }
+  .lr-account { background: #fbbf24; color: #0c4a6e; padding: 8px 16px; border-radius: 3px; font-weight: 700; font-size: 12px; }
+  .lr-hero {
+    background: #0c4a6e; color: white; padding: 50px 32px 60px;
+    text-align: center; border-bottom: 4px solid #fbbf24;
+  }
+  .lr-hero h1 { font-size: 32px; margin-bottom: 12px; font-weight: 700; }
+  .lr-hero p { font-size: 14px; max-width: 540px; margin: 0 auto; color: rgba(255,255,255,0.88); line-height: 1.6; }
+  .lr-products-section { padding: 40px 32px; background: white; }
+  .lr-products-section h2 { font-size: 22px; font-weight: 700; color: #0c4a6e; margin-bottom: 4px; }
+  .lr-products-section .lr-sub { font-size: 13px; color: var(--ink-soft); margin-bottom: 24px; }
+  .lr-products { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .lr-product {
+    background: white; border: 1px solid var(--rule); border-radius: 4px; overflow: hidden;
+    transition: all 0.2s ease; cursor: pointer;
+  }
+  .lr-product:hover { border-color: #0c4a6e; box-shadow: 0 4px 12px rgba(12,74,110,0.12); }
+  .lr-prod-photo {
+    aspect-ratio: 4/3; background: #f3f4f6;
+    background-image: repeating-linear-gradient(45deg, transparent, transparent 6px, rgba(0,0,0,0.04) 6px, rgba(0,0,0,0.04) 12px);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink-fade); font-size: 28px; position: relative;
+  }
+  .lr-prod-photo::before { content: "📷"; opacity: 0.4; filter: grayscale(1); }
+  .lr-prod-badge { position: absolute; top: 8px; right: 8px; background: #fbbf24; color: #0c4a6e; font-size: 9px; font-weight: 800; padding: 4px 8px; border-radius: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .lr-prod-body { padding: 12px 14px; }
+  .lr-prod-body h4 { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 6px; line-height: 1.3; }
+  .lr-prod-body .lr-price { font-size: 15px; font-weight: 800; color: #0c4a6e; }
+  .lr-prod-body .lr-price-label { font-size: 11px; color: var(--ink-fade); margin-bottom: 4px; }
+  .lr-foot {
+    padding: 18px 32px; background: var(--bg); border-top: 1px solid var(--rule);
+    text-align: center; font-size: 12px; color: var(--ink-soft); line-height: 1.6;
+  }
+  .lr-foot b { color: var(--green); font-weight: 700; }
+
   @media (max-width: 1100px) {
     .header-nav .nav-item .ni-sub { display: none; }
     .header-nav .nav-item { padding: 10px 12px; }
+    .lr-products { grid-template-columns: repeat(2, 1fr); }
+    .cse-layout { grid-template-columns: 1fr; }
+    .cse-preview { position: static; }
   }
   @media (max-width: 900px) {
     .top-bar { flex-wrap: wrap; gap: 8px; padding: 10px 16px; font-size: 11px; }
@@ -474,17 +862,20 @@
   }
 </style>
 </head>
-<body>
+<body data-theme="classic">
 
 <div class="demo-bar">
-  <span class="label">► Demo</span>
+  <span class="label">► View</span>
   <button onclick="show('home')" class="active" id="btn-home">Storefront</button>
   <button onclick="show('product')" id="btn-product">Product</button>
   <button onclick="show('cart')" id="btn-cart">Cart</button>
   <button onclick="show('admin')" id="btn-admin">Admin</button>
   <button onclick="show('products')" id="btn-products">Add Product</button>
+  <button onclick="show('clients')" id="btn-clients">Client Stores</button>
+  <button onclick="show('client-edit')" id="btn-client-edit">Edit Store</button>
+  <button onclick="show('client-view')" id="btn-client-view">Branded View</button>
   <span class="spacer"></span>
-  <span class="built-by">Built by CARES Consulting · Scaffold + Supabase + Admin</span>
+  <span class="built-by">Built by CARES Consulting</span>
 </div>
 
 <!-- VIEW 1: HOMEPAGE -->
@@ -508,15 +899,15 @@
     </div>
     <div class="header-spacer"></div>
     <div class="header-nav">
-      <a href="#" class="nav-item"><div class="ni-icon">⌂</div><span class="ni-label">HOME</span><span class="ni-sub">Start Here</span></a>
-      <a href="#" class="nav-item"><div class="ni-icon">📋</div><span class="ni-label">GET A QUOTE</span><span class="ni-sub">Free And Easy</span></a>
-      <a href="#" class="nav-item"><div class="ni-icon">📤</div><span class="ni-label">SEND FILES</span><span class="ni-sub">Fast And Secure</span></a>
-      <a href="#" class="nav-item"><div class="ni-icon">⚙</div><span class="ni-label">PRODUCTS</span><span class="ni-sub">What We Do</span></a>
+      <a href="#" class="nav-item" onclick="show('home');return false;"><div class="ni-icon">⌂</div><span class="ni-label">HOME</span><span class="ni-sub">Start Here</span></a>
+      <a href="#" class="nav-item" onclick="show('product');return false;"><div class="ni-icon">📋</div><span class="ni-label">GET A QUOTE</span><span class="ni-sub">Free And Easy</span></a>
+      <a href="#" class="nav-item" onclick="show('product');return false;"><div class="ni-icon">📤</div><span class="ni-label">SEND FILES</span><span class="ni-sub">Fast And Secure</span></a>
+      <a href="#" class="nav-item" onclick="show('home');return false;"><div class="ni-icon">⚙</div><span class="ni-label">PRODUCTS</span><span class="ni-sub">What We Do</span></a>
       <a href="#" class="nav-item featured" onclick="show('product');return false;"><div class="ni-icon">✏️</div><span class="ni-label">ORDER ONLINE</span><span class="ni-sub">No Minimums</span></a>
     </div>
     <div class="header-actions">
-      <a href="#" class="ha-item"><div class="ha-icon">🔍</div><div class="ha-label">Search</div></a>
-      <a href="#" class="ha-item"><div class="ha-icon">👤</div><div class="ha-label">My Account</div></a>
+      <a href="#" class="ha-item" onclick="show('home');return false;"><div class="ha-icon">🔍</div><div class="ha-label">Search</div></a>
+      <a href="#" class="ha-item" onclick="show('admin');return false;"><div class="ha-icon">👤</div><div class="ha-label">My Account</div></a>
     </div>
   </header>
 
@@ -650,14 +1041,14 @@
     <div class="header-spacer"></div>
     <div class="header-nav">
       <a href="#" class="nav-item" onclick="show('home');return false;"><div class="ni-icon">⌂</div><span class="ni-label">HOME</span><span class="ni-sub">Start Here</span></a>
-      <a href="#" class="nav-item"><div class="ni-icon">📋</div><span class="ni-label">GET A QUOTE</span><span class="ni-sub">Free And Easy</span></a>
-      <a href="#" class="nav-item"><div class="ni-icon">📤</div><span class="ni-label">SEND FILES</span><span class="ni-sub">Fast And Secure</span></a>
-      <a href="#" class="nav-item"><div class="ni-icon">⚙</div><span class="ni-label">PRODUCTS</span><span class="ni-sub">What We Do</span></a>
-      <a href="#" class="nav-item featured"><div class="ni-icon">✏️</div><span class="ni-label">ORDER ONLINE</span><span class="ni-sub">No Minimums</span></a>
+      <a href="#" class="nav-item" onclick="show('product');return false;"><div class="ni-icon">📋</div><span class="ni-label">GET A QUOTE</span><span class="ni-sub">Free And Easy</span></a>
+      <a href="#" class="nav-item" onclick="show('product');return false;"><div class="ni-icon">📤</div><span class="ni-label">SEND FILES</span><span class="ni-sub">Fast And Secure</span></a>
+      <a href="#" class="nav-item" onclick="show('home');return false;"><div class="ni-icon">⚙</div><span class="ni-label">PRODUCTS</span><span class="ni-sub">What We Do</span></a>
+      <a href="#" class="nav-item featured" onclick="show('product');return false;"><div class="ni-icon">✏️</div><span class="ni-label">ORDER ONLINE</span><span class="ni-sub">No Minimums</span></a>
     </div>
     <div class="header-actions">
-      <a href="#" class="ha-item"><div class="ha-icon">🔍</div><div class="ha-label">Search</div></a>
-      <a href="#" class="ha-item"><div class="ha-icon">👤</div><div class="ha-label">My Account</div></a>
+      <a href="#" class="ha-item" onclick="show('home');return false;"><div class="ha-icon">🔍</div><div class="ha-label">Search</div></a>
+      <a href="#" class="ha-item" onclick="show('admin');return false;"><div class="ha-icon">👤</div><div class="ha-label">My Account</div></a>
     </div>
   </header>
 
@@ -774,14 +1165,14 @@
     <div class="header-spacer"></div>
     <div class="header-nav">
       <a href="#" class="nav-item" onclick="show('home');return false;"><div class="ni-icon">⌂</div><span class="ni-label">HOME</span><span class="ni-sub">Start Here</span></a>
-      <a href="#" class="nav-item"><div class="ni-icon">📋</div><span class="ni-label">GET A QUOTE</span><span class="ni-sub">Free And Easy</span></a>
-      <a href="#" class="nav-item"><div class="ni-icon">📤</div><span class="ni-label">SEND FILES</span><span class="ni-sub">Fast And Secure</span></a>
-      <a href="#" class="nav-item"><div class="ni-icon">⚙</div><span class="ni-label">PRODUCTS</span><span class="ni-sub">What We Do</span></a>
-      <a href="#" class="nav-item featured"><div class="ni-icon">✏️</div><span class="ni-label">ORDER ONLINE</span><span class="ni-sub">No Minimums</span></a>
+      <a href="#" class="nav-item" onclick="show('product');return false;"><div class="ni-icon">📋</div><span class="ni-label">GET A QUOTE</span><span class="ni-sub">Free And Easy</span></a>
+      <a href="#" class="nav-item" onclick="show('product');return false;"><div class="ni-icon">📤</div><span class="ni-label">SEND FILES</span><span class="ni-sub">Fast And Secure</span></a>
+      <a href="#" class="nav-item" onclick="show('home');return false;"><div class="ni-icon">⚙</div><span class="ni-label">PRODUCTS</span><span class="ni-sub">What We Do</span></a>
+      <a href="#" class="nav-item featured" onclick="show('product');return false;"><div class="ni-icon">✏️</div><span class="ni-label">ORDER ONLINE</span><span class="ni-sub">No Minimums</span></a>
     </div>
     <div class="header-actions">
-      <a href="#" class="ha-item"><div class="ha-icon">🔍</div><div class="ha-label">Search</div></a>
-      <a href="#" class="ha-item"><div class="ha-icon">👤</div><div class="ha-label">My Account</div></a>
+      <a href="#" class="ha-item" onclick="show('home');return false;"><div class="ha-icon">🔍</div><div class="ha-label">Search</div></a>
+      <a href="#" class="ha-item" onclick="show('admin');return false;"><div class="ha-icon">👤</div><div class="ha-label">My Account</div></a>
     </div>
   </header>
 
@@ -1281,14 +1672,608 @@
   </div>
 </div>
 
+<!-- VIEW 6: CLIENT STORES LIST -->
+<div class="view" id="view-clients">
+  <div class="admin-shell">
+    <aside class="admin-side">
+      <div class="admin-brand">
+        <div class="ab-mark">MMP <span>Admin</span></div>
+        <div class="ab-sub">Order Management Console</div>
+      </div>
+      <nav class="admin-nav">
+        <a href="#" onclick="show('admin');return false;">📦 Orders <span class="num">7</span></a>
+        <a href="#">📤 Pending Files <span class="num">3</span></a>
+        <a href="#" onclick="show('products');return false;">🛒 Products</a>
+        <a href="#" class="active">🏢 Client Stores <span class="num">5</span></a>
+        <a href="#">👥 Customers</a>
+        <a href="#">💰 Pricing</a>
+        <a href="#">📊 Reports</a>
+        <a href="#">⚙️ Settings</a>
+      </nav>
+    </aside>
+    <main class="admin-main">
+      <div class="admin-head">
+        <div>
+          <h1>Branded Client Stores</h1>
+          <p class="cs-sub">Storefronts you've built for commercial accounts. Same engine, branded for the client. Each one pulls from your master catalog — they just see their version, in their colors, at their URL.</p>
+        </div>
+        <button class="cs-new-btn">+ NEW CLIENT STORE</button>
+      </div>
+
+      <div class="tier-strip">
+        <div class="tier-cell">
+          <div class="tc-tier">TIER 1 · Starter</div>
+          <div class="tc-price">$300/mo</div>
+          <div class="tc-desc">Up to 6 products · subdomain URL · Powered-by-MMP footer credit</div>
+        </div>
+        <div class="tier-cell">
+          <div class="tc-tier">TIER 2 · Branded</div>
+          <div class="tc-price">$500/mo</div>
+          <div class="tc-desc">Up to 15 products · custom subdomain · full brand control · no MMP footer</div>
+        </div>
+        <div class="tier-cell">
+          <div class="tc-tier">TIER 3 · Enterprise</div>
+          <div class="tc-price">$850/mo</div>
+          <div class="tc-desc">Unlimited products · own domain · approval workflows · employee SSO accounts</div>
+        </div>
+      </div>
+
+      <div class="clients-grid">
+        <div class="client-card" onclick="goClient('lakeshore', 'view')">
+          <div class="cc-brand">
+            <div class="cc-logo" style="background:#0c4a6e;color:#fbbf24;">LR</div>
+            <div>
+              <h3>Lakeshore Realty</h3>
+              <span class="cc-tier tier-2">Tier 2 · $500/mo</span>
+            </div>
+          </div>
+          <div class="cc-meta">
+            <div><b>8</b><span>products</span></div>
+            <div><b>47</b><span>orders MTD</span></div>
+            <div><b>$3,240</b><span>revenue MTD</span></div>
+          </div>
+          <div class="cc-url">store.mmpuptown.com/lakeshore</div>
+        </div>
+
+        <div class="client-card" onclick="goClient('heritage', 'view')">
+          <div class="cc-brand">
+            <div class="cc-logo" style="background:#7c2d12;">HI</div>
+            <div>
+              <h3>Heritage Insurance</h3>
+              <span class="cc-tier tier-3">Tier 3 · $850/mo</span>
+            </div>
+          </div>
+          <div class="cc-meta">
+            <div><b>14</b><span>products</span></div>
+            <div><b>23</b><span>orders MTD</span></div>
+            <div><b>$2,850</b><span>revenue MTD</span></div>
+          </div>
+          <div class="cc-url">orders.heritageins.com</div>
+        </div>
+
+        <div class="client-card" onclick="goClient('hagen', 'view')">
+          <div class="cc-brand">
+            <div class="cc-logo" style="background:#1e3a8a;">MH</div>
+            <div>
+              <h3>Mike Hagen CPA</h3>
+              <span class="cc-tier tier-1">Tier 1 · $300/mo</span>
+            </div>
+          </div>
+          <div class="cc-meta">
+            <div><b>4</b><span>products</span></div>
+            <div><b>9</b><span>orders MTD</span></div>
+            <div><b>$840</b><span>revenue MTD</span></div>
+          </div>
+          <div class="cc-url">store.mmpuptown.com/hagen-cpa</div>
+        </div>
+
+        <div class="client-card" onclick="goClient('yoga', 'view')">
+          <div class="cc-brand">
+            <div class="cc-logo" style="background:#5b4636;">UY</div>
+            <div>
+              <h3>Uptown Yoga Studio</h3>
+              <span class="cc-tier tier-1">Tier 1 · $300/mo</span>
+            </div>
+          </div>
+          <div class="cc-meta">
+            <div><b>6</b><span>products</span></div>
+            <div><b>12</b><span>orders MTD</span></div>
+            <div><b>$680</b><span>revenue MTD</span></div>
+          </div>
+          <div class="cc-url">store.mmpuptown.com/uptown-yoga</div>
+        </div>
+
+        <div class="client-card" onclick="goClient('grace', 'view')">
+          <div class="cc-brand">
+            <div class="cc-logo" style="background:#4c1d95;">GC</div>
+            <div>
+              <h3>Grace Church</h3>
+              <span class="cc-tier tier-2">Tier 2 · $500/mo</span>
+            </div>
+          </div>
+          <div class="cc-meta">
+            <div><b>11</b><span>products</span></div>
+            <div><b>18</b><span>orders MTD</span></div>
+            <div><b>$1,420</b><span>revenue MTD</span></div>
+          </div>
+          <div class="cc-url">orders.gracechurch.org</div>
+        </div>
+
+        <div class="client-card" style="border-style:dashed;background:var(--bg);display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;">
+          <div style="font-size:36px;line-height:1;color:var(--green);margin-bottom:6px;">+</div>
+          <div style="font-size:14px;font-weight:700;color:var(--ink);">Add Client Store</div>
+          <div style="font-size:11px;margin-top:4px;color:var(--ink-fade);">Onboard a new commercial account</div>
+        </div>
+      </div>
+
+      <p style="margin-top:24px;font-size:11px;color:var(--ink-fade);">
+        📡 Live data from Supabase · Storefronts auto-deploy on save · Each store gets its own analytics, employee accounts (Tier 3), and approval workflow · Built by CARES Consulting
+      </p>
+    </main>
+  </div>
+</div>
+
+<!-- VIEW 7: EDIT CLIENT STORE (Lakeshore Realty) -->
+<div class="view" id="view-client-edit">
+  <div class="admin-shell">
+    <aside class="admin-side">
+      <div class="admin-brand">
+        <div class="ab-mark">MMP <span>Admin</span></div>
+        <div class="ab-sub">Order Management Console</div>
+      </div>
+      <nav class="admin-nav">
+        <a href="#" onclick="show('admin');return false;">📦 Orders <span class="num">7</span></a>
+        <a href="#">📤 Pending Files <span class="num">3</span></a>
+        <a href="#" onclick="show('products');return false;">🛒 Products</a>
+        <a href="#" class="active" onclick="show('clients');return false;">🏢 Client Stores <span class="num">5</span></a>
+        <a href="#">👥 Customers</a>
+        <a href="#">💰 Pricing</a>
+        <a href="#">📊 Reports</a>
+        <a href="#">⚙️ Settings</a>
+      </nav>
+    </aside>
+    <main class="admin-main" style="padding:0;">
+      <div class="ap-action-bar">
+        <div class="ap-breadcrumb">
+          <a href="#" onclick="show('clients');return false;">Client Stores</a> · <b>Lakeshore Realty</b>
+        </div>
+        <div class="ap-actions">
+          <button class="ap-btn ap-btn-secondary" onclick="show('client-view')">PREVIEW LIVE STORE →</button>
+          <button class="ap-btn ap-btn-primary">SAVE &amp; PUBLISH</button>
+        </div>
+      </div>
+
+      <div class="cse-layout">
+        <div>
+          <div class="cse-card">
+            <h3>Client Information</h3>
+            <div class="cse-field">
+              <label>Business Name</label>
+              <input type="text" value="Lakeshore Realty">
+            </div>
+            <div class="cse-row-2">
+              <div class="cse-field">
+                <label>Primary Contact</label>
+                <input type="text" value="Sarah Pelletier — sarah@lakeshorere.com">
+              </div>
+              <div class="cse-field">
+                <label>Service Tier</label>
+                <select>
+                  <option>Tier 1 — $300/mo (6 products max)</option>
+                  <option selected>Tier 2 — $500/mo (15 products max)</option>
+                  <option>Tier 3 — $850/mo (unlimited)</option>
+                </select>
+              </div>
+            </div>
+            <div class="cse-field">
+              <label>Custom Store URL</label>
+              <input type="text" value="store.mmpuptown.com/lakeshore">
+            </div>
+          </div>
+
+          <div class="cse-card">
+            <h3>Brand Settings</h3>
+            <div class="cse-row-2">
+              <div class="cse-field">
+                <label>Primary Color (header / accents)</label>
+                <div class="cse-color-row">
+                  <div class="cse-color-swatch" style="background:#0c4a6e;"></div>
+                  <input type="text" value="#0c4a6e">
+                </div>
+              </div>
+              <div class="cse-field">
+                <label>Accent Color (buttons / badges)</label>
+                <div class="cse-color-row">
+                  <div class="cse-color-swatch" style="background:#fbbf24;"></div>
+                  <input type="text" value="#fbbf24">
+                </div>
+              </div>
+            </div>
+            <div class="cse-field">
+              <label>Client Logo</label>
+              <div class="file-drop" style="margin-bottom:0;">
+                <div class="fd-icon">✓</div>
+                <div class="fd-main">Logo uploaded: lakeshore-mark-2024.png</div>
+                <div class="fd-sub">PNG with transparent background · 600×600 minimum · Replace anytime</div>
+              </div>
+            </div>
+            <div class="cse-field" style="margin-top:12px;">
+              <label>Welcome Banner Copy</label>
+              <input type="text" value="Welcome, Lakeshore team. Here's everything we keep ready for you.">
+            </div>
+          </div>
+
+          <div class="cse-card">
+            <h3>Products in this Store <span style="font-weight:600;color:var(--ink-fade);float:right;text-transform:none;letter-spacing:0;">4 of 15 used · Tier 2</span></h3>
+            <p style="font-size:12px;color:var(--ink-soft);margin-bottom:14px;line-height:1.5;">Toggle any item to add or remove from Lakeshore's storefront. Items come from your master catalog. Custom Lakeshore-only templates appear here too.</p>
+            <div class="cse-prod-list">
+              <div class="cse-prod added">
+                <div class="cse-prod-check">✓</div>
+                <div class="cse-prod-thumb"></div>
+                <div class="cse-prod-info"><b>Agent Business Cards | 14pt Gloss</b><span>BC-14PT-LR · Lakeshore template locked in</span></div>
+                <button class="cse-prod-toggle added">ADDED</button>
+              </div>
+              <div class="cse-prod added">
+                <div class="cse-prod-check">✓</div>
+                <div class="cse-prod-thumb"></div>
+                <div class="cse-prod-info"><b>Open House Yard Signs 18×24</b><span>YS-CORO-LR · with H-stake · LR colors</span></div>
+                <button class="cse-prod-toggle added">ADDED</button>
+              </div>
+              <div class="cse-prod added">
+                <div class="cse-prod-check">✓</div>
+                <div class="cse-prod-thumb"></div>
+                <div class="cse-prod-info"><b>Listing Postcards 4×6</b><span>PC-LIST-LR · Custom Lakeshore template</span></div>
+                <button class="cse-prod-toggle added">ADDED</button>
+              </div>
+              <div class="cse-prod added">
+                <div class="cse-prod-check">✓</div>
+                <div class="cse-prod-thumb"></div>
+                <div class="cse-prod-info"><b>Tri-Fold Listing Brochures</b><span>BR-TRI-LR · Lakeshore template</span></div>
+                <button class="cse-prod-toggle added">ADDED</button>
+              </div>
+              <div class="cse-prod">
+                <div></div>
+                <div class="cse-prod-thumb"></div>
+                <div class="cse-prod-info"><b>Vinyl Banner 3'×6'</b><span>BN-VYL-36 · From master catalog</span></div>
+                <button class="cse-prod-toggle">+ ADD</button>
+              </div>
+              <div class="cse-prod">
+                <div></div>
+                <div class="cse-prod-thumb"></div>
+                <div class="cse-prod-info"><b>Letterhead | 70lb Premium</b><span>LH-70-PREM · From master catalog</span></div>
+                <button class="cse-prod-toggle">+ ADD</button>
+              </div>
+              <div class="cse-prod">
+                <div></div>
+                <div class="cse-prod-thumb"></div>
+                <div class="cse-prod-info"><b>Envelopes | #10 Window</b><span>EN-10-WIN · From master catalog</span></div>
+                <button class="cse-prod-toggle">+ ADD</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="cse-card">
+            <h3>Custom Mockups for Lakeshore</h3>
+            <p style="font-size:12px;color:var(--ink-soft);margin-bottom:14px;line-height:1.5;">Upload Lakeshore-specific design mockups or finished art. These show up in product previews when Lakeshore agents shop their store.</p>
+            <div class="cse-mockup-grid">
+              <div class="cse-mockup-slot filled"></div>
+              <div class="cse-mockup-slot filled"></div>
+              <div class="cse-mockup-slot filled"></div>
+              <div class="cse-mockup-slot filled"></div>
+              <div class="cse-mockup-slot filled"></div>
+              <div class="cse-mockup-slot empty">
+                <div class="pi">+</div>
+                <div>Upload</div>
+              </div>
+            </div>
+            <div style="margin-top:12px;font-size:11px;color:var(--ink-fade);">JPG, PNG, PDF · Up to 50MB each · Used for product previews and Tier 3 approval workflow</div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Sticky live store preview -->
+        <div>
+          <div class="cse-preview">
+            <div class="cse-preview-head">
+              <span>Live Store Preview</span>
+              <a href="#" onclick="show('client-view');return false;">Open full →</a>
+            </div>
+            <div class="cse-preview-frame">
+              <div class="cse-pf-bar">
+                <div class="cse-pf-logo">LR</div>
+                <div class="cse-pf-name">Lakeshore Realty<span>Print Portal</span></div>
+              </div>
+              <div class="cse-pf-body">
+                <div class="cse-pf-prod"><div class="ti"></div><div><b>Agent Business Cards</b><span>250 pieces · $39</span></div><em>ORDER</em></div>
+                <div class="cse-pf-prod"><div class="ti"></div><div><b>Open House Yard Signs</b><span>each · $24</span></div><em>ORDER</em></div>
+                <div class="cse-pf-prod"><div class="ti"></div><div><b>Listing Postcards</b><span>100 pieces · $59</span></div><em>ORDER</em></div>
+                <div class="cse-pf-prod"><div class="ti"></div><div><b>Listing Brochures</b><span>100 pieces · $129</span></div><em>ORDER</em></div>
+              </div>
+              <div class="cse-pf-foot">Powered by Minuteman Press · Tier 2</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- VIEW 8: BRANDED CLIENT STOREFRONT (what Lakeshore agents see) -->
+<div class="view" id="view-client-view">
+  <div class="client-brand-bar">
+    <span>🔵 <b>Demo:</b> this is what a Lakeshore Realty agent sees when they log into <b>store.mmpuptown.com/lakeshore</b>. Their branding, their products only.</span>
+    <span class="pill">Tier 2 · Branded</span>
+    <span style="margin-left:auto;font-size:11px;"><a href="#" onclick="show('client-edit');return false;">← Back to edit</a></span>
+  </div>
+
+  <div class="lr-header">
+    <div class="lr-logo">LR</div>
+    <div>
+      <div class="lr-name">Lakeshore Realty</div>
+      <div class="lr-tag">Marketing Materials Portal</div>
+    </div>
+    <nav class="lr-nav">
+      <a href="#">Order</a>
+      <a href="#">My History</a>
+      <a href="#">Approvals</a>
+      <a href="#">Team</a>
+    </nav>
+    <a href="#" class="lr-account">Sarah Pelletier ▾</a>
+  </div>
+
+  <section class="lr-hero">
+    <h1>Welcome, Lakeshore team.</h1>
+    <p>Here's everything we keep ready for you. Pre-approved designs, custom templates, your colors locked in. Order direct — we'll print, deliver, and bill to your Lakeshore account.</p>
+  </section>
+
+  <section class="lr-products-section">
+    <h2>Your Print Catalog</h2>
+    <div class="lr-sub">8 ready-to-order items · Custom designs available on request</div>
+    <div class="lr-products">
+      <div class="lr-product">
+        <div class="lr-prod-photo"><span class="lr-prod-badge">LR Template</span></div>
+        <div class="lr-prod-body">
+          <h4>Agent Business Cards</h4>
+          <div class="lr-price-label">250 cards · Lakeshore template</div>
+          <div class="lr-price">$39.00</div>
+        </div>
+      </div>
+      <div class="lr-product">
+        <div class="lr-prod-photo"><span class="lr-prod-badge">LR Template</span></div>
+        <div class="lr-prod-body">
+          <h4>Open House Yard Sign 18×24</h4>
+          <div class="lr-price-label">Single sign + H-stake</div>
+          <div class="lr-price">$24.00</div>
+        </div>
+      </div>
+      <div class="lr-product">
+        <div class="lr-prod-photo"><span class="lr-prod-badge">LR Template</span></div>
+        <div class="lr-prod-body">
+          <h4>Listing Postcards 4×6</h4>
+          <div class="lr-price-label">100 cards · custom address</div>
+          <div class="lr-price">$59.00</div>
+        </div>
+      </div>
+      <div class="lr-product">
+        <div class="lr-prod-photo"><span class="lr-prod-badge">LR Template</span></div>
+        <div class="lr-prod-body">
+          <h4>Tri-Fold Listing Brochures</h4>
+          <div class="lr-price-label">100 brochures · full color</div>
+          <div class="lr-price">$129.00</div>
+        </div>
+      </div>
+      <div class="lr-product">
+        <div class="lr-prod-photo"><span class="lr-prod-badge">LR Template</span></div>
+        <div class="lr-prod-body">
+          <h4>Just-Listed Door Hangers</h4>
+          <div class="lr-price-label">250 hangers · double-sided</div>
+          <div class="lr-price">$98.00</div>
+        </div>
+      </div>
+      <div class="lr-product">
+        <div class="lr-prod-photo"><span class="lr-prod-badge">LR Template</span></div>
+        <div class="lr-prod-body">
+          <h4>A-Frame Open House Sign</h4>
+          <div class="lr-price-label">24×36 corrugated insert</div>
+          <div class="lr-price">$56.00</div>
+        </div>
+      </div>
+      <div class="lr-product">
+        <div class="lr-prod-photo"><span class="lr-prod-badge">Custom</span></div>
+        <div class="lr-prod-body">
+          <h4>Listing Presentation Folders</h4>
+          <div class="lr-price-label">100 folders · foil stamped</div>
+          <div class="lr-price">$385.00</div>
+        </div>
+      </div>
+      <div class="lr-product">
+        <div class="lr-prod-photo"><span class="lr-prod-badge">Custom</span></div>
+        <div class="lr-prod-body">
+          <h4>Closing Gift Notecards</h4>
+          <div class="lr-price-label">50 cards · matching envelopes</div>
+          <div class="lr-price">$72.00</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="lr-foot">
+    Print fulfilled by <b>Minuteman Press Uptown</b> · Same-day proof review · 3–4 day standard turnaround · Questions? 612-870-9008
+  </div>
+</div>
+
+<div class="style-picker">
+  <span class="sp-label">Style</span>
+  <button onclick="setTheme('classic')" class="active" id="theme-classic">Classic</button>
+  <button onclick="setTheme('pressroom')" id="theme-pressroom">Pressroom</button>
+  <button onclick="setTheme('editorial')" id="theme-editorial">Editorial</button>
+  <button onclick="setTheme('showroom')" id="theme-showroom">Showroom</button>
+</div>
+
 <script>
+  var CLIENTS = {
+    lakeshore: {
+      name: 'Lakeshore Realty', initials: 'LR',
+      primary: '#0c4a6e', accent: '#fbbf24', accentText: '#0c4a6e',
+      tagline: 'Marketing Materials Portal',
+      url: 'store.mmpuptown.com/lakeshore',
+      welcome: 'Welcome, Lakeshore team.',
+      welcomeBody: "Here's everything we keep ready for you. Pre-approved designs, custom templates, your colors locked in. Order direct — we'll print, deliver, and bill to your Lakeshore account.",
+      contact: 'Sarah Pelletier',
+      products: [
+        { n: 'Agent Business Cards', d: '250 cards · Lakeshore template', p: '$39.00', b: 'LR Template' },
+        { n: 'Open House Yard Sign 18×24', d: 'Single sign + H-stake', p: '$24.00', b: 'LR Template' },
+        { n: 'Listing Postcards 4×6', d: '100 cards · custom address', p: '$59.00', b: 'LR Template' },
+        { n: 'Tri-Fold Listing Brochures', d: '100 brochures · full color', p: '$129.00', b: 'LR Template' },
+        { n: 'Just-Listed Door Hangers', d: '250 hangers · double-sided', p: '$98.00', b: 'LR Template' },
+        { n: 'A-Frame Open House Sign', d: '24×36 corrugated insert', p: '$56.00', b: 'LR Template' },
+        { n: 'Listing Presentation Folders', d: '100 folders · foil stamped', p: '$385.00', b: 'Custom' },
+        { n: 'Closing Gift Notecards', d: '50 cards · matching envelopes', p: '$72.00', b: 'Custom' }
+      ]
+    },
+    heritage: {
+      name: 'Heritage Insurance', initials: 'HI',
+      primary: '#7c2d12', accent: '#fbbf24', accentText: '#7c2d12',
+      tagline: 'Agent Print Hub',
+      url: 'orders.heritageins.com',
+      welcome: 'Welcome, Heritage team.',
+      welcomeBody: 'Pre-approved policy materials, agent collateral, and client deliverables — all printed locally with your brand standards locked in.',
+      contact: 'Diane Wright',
+      products: [
+        { n: 'Agent Business Cards', d: '500 cards · Heritage template', p: '$59.00', b: 'HI Template' },
+        { n: 'Policy Folders | Foil Stamp', d: '100 folders · navy + gold', p: '$420.00', b: 'HI Template' },
+        { n: 'Welcome Packets', d: '100 packets · 8 inserts each', p: '$310.00', b: 'HI Template' },
+        { n: 'Refrigerator Magnet Calendars', d: '500 magnets · 2026 design', p: '$285.00', b: 'HI Template' },
+        { n: 'Letterhead | 70lb Premium', d: '500 sheets · agent branded', p: '$145.00', b: 'HI Template' },
+        { n: '#10 Window Envelopes', d: '500 envelopes · 2-color logo', p: '$98.00', b: 'HI Template' },
+        { n: 'Auto ID Card Holders', d: '250 wallet sleeves', p: '$74.00', b: 'Custom' },
+        { n: 'Home Service Brochures', d: '250 brochures · tri-fold', p: '$189.00', b: 'Custom' }
+      ]
+    },
+    hagen: {
+      name: 'Mike Hagen CPA', initials: 'MH',
+      primary: '#1e3a8a', accent: '#fbbf24', accentText: '#1e3a8a',
+      tagline: 'Firm Print Portal',
+      url: 'store.mmpuptown.com/hagen-cpa',
+      welcome: "Welcome to Mike's print catalog.",
+      welcomeBody: 'Tax season materials, letterhead, and client deliverables. Approved templates, firm branding, ready to go.',
+      contact: 'Mike Hagen',
+      products: [
+        { n: 'Tax Organizer Folders', d: '200 folders · 8.5×11 pocket', p: '$185.00', b: 'MH Template' },
+        { n: 'Firm Letterhead', d: '500 sheets · navy 2-color', p: '$94.00', b: 'MH Template' },
+        { n: 'CPA Business Cards', d: '500 cards · matte 14pt', p: '$59.00', b: 'MH Template' },
+        { n: '1040 Filing Folders', d: '100 folders · with client labels', p: '$78.00', b: 'MH Template' }
+      ]
+    },
+    yoga: {
+      name: 'Uptown Yoga Studio', initials: 'UY',
+      primary: '#5b4636', accent: '#d9b88a', accentText: '#5b4636',
+      tagline: 'Studio Print Portal',
+      url: 'store.mmpuptown.com/uptown-yoga',
+      welcome: 'Welcome, yoga family.',
+      welcomeBody: 'Class schedules, mat tags, gift cards, and studio collateral — all in your earthy brand palette, ready when you are.',
+      contact: 'Maya Thornton',
+      products: [
+        { n: 'Class Schedule Postcards', d: '250 cards · monthly drop', p: '$48.00', b: 'UY Template' },
+        { n: 'Gift Cards | Plastic', d: '100 cards · activated', p: '$95.00', b: 'UY Template' },
+        { n: 'Studio Business Cards', d: '500 cards · matte', p: '$48.00', b: 'UY Template' },
+        { n: 'Mat Numbers / Hooks', d: '50 tags · waterproof', p: '$32.00', b: 'UY Template' },
+        { n: 'Workshop Posters 11×17', d: '50 posters · full color', p: '$64.00', b: 'UY Template' },
+        { n: 'New Student Welcome Cards', d: '100 cards · letterpress feel', p: '$72.00', b: 'Custom' }
+      ]
+    },
+    grace: {
+      name: 'Grace Church', initials: 'GC',
+      primary: '#4c1d95', accent: '#fbbf24', accentText: '#4c1d95',
+      tagline: 'Ministry Print Hub',
+      url: 'orders.gracechurch.org',
+      welcome: 'Welcome, Grace Church team.',
+      welcomeBody: 'Sunday bulletins, sermon series art, event flyers, and ministry materials. Order in advance, delivered to the church office.',
+      contact: 'James Whitman',
+      products: [
+        { n: 'Sunday Bulletins | 4-page', d: '500 bulletins · weekly drop', p: '$129.00', b: 'GC Template' },
+        { n: 'Sermon Series Postcards', d: '500 cards · 6-week series', p: '$185.00', b: 'GC Template' },
+        { n: 'Connection Cards', d: '1,000 cards · pew tear-off', p: '$98.00', b: 'GC Template' },
+        { n: 'Event Flyers 8.5×11', d: '250 flyers · full color', p: '$78.00', b: 'GC Template' },
+        { n: 'Welcome Brochures', d: '500 brochures · tri-fold', p: '$165.00', b: 'GC Template' },
+        { n: 'Volunteer T-shirt Printing', d: '50 shirts · per order', p: '$425.00', b: 'Custom' }
+      ]
+    }
+  };
+
   function show(view) {
-    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    document.getElementById('view-' + view).classList.add('active');
-    document.querySelectorAll('.demo-bar button').forEach(b => b.classList.remove('active'));
-    document.getElementById('btn-' + view).classList.add('active');
+    document.querySelectorAll('.view').forEach(function(v) { v.classList.remove('active'); });
+    var target = document.getElementById('view-' + view);
+    if (target) target.classList.add('active');
+    document.querySelectorAll('.demo-bar button').forEach(function(b) { b.classList.remove('active'); });
+    var btn = document.getElementById('btn-' + view);
+    if (btn) btn.classList.add('active');
     window.scrollTo(0, 0);
   }
+
+  function setTheme(theme) {
+    document.body.setAttribute('data-theme', theme);
+    document.querySelectorAll('.style-picker button').forEach(function(b) { b.classList.remove('active'); });
+    var btn = document.getElementById('theme-' + theme);
+    if (btn) btn.classList.add('active');
+  }
+
+  function goClient(slug, mode) {
+    var c = CLIENTS[slug];
+    if (!c) return;
+    renderBrandedView(c);
+    if (mode) show(mode === 'view' ? 'client-view' : 'client-edit');
+  }
+
+  function renderBrandedView(c) {
+    var V = document.getElementById('view-client-view');
+    if (!V) return;
+
+    var strip = V.querySelector('.client-brand-bar > span:first-child');
+    if (strip) strip.innerHTML = '🔵 <b>Demo:</b> this is what a <b>' + c.name + '</b> team member sees when they log into <b>' + c.url + '</b>. Their branding, their products only.';
+
+    var header = V.querySelector('.lr-header');
+    if (header) header.style.background = c.primary;
+    var logo = V.querySelector('.lr-logo');
+    if (logo) { logo.style.background = c.accent; logo.style.color = c.accentText; logo.textContent = c.initials; }
+    var nameEl = V.querySelector('.lr-name');
+    if (nameEl) nameEl.textContent = c.name;
+    var tag = V.querySelector('.lr-tag');
+    if (tag) tag.textContent = c.tagline;
+    var account = V.querySelector('.lr-account');
+    if (account) { account.style.background = c.accent; account.style.color = c.accentText; account.textContent = c.contact + ' ▾'; }
+
+    var hero = V.querySelector('.lr-hero');
+    if (hero) { hero.style.background = c.primary; hero.style.borderBottomColor = c.accent; }
+    var heroH = V.querySelector('.lr-hero h1');
+    if (heroH) heroH.textContent = c.welcome;
+    var heroP = V.querySelector('.lr-hero p');
+    if (heroP) heroP.textContent = c.welcomeBody;
+
+    var h2 = V.querySelector('.lr-products-section h2');
+    if (h2) h2.style.color = c.primary;
+    var sub = V.querySelector('.lr-sub');
+    if (sub) sub.textContent = c.products.length + ' ready-to-order items · Custom designs available on request';
+
+    var grid = V.querySelector('.lr-products');
+    if (grid) {
+      var html = '';
+      for (var i = 0; i < c.products.length; i++) {
+        var p = c.products[i];
+        html += '<div class="lr-product">' +
+          '<div class="lr-prod-photo"><span class="lr-prod-badge" style="background:' + c.accent + ';color:' + c.accentText + ';">' + p.b + '</span></div>' +
+          '<div class="lr-prod-body">' +
+          '<h4>' + p.n + '</h4>' +
+          '<div class="lr-price-label">' + p.d + '</div>' +
+          '<div class="lr-price" style="color:' + c.primary + ';">' + p.p + '</div>' +
+          '</div></div>';
+      }
+      grid.innerHTML = html;
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', function() {
+    renderBrandedView(CLIENTS.lakeshore);
+  });
 </script>
 
 <script src="https://chat.karikounkel.com/widget.js" defer></script>
