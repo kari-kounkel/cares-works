@@ -1422,6 +1422,30 @@
     .ap-checkrow label { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; }
     .ap-checkrow input { accent-color: var(--green); }
 
+    .ap-visibility-list { display: flex; flex-direction: column; gap: 6px; }
+    .ap-visibility-row {
+      display: grid; grid-template-columns: 20px 1fr auto; gap: 12px;
+      align-items: center; padding: 10px 12px;
+      background: var(--white); border: 1px solid var(--rule-soft);
+      border-radius: 3px; cursor: pointer; transition: all 0.15s ease;
+    }
+    .ap-visibility-row:hover { border-color: var(--green); }
+    .ap-visibility-row.checked { border-color: var(--green); background: var(--green-light); }
+    .ap-visibility-row input { width: 16px; height: 16px; accent-color: var(--green); cursor: pointer; margin: 0; }
+    .ap-visibility-row .vr-info b { display: block; font-size: 13px; font-weight: 700; color: var(--ink); }
+    .ap-visibility-row .vr-info span {
+      font-size: 10px; color: var(--ink-fade); font-family: 'Courier New', monospace;
+      margin-top: 2px; display: block;
+    }
+    .ap-visibility-row .vr-tier {
+      font-size: 9px; font-weight: 800; letter-spacing: 0.06em;
+      text-transform: uppercase; padding: 3px 7px; border-radius: 2px; white-space: nowrap;
+    }
+    .ap-inline-code {
+      background: var(--bg); padding: 1px 5px; border-radius: 2px;
+      font-family: 'Courier New', monospace; font-size: 11px; color: var(--green-deep);
+    }
+
     .ap-preview-card { background: var(--white); border: 1px solid var(--rule); border-radius: 4px; padding: 12px; }
     .ap-preview-photo { aspect-ratio: 1/1; background: #ededed; background-image: repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(0,0,0,0.04) 8px, rgba(0,0,0,0.04) 16px); border-radius: 3px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; position: relative; }
     .ap-preview-photo .ic { font-size: 28px; opacity: 0.4; filter: grayscale(1); }
@@ -1507,6 +1531,66 @@
               <label>Long Description (product detail page)</label>
               <textarea class="ap-textarea">Our most popular business card. Premium 14pt gloss-coated stock, full color on both sides, with crisp edge-to-edge bleed. Free file review by our pre-press team. Standard 3-4 business day turnaround. Rush available.</textarea>
             </div>
+          </div>
+
+          <div class="ap-card">
+            <h3>Customer Visibility</h3>
+            <p style="font-size:12px;color:var(--ink-soft);margin-bottom:14px;line-height:1.55;">
+              Tag this product with any customer storefront where it should appear. Their <span class="ap-inline-code">/shop/{slug}</span> URL automatically includes it, rendered in their branding at their negotiated pricing. Premium-tier customers also get a custom subdomain that maps to the same filtered view.
+            </p>
+            <div class="ap-visibility-list">
+              <label class="ap-visibility-row checked">
+                <input type="checkbox" checked>
+                <div class="vr-info">
+                  <b>MMP Master Catalog</b>
+                  <span>mmpuptown.com (public — visible to everyone)</span>
+                </div>
+                <span class="vr-tier" style="background:#fde68a;color:#854d0e;">MASTER</span>
+              </label>
+              <label class="ap-visibility-row checked">
+                <input type="checkbox" checked>
+                <div class="vr-info">
+                  <b>Lakeshore Realty</b>
+                  <span>mmpuptown.com/shop/lakeshore</span>
+                </div>
+                <span class="vr-tier" style="background:#d1fae5;color:#065f46;">TIER 2</span>
+              </label>
+              <label class="ap-visibility-row checked">
+                <input type="checkbox" checked>
+                <div class="vr-info">
+                  <b>Heritage Insurance</b>
+                  <span>heritage.mmpuptown.com</span>
+                </div>
+                <span class="vr-tier" style="background:#e0e7ff;color:#3730a3;">TIER 3</span>
+              </label>
+              <label class="ap-visibility-row">
+                <input type="checkbox">
+                <div class="vr-info">
+                  <b>Mike Hagen CPA</b>
+                  <span>mmpuptown.com/shop/hagen-cpa</span>
+                </div>
+                <span class="vr-tier" style="background:#fef3c7;color:#a16207;">TIER 1</span>
+              </label>
+              <label class="ap-visibility-row">
+                <input type="checkbox">
+                <div class="vr-info">
+                  <b>Uptown Yoga Studio</b>
+                  <span>mmpuptown.com/shop/uptown-yoga</span>
+                </div>
+                <span class="vr-tier" style="background:#fef3c7;color:#a16207;">TIER 1</span>
+              </label>
+              <label class="ap-visibility-row">
+                <input type="checkbox">
+                <div class="vr-info">
+                  <b>Grace Church</b>
+                  <span>mmpuptown.com/shop/grace</span>
+                </div>
+                <span class="vr-tier" style="background:#d1fae5;color:#065f46;">TIER 2</span>
+              </label>
+            </div>
+            <p style="font-size:11px;color:var(--ink-fade);margin-top:12px;line-height:1.55;">
+              💡 Tagging is the entire workflow. Adding a new customer = create their record once, then tag products they need. No separate site to build — just a filtered view of this catalog.
+            </p>
           </div>
 
           <div class="ap-card">
@@ -1741,17 +1825,17 @@
         <div class="tier-cell">
           <div class="tc-tier">TIER 1 · Starter</div>
           <div class="tc-price">$300/mo</div>
-          <div class="tc-desc">Up to 6 products · subdomain URL · Powered-by-MMP footer credit</div>
+          <div class="tc-desc">Up to 6 tagged products · path URL (<span class="ap-inline-code">/shop/{slug}</span>) · Powered-by-MMP footer credit</div>
         </div>
         <div class="tier-cell">
           <div class="tc-tier">TIER 2 · Branded</div>
           <div class="tc-price">$500/mo</div>
-          <div class="tc-desc">Up to 15 products · custom subdomain · full brand control · no MMP footer</div>
+          <div class="tc-desc">Up to 15 tagged products · path URL · full brand control · no MMP footer</div>
         </div>
         <div class="tier-cell">
           <div class="tc-tier">TIER 3 · Enterprise</div>
           <div class="tc-price">$850/mo</div>
-          <div class="tc-desc">Unlimited products · own domain · approval workflows · employee SSO accounts</div>
+          <div class="tc-desc">Unlimited tagged products · custom subdomain (<span class="ap-inline-code">{slug}.mmpuptown.com</span>) · approval workflows · employee SSO</div>
         </div>
       </div>
 
@@ -1769,7 +1853,7 @@
             <div><b>47</b><span>orders MTD</span></div>
             <div><b>$3,240</b><span>revenue MTD</span></div>
           </div>
-          <div class="cc-url">store.mmpuptown.com/lakeshore</div>
+          <div class="cc-url">mmpuptown.com/shop/lakeshore</div>
         </div>
 
         <div class="client-card" onclick="goClient('heritage', 'view')">
@@ -1785,7 +1869,7 @@
             <div><b>23</b><span>orders MTD</span></div>
             <div><b>$2,850</b><span>revenue MTD</span></div>
           </div>
-          <div class="cc-url">orders.heritageins.com</div>
+          <div class="cc-url">heritage.mmpuptown.com</div>
         </div>
 
         <div class="client-card" onclick="goClient('hagen', 'view')">
@@ -1801,7 +1885,7 @@
             <div><b>9</b><span>orders MTD</span></div>
             <div><b>$840</b><span>revenue MTD</span></div>
           </div>
-          <div class="cc-url">store.mmpuptown.com/hagen-cpa</div>
+          <div class="cc-url">mmpuptown.com/shop/hagen-cpa</div>
         </div>
 
         <div class="client-card" onclick="goClient('yoga', 'view')">
@@ -1817,7 +1901,7 @@
             <div><b>12</b><span>orders MTD</span></div>
             <div><b>$680</b><span>revenue MTD</span></div>
           </div>
-          <div class="cc-url">store.mmpuptown.com/uptown-yoga</div>
+          <div class="cc-url">mmpuptown.com/shop/uptown-yoga</div>
         </div>
 
         <div class="client-card" onclick="goClient('grace', 'view')">
@@ -1833,7 +1917,7 @@
             <div><b>18</b><span>orders MTD</span></div>
             <div><b>$1,420</b><span>revenue MTD</span></div>
           </div>
-          <div class="cc-url">orders.gracechurch.org</div>
+          <div class="cc-url">mmpuptown.com/shop/grace</div>
         </div>
 
         <div class="client-card" style="border-style:dashed;background:var(--bg);display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;">
@@ -1904,7 +1988,7 @@
             </div>
             <div class="cse-field">
               <label>Custom Store URL</label>
-              <input type="text" value="store.mmpuptown.com/lakeshore">
+              <input type="text" value="mmpuptown.com/shop/lakeshore">
             </div>
           </div>
 
@@ -1942,7 +2026,7 @@
 
           <div class="cse-card">
             <h3>Products in this Store <span style="font-weight:600;color:var(--ink-fade);float:right;text-transform:none;letter-spacing:0;">4 of 15 used · Tier 2</span></h3>
-            <p style="font-size:12px;color:var(--ink-soft);margin-bottom:14px;line-height:1.5;">Toggle any item to add or remove from Lakeshore's storefront. Items come from your master catalog. Custom Lakeshore-only templates appear here too.</p>
+            <p style="font-size:12px;color:var(--ink-soft);margin-bottom:14px;line-height:1.5;">Toggle any item to add or remove from Lakeshore's storefront. This is the same tag relationship as the <b>Customer Visibility</b> checkboxes in the product editor — either side flips the tag. No separate site is built; their <span class="ap-inline-code">/shop/lakeshore</span> URL just filters the master catalog to whatever's tagged.</p>
             <div class="cse-prod-list">
               <div class="cse-prod added">
                 <div class="cse-prod-check">✓</div>
@@ -2037,7 +2121,7 @@
 <!-- VIEW 8: BRANDED CLIENT STOREFRONT (what Lakeshore agents see) -->
 <div class="view" id="view-client-view">
   <div class="client-brand-bar">
-    <span>🔵 <b>Demo:</b> this is what a Lakeshore Realty agent sees when they log into <b>store.mmpuptown.com/lakeshore</b>. Their branding, their products only.</span>
+    <span>🔵 <b>Demo:</b> this is what a Lakeshore Realty agent sees when they log into <b>mmpuptown.com/shop/lakeshore</b>. Their branding, their products only.</span>
     <span class="pill">Tier 2 · Branded</span>
     <span style="margin-left:auto;font-size:11px;"><a href="#" onclick="show('client-edit');return false;">← Back to edit</a></span>
   </div>
@@ -2179,7 +2263,7 @@
       name: 'Lakeshore Realty', initials: 'LR',
       primary: '#0c4a6e', accent: '#fbbf24', accentText: '#0c4a6e',
       tagline: 'Marketing Materials Portal',
-      url: 'store.mmpuptown.com/lakeshore',
+      url: 'mmpuptown.com/shop/lakeshore',
       welcome: 'Welcome, Lakeshore team.',
       welcomeBody: "Here's everything we keep ready for you. Pre-approved designs, custom templates, your colors locked in. Order direct — we'll print, deliver, and bill to your Lakeshore account.",
       contact: 'Sarah Pelletier',
@@ -2205,7 +2289,7 @@
       name: 'Heritage Insurance', initials: 'HI',
       primary: '#7c2d12', accent: '#fbbf24', accentText: '#7c2d12',
       tagline: 'Agent Print Hub',
-      url: 'orders.heritageins.com',
+      url: 'heritage.mmpuptown.com',
       welcome: 'Welcome, Heritage team.',
       welcomeBody: 'Pre-approved policy materials, agent collateral, and client deliverables — all printed locally with your brand standards locked in.',
       contact: 'Diane Wright',
@@ -2229,7 +2313,7 @@
       name: 'Mike Hagen CPA', initials: 'MH',
       primary: '#1e3a8a', accent: '#fbbf24', accentText: '#1e3a8a',
       tagline: 'Firm Print Portal',
-      url: 'store.mmpuptown.com/hagen-cpa',
+      url: 'mmpuptown.com/shop/hagen-cpa',
       welcome: "Welcome to Mike's print catalog.",
       welcomeBody: 'Tax season materials, letterhead, and client deliverables. Approved templates, firm branding, ready to go.',
       contact: 'Mike Hagen',
@@ -2250,7 +2334,7 @@
       name: 'Uptown Yoga Studio', initials: 'UY',
       primary: '#5b4636', accent: '#d9b88a', accentText: '#5b4636',
       tagline: 'Studio Print Portal',
-      url: 'store.mmpuptown.com/uptown-yoga',
+      url: 'mmpuptown.com/shop/uptown-yoga',
       welcome: 'Welcome, yoga family.',
       welcomeBody: 'Class schedules, mat tags, gift cards, and studio collateral — all in your earthy brand palette, ready when you are.',
       contact: 'Maya Thornton',
@@ -2272,7 +2356,7 @@
       name: 'Grace Church', initials: 'GC',
       primary: '#4c1d95', accent: '#fbbf24', accentText: '#4c1d95',
       tagline: 'Ministry Print Hub',
-      url: 'orders.gracechurch.org',
+      url: 'mmpuptown.com/shop/grace',
       welcome: 'Welcome, Grace Church team.',
       welcomeBody: 'Sunday bulletins, sermon series art, event flyers, and ministry materials. Order in advance, delivered to the church office.',
       contact: 'James Whitman',
@@ -2506,6 +2590,14 @@
       ? 'Showing MMP master version'
       : 'Showing ' + brand.name + ' branded version · their price, their template';
   }
+
+  // Visibility checkboxes (admin product editor) — toggle row highlight when checked.
+  document.addEventListener('change', function(e) {
+    if (e.target && e.target.matches && e.target.matches('.ap-visibility-row input[type="checkbox"]')) {
+      var row = e.target.closest('.ap-visibility-row');
+      if (row) row.classList.toggle('checked', e.target.checked);
+    }
+  });
 
   // Script is at end of body, so DOM is ready; run init synchronously.
   // Avoids any defer/DOMContentLoaded timing weirdness with the widget script.
