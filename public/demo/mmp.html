@@ -452,179 +452,6 @@
   .price-cell { font-weight: 700; color: var(--ink); }
 
   /* ============================
-     STYLE PICKER — floating pill, bottom-right
-     ============================ */
-  .style-picker {
-    position: fixed; bottom: 20px; right: 20px; z-index: 999;
-    background: var(--white); border: 1px solid var(--rule); border-radius: 999px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.12), 0 2px 4px rgba(0,0,0,0.04);
-    padding: 6px; display: flex; gap: 4px; align-items: center;
-    font-family: 'Open Sans', sans-serif;
-  }
-  .style-picker .sp-label {
-    font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
-    color: var(--ink-fade); padding: 0 10px 0 14px;
-  }
-  .style-picker button {
-    background: var(--white); color: var(--ink-soft);
-    border: 1px solid transparent; padding: 7px 14px;
-    font-family: inherit; font-size: 11px; font-weight: 700;
-    letter-spacing: 0.04em; text-transform: uppercase; cursor: pointer;
-    transition: all 0.15s ease; border-radius: 999px;
-  }
-  .style-picker button:hover { background: var(--green-light); color: var(--green-deep); }
-  .style-picker button.active { background: var(--green); color: var(--white); }
-
-  /* ============================
-     THEME: PRESSROOM — print shop / industrial / paper-and-ink
-     ============================ */
-  body[data-theme="pressroom"] {
-    --green: #2d5234;
-    --green-deep: #1c3a22;
-    --green-light: #e0e9dc;
-    --orange: #c75518;
-    --orange-deep: #9c4413;
-    --ink: #1a1a1a;
-    --ink-soft: #4a4a4a;
-    --ink-fade: #8a8278;
-    --bg: #ede7d8;
-    --bg-deep: #d8d0bc;
-    --rule: #c6bda9;
-    --rule-soft: #d8d0bf;
-    font-family: 'IBM Plex Sans', sans-serif;
-  }
-  body[data-theme="pressroom"] .hero h1,
-  body[data-theme="pressroom"] .section-divider h2,
-  body[data-theme="pressroom"] .product-card h4,
-  body[data-theme="pressroom"] .pd-info h1,
-  body[data-theme="pressroom"] .cart-view h1,
-  body[data-theme="pressroom"] .admin-head h1,
-  body[data-theme="pressroom"] .sidebar-marketing h3,
-  body[data-theme="pressroom"] .lr-name {
-    font-family: 'IBM Plex Serif', serif;
-    font-weight: 700;
-    letter-spacing: -0.01em;
-  }
-  body[data-theme="pressroom"] .hero h1 { font-size: 44px; }
-  body[data-theme="pressroom"] .hero { background: #e8e1cf; }
-  body[data-theme="pressroom"] .hero-cta,
-  body[data-theme="pressroom"] .add-to-cart,
-  body[data-theme="pressroom"] .checkout-btn,
-  body[data-theme="pressroom"] .ap-btn,
-  body[data-theme="pressroom"] .cs-new-btn,
-  body[data-theme="pressroom"] .opt-pills button,
-  body[data-theme="pressroom"] .cat-card,
-  body[data-theme="pressroom"] .product-card,
-  body[data-theme="pressroom"] .sidebar-marketing,
-  body[data-theme="pressroom"] .specs-box,
-  body[data-theme="pressroom"] .stat,
-  body[data-theme="pressroom"] .orders-card,
-  body[data-theme="pressroom"] .ap-card,
-  body[data-theme="pressroom"] .cse-card,
-  body[data-theme="pressroom"] .tier-cell,
-  body[data-theme="pressroom"] .client-card,
-  body[data-theme="pressroom"] .ap-input,
-  body[data-theme="pressroom"] .ap-textarea,
-  body[data-theme="pressroom"] .ap-select,
-  body[data-theme="pressroom"] .hero-image,
-  body[data-theme="pressroom"] .cart-items,
-  body[data-theme="pressroom"] .cart-summary { border-radius: 0; }
-  body[data-theme="pressroom"] .header-nav .nav-item.featured { background: var(--orange); }
-  body[data-theme="pressroom"] .header-nav .nav-item.featured:hover { background: var(--orange-deep); }
-  body[data-theme="pressroom"] .pd-info .pd-price { color: var(--orange); }
-  body[data-theme="pressroom"] .product-card { border: 1px solid var(--rule); }
-
-  /* ============================
-     THEME: EDITORIAL — magazine / serif headlines / generous whitespace
-     ============================ */
-  body[data-theme="editorial"] {
-    --green: #2a6b3f;
-    --green-deep: #1d4a2c;
-    --green-light: #eef5ef;
-    --orange: #d96b1c;
-    --orange-deep: #a84f12;
-    --ink: #1f1f1f;
-    --ink-soft: #5c5c5c;
-    --ink-fade: #9b9b9b;
-    --bg: #fafaf7;
-    --rule: #e6e3da;
-    --rule-soft: #eeede7;
-    font-family: 'Source Sans 3', sans-serif;
-  }
-  body[data-theme="editorial"] .hero h1,
-  body[data-theme="editorial"] .section-divider h2,
-  body[data-theme="editorial"] .pd-info h1,
-  body[data-theme="editorial"] .cart-view h1,
-  body[data-theme="editorial"] .admin-head h1,
-  body[data-theme="editorial"] .product-card h4,
-  body[data-theme="editorial"] .sidebar-marketing h3,
-  body[data-theme="editorial"] .lr-name,
-  body[data-theme="editorial"] .lr-hero h1 {
-    font-family: 'Playfair Display', serif;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-  }
-  body[data-theme="editorial"] .hero h1 { font-size: 56px; line-height: 1.02; }
-  body[data-theme="editorial"] .section-divider h2 { font-size: 36px; }
-  body[data-theme="editorial"] .pd-info h1 { font-size: 38px; }
-  body[data-theme="editorial"] .product-card h4 { font-size: 18px; font-weight: 800; }
-  body[data-theme="editorial"] .hero { background: #fafaf7; padding-top: 90px; padding-bottom: 110px; }
-  body[data-theme="editorial"] .top-bar { background: var(--ink); }
-  body[data-theme="editorial"] .header-nav .nav-item.featured { background: var(--ink); }
-  body[data-theme="editorial"] .header-nav .nav-item.featured:hover { background: var(--green); }
-  body[data-theme="editorial"] .hero-image { background: transparent; box-shadow: none; padding: 0; }
-  body[data-theme="editorial"] .section-divider { padding: 48px 32px; }
-  body[data-theme="editorial"] .lr-hero h1 { font-size: 38px; }
-
-  /* ============================
-     THEME: SHOWROOM — gallery / minimal / dark hero / huge photos
-     ============================ */
-  body[data-theme="showroom"] {
-    --green: #1d7a44;
-    --green-deep: #155a32;
-    --green-light: #eef7f1;
-    --orange: #ff6b1a;
-    --orange-deep: #d8540e;
-    --ink: #0a0a0a;
-    --ink-soft: #555;
-    --ink-fade: #999;
-    --bg: #ffffff;
-    --bg-deep: #f5f5f5;
-    --rule: #e8e8e8;
-    --rule-soft: #f0f0f0;
-    font-family: 'Inter', sans-serif;
-  }
-  body[data-theme="showroom"] header.main-header { border-bottom: 2px solid var(--green); }
-  body[data-theme="showroom"] .hero { background: linear-gradient(135deg, #1d7a44 0%, #155a32 100%); color: var(--white); padding: 90px 60px; }
-  body[data-theme="showroom"] .hero h1 { color: var(--white); font-size: 50px; font-weight: 800; letter-spacing: -0.03em; }
-  body[data-theme="showroom"] .hero p,
-  body[data-theme="showroom"] .hero .hero-lead { color: rgba(255,255,255,0.85); }
-  body[data-theme="showroom"] .hero-cta { background: var(--orange); }
-  body[data-theme="showroom"] .hero-cta:hover { background: var(--orange-deep); }
-  body[data-theme="showroom"] .hero-image { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18); }
-  body[data-theme="showroom"] .hi-item { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.25); color: rgba(255,255,255,0.85); }
-  body[data-theme="showroom"] .product-card,
-  body[data-theme="showroom"] .cat-card,
-  body[data-theme="showroom"] .sidebar-marketing,
-  body[data-theme="showroom"] .stat,
-  body[data-theme="showroom"] .orders-card,
-  body[data-theme="showroom"] .ap-card,
-  body[data-theme="showroom"] .cse-card,
-  body[data-theme="showroom"] .tier-cell,
-  body[data-theme="showroom"] .client-card,
-  body[data-theme="showroom"] .specs-box,
-  body[data-theme="showroom"] .cart-items,
-  body[data-theme="showroom"] .cart-summary,
-  body[data-theme="showroom"] .opt-pills button,
-  body[data-theme="showroom"] .hero-cta,
-  body[data-theme="showroom"] .add-to-cart,
-  body[data-theme="showroom"] .checkout-btn,
-  body[data-theme="showroom"] .cs-new-btn,
-  body[data-theme="showroom"] .ap-btn { border-radius: 0; }
-  body[data-theme="showroom"] .header-nav .nav-item.featured { background: var(--orange); }
-  body[data-theme="showroom"] .header-nav .nav-item.featured:hover { background: var(--orange-deep); }
-
-  /* ============================
      CLIENT STORES — admin list + tier strip
      ============================ */
   .admin-head { align-items: flex-start; }
@@ -896,7 +723,7 @@
   }
 </style>
 </head>
-<body data-theme="classic">
+<body>
 
 <div class="demo-bar">
   <span class="label">► View</span>
@@ -2250,14 +2077,6 @@
   </div>
 </div>
 
-<div class="style-picker">
-  <span class="sp-label">Style</span>
-  <button onclick="setTheme('classic')" class="active" id="theme-classic">Classic</button>
-  <button onclick="setTheme('pressroom')" id="theme-pressroom">Pressroom</button>
-  <button onclick="setTheme('editorial')" id="theme-editorial">Editorial</button>
-  <button onclick="setTheme('showroom')" id="theme-showroom">Showroom</button>
-</div>
-
 <script>
   var MMP_LOGO_SVG = '<svg viewBox="0 0 230 64" xmlns="http://www.w3.org/2000/svg">' +
     '<g transform="translate(4 4)">' +
@@ -2505,13 +2324,6 @@
     var btn = document.getElementById('btn-' + view);
     if (btn) btn.classList.add('active');
     window.scrollTo(0, 0);
-  }
-
-  function setTheme(theme) {
-    document.body.setAttribute('data-theme', theme);
-    document.querySelectorAll('.style-picker button').forEach(function(b) { b.classList.remove('active'); });
-    var btn = document.getElementById('theme-' + theme);
-    if (btn) btn.classList.add('active');
   }
 
   function goClient(slug, mode) {
