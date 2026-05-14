@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minuteman Press Uptown — Store Strategy Options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #1d7a44;
+    --green-deep: #155a32;
+    --green-light: #e8f3ed;
+    --orange: #ec7621;
+    --orange-deep: #c75e15;
+    --ink: #2c2c2c;
+    --ink-soft: #555;
+    --ink-fade: #888;
+    --bg: #f5f4f0;
+    --white: #ffffff;
+    --rule: #ddd;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Open Sans', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.5;
+    font-size: 14px;
+  }
+
+  .gallery-bar {
+    background: var(--ink);
+    color: var(--white);
+    padding: 14px 32px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .gallery-bar .logo-mark {
+    display: flex;
+    align-items: center;
+  }
+  .gallery-bar .logo-mark svg { height: 40px; width: auto; }
+  .gallery-bar h1 {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--white);
+  }
+  .gallery-bar .crumb {
+    color: rgba(255,255,255,0.5);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-left: auto;
+  }
+
+  .gallery-hero {
+    padding: 64px 32px 48px;
+    background: var(--white);
+    border-bottom: 1px solid var(--rule);
+    text-align: center;
+  }
+  .gallery-hero h2 {
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--ink);
+    margin-bottom: 12px;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  .gallery-hero .lede {
+    font-size: 16px;
+    color: var(--ink-soft);
+    max-width: 660px;
+    margin: 0 auto 24px;
+    line-height: 1.6;
+  }
+  .gallery-hero .note {
+    display: inline-block;
+    background: var(--green-light);
+    color: var(--green-deep);
+    padding: 10px 16px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 600;
+    border-left: 3px solid var(--green);
+  }
+
+  .options-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 22px;
+    padding: 40px 32px 64px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  .opt-card {
+    background: var(--white);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+  }
+  .opt-card:hover {
+    border-color: var(--green);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    transform: translateY(-2px);
+  }
+  .opt-preview {
+    aspect-ratio: 16/10;
+    background: linear-gradient(135deg, var(--green) 0%, var(--green-deep) 100%);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 32px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .opt-preview::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(45deg, transparent, transparent 12px, rgba(255,255,255,0.04) 12px, rgba(255,255,255,0.04) 24px);
+    pointer-events: none;
+  }
+  .opt-num {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    color: var(--orange);
+    margin-bottom: 8px;
+    position: relative;
+  }
+  .opt-headline {
+    font-size: 26px;
+    font-weight: 800;
+    color: white;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+    text-align: center;
+    position: relative;
+    margin-bottom: 4px;
+  }
+  .opt-sub {
+    font-size: 13px;
+    color: rgba(255,255,255,0.78);
+    text-align: center;
+    position: relative;
+  }
+
+  /* Color-vary the preview banners so they read distinct at-a-glance */
+  .opt-card[data-opt="2"] .opt-preview { background: linear-gradient(135deg, #ec7621 0%, #c75e15 100%); }
+  .opt-card[data-opt="3"] .opt-preview { background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%); }
+  .opt-card[data-opt="4"] .opt-preview { background: linear-gradient(135deg, #155a32 0%, #0d3d22 100%); }
+  .opt-card[data-opt="5"] .opt-preview { background: linear-gradient(135deg, #c75e15 0%, #8c4210 100%); }
+  .opt-card[data-opt="6"] .opt-preview { background: linear-gradient(135deg, #1d7a44 0%, #155a32 50%, #ec7621 100%); }
+
+  .opt-body {
+    padding: 22px 24px 24px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .opt-body h3 {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--ink);
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+  }
+  .opt-body p {
+    font-size: 13px;
+    color: var(--ink-soft);
+    line-height: 1.55;
+    margin-bottom: 14px;
+    flex: 1;
+  }
+  .opt-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  .opt-tag {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    background: var(--bg);
+    color: var(--ink-soft);
+    border-radius: 3px;
+  }
+  .opt-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--green);
+    color: var(--white);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 12px 18px;
+    border-radius: 4px;
+    transition: background 0.15s ease;
+  }
+  .opt-card:hover .opt-cta { background: var(--green-deep); }
+  .opt-cta::after {
+    content: ' →';
+    margin-left: 6px;
+  }
+
+  .gallery-foot {
+    padding: 32px;
+    text-align: center;
+    background: var(--white);
+    border-top: 1px solid var(--rule);
+    font-size: 12px;
+    color: var(--ink-fade);
+  }
+  .gallery-foot b { color: var(--green); font-weight: 700; }
+
+  @media (max-width: 700px) {
+    .gallery-bar { padding: 12px 16px; flex-wrap: wrap; }
+    .gallery-bar h1 { font-size: 12px; }
+    .gallery-bar .crumb { display: none; }
+    .gallery-hero { padding: 40px 20px 32px; }
+    .gallery-hero h2 { font-size: 26px; }
+    .options-grid { padding: 24px 16px 40px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="gallery-bar">
+  <div class="logo-mark">
+    <svg viewBox="0 0 220 56" xmlns="http://www.w3.org/2000/svg">
+      <g transform="translate(4 4)">
+        <path d="M 24 2 A 22 18 0 1 1 24 42" fill="none" stroke="#1d7a44" stroke-width="4.5" stroke-linecap="round"/>
+        <path d="M 24 2 A 22 18 0 1 0 24 42" fill="none" stroke="#ec7621" stroke-width="4.5" stroke-linecap="round"/>
+        <text x="24" y="33" font-family="Open Sans, sans-serif" font-weight="900" font-size="30" fill="#1d7a44" text-anchor="middle" font-style="italic">M</text>
+      </g>
+      <text x="58" y="20" font-family="Open Sans, sans-serif" font-weight="800" font-size="15" fill="#ffffff" font-style="italic">Minuteman Press</text>
+      <text x="58" y="36" font-family="Open Sans, sans-serif" font-weight="700" font-size="8" fill="#ec7621" letter-spacing="0.06em">UPTOWN · MINNEAPOLIS</text>
+    </svg>
+  </div>
+  <h1>Store Strategy Mockups · Round 2</h1>
+  <span class="crumb">For Frank Brown · Pick 1–2 directions</span>
+</div>
+
+<section class="gallery-hero">
+  <h2>Six ways the new store could work.</h2>
+  <p class="lede">Same Minuteman branding, same product catalog, same back-office and admin. What varies is the homepage strategy — how a first-time customer lands on the site and where they go from there. Click any option to walk through it end-to-end. Then tell us which 1–2 directions feel right.</p>
+  <div class="note">All six use Minuteman orange + green, real products, and the Phase 3 branded-storefront upsell. Differentiation is structural, not aesthetic.</div>
+</section>
+
+<div class="options-grid">
+
+  <a class="opt-card" data-opt="1" href="option-1-category-first/index.html">
+    <div class="opt-preview">
+      <div class="opt-num">OPTION 01</div>
+      <div class="opt-headline">Category-First</div>
+      <div class="opt-sub">Classic Shopify-style structure</div>
+    </div>
+    <div class="opt-body">
+      <h3>Browse by product type</h3>
+      <p>Homepage is a tall grid of category tiles — Cards &amp; Stationery, Marketing, Signs &amp; Banners, Wedding &amp; Events, Apparel &amp; Promo, Reports &amp; Booklets. Customer self-selects what they're shopping for and drills in. Familiar pattern, low cognitive load.</p>
+      <div class="opt-tags">
+        <span class="opt-tag">Familiar</span>
+        <span class="opt-tag">Browsing customer</span>
+        <span class="opt-tag">Low cognitive load</span>
+      </div>
+      <span class="opt-cta">See it</span>
+    </div>
+  </a>
+
+  <a class="opt-card" data-opt="2" href="option-2-use-case/index.html">
+    <div class="opt-preview">
+      <div class="opt-num">OPTION 02</div>
+      <div class="opt-headline">Use-Case Driven</div>
+      <div class="opt-sub">"What are you working on?"</div>
+    </div>
+    <div class="opt-body">
+      <h3>Lead with the project, not the product</h3>
+      <p>Homepage asks one question — what are you working on — and routes the customer through pre-built paths: starting a business, planning a wedding, opening a store, running an event. Each path surfaces the exact products that project needs. Higher conversion for buyers who don't know what they need by SKU.</p>
+      <div class="opt-tags">
+        <span class="opt-tag">Project-led</span>
+        <span class="opt-tag">High conversion</span>
+        <span class="opt-tag">First-time buyer</span>
+      </div>
+      <span class="opt-cta">See it</span>
+    </div>
+  </a>
+
+  <a class="opt-card" data-opt="3" href="option-3-quote-first/index.html">
+    <div class="opt-preview">
+      <div class="opt-num">OPTION 03</div>
+      <div class="opt-headline">Quote-First Hybrid</div>
+      <div class="opt-sub">File upload is the hero</div>
+    </div>
+    <div class="opt-body">
+      <h3>Built for the print-shop reality</h3>
+      <p>Most print jobs need custom quotes, not click-and-buy. Hero is a big file-upload + quote form ("Have a file? Get a quote in 24 hours"). Browseable product catalog sits below for the customers who do want to buy direct. Honors the way the shop actually runs.</p>
+      <div class="opt-tags">
+        <span class="opt-tag">Real-shop fit</span>
+        <span class="opt-tag">Custom jobs</span>
+        <span class="opt-tag">Quote-led</span>
+      </div>
+      <span class="opt-cta">See it</span>
+    </div>
+  </a>
+
+  <a class="opt-card" data-opt="4" href="option-4-visual-catalog/index.html">
+    <div class="opt-preview">
+      <div class="opt-num">OPTION 04</div>
+      <div class="opt-headline">Visual Catalog</div>
+      <div class="opt-sub">Pinterest-dense product grid</div>
+    </div>
+    <div class="opt-body">
+      <h3>Photos lead, filters drive</h3>
+      <p>Dense 4–5 column product grid where photography does the selling. Sticky filter sidebar lets shoppers narrow by type, material, quantity, color. Hover reveals price and quick-add. Best fit for visual products (signs, banners, posters) and customers who shop by browsing.</p>
+      <div class="opt-tags">
+        <span class="opt-tag">Photo-led</span>
+        <span class="opt-tag">Filter-driven</span>
+        <span class="opt-tag">High product density</span>
+      </div>
+      <span class="opt-cta">See it</span>
+    </div>
+  </a>
+
+  <a class="opt-card" data-opt="5" href="option-5-bundles/index.html">
+    <div class="opt-preview">
+      <div class="opt-num">OPTION 05</div>
+      <div class="opt-headline">Bundles &amp; Packages</div>
+      <div class="opt-sub">Solutions, not SKUs</div>
+    </div>
+    <div class="opt-body">
+      <h3>Sell the outcome, not the part</h3>
+      <p>Homepage stars pre-built solution packs: New Business Pack, Grand Opening Pack, Wedding Suite, Restaurant Launch. Each bundle shows contents + bundle savings + single price. Customer buys a complete solution. Bigger average ticket, simpler decision.</p>
+      <div class="opt-tags">
+        <span class="opt-tag">Bigger AOV</span>
+        <span class="opt-tag">Outcome-led</span>
+        <span class="opt-tag">Simpler decision</span>
+      </div>
+      <span class="opt-cta">See it</span>
+    </div>
+  </a>
+
+  <a class="opt-card" data-opt="6" href="option-6-reorder-b2b/index.html">
+    <div class="opt-preview">
+      <div class="opt-num">OPTION 06</div>
+      <div class="opt-headline">B2B / Reorder-First</div>
+      <div class="opt-sub">Account dashboard front and center</div>
+    </div>
+    <div class="opt-body">
+      <h3>Built for the 60% of revenue that's repeat</h3>
+      <p>Homepage assumes you've ordered before. Tiles for Reorder Past Jobs, My Designs on File, Pending Quotes, Quick Reorder. New customers get a separate path. Honors how a real print shop actually makes money — repeat orders from a small set of accounts.</p>
+      <div class="opt-tags">
+        <span class="opt-tag">Repeat business</span>
+        <span class="opt-tag">Account-led</span>
+        <span class="opt-tag">B2B fit</span>
+      </div>
+      <span class="opt-cta">See it</span>
+    </div>
+  </a>
+
+</div>
+
+<div class="gallery-foot">
+  Built by <b>CARES Consulting</b> · For I A Z Corporation dba Minuteman Press Uptown · 4024 Washington Ave N · Minneapolis MN 55412
+</div>
+
+<script src="https://chat.karikounkel.com/widget.js" defer></script>
+</body>
+</html>

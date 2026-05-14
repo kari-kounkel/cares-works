@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minuteman Press Uptown — Option 6: B2B / Reorder-First</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #1d7a44; --green-deep: #155a32; --green-light: #e8f3ed;
+    --orange: #ec7621; --orange-deep: #c75e15; --orange-light: #fbe6d4;
+    --ink: #2c2c2c; --ink-soft: #555; --ink-fade: #888;
+    --bg: #f5f4f0; --bg-deep: #e9e6dd; --white: #ffffff;
+    --rule: #ddd; --rule-soft: #ececec;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Open Sans', sans-serif; background: var(--bg); color: var(--ink); line-height: 1.5; font-size: 14px; }
+  a { color: var(--green); text-decoration: none; }
+  a:hover { color: var(--green-deep); }
+
+  .demo-strip { background: var(--ink); color: var(--white); padding: 8px 24px; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 700; display: flex; gap: 14px; align-items: center; }
+  .demo-strip .pill { background: var(--orange); padding: 3px 9px; border-radius: 3px; }
+  .demo-strip a { color: var(--white); margin-left: auto; opacity: 0.7; }
+  .demo-strip a:hover { opacity: 1; color: var(--orange); }
+
+  .top-bar { background: var(--green); color: var(--white); padding: 9px 32px; display: flex; align-items: center; gap: 16px; font-size: 12px; }
+  .top-bar .addr { display: flex; align-items: center; gap: 6px; }
+  .top-bar .phone { font-weight: 700; font-size: 13px; }
+  .top-bar .socials { display: flex; gap: 6px; margin-right: auto; }
+  .top-bar .socials a { color: var(--white); width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.4); border-radius: 50%; font-size: 11px; font-weight: 700; }
+  .top-bar .pref-loc { background: rgba(0,0,0,0.18); padding: 4px 12px; border-radius: 3px; font-weight: 600; }
+
+  header.main { background: var(--white); border-bottom: 1px solid var(--rule); padding: 14px 32px; display: flex; align-items: center; gap: 24px; }
+  .logo-block { display: flex; align-items: center; }
+  .logo-block svg { height: 56px; width: auto; display: block; }
+  .nav { display: flex; gap: 4px; margin-left: 30px; }
+  .nav a { padding: 12px 16px; font-size: 13px; font-weight: 700; color: var(--ink); text-transform: uppercase; letter-spacing: 0.04em; border-radius: 4px; transition: background 0.15s; }
+  .nav a:hover { background: var(--green-light); color: var(--green-deep); }
+  .nav a.current { background: var(--green); color: white; }
+  .actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .acct-pill { display: flex; align-items: center; gap: 10px; padding: 6px 10px 6px 14px; background: var(--bg); border: 1px solid var(--rule); border-radius: 999px; font-size: 13px; font-weight: 700; color: var(--ink); cursor: pointer; transition: all 0.15s; }
+  .acct-pill:hover { border-color: var(--green); }
+  .acct-pill .av { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, var(--green), var(--green-deep)); color: white; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; }
+  .acct-pill .biz { font-size: 11px; color: var(--ink-fade); display: block; font-weight: 600; }
+  .actions .icon-btn { width: 40px; height: 40px; border: 1px solid var(--rule); background: white; border-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; position: relative; }
+  .actions .icon-btn:hover { border-color: var(--green); color: var(--green); }
+  .actions .icon-btn .num { position: absolute; top: -4px; right: -4px; background: var(--orange); color: white; font-size: 10px; font-weight: 800; padding: 1px 6px; border-radius: 999px; }
+
+  /* HERO — Dashboard welcome */
+  .dash-hero {
+    background: linear-gradient(135deg, var(--green) 0%, var(--green-deep) 100%);
+    color: white;
+    padding: 36px 32px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+  .dash-hero::after {
+    content: ''; position: absolute; inset: 0;
+    background-image: repeating-linear-gradient(45deg, transparent, transparent 18px, rgba(255,255,255,0.04) 18px, rgba(255,255,255,0.04) 36px);
+    pointer-events: none;
+  }
+  .dash-hero-inner { max-width: 1400px; margin: 0 auto; position: relative; }
+  .dash-hello { font-size: 11px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: var(--orange); margin-bottom: 8px; }
+  .dash-hero h1 { font-size: 38px; font-weight: 900; line-height: 1.05; letter-spacing: -0.02em; margin-bottom: 14px; }
+  .dash-hero h1 .accent { color: var(--orange); }
+  .dash-hero .sub { font-size: 15px; color: rgba(255,255,255,0.85); margin-bottom: 22px; max-width: 620px; line-height: 1.5; }
+  .quick-stats { display: flex; gap: 12px; flex-wrap: wrap; }
+  .qstat {
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.18);
+    padding: 10px 16px; border-radius: 4px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .qstat .num { font-size: 22px; font-weight: 900; color: white; }
+  .qstat .label { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.85); }
+
+  /* DASHBOARD TILES */
+  .dashboard {
+    max-width: 1400px;
+    margin: -54px auto 0;
+    padding: 0 32px;
+    position: relative;
+    z-index: 1;
+  }
+  .dash-grid {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 18px;
+  }
+
+  .panel {
+    background: var(--white);
+    border-radius: 8px;
+    box-shadow: 0 6px 22px rgba(0,0,0,0.08);
+    overflow: hidden;
+  }
+  .panel-head {
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .panel-head h2 { font-size: 16px; font-weight: 800; color: var(--ink); letter-spacing: -0.01em; }
+  .panel-head h2 .count { color: var(--orange); margin-left: 6px; }
+  .panel-head a { font-size: 12px; font-weight: 700; color: var(--green); }
+  .panel-head a:hover { color: var(--orange); }
+
+  /* REORDER LIST (left big panel) */
+  .reorder-list { padding: 6px 0; }
+  .reorder-row {
+    display: grid;
+    grid-template-columns: 56px 1fr auto auto;
+    gap: 16px;
+    padding: 16px 24px;
+    align-items: center;
+    border-bottom: 1px solid var(--rule-soft);
+    transition: background 0.15s;
+    cursor: pointer;
+  }
+  .reorder-row:last-child { border-bottom: none; }
+  .reorder-row:hover { background: var(--bg); }
+  .ro-thumb { aspect-ratio: 1/1; border-radius: 4px; overflow: hidden; background: var(--bg); border: 1px solid var(--rule); }
+  .ro-thumb svg { width: 100%; height: 100%; display: block; }
+  .ro-info h4 { font-size: 14px; font-weight: 700; color: var(--ink); margin-bottom: 3px; line-height: 1.3; }
+  .ro-info .meta { font-size: 11px; color: var(--ink-fade); }
+  .ro-info .meta b { color: var(--ink-soft); font-weight: 600; }
+  .ro-price { font-size: 15px; font-weight: 800; color: var(--ink); white-space: nowrap; }
+  .ro-cta { background: var(--orange); color: white; border: none; padding: 8px 16px; cursor: pointer; border-radius: 4px; font-family: inherit; font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; transition: background 0.15s; }
+  .ro-cta:hover { background: var(--orange-deep); }
+
+  /* SMALL PANELS (right column) */
+  .small-panel-list { padding: 6px 0; }
+  .small-row {
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--rule-soft);
+    font-size: 13px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 12px;
+  }
+  .small-row:last-child { border-bottom: none; }
+  .small-row b { display: block; font-weight: 700; color: var(--ink); margin-bottom: 2px; }
+  .small-row .meta { font-size: 11px; color: var(--ink-fade); }
+  .quote-status { font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 8px; border-radius: 3px; white-space: nowrap; }
+  .quote-status.pending { background: #fef3c7; color: #a16207; }
+  .quote-status.ready { background: var(--green-light); color: var(--green-deep); }
+  .quote-status.review { background: #fbe6d4; color: #9a4210; }
+
+  /* DESIGNS GRID */
+  .designs-row { padding: 16px 24px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .design-thumb { aspect-ratio: 1/1; border-radius: 3px; border: 1px solid var(--rule); overflow: hidden; cursor: pointer; transition: all 0.15s; }
+  .design-thumb:hover { border-color: var(--green); transform: translateY(-2px); }
+  .design-thumb svg { width: 100%; height: 100%; display: block; }
+  .designs-foot { padding: 12px 24px 18px; text-align: center; }
+  .designs-foot a { font-size: 12px; font-weight: 700; color: var(--green); }
+
+  /* QUICK ACTIONS BAR */
+  .quick-actions {
+    margin-top: 18px;
+    background: var(--white);
+    border-radius: 8px;
+    padding: 16px 18px;
+    box-shadow: 0 6px 22px rgba(0,0,0,0.06);
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+  .qa-tile {
+    background: var(--bg);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 18px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+  }
+  .qa-tile:hover { border-color: var(--green); background: var(--green-light); }
+  .qa-tile .ic { font-size: 22px; display: block; margin-bottom: 6px; }
+  .qa-tile h5 { font-size: 12px; font-weight: 800; color: var(--ink); letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 2px; }
+  .qa-tile p { font-size: 11px; color: var(--ink-fade); line-height: 1.4; }
+
+  /* NEW-CUSTOMER ROUTE */
+  .new-customer {
+    margin: 36px auto;
+    max-width: 1400px;
+    padding: 0 32px;
+  }
+  .nc-card {
+    background: var(--white);
+    border: 1px dashed var(--rule);
+    border-radius: 8px;
+    padding: 22px 28px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 20px;
+    align-items: center;
+  }
+  .nc-card .nc-ic { width: 54px; height: 54px; border-radius: 8px; background: var(--orange-light); display: flex; align-items: center; justify-content: center; font-size: 26px; }
+  .nc-card h3 { font-size: 17px; font-weight: 800; color: var(--ink); margin-bottom: 4px; }
+  .nc-card p { font-size: 13px; color: var(--ink-soft); }
+  .nc-card a {
+    background: var(--ink); color: white; padding: 11px 18px;
+    font-size: 12px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+    border-radius: 4px; transition: background 0.15s;
+  }
+  .nc-card a:hover { background: var(--green); }
+
+  /* PHASE 3 */
+  .phase3 { padding: 36px 32px 56px; }
+  .phase3-card { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1.3fr 1fr; gap: 32px; background: var(--ink); color: white; border-radius: 8px; padding: 36px 40px; align-items: center; }
+  .phase3-card h3 { font-size: 26px; font-weight: 800; color: white; margin-bottom: 10px; letter-spacing: -0.01em; line-height: 1.15; }
+  .phase3-card h3 .accent { color: var(--orange); }
+  .phase3-card p { font-size: 14px; color: rgba(255,255,255,0.78); line-height: 1.55; margin-bottom: 18px; }
+  .phase3-tiers { display: flex; flex-direction: column; gap: 8px; }
+  .p3-tier { display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: center; background: rgba(255,255,255,0.08); padding: 12px 16px; border-radius: 4px; }
+  .p3-tier .t-label { font-weight: 800; font-size: 11px; letter-spacing: 0.08em; color: var(--orange); }
+  .p3-tier .t-desc { font-size: 12px; color: rgba(255,255,255,0.78); }
+  .p3-tier .t-price { font-weight: 800; font-size: 15px; color: white; }
+  .btn { display: inline-flex; align-items: center; padding: 13px 22px; font-size: 13px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; border-radius: 4px; cursor: pointer; transition: all 0.15s; border: none; font-family: inherit; }
+  .btn-primary { background: var(--orange); color: white; }
+  .btn-primary:hover { background: var(--orange-deep); }
+
+  footer.site { background: var(--ink); color: rgba(255,255,255,0.8); padding: 40px 32px 24px; }
+  footer.site .cols { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 32px; padding-bottom: 28px; border-bottom: 1px solid rgba(255,255,255,0.12); }
+  footer.site h5 { font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--orange); margin-bottom: 12px; }
+  footer.site p, footer.site a { font-size: 13px; color: rgba(255,255,255,0.78); line-height: 1.7; }
+  footer.site a { display: block; }
+  footer.site a:hover { color: var(--orange); }
+  footer.site .legal { max-width: 1400px; margin: 0 auto; padding-top: 20px; font-size: 12px; color: rgba(255,255,255,0.45); display: flex; gap: 16px; flex-wrap: wrap; }
+  footer.site .legal b { color: var(--green); }
+  footer.site .legal .sep { color: rgba(255,255,255,0.2); }
+
+  @media (max-width: 1100px) {
+    .dash-grid { grid-template-columns: 1fr; }
+    .quick-actions { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 900px) {
+    .top-bar { flex-wrap: wrap; padding: 8px 16px; font-size: 11px; }
+    .top-bar .addr { display: none; }
+    header.main { flex-wrap: wrap; padding: 12px 16px; gap: 12px; }
+    .nav { width: 100%; overflow-x: auto; margin-left: 0; }
+    .acct-pill .biz { display: none; }
+    .dash-hero { padding: 28px 16px 70px; }
+    .dash-hero h1 { font-size: 28px; }
+    .dashboard { padding: 0 16px; }
+    .nc-card { grid-template-columns: 1fr; text-align: center; gap: 12px; }
+    .nc-card .nc-ic { margin: 0 auto; }
+    .phase3-card { grid-template-columns: 1fr; padding: 24px; gap: 20px; }
+    footer.site .cols { grid-template-columns: 1fr 1fr; gap: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="demo-strip">
+  <span class="pill">Option 06</span>
+  <span>B2B / Reorder-First — Built for Repeat Business</span>
+  <a href="../index.html">← Back to all options</a>
+</div>
+
+<div class="top-bar">
+  <div class="socials"><a href="#">f</a><a href="#">𝕏</a><a href="#">in</a><a href="#">▶</a></div>
+  <a href="#" class="pref-loc">MY PREFERRED LOCATION →</a>
+  <span class="addr">📍 4024 Washington Ave N · Minneapolis MN 55412</span>
+  <span class="phone">📞 612-870-9008</span>
+</div>
+
+<header class="main">
+  <a class="logo-block" href="#">
+    <svg viewBox="0 0 230 64" xmlns="http://www.w3.org/2000/svg">
+      <g transform="translate(4 4)"><path d="M 28 2 A 26 22 0 1 1 28 50" fill="none" stroke="#1d7a44" stroke-width="5" stroke-linecap="round"/><path d="M 28 2 A 26 22 0 1 0 28 50" fill="none" stroke="#ec7621" stroke-width="5" stroke-linecap="round"/><text x="28" y="40" font-family="Open Sans, sans-serif" font-weight="900" font-size="38" fill="#1d7a44" text-anchor="middle" font-style="italic">M</text></g>
+      <text x="66" y="22" font-family="Open Sans, sans-serif" font-weight="800" font-size="17" fill="#1d7a44" font-style="italic">Minuteman</text>
+      <text x="66" y="40" font-family="Open Sans, sans-serif" font-weight="800" font-size="17" fill="#1d7a44" font-style="italic">Press<tspan font-size="9" dy="-5">®</tspan></text>
+      <text x="66" y="56" font-family="Open Sans, sans-serif" font-weight="700" font-size="7.5" fill="#ec7621" letter-spacing="0.04em">WE DESIGN, PRINT &amp; PROMOTE...YOU!</text>
+    </svg>
+  </a>
+  <nav class="nav">
+    <a href="#" class="current">Dashboard</a>
+    <a href="#">Reorder</a>
+    <a href="#">My Designs</a>
+    <a href="#">Quotes</a>
+    <a href="#">Browse Catalog</a>
+  </nav>
+  <div class="actions">
+    <a class="acct-pill" href="#">
+      <span class="av">SP</span>
+      <span>Sarah Pelletier<span class="biz">Lakeshore Realty</span></span>
+    </a>
+    <a class="icon-btn" href="#">🛒<span class="num">3</span></a>
+  </div>
+</header>
+
+<section class="dash-hero">
+  <div class="dash-hero-inner">
+    <div class="dash-hello">Tuesday · May 14 · 2026</div>
+    <h1>Welcome back, <span class="accent">Sarah.</span></h1>
+    <p class="sub">Your Lakeshore Realty account is up to date. Three jobs ready for reorder, two open quotes, and your team's design library has eight files. Pick up where you left off.</p>
+    <div class="quick-stats">
+      <div class="qstat"><div class="num">47</div><div class="label">Orders this year</div></div>
+      <div class="qstat"><div class="num">$3,240</div><div class="label">Spend MTD</div></div>
+      <div class="qstat"><div class="num">8</div><div class="label">Saved designs</div></div>
+      <div class="qstat"><div class="num">2</div><div class="label">Open quotes</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="dashboard">
+  <div class="dash-grid">
+
+    <!-- BIG PANEL: REORDER PAST JOBS -->
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Reorder past jobs <span class="count">· 4</span></h2>
+        <a href="#">View all orders →</a>
+      </div>
+      <div class="reorder-list">
+
+        <div class="reorder-row">
+          <div class="ro-thumb">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#ede9df"/><g transform="translate(12 32) rotate(-3)"><rect width="76" height="40" fill="white" stroke="#d4d0c4"/><rect width="76" height="12" fill="#0c4a6e"/><text x="38" y="9" font-family="Open Sans, sans-serif" font-weight="900" font-size="5" fill="#fbbf24" text-anchor="middle">LAKESHORE</text></g></svg>
+          </div>
+          <div class="ro-info">
+            <h4>Agent Business Cards · 250 ct</h4>
+            <div class="meta">Last ordered <b>Apr 28, 2026</b> · 14pt Gloss · Lakeshore template</div>
+          </div>
+          <span class="ro-price">$39.00</span>
+          <button class="ro-cta">Reorder ↻</button>
+        </div>
+
+        <div class="reorder-row">
+          <div class="ro-thumb">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#c9d6b9"/><rect x="20" y="32" width="60" height="40" fill="#0c4a6e"/><text x="50" y="50" font-family="Open Sans, sans-serif" font-weight="900" font-size="9" fill="#fbbf24" text-anchor="middle">OPEN HOUSE</text><text x="50" y="62" font-family="Open Sans, sans-serif" font-weight="700" font-size="5" fill="white" text-anchor="middle">SUN 1-3</text><rect x="48" y="72" width="4" height="20" fill="#4a4a4a"/></svg>
+          </div>
+          <div class="ro-info">
+            <h4>Open House Yard Signs · 10 ct</h4>
+            <div class="meta">Last ordered <b>Apr 22, 2026</b> · 4mm Coroplast + H-stakes</div>
+          </div>
+          <span class="ro-price">$240.00</span>
+          <button class="ro-cta">Reorder ↻</button>
+        </div>
+
+        <div class="reorder-row">
+          <div class="ro-thumb">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#ede9df"/><rect x="10" y="20" width="80" height="60" fill="white" stroke="#d4d0c4"/><rect x="10" y="20" width="80" height="18" fill="#0c4a6e"/><text x="50" y="32" font-family="Open Sans, sans-serif" font-weight="900" font-size="6" fill="#fbbf24" text-anchor="middle">JUST LISTED</text><text x="50" y="52" font-family="Open Sans, sans-serif" font-weight="800" font-size="7" fill="#0c4a6e" text-anchor="middle">1234 LAKE ST</text></svg>
+          </div>
+          <div class="ro-info">
+            <h4>Listing Postcards · 100 ct</h4>
+            <div class="meta">Last ordered <b>Apr 14, 2026</b> · 100lb Gloss Cover · Custom address</div>
+          </div>
+          <span class="ro-price">$59.00</span>
+          <button class="ro-cta">Reorder ↻</button>
+        </div>
+
+        <div class="reorder-row">
+          <div class="ro-thumb">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#ede9df"/><g transform="translate(20 16)"><rect width="60" height="68" fill="#0c4a6e"/><rect width="60" height="10" fill="#fbbf24"/><text x="30" y="7" font-family="Open Sans, sans-serif" font-weight="900" font-size="4" fill="#0c4a6e" text-anchor="middle">BROCHURE</text><text x="30" y="32" font-family="Open Sans, sans-serif" font-weight="900" font-size="7" fill="#fbbf24" text-anchor="middle">LAKESHORE</text></g></svg>
+          </div>
+          <div class="ro-info">
+            <h4>Tri-Fold Listing Brochures · 100 ct</h4>
+            <div class="meta">Last ordered <b>Mar 30, 2026</b> · 100lb Gloss · Full color two-sided</div>
+          </div>
+          <span class="ro-price">$129.00</span>
+          <button class="ro-cta">Reorder ↻</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div style="display: flex; flex-direction: column; gap: 18px;">
+
+      <!-- Pending quotes -->
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Pending quotes <span class="count">· 2</span></h2>
+          <a href="#">All quotes →</a>
+        </div>
+        <div class="small-panel-list">
+          <div class="small-row">
+            <div>
+              <b>Custom presentation folders</b>
+              <div class="meta">Quoted Apr 12 · $385 · Foil stamp</div>
+            </div>
+            <span class="quote-status ready">Ready</span>
+          </div>
+          <div class="small-row">
+            <div>
+              <b>Spring open house mailing list</b>
+              <div class="meta">Submitted Apr 14 · 2,500 postcards + EDDM</div>
+            </div>
+            <span class="quote-status pending">Pending</span>
+          </div>
+          <div class="small-row">
+            <div>
+              <b>Closing-gift notecards (logo update)</b>
+              <div class="meta">Submitted Apr 16 · 50 notecards</div>
+            </div>
+            <span class="quote-status review">File review</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Designs on file -->
+      <div class="panel">
+        <div class="panel-head">
+          <h2>My designs on file <span class="count">· 8</span></h2>
+          <a href="#">Manage →</a>
+        </div>
+        <div class="designs-row">
+          <div class="design-thumb">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#ede9df"/><g transform="translate(12 32)"><rect width="76" height="40" fill="white" stroke="#d4d0c4"/><rect width="76" height="12" fill="#0c4a6e"/><text x="38" y="9" font-family="Open Sans, sans-serif" font-weight="900" font-size="5" fill="#fbbf24" text-anchor="middle">LAKESHORE</text></g></svg>
+          </div>
+          <div class="design-thumb">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#c9d6b9"/><rect x="20" y="32" width="60" height="40" fill="#0c4a6e"/><text x="50" y="56" font-family="Open Sans, sans-serif" font-weight="900" font-size="9" fill="#fbbf24" text-anchor="middle">SOLD</text><rect x="48" y="72" width="4" height="20" fill="#4a4a4a"/></svg>
+          </div>
+          <div class="design-thumb">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#ede9df"/><rect x="10" y="20" width="80" height="60" fill="white" stroke="#d4d0c4"/><rect x="10" y="20" width="80" height="14" fill="#0c4a6e"/><text x="50" y="30" font-family="Open Sans, sans-serif" font-weight="900" font-size="5" fill="#fbbf24" text-anchor="middle">OPEN HOUSE</text></svg>
+          </div>
+          <div class="design-thumb">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#ede9df"/><g transform="translate(20 16)"><rect width="60" height="68" fill="#0c4a6e"/><rect width="60" height="10" fill="#fbbf24"/></g></svg>
+          </div>
+          <div class="design-thumb">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#f8f4ec"/><g transform="translate(20 16)"><rect width="60" height="68" fill="white" stroke="#d4d0c4"/><text x="30" y="34" font-family="Georgia, serif" font-weight="700" font-size="9" fill="#0c4a6e" text-anchor="middle">Welcome</text><text x="30" y="50" font-family="Open Sans, sans-serif" font-weight="700" font-size="6" fill="#0c4a6e" text-anchor="middle">Home</text></g></svg>
+          </div>
+          <div class="design-thumb">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#ede9df"/><rect x="20" y="20" width="60" height="60" fill="#fbbf24"/><text x="50" y="56" font-family="Open Sans, sans-serif" font-weight="900" font-size="14" fill="#0c4a6e" text-anchor="middle">LR</text></svg>
+          </div>
+          <div class="design-thumb">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#c9d6b9"/><rect x="20" y="32" width="60" height="40" fill="#0c4a6e"/><text x="50" y="52" font-family="Open Sans, sans-serif" font-weight="800" font-size="7" fill="#fbbf24" text-anchor="middle">COMING SOON</text></svg>
+          </div>
+          <div class="design-thumb">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#ede9df"/><g transform="translate(20 28)"><rect width="60" height="44" fill="white" stroke="#d4d0c4"/><text x="30" y="22" font-family="Open Sans, sans-serif" font-weight="800" font-size="6" fill="#0c4a6e" text-anchor="middle">DOOR HANGER</text></g></svg>
+          </div>
+        </div>
+        <div class="designs-foot"><a href="#">Upload a new design →</a></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="quick-actions">
+    <a class="qa-tile" href="#">
+      <span class="ic">📦</span>
+      <h5>Quick reorder</h5>
+      <p>One-click reorder of any past job</p>
+    </a>
+    <a class="qa-tile" href="#">
+      <span class="ic">📤</span>
+      <h5>Send a file</h5>
+      <p>Upload a new design for review</p>
+    </a>
+    <a class="qa-tile" href="#">
+      <span class="ic">💬</span>
+      <h5>Request a quote</h5>
+      <p>Custom job, custom spec</p>
+    </a>
+    <a class="qa-tile" href="#">
+      <span class="ic">🛍</span>
+      <h5>Browse catalog</h5>
+      <p>Find something new for your team</p>
+    </a>
+  </div>
+
+</div>
+
+<section class="new-customer">
+  <div class="nc-card">
+    <div class="nc-ic">👋</div>
+    <div>
+      <h3>First time ordering with us?</h3>
+      <p>This dashboard is for returning Minuteman customers. New to the shop? Skip the login and start a fresh order — we'll set up your account at checkout.</p>
+    </div>
+    <a href="#">Start fresh →</a>
+  </div>
+</section>
+
+<section class="phase3">
+  <div class="phase3-card">
+    <div>
+      <h3>This dashboard could be your team's. <span class="accent">In your colors. At your URL.</span></h3>
+      <p>Sarah's dashboard above is real — Lakeshore Realty is one of our branded-storefront customers. Your real estate office, HR team, church, or insurance brokerage can have the same: own logo, own templates, own pricing, own reorder history. Your people log in and order; we print and bill direct.</p>
+      <button class="btn btn-primary">TALK TO FRANK ABOUT IT →</button>
+    </div>
+    <div class="phase3-tiers">
+      <div class="p3-tier"><span class="t-label">TIER 1 · STARTER</span><span class="t-desc">Up to 6 products · path URL · footer credit</span><span class="t-price">$300<span style="font-size:11px;font-weight:600;opacity:0.7;">/mo</span></span></div>
+      <div class="p3-tier"><span class="t-label">TIER 2 · BRANDED</span><span class="t-desc">Up to 15 products · full brand control · no footer</span><span class="t-price">$500<span style="font-size:11px;font-weight:600;opacity:0.7;">/mo</span></span></div>
+      <div class="p3-tier"><span class="t-label">TIER 3 · ENTERPRISE</span><span class="t-desc">Unlimited · custom subdomain · approval workflows · SSO</span><span class="t-price">$850<span style="font-size:11px;font-weight:600;opacity:0.7;">/mo</span></span></div>
+    </div>
+  </div>
+</section>
+
+<footer class="site">
+  <div class="cols">
+    <div>
+      <h5>Minuteman Press Uptown</h5>
+      <p>4024 Washington Ave N<br>Minneapolis, MN 55412<br>612-870-9008</p>
+      <p style="margin-top:10px;font-style:italic;color:#ec7621;">We Design, Print &amp; Promote...YOU!</p>
+    </div>
+    <div>
+      <h5>My Account</h5>
+      <a href="#">Dashboard</a>
+      <a href="#">Order History</a>
+      <a href="#">My Designs</a>
+      <a href="#">Pending Quotes</a>
+      <a href="#">Billing</a>
+    </div>
+    <div>
+      <h5>Order Help</h5>
+      <a href="#">Quick Reorder</a>
+      <a href="#">Send Files</a>
+      <a href="#">Get a Quote</a>
+      <a href="#">Browse Catalog</a>
+    </div>
+    <div>
+      <h5>Hours</h5>
+      <p>Mon–Fri 8a–5:30p<br>Sat 10a–2p<br>Sun closed</p>
+    </div>
+  </div>
+  <div class="legal">
+    <span>© 2026 I A Z Corporation dba Minuteman Press Uptown</span><span class="sep">·</span>
+    <span>Site built by <b>CARES Consulting</b></span><span class="sep">·</span>
+    <a href="#" style="display:inline;color:rgba(255,255,255,0.6);">Privacy</a><span class="sep">·</span>
+    <a href="#" style="display:inline;color:rgba(255,255,255,0.6);">Terms</a>
+  </div>
+</footer>
+
+<script src="https://chat.karikounkel.com/widget.js" defer></script>
+</body>
+</html>

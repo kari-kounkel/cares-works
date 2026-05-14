@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minuteman Press Uptown — Option 2: Use-Case Driven</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #1d7a44; --green-deep: #155a32; --green-light: #e8f3ed;
+    --orange: #ec7621; --orange-deep: #c75e15; --orange-light: #fbe6d4;
+    --ink: #2c2c2c; --ink-soft: #555; --ink-fade: #888;
+    --bg: #f5f4f0; --bg-deep: #e9e6dd; --white: #ffffff;
+    --rule: #ddd; --rule-soft: #ececec;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Open Sans', sans-serif; background: var(--white); color: var(--ink); line-height: 1.5; font-size: 14px; }
+  a { color: var(--green); text-decoration: none; }
+  a:hover { color: var(--green-deep); }
+
+  .demo-strip { background: var(--ink); color: var(--white); padding: 8px 24px; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 700; display: flex; gap: 14px; align-items: center; }
+  .demo-strip .pill { background: var(--orange); padding: 3px 9px; border-radius: 3px; }
+  .demo-strip a { color: var(--white); margin-left: auto; opacity: 0.7; }
+  .demo-strip a:hover { opacity: 1; color: var(--orange); }
+
+  .top-bar { background: var(--green); color: var(--white); padding: 9px 32px; display: flex; align-items: center; gap: 16px; font-size: 12px; }
+  .top-bar .addr { display: flex; align-items: center; gap: 6px; }
+  .top-bar .phone { font-weight: 700; font-size: 13px; }
+  .top-bar .socials { display: flex; gap: 6px; margin-right: auto; }
+  .top-bar .socials a { color: var(--white); width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.4); border-radius: 50%; font-size: 11px; font-weight: 700; }
+  .top-bar .pref-loc { background: rgba(0,0,0,0.18); padding: 4px 12px; border-radius: 3px; font-weight: 600; }
+
+  header.main { background: var(--white); border-bottom: 1px solid var(--rule); padding: 14px 32px; display: flex; align-items: center; gap: 24px; }
+  .logo-block { display: flex; align-items: center; }
+  .logo-block svg { height: 56px; width: auto; display: block; }
+  .nav { display: flex; gap: 4px; margin-left: 30px; }
+  .nav a { padding: 12px 16px; font-size: 13px; font-weight: 700; color: var(--ink); text-transform: uppercase; letter-spacing: 0.04em; border-radius: 4px; transition: background 0.15s; }
+  .nav a:hover { background: var(--green-light); color: var(--green-deep); }
+  .nav a.current { background: var(--green); color: white; }
+  .actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .actions .icon-btn { width: 40px; height: 40px; border: 1px solid var(--rule); background: white; border-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; position: relative; }
+  .actions .icon-btn:hover { border-color: var(--green); color: var(--green); }
+  .actions .icon-btn .num { position: absolute; top: -4px; right: -4px; background: var(--orange); color: white; font-size: 10px; font-weight: 800; padding: 1px 6px; border-radius: 999px; }
+  .search-form { display: flex; align-items: center; background: var(--bg); border: 1px solid var(--rule); border-radius: 4px; padding: 0 0 0 12px; height: 40px; min-width: 220px; }
+  .search-form input { border: none; background: transparent; flex: 1; font-family: inherit; font-size: 13px; padding: 0 8px; outline: none; }
+  .search-form button { background: var(--green); color: white; border: none; width: 40px; height: 40px; cursor: pointer; border-radius: 0 3px 3px 0; font-size: 16px; }
+
+  .question-hero {
+    background: linear-gradient(135deg, var(--green) 0%, var(--green-deep) 100%);
+    color: white;
+    padding: 80px 32px 56px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .question-hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(45deg, transparent, transparent 18px, rgba(255,255,255,0.03) 18px, rgba(255,255,255,0.03) 36px);
+    pointer-events: none;
+  }
+  .question-hero .pre { color: var(--orange); font-size: 12px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 14px; position: relative; }
+  .question-hero h1 { font-size: 48px; font-weight: 900; line-height: 1.05; letter-spacing: -0.025em; margin-bottom: 18px; position: relative; }
+  .question-hero h1 .accent { color: var(--orange); font-style: italic; }
+  .question-hero .lede { font-size: 16px; color: rgba(255,255,255,0.85); max-width: 640px; margin: 0 auto; line-height: 1.6; position: relative; }
+
+  .paths {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    padding: 0 32px;
+    max-width: 1300px;
+    margin: -40px auto 0;
+    position: relative;
+    z-index: 1;
+  }
+  .path-card {
+    background: var(--white);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 28px 30px 26px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: grid;
+    grid-template-columns: 64px 1fr auto;
+    align-items: start;
+    gap: 22px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+  }
+  .path-card:hover { border-color: var(--orange); transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,0.1); }
+  .path-icon {
+    width: 64px; height: 64px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 30px; color: white;
+    background: linear-gradient(135deg, var(--green) 0%, var(--green-deep) 100%);
+  }
+  .path-card[data-p="2"] .path-icon { background: linear-gradient(135deg, var(--orange) 0%, var(--orange-deep) 100%); }
+  .path-card[data-p="3"] .path-icon { background: linear-gradient(135deg, #c75e15 0%, #8c4210 100%); }
+  .path-card[data-p="4"] .path-icon { background: linear-gradient(135deg, var(--ink) 0%, #1a1a1a 100%); }
+  .path-info h3 { font-size: 22px; font-weight: 800; color: var(--ink); letter-spacing: -0.01em; margin-bottom: 6px; line-height: 1.15; }
+  .path-info .desc { font-size: 13px; color: var(--ink-soft); line-height: 1.55; margin-bottom: 12px; }
+  .path-items { display: flex; flex-wrap: wrap; gap: 5px; }
+  .path-item { font-size: 11px; font-weight: 600; padding: 4px 9px; background: var(--bg); color: var(--ink); border-radius: 3px; letter-spacing: 0.02em; }
+  .path-arrow {
+    font-size: 22px; color: var(--green); align-self: center;
+    transition: transform 0.2s;
+  }
+  .path-card:hover .path-arrow { transform: translateX(4px); color: var(--orange); }
+
+  .or-strip {
+    text-align: center;
+    padding: 52px 32px 14px;
+    color: var(--ink-fade);
+    font-size: 13px;
+    max-width: 1300px;
+    margin: 0 auto;
+  }
+  .or-strip a { font-weight: 700; color: var(--green); }
+  .or-strip a:hover { color: var(--orange); }
+
+  .browse-grid {
+    display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px;
+    padding: 14px 32px 48px; max-width: 1300px; margin: 0 auto;
+  }
+  .browse-tile {
+    background: var(--bg); border: 1px solid var(--rule); border-radius: 4px;
+    padding: 18px 14px; text-align: center; cursor: pointer; transition: all 0.15s;
+    text-decoration: none;
+  }
+  .browse-tile:hover { background: var(--green-light); border-color: var(--green); }
+  .browse-tile .ic { font-size: 26px; margin-bottom: 6px; display: block; }
+  .browse-tile h4 { font-size: 12px; font-weight: 700; color: var(--ink); letter-spacing: 0.02em; }
+
+  .phase3 { padding: 48px 32px; background: var(--bg); }
+  .phase3-card { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1.3fr 1fr; gap: 32px; background: var(--ink); color: white; border-radius: 8px; padding: 36px 40px; align-items: center; }
+  .phase3-card h3 { font-size: 26px; font-weight: 800; color: white; margin-bottom: 10px; letter-spacing: -0.01em; line-height: 1.15; }
+  .phase3-card h3 .accent { color: var(--orange); }
+  .phase3-card p { font-size: 14px; color: rgba(255,255,255,0.78); line-height: 1.55; margin-bottom: 18px; }
+  .phase3-tiers { display: flex; flex-direction: column; gap: 8px; }
+  .p3-tier { display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: center; background: rgba(255,255,255,0.08); padding: 12px 16px; border-radius: 4px; }
+  .p3-tier .t-label { font-weight: 800; font-size: 11px; letter-spacing: 0.08em; color: var(--orange); }
+  .p3-tier .t-desc { font-size: 12px; color: rgba(255,255,255,0.78); }
+  .p3-tier .t-price { font-weight: 800; font-size: 15px; color: white; }
+  .btn { display: inline-flex; align-items: center; padding: 13px 22px; font-size: 13px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; border-radius: 4px; cursor: pointer; transition: all 0.15s; border: none; font-family: inherit; }
+  .btn-primary { background: var(--orange); color: white; }
+  .btn-primary:hover { background: var(--orange-deep); }
+
+  footer.site { background: var(--ink); color: rgba(255,255,255,0.8); padding: 40px 32px 24px; }
+  footer.site .cols { max-width: 1300px; margin: 0 auto; display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 32px; padding-bottom: 28px; border-bottom: 1px solid rgba(255,255,255,0.12); }
+  footer.site h5 { font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--orange); margin-bottom: 12px; }
+  footer.site p, footer.site a { font-size: 13px; color: rgba(255,255,255,0.78); line-height: 1.7; }
+  footer.site a { display: block; }
+  footer.site a:hover { color: var(--orange); }
+  footer.site .legal { max-width: 1300px; margin: 0 auto; padding-top: 20px; font-size: 12px; color: rgba(255,255,255,0.45); display: flex; gap: 16px; flex-wrap: wrap; }
+  footer.site .legal b { color: var(--green); }
+  footer.site .legal .sep { color: rgba(255,255,255,0.2); }
+
+  @media (max-width: 900px) {
+    .top-bar { flex-wrap: wrap; padding: 8px 16px; font-size: 11px; }
+    .top-bar .addr { display: none; }
+    header.main { flex-wrap: wrap; padding: 12px 16px; gap: 12px; }
+    .nav { width: 100%; overflow-x: auto; margin-left: 0; }
+    .search-form { min-width: 100%; }
+    .question-hero { padding: 56px 20px 56px; }
+    .question-hero h1 { font-size: 32px; }
+    .paths { grid-template-columns: 1fr; padding: 0 16px; margin-top: -28px; }
+    .browse-grid { grid-template-columns: repeat(3, 1fr); padding: 12px 16px 36px; }
+    .phase3-card { grid-template-columns: 1fr; padding: 24px; gap: 20px; }
+    footer.site .cols { grid-template-columns: 1fr 1fr; gap: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="demo-strip">
+  <span class="pill">Option 02</span>
+  <span>Use-Case Driven — "What Are You Working On?"</span>
+  <a href="../index.html">← Back to all options</a>
+</div>
+
+<div class="top-bar">
+  <div class="socials"><a href="#">f</a><a href="#">𝕏</a><a href="#">in</a><a href="#">▶</a></div>
+  <a href="#" class="pref-loc">MY PREFERRED LOCATION →</a>
+  <span class="addr">📍 4024 Washington Ave N · Minneapolis MN 55412</span>
+  <span class="phone">📞 612-870-9008</span>
+</div>
+
+<header class="main">
+  <a class="logo-block" href="#">
+    <svg viewBox="0 0 230 64" xmlns="http://www.w3.org/2000/svg">
+      <g transform="translate(4 4)"><path d="M 28 2 A 26 22 0 1 1 28 50" fill="none" stroke="#1d7a44" stroke-width="5" stroke-linecap="round"/><path d="M 28 2 A 26 22 0 1 0 28 50" fill="none" stroke="#ec7621" stroke-width="5" stroke-linecap="round"/><text x="28" y="40" font-family="Open Sans, sans-serif" font-weight="900" font-size="38" fill="#1d7a44" text-anchor="middle" font-style="italic">M</text></g>
+      <text x="66" y="22" font-family="Open Sans, sans-serif" font-weight="800" font-size="17" fill="#1d7a44" font-style="italic">Minuteman</text>
+      <text x="66" y="40" font-family="Open Sans, sans-serif" font-weight="800" font-size="17" fill="#1d7a44" font-style="italic">Press<tspan font-size="9" dy="-5">®</tspan></text>
+      <text x="66" y="56" font-family="Open Sans, sans-serif" font-weight="700" font-size="7.5" fill="#ec7621" letter-spacing="0.04em">WE DESIGN, PRINT &amp; PROMOTE...YOU!</text>
+    </svg>
+  </a>
+  <nav class="nav">
+    <a href="#" class="current">Start a Project</a>
+    <a href="#">Shop All</a>
+    <a href="#">Get a Quote</a>
+    <a href="#">About</a>
+    <a href="#">Contact</a>
+  </nav>
+  <div class="actions">
+    <form class="search-form" onsubmit="return false;">
+      <input type="text" placeholder="Search...">
+      <button type="submit">🔍</button>
+    </form>
+    <a class="icon-btn" href="#">👤</a>
+    <a class="icon-btn" href="#">🛒<span class="num">2</span></a>
+  </div>
+</header>
+
+<section class="question-hero">
+  <div class="pre">Tell us where you're starting</div>
+  <h1>What are <span class="accent">you</span> working on?</h1>
+  <p class="lede">Skip the SKU hunt. Tell us what project you're tackling and we'll show you exactly what you need — with bundle pricing, a recommended quantity, and templates pre-loaded.</p>
+</section>
+
+<div class="paths">
+
+  <div class="path-card" data-p="1">
+    <div class="path-icon">🚀</div>
+    <div class="path-info">
+      <h3>Starting a business</h3>
+      <p class="desc">New LLC, new shop, new hustle. Get the print kit that makes it look real on day one.</p>
+      <div class="path-items">
+        <span class="path-item">Business cards (250)</span>
+        <span class="path-item">Letterhead set</span>
+        <span class="path-item">Window cling</span>
+        <span class="path-item">Flyers (100)</span>
+        <span class="path-item">Stickers</span>
+      </div>
+    </div>
+    <div class="path-arrow">→</div>
+  </div>
+
+  <div class="path-card" data-p="2">
+    <div class="path-icon">💐</div>
+    <div class="path-info">
+      <h3>Planning a wedding</h3>
+      <p class="desc">Save-the-dates to thank-yous. The full paper trail for the whole event.</p>
+      <div class="path-items">
+        <span class="path-item">Invitation suite</span>
+        <span class="path-item">RSVP cards</span>
+        <span class="path-item">Programs</span>
+        <span class="path-item">Place cards</span>
+        <span class="path-item">Event signage</span>
+      </div>
+    </div>
+    <div class="path-arrow">→</div>
+  </div>
+
+  <div class="path-card" data-p="3">
+    <div class="path-icon">🏪</div>
+    <div class="path-info">
+      <h3>Opening a store</h3>
+      <p class="desc">Brick-and-mortar launch kit. Get people through the door and shopping by Saturday.</p>
+      <div class="path-items">
+        <span class="path-item">Grand opening banner</span>
+        <span class="path-item">Yard signs</span>
+        <span class="path-item">Postcards (500)</span>
+        <span class="path-item">Window vinyl</span>
+        <span class="path-item">Staff t-shirts</span>
+      </div>
+    </div>
+    <div class="path-arrow">→</div>
+  </div>
+
+  <div class="path-card" data-p="4">
+    <div class="path-icon">🎤</div>
+    <div class="path-info">
+      <h3>Running an event</h3>
+      <p class="desc">Conference, gala, fundraiser, festival. Wayfinding, programs, name badges, the works.</p>
+      <div class="path-items">
+        <span class="path-item">Event programs</span>
+        <span class="path-item">Name badges</span>
+        <span class="path-item">Posters 24×36</span>
+        <span class="path-item">Floor stickers</span>
+        <span class="path-item">Banner stands</span>
+      </div>
+    </div>
+    <div class="path-arrow">→</div>
+  </div>
+
+</div>
+
+<p class="or-strip">— or — <a href="#">browse our full catalog by product type ↓</a></p>
+
+<div class="browse-grid">
+  <a class="browse-tile" href="#"><span class="ic">🪪</span><h4>Business Cards</h4></a>
+  <a class="browse-tile" href="#"><span class="ic">📋</span><h4>Flyers</h4></a>
+  <a class="browse-tile" href="#"><span class="ic">📭</span><h4>Postcards</h4></a>
+  <a class="browse-tile" href="#"><span class="ic">🪧</span><h4>Yard Signs</h4></a>
+  <a class="browse-tile" href="#"><span class="ic">📐</span><h4>Banners</h4></a>
+  <a class="browse-tile" href="#"><span class="ic">👕</span><h4>Apparel</h4></a>
+  <a class="browse-tile" href="#"><span class="ic">📚</span><h4>Booklets</h4></a>
+  <a class="browse-tile" href="#"><span class="ic">📄</span><h4>Letterhead</h4></a>
+  <a class="browse-tile" href="#"><span class="ic">✉️</span><h4>Envelopes</h4></a>
+  <a class="browse-tile" href="#"><span class="ic">🎟</span><h4>Tickets</h4></a>
+  <a class="browse-tile" href="#"><span class="ic">🏷</span><h4>Stickers</h4></a>
+  <a class="browse-tile" href="#"><span class="ic">🖼</span><h4>Posters</h4></a>
+</div>
+
+<section class="phase3">
+  <div class="phase3-card">
+    <div>
+      <h3>Got a team that orders the same stuff over and over? <span class="accent">Give them their own store.</span></h3>
+      <p>Real estate office, HR department, church, insurance brokerage — we'll spin up a branded storefront for your organization. Your colors, your logo, your approved templates. Your people order pre-approved materials, we print and bill direct to your account.</p>
+      <button class="btn btn-primary">TALK TO FRANK ABOUT IT →</button>
+    </div>
+    <div class="phase3-tiers">
+      <div class="p3-tier"><span class="t-label">TIER 1 · STARTER</span><span class="t-desc">Up to 6 products · path URL · footer credit</span><span class="t-price">$300<span style="font-size:11px;font-weight:600;opacity:0.7;">/mo</span></span></div>
+      <div class="p3-tier"><span class="t-label">TIER 2 · BRANDED</span><span class="t-desc">Up to 15 products · full brand control · no footer</span><span class="t-price">$500<span style="font-size:11px;font-weight:600;opacity:0.7;">/mo</span></span></div>
+      <div class="p3-tier"><span class="t-label">TIER 3 · ENTERPRISE</span><span class="t-desc">Unlimited · custom subdomain · approval workflows · SSO</span><span class="t-price">$850<span style="font-size:11px;font-weight:600;opacity:0.7;">/mo</span></span></div>
+    </div>
+  </div>
+</section>
+
+<footer class="site">
+  <div class="cols">
+    <div>
+      <h5>Minuteman Press Uptown</h5>
+      <p>4024 Washington Ave N<br>Minneapolis, MN 55412<br>612-870-9008</p>
+      <p style="margin-top:10px;font-style:italic;color:#ec7621;">We Design, Print &amp; Promote...YOU!</p>
+    </div>
+    <div>
+      <h5>Start a Project</h5>
+      <a href="#">Starting a business</a>
+      <a href="#">Planning a wedding</a>
+      <a href="#">Opening a store</a>
+      <a href="#">Running an event</a>
+      <a href="#">Other</a>
+    </div>
+    <div>
+      <h5>Help</h5>
+      <a href="#">Get a Quote</a>
+      <a href="#">Send Files</a>
+      <a href="#">File Setup Guide</a>
+      <a href="#">Pickup &amp; Shipping</a>
+      <a href="#">Refunds</a>
+    </div>
+    <div>
+      <h5>Hours</h5>
+      <p>Mon–Fri 8a–5:30p<br>Sat 10a–2p<br>Sun closed</p>
+    </div>
+  </div>
+  <div class="legal">
+    <span>© 2026 I A Z Corporation dba Minuteman Press Uptown</span><span class="sep">·</span>
+    <span>Site built by <b>CARES Consulting</b></span><span class="sep">·</span>
+    <a href="#" style="display:inline;color:rgba(255,255,255,0.6);">Privacy</a><span class="sep">·</span>
+    <a href="#" style="display:inline;color:rgba(255,255,255,0.6);">Terms</a>
+  </div>
+</footer>
+
+<script src="https://chat.karikounkel.com/widget.js" defer></script>
+</body>
+</html>

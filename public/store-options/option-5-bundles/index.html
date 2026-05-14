@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minuteman Press Uptown — Option 5: Bundles &amp; Packages</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #1d7a44; --green-deep: #155a32; --green-light: #e8f3ed;
+    --orange: #ec7621; --orange-deep: #c75e15; --orange-light: #fbe6d4;
+    --ink: #2c2c2c; --ink-soft: #555; --ink-fade: #888;
+    --bg: #f5f4f0; --bg-deep: #e9e6dd; --white: #ffffff;
+    --rule: #ddd; --rule-soft: #ececec;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Open Sans', sans-serif; background: var(--white); color: var(--ink); line-height: 1.5; font-size: 14px; }
+  a { color: var(--green); text-decoration: none; }
+  a:hover { color: var(--green-deep); }
+
+  .demo-strip { background: var(--ink); color: var(--white); padding: 8px 24px; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 700; display: flex; gap: 14px; align-items: center; }
+  .demo-strip .pill { background: var(--orange); padding: 3px 9px; border-radius: 3px; }
+  .demo-strip a { color: var(--white); margin-left: auto; opacity: 0.7; }
+  .demo-strip a:hover { opacity: 1; color: var(--orange); }
+
+  .top-bar { background: var(--green); color: var(--white); padding: 9px 32px; display: flex; align-items: center; gap: 16px; font-size: 12px; }
+  .top-bar .addr { display: flex; align-items: center; gap: 6px; }
+  .top-bar .phone { font-weight: 700; font-size: 13px; }
+  .top-bar .socials { display: flex; gap: 6px; margin-right: auto; }
+  .top-bar .socials a { color: var(--white); width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.4); border-radius: 50%; font-size: 11px; font-weight: 700; }
+  .top-bar .pref-loc { background: rgba(0,0,0,0.18); padding: 4px 12px; border-radius: 3px; font-weight: 600; }
+
+  header.main { background: var(--white); border-bottom: 1px solid var(--rule); padding: 14px 32px; display: flex; align-items: center; gap: 24px; }
+  .logo-block { display: flex; align-items: center; }
+  .logo-block svg { height: 56px; width: auto; display: block; }
+  .nav { display: flex; gap: 4px; margin-left: 30px; }
+  .nav a { padding: 12px 16px; font-size: 13px; font-weight: 700; color: var(--ink); text-transform: uppercase; letter-spacing: 0.04em; border-radius: 4px; transition: background 0.15s; }
+  .nav a:hover { background: var(--green-light); color: var(--green-deep); }
+  .nav a.current { background: var(--green); color: white; }
+  .actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .actions .icon-btn { width: 40px; height: 40px; border: 1px solid var(--rule); background: white; border-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; position: relative; }
+  .actions .icon-btn:hover { border-color: var(--green); color: var(--green); }
+  .actions .icon-btn .num { position: absolute; top: -4px; right: -4px; background: var(--orange); color: white; font-size: 10px; font-weight: 800; padding: 1px 6px; border-radius: 999px; }
+  .search-form { display: flex; align-items: center; background: var(--bg); border: 1px solid var(--rule); border-radius: 4px; padding: 0 0 0 12px; height: 40px; min-width: 220px; }
+  .search-form input { border: none; background: transparent; flex: 1; font-family: inherit; font-size: 13px; padding: 0 8px; outline: none; }
+  .search-form button { background: var(--green); color: white; border: none; width: 40px; height: 40px; cursor: pointer; border-radius: 0 3px 3px 0; font-size: 16px; }
+
+  .bundle-hero {
+    padding: 72px 32px 56px;
+    background: linear-gradient(135deg, var(--orange) 0%, var(--orange-deep) 100%);
+    color: white;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .bundle-hero::after {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: repeating-linear-gradient(45deg, transparent, transparent 18px, rgba(255,255,255,0.03) 18px, rgba(255,255,255,0.03) 36px);
+    pointer-events: none;
+  }
+  .bundle-hero .eyebrow { font-size: 12px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.85); margin-bottom: 14px; position: relative; }
+  .bundle-hero h1 { font-size: 50px; font-weight: 900; letter-spacing: -0.025em; line-height: 1.02; margin-bottom: 18px; position: relative; }
+  .bundle-hero h1 .accent { font-style: italic; color: var(--ink); }
+  .bundle-hero .lede { font-size: 17px; color: rgba(255,255,255,0.92); max-width: 660px; margin: 0 auto; line-height: 1.6; position: relative; }
+  .bundle-hero .stats { display: flex; gap: 32px; justify-content: center; margin-top: 28px; position: relative; }
+  .stat-block .num { font-size: 32px; font-weight: 900; color: white; }
+  .stat-block .num small { font-size: 18px; opacity: 0.7; font-weight: 700; }
+  .stat-block .label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.85); margin-top: 4px; }
+
+  .bundles-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    padding: 56px 32px 48px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  .bundle-card {
+    background: var(--white);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  .bundle-card:hover { border-color: var(--orange); transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.1); }
+  .bundle-card.featured { border: 2px solid var(--green); }
+  .bundle-card.featured::before {
+    content: 'MOST POPULAR';
+    position: absolute; top: 14px; right: 14px;
+    background: var(--green); color: white;
+    font-size: 9px; font-weight: 800; letter-spacing: 0.1em;
+    padding: 4px 9px; border-radius: 3px; z-index: 2;
+  }
+  .bundle-banner {
+    aspect-ratio: 16/8;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--green) 0%, var(--green-deep) 100%);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 24px 26px;
+  }
+  .bundle-banner::after {
+    content: ''; position: absolute; inset: 0;
+    background-image: repeating-linear-gradient(45deg, transparent, transparent 14px, rgba(255,255,255,0.04) 14px, rgba(255,255,255,0.04) 28px);
+    pointer-events: none;
+  }
+  .bundle-card[data-b="2"] .bundle-banner { background: linear-gradient(135deg, var(--orange) 0%, var(--orange-deep) 100%); }
+  .bundle-card[data-b="3"] .bundle-banner { background: linear-gradient(135deg, #5b4636 0%, #3a2d22 100%); }
+  .bundle-card[data-b="4"] .bundle-banner { background: linear-gradient(135deg, var(--ink) 0%, #1a1a1a 100%); }
+  .bundle-card[data-b="5"] .bundle-banner { background: linear-gradient(135deg, #155a32 0%, #0d3d22 100%); }
+  .bundle-card[data-b="6"] .bundle-banner { background: linear-gradient(135deg, #c75e15 0%, #8c4210 100%); }
+  .bundle-tag { font-size: 10px; font-weight: 800; letter-spacing: 0.18em; color: rgba(255,255,255,0.7); margin-bottom: 4px; position: relative; }
+  .bundle-name { font-size: 24px; font-weight: 900; line-height: 1.1; letter-spacing: -0.01em; color: white; position: relative; margin-bottom: 6px; }
+  .bundle-sub { font-size: 12px; color: rgba(255,255,255,0.78); position: relative; }
+
+  .bundle-body { padding: 22px 26px 24px; flex: 1; display: flex; flex-direction: column; }
+  .bundle-includes { font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 10px; }
+  .bundle-list { margin-bottom: 18px; }
+  .bundle-list li { list-style: none; padding: 7px 0; font-size: 13px; color: var(--ink); border-bottom: 1px dashed var(--rule-soft); display: flex; align-items: baseline; gap: 8px; }
+  .bundle-list li:last-child { border-bottom: none; }
+  .bundle-list li::before { content: '✓'; color: var(--green); font-weight: 800; flex-shrink: 0; }
+  .bundle-list li .qty { color: var(--ink-fade); font-size: 11px; margin-left: auto; white-space: nowrap; }
+  .bundle-price-row {
+    display: flex; align-items: baseline; gap: 10px;
+    padding-top: 14px; border-top: 2px solid var(--rule-soft);
+    margin-top: auto;
+  }
+  .bundle-price { font-size: 32px; font-weight: 900; color: var(--green); letter-spacing: -0.02em; }
+  .bundle-was { font-size: 14px; color: var(--ink-fade); text-decoration: line-through; }
+  .bundle-savings {
+    margin-left: auto;
+    background: var(--green-light); color: var(--green-deep);
+    font-size: 11px; font-weight: 800; letter-spacing: 0.04em;
+    padding: 5px 9px; border-radius: 3px; text-transform: uppercase;
+  }
+  .bundle-cta {
+    margin-top: 14px;
+    width: 100%; background: var(--orange); color: white;
+    border: none; padding: 13px; cursor: pointer; border-radius: 4px;
+    font-family: inherit; font-size: 13px; font-weight: 800;
+    letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .bundle-cta:hover { background: var(--orange-deep); }
+
+  .build-your-own {
+    background: var(--bg);
+    padding: 48px 32px;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    text-align: center;
+  }
+  .build-your-own h2 { font-size: 26px; font-weight: 800; color: var(--ink); margin-bottom: 8px; letter-spacing: -0.01em; }
+  .build-your-own p { font-size: 14px; color: var(--ink-soft); max-width: 540px; margin: 0 auto 18px; line-height: 1.55; }
+  .build-cta { display: inline-flex; align-items: center; gap: 8px; background: var(--white); color: var(--ink); border: 2px solid var(--ink); padding: 14px 26px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; font-size: 13px; border-radius: 4px; cursor: pointer; transition: all 0.15s; font-family: inherit; }
+  .build-cta:hover { background: var(--ink); color: white; }
+
+  .phase3 { padding: 48px 32px; background: var(--white); }
+  .phase3-card { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1.3fr 1fr; gap: 32px; background: var(--ink); color: white; border-radius: 8px; padding: 36px 40px; align-items: center; }
+  .phase3-card h3 { font-size: 26px; font-weight: 800; color: white; margin-bottom: 10px; letter-spacing: -0.01em; line-height: 1.15; }
+  .phase3-card h3 .accent { color: var(--orange); }
+  .phase3-card p { font-size: 14px; color: rgba(255,255,255,0.78); line-height: 1.55; margin-bottom: 18px; }
+  .phase3-tiers { display: flex; flex-direction: column; gap: 8px; }
+  .p3-tier { display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: center; background: rgba(255,255,255,0.08); padding: 12px 16px; border-radius: 4px; }
+  .p3-tier .t-label { font-weight: 800; font-size: 11px; letter-spacing: 0.08em; color: var(--orange); }
+  .p3-tier .t-desc { font-size: 12px; color: rgba(255,255,255,0.78); }
+  .p3-tier .t-price { font-weight: 800; font-size: 15px; color: white; }
+  .btn { display: inline-flex; align-items: center; padding: 13px 22px; font-size: 13px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; border-radius: 4px; cursor: pointer; transition: all 0.15s; border: none; font-family: inherit; }
+  .btn-primary { background: var(--orange); color: white; }
+  .btn-primary:hover { background: var(--orange-deep); }
+
+  footer.site { background: var(--ink); color: rgba(255,255,255,0.8); padding: 40px 32px 24px; }
+  footer.site .cols { max-width: 1300px; margin: 0 auto; display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 32px; padding-bottom: 28px; border-bottom: 1px solid rgba(255,255,255,0.12); }
+  footer.site h5 { font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--orange); margin-bottom: 12px; }
+  footer.site p, footer.site a { font-size: 13px; color: rgba(255,255,255,0.78); line-height: 1.7; }
+  footer.site a { display: block; }
+  footer.site a:hover { color: var(--orange); }
+  footer.site .legal { max-width: 1300px; margin: 0 auto; padding-top: 20px; font-size: 12px; color: rgba(255,255,255,0.45); display: flex; gap: 16px; flex-wrap: wrap; }
+  footer.site .legal b { color: var(--green); }
+  footer.site .legal .sep { color: rgba(255,255,255,0.2); }
+
+  @media (max-width: 1100px) {
+    .bundles-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 900px) {
+    .top-bar { flex-wrap: wrap; padding: 8px 16px; font-size: 11px; }
+    .top-bar .addr { display: none; }
+    header.main { flex-wrap: wrap; padding: 12px 16px; gap: 12px; }
+    .nav { width: 100%; overflow-x: auto; margin-left: 0; }
+    .search-form { min-width: 100%; }
+    .bundle-hero { padding: 48px 20px 40px; }
+    .bundle-hero h1 { font-size: 32px; }
+    .bundle-hero .stats { flex-wrap: wrap; gap: 18px; }
+    .bundles-grid { grid-template-columns: 1fr; padding: 32px 16px 36px; }
+    .phase3-card { grid-template-columns: 1fr; padding: 24px; gap: 20px; }
+    footer.site .cols { grid-template-columns: 1fr 1fr; gap: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="demo-strip">
+  <span class="pill">Option 05</span>
+  <span>Bundles &amp; Packages — Sell the Solution, Not the SKU</span>
+  <a href="../index.html">← Back to all options</a>
+</div>
+
+<div class="top-bar">
+  <div class="socials"><a href="#">f</a><a href="#">𝕏</a><a href="#">in</a><a href="#">▶</a></div>
+  <a href="#" class="pref-loc">MY PREFERRED LOCATION →</a>
+  <span class="addr">📍 4024 Washington Ave N · Minneapolis MN 55412</span>
+  <span class="phone">📞 612-870-9008</span>
+</div>
+
+<header class="main">
+  <a class="logo-block" href="#">
+    <svg viewBox="0 0 230 64" xmlns="http://www.w3.org/2000/svg">
+      <g transform="translate(4 4)"><path d="M 28 2 A 26 22 0 1 1 28 50" fill="none" stroke="#1d7a44" stroke-width="5" stroke-linecap="round"/><path d="M 28 2 A 26 22 0 1 0 28 50" fill="none" stroke="#ec7621" stroke-width="5" stroke-linecap="round"/><text x="28" y="40" font-family="Open Sans, sans-serif" font-weight="900" font-size="38" fill="#1d7a44" text-anchor="middle" font-style="italic">M</text></g>
+      <text x="66" y="22" font-family="Open Sans, sans-serif" font-weight="800" font-size="17" fill="#1d7a44" font-style="italic">Minuteman</text>
+      <text x="66" y="40" font-family="Open Sans, sans-serif" font-weight="800" font-size="17" fill="#1d7a44" font-style="italic">Press<tspan font-size="9" dy="-5">®</tspan></text>
+      <text x="66" y="56" font-family="Open Sans, sans-serif" font-weight="700" font-size="7.5" fill="#ec7621" letter-spacing="0.04em">WE DESIGN, PRINT &amp; PROMOTE...YOU!</text>
+    </svg>
+  </a>
+  <nav class="nav">
+    <a href="#" class="current">Packages</a>
+    <a href="#">Shop All</a>
+    <a href="#">Get a Quote</a>
+    <a href="#">About</a>
+    <a href="#">Contact</a>
+  </nav>
+  <div class="actions">
+    <form class="search-form" onsubmit="return false;">
+      <input type="text" placeholder="Search packages...">
+      <button type="submit">🔍</button>
+    </form>
+    <a class="icon-btn" href="#">👤</a>
+    <a class="icon-btn" href="#">🛒<span class="num">1</span></a>
+  </div>
+</header>
+
+<section class="bundle-hero">
+  <div class="eyebrow">Print Packages</div>
+  <h1>Solutions. <span class="accent">Not SKUs.</span></h1>
+  <p class="lede">We've pre-built complete print kits for the projects we see every week. One price. One delivery. Everything you need for a grand opening, a new business launch, a wedding, an annual gala — already coordinated.</p>
+  <div class="stats">
+    <div class="stat-block"><div class="num">6</div><div class="label">Ready-to-order packs</div></div>
+    <div class="stat-block"><div class="num">25<small>%</small></div><div class="label">Avg bundle savings</div></div>
+    <div class="stat-block"><div class="num">3–4<small>d</small></div><div class="label">Standard turnaround</div></div>
+  </div>
+</section>
+
+<div class="bundles-grid">
+
+  <div class="bundle-card featured" data-b="1">
+    <div class="bundle-banner">
+      <div class="bundle-tag">PACK 01 · MOST POPULAR</div>
+      <div class="bundle-name">New Business Pack</div>
+      <div class="bundle-sub">Everything to look real on day one.</div>
+    </div>
+    <div class="bundle-body">
+      <div class="bundle-includes">Pack Contents</div>
+      <ul class="bundle-list">
+        <li>Business cards <span class="qty">250 ct</span></li>
+        <li>Letterhead + envelopes <span class="qty">250 set</span></li>
+        <li>Tri-fold brochures <span class="qty">100 ct</span></li>
+        <li>Flyers 8.5×11 <span class="qty">100 ct</span></li>
+        <li>Die-cut stickers <span class="qty">100 ct</span></li>
+        <li>One yard sign 18×24 <span class="qty">1 ct</span></li>
+      </ul>
+      <div class="bundle-price-row">
+        <span class="bundle-price">$395</span>
+        <span class="bundle-was">$507</span>
+        <span class="bundle-savings">Save $112</span>
+      </div>
+      <button class="bundle-cta">ADD PACK TO CART</button>
+    </div>
+  </div>
+
+  <div class="bundle-card" data-b="2">
+    <div class="bundle-banner">
+      <div class="bundle-tag">PACK 02</div>
+      <div class="bundle-name">Grand Opening Pack</div>
+      <div class="bundle-sub">Get the door open and the crowd in.</div>
+    </div>
+    <div class="bundle-body">
+      <div class="bundle-includes">Pack Contents</div>
+      <ul class="bundle-list">
+        <li>2×4 ft vinyl banner <span class="qty">1 ct</span></li>
+        <li>Yard signs 18×24 <span class="qty">10 ct</span></li>
+        <li>Promo postcards <span class="qty">500 ct</span></li>
+        <li>Window vinyl decals <span class="qty">3 ct</span></li>
+        <li>Staff t-shirts <span class="qty">6 ct</span></li>
+        <li>Flyers 8.5×11 <span class="qty">250 ct</span></li>
+      </ul>
+      <div class="bundle-price-row">
+        <span class="bundle-price">$675</span>
+        <span class="bundle-was">$852</span>
+        <span class="bundle-savings">Save $177</span>
+      </div>
+      <button class="bundle-cta">ADD PACK TO CART</button>
+    </div>
+  </div>
+
+  <div class="bundle-card" data-b="3">
+    <div class="bundle-banner">
+      <div class="bundle-tag">PACK 03</div>
+      <div class="bundle-name">Wedding Suite</div>
+      <div class="bundle-sub">Save-the-date to thank-you.</div>
+    </div>
+    <div class="bundle-body">
+      <div class="bundle-includes">Pack Contents</div>
+      <ul class="bundle-list">
+        <li>Save-the-date cards <span class="qty">100 ct</span></li>
+        <li>Invitation + RSVP suite <span class="qty">100 ct</span></li>
+        <li>Programs <span class="qty">100 ct</span></li>
+        <li>Place cards <span class="qty">120 ct</span></li>
+        <li>Welcome / direction sign <span class="qty">1 ct</span></li>
+        <li>Thank-you notecards <span class="qty">100 ct</span></li>
+      </ul>
+      <div class="bundle-price-row">
+        <span class="bundle-price">$745</span>
+        <span class="bundle-was">$925</span>
+        <span class="bundle-savings">Save $180</span>
+      </div>
+      <button class="bundle-cta">ADD PACK TO CART</button>
+    </div>
+  </div>
+
+  <div class="bundle-card" data-b="4">
+    <div class="bundle-banner">
+      <div class="bundle-tag">PACK 04</div>
+      <div class="bundle-name">Restaurant Launch</div>
+      <div class="bundle-sub">Menus, marketing, neighborhood drop.</div>
+    </div>
+    <div class="bundle-body">
+      <div class="bundle-includes">Pack Contents</div>
+      <ul class="bundle-list">
+        <li>Menus (printed + laminated) <span class="qty">50 ct</span></li>
+        <li>Postcards (mailer drop) <span class="qty">500 ct</span></li>
+        <li>Window cling decals <span class="qty">2 ct</span></li>
+        <li>Business cards <span class="qty">500 ct</span></li>
+        <li>Loyalty punch cards <span class="qty">250 ct</span></li>
+        <li>Staff aprons or shirts <span class="qty">6 ct</span></li>
+      </ul>
+      <div class="bundle-price-row">
+        <span class="bundle-price">$585</span>
+        <span class="bundle-was">$735</span>
+        <span class="bundle-savings">Save $150</span>
+      </div>
+      <button class="bundle-cta">ADD PACK TO CART</button>
+    </div>
+  </div>
+
+  <div class="bundle-card" data-b="5">
+    <div class="bundle-banner">
+      <div class="bundle-tag">PACK 05</div>
+      <div class="bundle-name">Annual Report Pack</div>
+      <div class="bundle-sub">Saddle-stitched + the support materials.</div>
+    </div>
+    <div class="bundle-body">
+      <div class="bundle-includes">Pack Contents</div>
+      <ul class="bundle-list">
+        <li>Annual report (24 pages) <span class="qty">100 ct</span></li>
+        <li>Cover letter + envelope <span class="qty">100 ct</span></li>
+        <li>Companion postcards <span class="qty">250 ct</span></li>
+        <li>Presentation folders <span class="qty">25 ct</span></li>
+        <li>Executive summary cards <span class="qty">100 ct</span></li>
+      </ul>
+      <div class="bundle-price-row">
+        <span class="bundle-price">$485</span>
+        <span class="bundle-was">$595</span>
+        <span class="bundle-savings">Save $110</span>
+      </div>
+      <button class="bundle-cta">ADD PACK TO CART</button>
+    </div>
+  </div>
+
+  <div class="bundle-card" data-b="6">
+    <div class="bundle-banner">
+      <div class="bundle-tag">PACK 06</div>
+      <div class="bundle-name">Trade Show Pack</div>
+      <div class="bundle-sub">Booth-ready in one box.</div>
+    </div>
+    <div class="bundle-body">
+      <div class="bundle-includes">Pack Contents</div>
+      <ul class="bundle-list">
+        <li>Retractable banner stand <span class="qty">1 ct</span></li>
+        <li>Tabletop sign <span class="qty">1 ct</span></li>
+        <li>Brochures (tri-fold) <span class="qty">250 ct</span></li>
+        <li>Business cards <span class="qty">500 ct</span></li>
+        <li>Branded stickers <span class="qty">250 ct</span></li>
+        <li>Lead-capture postcards <span class="qty">250 ct</span></li>
+      </ul>
+      <div class="bundle-price-row">
+        <span class="bundle-price">$625</span>
+        <span class="bundle-was">$790</span>
+        <span class="bundle-savings">Save $165</span>
+      </div>
+      <button class="bundle-cta">ADD PACK TO CART</button>
+    </div>
+  </div>
+
+</div>
+
+<section class="build-your-own">
+  <h2>Don't see your project?</h2>
+  <p>Tell us what you're working on and we'll build a custom pack — same bundle pricing, your spec. Most custom packs come back to you within 24 hours.</p>
+  <a class="build-cta">START A CUSTOM PACK →</a>
+</section>
+
+<section class="phase3">
+  <div class="phase3-card">
+    <div>
+      <h3>Run an HR team, a real estate office, or a church? <span class="accent">Your people can have their own pack store.</span></h3>
+      <p>Spin up a branded storefront where your organization's pre-approved packs live behind your login. Your colors, your logo, your templates, your locked pricing. Same engine, your front door.</p>
+      <button class="btn btn-primary">TALK TO FRANK ABOUT IT →</button>
+    </div>
+    <div class="phase3-tiers">
+      <div class="p3-tier"><span class="t-label">TIER 1 · STARTER</span><span class="t-desc">Up to 6 products · path URL · footer credit</span><span class="t-price">$300<span style="font-size:11px;font-weight:600;opacity:0.7;">/mo</span></span></div>
+      <div class="p3-tier"><span class="t-label">TIER 2 · BRANDED</span><span class="t-desc">Up to 15 products · full brand control · no footer</span><span class="t-price">$500<span style="font-size:11px;font-weight:600;opacity:0.7;">/mo</span></span></div>
+      <div class="p3-tier"><span class="t-label">TIER 3 · ENTERPRISE</span><span class="t-desc">Unlimited · custom subdomain · approval workflows · SSO</span><span class="t-price">$850<span style="font-size:11px;font-weight:600;opacity:0.7;">/mo</span></span></div>
+    </div>
+  </div>
+</section>
+
+<footer class="site">
+  <div class="cols">
+    <div>
+      <h5>Minuteman Press Uptown</h5>
+      <p>4024 Washington Ave N<br>Minneapolis, MN 55412<br>612-870-9008</p>
+      <p style="margin-top:10px;font-style:italic;color:#ec7621;">We Design, Print &amp; Promote...YOU!</p>
+    </div>
+    <div>
+      <h5>Packages</h5>
+      <a href="#">New Business Pack</a>
+      <a href="#">Grand Opening Pack</a>
+      <a href="#">Wedding Suite</a>
+      <a href="#">Restaurant Launch</a>
+      <a href="#">Annual Report Pack</a>
+      <a href="#">Trade Show Pack</a>
+    </div>
+    <div>
+      <h5>Help</h5>
+      <a href="#">Custom Pack Builder</a>
+      <a href="#">Get a Quote</a>
+      <a href="#">Send Files</a>
+      <a href="#">Pickup &amp; Shipping</a>
+    </div>
+    <div>
+      <h5>Hours</h5>
+      <p>Mon–Fri 8a–5:30p<br>Sat 10a–2p<br>Sun closed</p>
+    </div>
+  </div>
+  <div class="legal">
+    <span>© 2026 I A Z Corporation dba Minuteman Press Uptown</span><span class="sep">·</span>
+    <span>Site built by <b>CARES Consulting</b></span><span class="sep">·</span>
+    <a href="#" style="display:inline;color:rgba(255,255,255,0.6);">Privacy</a><span class="sep">·</span>
+    <a href="#" style="display:inline;color:rgba(255,255,255,0.6);">Terms</a>
+  </div>
+</footer>
+
+<script src="https://chat.karikounkel.com/widget.js" defer></script>
+</body>
+</html>

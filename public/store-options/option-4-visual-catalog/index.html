@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minuteman Press Uptown — Option 4: Visual Catalog</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #1d7a44; --green-deep: #155a32; --green-light: #e8f3ed;
+    --orange: #ec7621; --orange-deep: #c75e15; --orange-light: #fbe6d4;
+    --ink: #2c2c2c; --ink-soft: #555; --ink-fade: #888;
+    --bg: #f5f4f0; --bg-deep: #e9e6dd; --white: #ffffff;
+    --rule: #ddd; --rule-soft: #ececec;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Open Sans', sans-serif; background: var(--white); color: var(--ink); line-height: 1.5; font-size: 14px; }
+  a { color: var(--green); text-decoration: none; }
+  a:hover { color: var(--green-deep); }
+
+  .demo-strip { background: var(--ink); color: var(--white); padding: 8px 24px; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 700; display: flex; gap: 14px; align-items: center; }
+  .demo-strip .pill { background: var(--orange); padding: 3px 9px; border-radius: 3px; }
+  .demo-strip a { color: var(--white); margin-left: auto; opacity: 0.7; }
+  .demo-strip a:hover { opacity: 1; color: var(--orange); }
+
+  .top-bar { background: var(--green); color: var(--white); padding: 9px 32px; display: flex; align-items: center; gap: 16px; font-size: 12px; }
+  .top-bar .addr { display: flex; align-items: center; gap: 6px; }
+  .top-bar .phone { font-weight: 700; font-size: 13px; }
+  .top-bar .socials { display: flex; gap: 6px; margin-right: auto; }
+  .top-bar .socials a { color: var(--white); width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.4); border-radius: 50%; font-size: 11px; font-weight: 700; }
+  .top-bar .pref-loc { background: rgba(0,0,0,0.18); padding: 4px 12px; border-radius: 3px; font-weight: 600; }
+
+  header.main { background: var(--white); border-bottom: 1px solid var(--rule); padding: 14px 32px; display: flex; align-items: center; gap: 24px; }
+  .logo-block { display: flex; align-items: center; }
+  .logo-block svg { height: 56px; width: auto; display: block; }
+  .nav { display: flex; gap: 4px; margin-left: 30px; }
+  .nav a { padding: 12px 16px; font-size: 13px; font-weight: 700; color: var(--ink); text-transform: uppercase; letter-spacing: 0.04em; border-radius: 4px; transition: background 0.15s; }
+  .nav a:hover { background: var(--green-light); color: var(--green-deep); }
+  .nav a.current { background: var(--green); color: white; }
+  .actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .actions .icon-btn { width: 40px; height: 40px; border: 1px solid var(--rule); background: white; border-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; position: relative; }
+  .actions .icon-btn:hover { border-color: var(--green); color: var(--green); }
+  .actions .icon-btn .num { position: absolute; top: -4px; right: -4px; background: var(--orange); color: white; font-size: 10px; font-weight: 800; padding: 1px 6px; border-radius: 999px; }
+
+  .big-search-bar {
+    background: var(--bg);
+    padding: 22px 32px;
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .big-search-bar .lede { font-size: 14px; font-weight: 700; color: var(--ink); white-space: nowrap; }
+  .big-search-form { flex: 1; display: flex; align-items: center; background: white; border: 2px solid var(--rule); border-radius: 999px; padding: 0 0 0 22px; height: 50px; max-width: 720px; transition: border-color 0.15s; }
+  .big-search-form:focus-within { border-color: var(--green); }
+  .big-search-form input { border: none; background: transparent; flex: 1; font-family: inherit; font-size: 15px; padding: 0 8px; outline: none; color: var(--ink); }
+  .big-search-form button { background: var(--orange); color: white; border: none; height: 50px; padding: 0 26px; cursor: pointer; border-radius: 0 999px 999px 0; font-size: 14px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; font-family: inherit; }
+  .big-search-form button:hover { background: var(--orange-deep); }
+  .result-count { font-size: 13px; color: var(--ink-fade); white-space: nowrap; }
+  .result-count b { color: var(--ink); font-weight: 800; }
+
+  .catalog-layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 24px;
+    padding: 24px 32px 48px;
+    max-width: 1500px;
+    margin: 0 auto;
+  }
+
+  .filter-sidebar {
+    position: sticky;
+    top: 16px;
+    align-self: start;
+    background: var(--white);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 18px 20px 22px;
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+  }
+  .filter-sidebar h3 { font-size: 12px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink); margin-bottom: 4px; }
+  .filter-sidebar .clear { font-size: 11px; color: var(--orange); font-weight: 700; margin-bottom: 16px; display: inline-block; }
+  .filter-group { padding: 14px 0; border-top: 1px solid var(--rule-soft); }
+  .filter-group:first-of-type { border-top: none; padding-top: 0; }
+  .filter-group h4 { font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 10px; }
+  .filter-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; font-size: 13px; color: var(--ink); cursor: pointer; }
+  .filter-row input { accent-color: var(--green); cursor: pointer; }
+  .filter-row .count { margin-left: auto; font-size: 11px; color: var(--ink-fade); }
+  .filter-row.checked { font-weight: 700; }
+  .filter-row.checked .count { color: var(--green); }
+  .price-range { display: flex; gap: 8px; align-items: center; }
+  .price-range input { flex: 1; padding: 6px 8px; font-size: 12px; border: 1px solid var(--rule); border-radius: 3px; font-family: inherit; }
+  .price-range span { color: var(--ink-fade); font-size: 12px; }
+
+  .results-area {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .results-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; background: var(--green-light); color: var(--green-deep); border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: 0.02em; }
+  .chip .x { cursor: pointer; opacity: 0.6; }
+  .results-bar .sort { margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-soft); }
+  .results-bar .sort select { padding: 6px 10px; border: 1px solid var(--rule); border-radius: 4px; font-family: inherit; font-size: 12px; font-weight: 700; background: white; cursor: pointer; }
+
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+  .vc-card {
+    background: var(--white);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .vc-card:hover { border-color: var(--green); transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
+  .vc-photo {
+    aspect-ratio: 1/1;
+    position: relative;
+    overflow: hidden;
+  }
+  .vc-photo svg { width: 100%; height: 100%; display: block; transition: transform 0.3s; }
+  .vc-card:hover .vc-photo svg { transform: scale(1.04); }
+  .vc-overlay {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%);
+    padding: 28px 14px 14px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .vc-card:hover .vc-overlay { opacity: 1; }
+  .vc-quick-add { background: var(--orange); color: white; border: none; width: 100%; padding: 10px; cursor: pointer; font-family: inherit; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; border-radius: 3px; }
+  .vc-quick-add:hover { background: var(--orange-deep); }
+  .vc-body { padding: 12px 14px 14px; }
+  .vc-name { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 4px; line-height: 1.3; }
+  .vc-meta { font-size: 11px; color: var(--ink-fade); }
+  .vc-price-row { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+  .vc-price { font-size: 16px; font-weight: 800; color: var(--green); }
+  .vc-rating { font-size: 11px; color: var(--ink-soft); }
+  .vc-tag { position: absolute; top: 8px; left: 8px; background: var(--orange); color: white; font-size: 9px; font-weight: 800; padding: 3px 7px; border-radius: 2px; text-transform: uppercase; letter-spacing: 0.06em; z-index: 2; }
+  .vc-tag.new { background: var(--green); }
+  .vc-tag.sale { background: var(--orange); }
+
+  /* Phase 3 inline card matches grid */
+  .phase3-tile {
+    grid-column: span 2;
+    grid-row: span 2;
+    background: var(--ink);
+    color: white;
+    border-radius: 4px;
+    padding: 24px 26px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+  }
+  .phase3-tile::after {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: repeating-linear-gradient(45deg, transparent, transparent 12px, rgba(255,255,255,0.04) 12px, rgba(255,255,255,0.04) 24px);
+    pointer-events: none;
+  }
+  .phase3-tile .p3-label { font-size: 10px; font-weight: 800; letter-spacing: 0.18em; color: var(--orange); margin-bottom: 12px; position: relative; }
+  .phase3-tile h3 { font-size: 22px; font-weight: 800; color: white; line-height: 1.15; letter-spacing: -0.01em; margin-bottom: 8px; position: relative; }
+  .phase3-tile h3 .accent { color: var(--orange); }
+  .phase3-tile p { font-size: 12px; color: rgba(255,255,255,0.78); line-height: 1.55; margin-bottom: 14px; position: relative; flex: 1; }
+  .phase3-tile .tiers { display: flex; flex-direction: column; gap: 4px; margin-bottom: 14px; position: relative; }
+  .phase3-tile .tier-line { display: flex; justify-content: space-between; font-size: 11px; color: rgba(255,255,255,0.78); padding: 4px 0; border-bottom: 1px dashed rgba(255,255,255,0.12); }
+  .phase3-tile .tier-line:last-child { border-bottom: none; }
+  .phase3-tile .tier-line b { color: var(--orange); font-weight: 800; }
+  .phase3-tile .p3-cta { background: var(--orange); color: white; padding: 10px 14px; text-align: center; font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; border-radius: 4px; position: relative; cursor: pointer; }
+
+  footer.site { background: var(--ink); color: rgba(255,255,255,0.8); padding: 40px 32px 24px; margin-top: 16px; }
+  footer.site .cols { max-width: 1500px; margin: 0 auto; display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 32px; padding-bottom: 28px; border-bottom: 1px solid rgba(255,255,255,0.12); }
+  footer.site h5 { font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--orange); margin-bottom: 12px; }
+  footer.site p, footer.site a { font-size: 13px; color: rgba(255,255,255,0.78); line-height: 1.7; }
+  footer.site a { display: block; }
+  footer.site a:hover { color: var(--orange); }
+  footer.site .legal { max-width: 1500px; margin: 0 auto; padding-top: 20px; font-size: 12px; color: rgba(255,255,255,0.45); display: flex; gap: 16px; flex-wrap: wrap; }
+  footer.site .legal b { color: var(--green); }
+  footer.site .legal .sep { color: rgba(255,255,255,0.2); }
+
+  @media (max-width: 1100px) {
+    .results-grid { grid-template-columns: repeat(3, 1fr); }
+    .phase3-tile { grid-column: span 3; grid-row: auto; }
+  }
+  @media (max-width: 900px) {
+    .top-bar { flex-wrap: wrap; padding: 8px 16px; font-size: 11px; }
+    .top-bar .addr { display: none; }
+    header.main { flex-wrap: wrap; padding: 12px 16px; gap: 12px; }
+    .nav { width: 100%; overflow-x: auto; margin-left: 0; }
+    .big-search-bar { flex-wrap: wrap; padding: 14px 16px; }
+    .big-search-form { max-width: 100%; }
+    .catalog-layout { grid-template-columns: 1fr; padding: 16px; }
+    .filter-sidebar { position: static; max-height: none; }
+    .results-grid { grid-template-columns: repeat(2, 1fr); }
+    .phase3-tile { grid-column: span 2; }
+    footer.site .cols { grid-template-columns: 1fr 1fr; gap: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="demo-strip">
+  <span class="pill">Option 04</span>
+  <span>Visual Catalog — Photos Lead, Filters Drive</span>
+  <a href="../index.html">← Back to all options</a>
+</div>
+
+<div class="top-bar">
+  <div class="socials"><a href="#">f</a><a href="#">𝕏</a><a href="#">in</a><a href="#">▶</a></div>
+  <a href="#" class="pref-loc">MY PREFERRED LOCATION →</a>
+  <span class="addr">📍 4024 Washington Ave N · Minneapolis MN 55412</span>
+  <span class="phone">📞 612-870-9008</span>
+</div>
+
+<header class="main">
+  <a class="logo-block" href="#">
+    <svg viewBox="0 0 230 64" xmlns="http://www.w3.org/2000/svg">
+      <g transform="translate(4 4)"><path d="M 28 2 A 26 22 0 1 1 28 50" fill="none" stroke="#1d7a44" stroke-width="5" stroke-linecap="round"/><path d="M 28 2 A 26 22 0 1 0 28 50" fill="none" stroke="#ec7621" stroke-width="5" stroke-linecap="round"/><text x="28" y="40" font-family="Open Sans, sans-serif" font-weight="900" font-size="38" fill="#1d7a44" text-anchor="middle" font-style="italic">M</text></g>
+      <text x="66" y="22" font-family="Open Sans, sans-serif" font-weight="800" font-size="17" fill="#1d7a44" font-style="italic">Minuteman</text>
+      <text x="66" y="40" font-family="Open Sans, sans-serif" font-weight="800" font-size="17" fill="#1d7a44" font-style="italic">Press<tspan font-size="9" dy="-5">®</tspan></text>
+      <text x="66" y="56" font-family="Open Sans, sans-serif" font-weight="700" font-size="7.5" fill="#ec7621" letter-spacing="0.04em">WE DESIGN, PRINT &amp; PROMOTE...YOU!</text>
+    </svg>
+  </a>
+  <nav class="nav">
+    <a href="#" class="current">Catalog</a>
+    <a href="#">Get a Quote</a>
+    <a href="#">Send Files</a>
+    <a href="#">About</a>
+    <a href="#">Contact</a>
+  </nav>
+  <div class="actions">
+    <a class="icon-btn" href="#">👤</a>
+    <a class="icon-btn" href="#">🛒<span class="num">2</span></a>
+  </div>
+</header>
+
+<div class="big-search-bar">
+  <span class="lede">Search the catalog</span>
+  <form class="big-search-form" onsubmit="return false;">
+    <input type="text" placeholder="Try: yard signs · letterhead · t-shirts · postcards 500">
+    <button type="submit">SEARCH</button>
+  </form>
+  <div class="result-count"><b>147</b> products available</div>
+</div>
+
+<div class="catalog-layout">
+
+  <aside class="filter-sidebar">
+    <h3>Filters</h3>
+    <a href="#" class="clear">Clear all</a>
+
+    <div class="filter-group">
+      <h4>Product Type</h4>
+      <label class="filter-row checked"><input type="checkbox" checked> Business cards <span class="count">12</span></label>
+      <label class="filter-row"><input type="checkbox"> Flyers <span class="count">8</span></label>
+      <label class="filter-row"><input type="checkbox"> Postcards <span class="count">14</span></label>
+      <label class="filter-row checked"><input type="checkbox" checked> Signs &amp; banners <span class="count">9</span></label>
+      <label class="filter-row"><input type="checkbox"> Brochures <span class="count">11</span></label>
+      <label class="filter-row"><input type="checkbox"> Stickers <span class="count">6</span></label>
+      <label class="filter-row"><input type="checkbox"> Letterhead <span class="count">5</span></label>
+      <label class="filter-row"><input type="checkbox"> Envelopes <span class="count">4</span></label>
+      <label class="filter-row"><input type="checkbox"> Apparel <span class="count">12</span></label>
+      <label class="filter-row"><input type="checkbox"> Booklets <span class="count">7</span></label>
+    </div>
+
+    <div class="filter-group">
+      <h4>Quantity</h4>
+      <label class="filter-row"><input type="checkbox"> 50 or less <span class="count">22</span></label>
+      <label class="filter-row checked"><input type="checkbox" checked> 100 <span class="count">38</span></label>
+      <label class="filter-row checked"><input type="checkbox" checked> 250 <span class="count">42</span></label>
+      <label class="filter-row"><input type="checkbox"> 500 <span class="count">31</span></label>
+      <label class="filter-row"><input type="checkbox"> 1,000+ <span class="count">14</span></label>
+    </div>
+
+    <div class="filter-group">
+      <h4>Material / Stock</h4>
+      <label class="filter-row"><input type="checkbox"> 14pt Gloss <span class="count">9</span></label>
+      <label class="filter-row"><input type="checkbox"> 14pt Matte <span class="count">7</span></label>
+      <label class="filter-row"><input type="checkbox"> 16pt Premium <span class="count">5</span></label>
+      <label class="filter-row"><input type="checkbox"> 100lb Gloss <span class="count">12</span></label>
+      <label class="filter-row"><input type="checkbox"> 4mm Coroplast <span class="count">4</span></label>
+      <label class="filter-row"><input type="checkbox"> 13oz Vinyl <span class="count">3</span></label>
+      <label class="filter-row"><input type="checkbox"> Cotton (apparel) <span class="count">8</span></label>
+    </div>
+
+    <div class="filter-group">
+      <h4>Price Range</h4>
+      <div class="price-range">
+        <input type="text" placeholder="Min $" value="20">
+        <span>—</span>
+        <input type="text" placeholder="Max $" value="200">
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <h4>Turnaround</h4>
+      <label class="filter-row"><input type="checkbox"> Same-day rush <span class="count">14</span></label>
+      <label class="filter-row checked"><input type="checkbox" checked> 3–4 day standard <span class="count">112</span></label>
+      <label class="filter-row"><input type="checkbox"> 7+ day economy <span class="count">21</span></label>
+    </div>
+
+    <div class="filter-group">
+      <h4>Color</h4>
+      <label class="filter-row"><input type="checkbox"> Full color (CMYK) <span class="count">132</span></label>
+      <label class="filter-row"><input type="checkbox"> 1-color spot <span class="count">28</span></label>
+      <label class="filter-row"><input type="checkbox"> 2-color spot <span class="count">15</span></label>
+      <label class="filter-row"><input type="checkbox"> Black &amp; white <span class="count">8</span></label>
+    </div>
+  </aside>
+
+  <div class="results-area">
+    <div class="results-bar">
+      <span class="chip">Business cards <span class="x">×</span></span>
+      <span class="chip">Signs &amp; banners <span class="x">×</span></span>
+      <span class="chip">Qty: 100, 250 <span class="x">×</span></span>
+      <span class="chip">3–4 day standard <span class="x">×</span></span>
+      <div class="sort">
+        <span>Sort:</span>
+        <select><option>Most popular</option><option>Price: low to high</option><option>Price: high to low</option><option>New arrivals</option></select>
+      </div>
+    </div>
+
+    <div class="results-grid">
+
+      <div class="vc-card">
+        <span class="vc-tag">Popular</span>
+        <div class="vc-photo">
+          <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+            <rect width="400" height="400" fill="#ede9df"/>
+            <g transform="translate(80 130) rotate(-3)"><rect width="240" height="140" fill="white" stroke="#d4d0c4"/><rect width="240" height="38" fill="#1d7a44"/><text x="120" y="25" font-family="Open Sans, sans-serif" font-weight="900" font-size="14" fill="#ec7621" text-anchor="middle">YOUR BRAND</text><text x="20" y="76" font-family="Open Sans, sans-serif" font-weight="700" font-size="13">Sample Name</text><text x="20" y="92" font-family="Open Sans, sans-serif" font-size="9" fill="#888">SAMPLE TITLE</text></g>
+          </svg>
+          <div class="vc-overlay"><button class="vc-quick-add">+ Quick add</button></div>
+        </div>
+        <div class="vc-body">
+          <div class="vc-name">Business Cards — 14pt Gloss</div>
+          <div class="vc-meta">250 ct · Double-sided · 3–4 days</div>
+          <div class="vc-price-row">
+            <span class="vc-price">$48</span>
+            <span class="vc-rating">★ 4.9 · 218</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="vc-card">
+        <div class="vc-photo">
+          <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+            <rect width="400" height="400" fill="#c9d6b9"/>
+            <rect x="60" y="100" width="280" height="200" fill="#1d7a44" rx="3"/>
+            <text x="200" y="180" font-family="Open Sans, sans-serif" font-weight="900" font-size="28" fill="#ec7621" text-anchor="middle">FOR SALE</text>
+            <text x="200" y="220" font-family="Open Sans, sans-serif" font-weight="800" font-size="18" fill="white" text-anchor="middle">YOUR BRAND</text>
+            <text x="200" y="252" font-family="Open Sans, sans-serif" font-weight="700" font-size="13" fill="white" text-anchor="middle">612-555-0100</text>
+            <rect x="195" y="300" width="10" height="100" fill="#4a4a4a"/>
+          </svg>
+          <div class="vc-overlay"><button class="vc-quick-add">+ Quick add</button></div>
+        </div>
+        <div class="vc-body">
+          <div class="vc-name">Yard Signs 18×24</div>
+          <div class="vc-meta">4mm Coroplast · H-stake · 3 days</div>
+          <div class="vc-price-row">
+            <span class="vc-price">$24</span>
+            <span class="vc-rating">★ 4.8 · 142</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="vc-card">
+        <span class="vc-tag new">New</span>
+        <div class="vc-photo">
+          <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+            <rect width="400" height="400" fill="#ede9df"/>
+            <g transform="translate(40 80)"><rect width="320" height="200" fill="white" stroke="#d4d0c4"/><rect width="320" height="58" fill="#1d7a44"/><text x="160" y="38" font-family="Open Sans, sans-serif" font-weight="900" font-size="20" fill="#ec7621" text-anchor="middle">SAVE THE DATE</text><text x="160" y="100" font-family="Open Sans, sans-serif" font-weight="800" font-size="22" fill="#1d7a44" text-anchor="middle">JUST LISTED</text><text x="160" y="126" font-family="Open Sans, sans-serif" font-weight="700" font-size="13" fill="#333" text-anchor="middle">1234 Lake Street</text><rect x="60" y="174" width="200" height="18" fill="#1d7a44"/><text x="160" y="187" font-family="Open Sans, sans-serif" font-weight="700" font-size="10" fill="#ec7621" text-anchor="middle">SAMPLE AGENT · 612-555-0100</text></g>
+          </svg>
+          <div class="vc-overlay"><button class="vc-quick-add">+ Quick add</button></div>
+        </div>
+        <div class="vc-body">
+          <div class="vc-name">Postcards 4×6 (500 ct)</div>
+          <div class="vc-meta">100lb Gloss Cover · 3–4 days</div>
+          <div class="vc-price-row">
+            <span class="vc-price">$112</span>
+            <span class="vc-rating">★ 4.7 · 86</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="vc-card">
+        <div class="vc-photo">
+          <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+            <rect width="400" height="400" fill="#c9d6b9"/>
+            <rect x="40" y="120" width="320" height="160" fill="#1d7a44"/>
+            <text x="200" y="180" font-family="Open Sans, sans-serif" font-weight="900" font-size="26" fill="#ec7621" text-anchor="middle">NOW OPEN</text>
+            <text x="200" y="220" font-family="Open Sans, sans-serif" font-weight="800" font-size="18" fill="white" text-anchor="middle">YOUR BRAND</text>
+            <text x="200" y="250" font-family="Open Sans, sans-serif" font-size="12" fill="white" text-anchor="middle">www.yoururl.com</text>
+          </svg>
+          <div class="vc-overlay"><button class="vc-quick-add">+ Quick add</button></div>
+        </div>
+        <div class="vc-body">
+          <div class="vc-name">Vinyl Banner 2×4 ft</div>
+          <div class="vc-meta">13oz · Grommets · 4 days</div>
+          <div class="vc-price-row">
+            <span class="vc-price">$89</span>
+            <span class="vc-rating">★ 4.9 · 67</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Phase 3 tile inline in grid -->
+      <div class="phase3-tile">
+        <div>
+          <div class="p3-label">PHASE 3 · BRANDED STOREFRONTS</div>
+          <h3>Your org. <span class="accent">Your storefront.</span> Our printer.</h3>
+          <p>Spin up a branded store on our infrastructure. Your colors, your logo, your approved templates. Your people order; we print and bill direct.</p>
+          <div class="tiers">
+            <div class="tier-line"><span>Tier 1 · Starter</span><b>$300/mo</b></div>
+            <div class="tier-line"><span>Tier 2 · Branded</span><b>$500/mo</b></div>
+            <div class="tier-line"><span>Tier 3 · Enterprise</span><b>$850/mo</b></div>
+          </div>
+        </div>
+        <a class="p3-cta">TALK TO FRANK →</a>
+      </div>
+
+      <div class="vc-card">
+        <div class="vc-photo">
+          <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+            <rect width="400" height="400" fill="#ede9df"/>
+            <g transform="translate(70 60)"><rect width="260" height="280" fill="#1d7a44"/><rect width="260" height="40" fill="#ec7621"/><text x="130" y="27" font-family="Open Sans, sans-serif" font-weight="900" font-size="14" fill="#1d7a44" text-anchor="middle">TRI-FOLD BROCHURE</text><text x="130" y="80" font-family="Open Sans, sans-serif" font-weight="900" font-size="22" fill="#ec7621" text-anchor="middle">YOUR BRAND</text><line x1="60" y1="100" x2="200" y2="100" stroke="#ec7621" stroke-width="1.5"/><text x="130" y="124" font-family="Open Sans, sans-serif" font-weight="700" font-size="12" fill="white" text-anchor="middle">Services · Pricing · Contact</text><rect x="40" y="156" width="180" height="6" fill="white" opacity="0.6"/><rect x="40" y="172" width="130" height="6" fill="white" opacity="0.4"/><rect x="40" y="188" width="150" height="6" fill="white" opacity="0.5"/></g>
+          </svg>
+          <div class="vc-overlay"><button class="vc-quick-add">+ Quick add</button></div>
+        </div>
+        <div class="vc-body">
+          <div class="vc-name">Tri-Fold Brochures (100 ct)</div>
+          <div class="vc-meta">100lb Gloss · 4 days</div>
+          <div class="vc-price-row">
+            <span class="vc-price">$185</span>
+            <span class="vc-rating">★ 4.8 · 54</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="vc-card">
+        <span class="vc-tag sale">Sale</span>
+        <div class="vc-photo">
+          <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+            <rect width="400" height="400" fill="#f8f4ec"/>
+            <g transform="translate(80 60)"><rect width="240" height="280" fill="white" stroke="#d4d0c4"/><text x="120" y="56" font-family="Georgia, serif" font-weight="700" font-size="22" fill="#1d7a44" text-anchor="middle" font-style="italic">Save the Date</text><line x1="80" y1="74" x2="160" y2="74" stroke="#ec7621" stroke-width="1"/><text x="120" y="124" font-family="Open Sans, sans-serif" font-weight="800" font-size="30" fill="#1d7a44" text-anchor="middle">Sarah</text><text x="120" y="142" font-family="Open Sans, sans-serif" font-weight="700" font-size="10" fill="#888" text-anchor="middle">AND</text><text x="120" y="172" font-family="Open Sans, sans-serif" font-weight="800" font-size="30" fill="#1d7a44" text-anchor="middle">Michael</text><line x1="80" y1="194" x2="160" y2="194" stroke="#ec7621" stroke-width="1"/><text x="120" y="220" font-family="Open Sans, sans-serif" font-weight="700" font-size="11" fill="#333" text-anchor="middle" letter-spacing="0.1em">SEPTEMBER 12, 2026</text></g>
+          </svg>
+          <div class="vc-overlay"><button class="vc-quick-add">+ Quick add</button></div>
+        </div>
+        <div class="vc-body">
+          <div class="vc-name">Wedding Invitation Suite</div>
+          <div class="vc-meta">Invite + RSVP + envelope</div>
+          <div class="vc-price-row">
+            <span class="vc-price">$385</span>
+            <span class="vc-rating">★ 5.0 · 31</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="vc-card">
+        <div class="vc-photo">
+          <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+            <rect width="400" height="400" fill="#f5f1e8"/>
+            <g transform="translate(120 60)"><path d="M 0 80 L 30 60 L 30 30 Q 30 0 80 0 Q 130 0 130 30 L 130 60 L 160 80 L 160 240 L 0 240 Z" fill="#1d7a44"/><circle cx="80" cy="86" r="24" fill="#f5f1e8"/><text x="80" y="92" font-family="Open Sans, sans-serif" font-weight="900" font-size="14" fill="#1d7a44" text-anchor="middle">YOUR</text><text x="80" y="155" font-family="Open Sans, sans-serif" font-weight="900" font-size="16" fill="#ec7621" text-anchor="middle">YOUR BRAND</text><text x="80" y="178" font-family="Open Sans, sans-serif" font-weight="700" font-size="9" fill="white" text-anchor="middle">EST. 2026</text></g>
+          </svg>
+          <div class="vc-overlay"><button class="vc-quick-add">+ Quick add</button></div>
+        </div>
+        <div class="vc-body">
+          <div class="vc-name">Custom T-Shirts</div>
+          <div class="vc-meta">Soft cotton · 1–4 color print</div>
+          <div class="vc-price-row">
+            <span class="vc-price">$18 ea</span>
+            <span class="vc-rating">★ 4.7 · 49</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="vc-card">
+        <div class="vc-photo">
+          <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+            <rect width="400" height="400" fill="#ede9df"/>
+            <g transform="translate(60 60)"><rect width="280" height="280" fill="white" stroke="#d4d0c4"/><rect width="280" height="80" fill="#ec7621"/><text x="140" y="52" font-family="Open Sans, sans-serif" font-weight="900" font-size="22" fill="white" text-anchor="middle" letter-spacing="0.04em">GRAND OPENING</text><text x="140" y="138" font-family="Open Sans, sans-serif" font-weight="800" font-size="18" fill="#1d7a44" text-anchor="middle">Save 25% This Week</text><text x="140" y="170" font-family="Open Sans, sans-serif" font-size="11" fill="#666" text-anchor="middle">Sub-headline · supporting line</text><rect x="80" y="200" width="120" height="32" fill="#1d7a44"/><text x="140" y="221" font-family="Open Sans, sans-serif" font-weight="700" font-size="11" fill="white" text-anchor="middle">CALL TO ACTION</text></g>
+          </svg>
+          <div class="vc-overlay"><button class="vc-quick-add">+ Quick add</button></div>
+        </div>
+        <div class="vc-body">
+          <div class="vc-name">Flyers 8.5×11 (100 ct)</div>
+          <div class="vc-meta">100lb Gloss · Single-sided</div>
+          <div class="vc-price-row">
+            <span class="vc-price">$32</span>
+            <span class="vc-rating">★ 4.6 · 73</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="vc-card">
+        <div class="vc-photo">
+          <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+            <rect width="400" height="400" fill="#ede9df"/>
+            <g transform="translate(120 70)"><rect width="160" height="260" fill="white" stroke="#d4d0c4"/><rect width="160" height="28" fill="#1d7a44"/><text x="80" y="20" font-family="Open Sans, sans-serif" font-weight="800" font-size="9" fill="#ec7621" text-anchor="middle" letter-spacing="0.1em">YOUR LETTERHEAD</text><text x="20" y="68" font-family="Open Sans, sans-serif" font-weight="700" font-size="10">Sample Recipient</text><text x="20" y="80" font-family="Open Sans, sans-serif" font-size="9">Address line 1</text><text x="20" y="92" font-family="Open Sans, sans-serif" font-size="9">City, State ZIP</text><rect x="20" y="108" width="120" height="3" fill="#d4d0c4"/><rect x="20" y="118" width="100" height="3" fill="#d4d0c4"/><rect x="20" y="128" width="115" height="3" fill="#d4d0c4"/><rect x="20" y="138" width="80" height="3" fill="#d4d0c4"/><rect x="20" y="156" width="110" height="3" fill="#d4d0c4"/><rect x="20" y="166" width="120" height="3" fill="#d4d0c4"/><rect x="20" y="176" width="90" height="3" fill="#d4d0c4"/></g>
+          </svg>
+          <div class="vc-overlay"><button class="vc-quick-add">+ Quick add</button></div>
+        </div>
+        <div class="vc-body">
+          <div class="vc-name">Letterhead + Envelope Set</div>
+          <div class="vc-meta">70lb Premium · 250 sheets + 250 env</div>
+          <div class="vc-price-row">
+            <span class="vc-price">$128</span>
+            <span class="vc-rating">★ 4.8 · 38</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="vc-card">
+        <div class="vc-photo">
+          <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+            <rect width="400" height="400" fill="#ede9df"/>
+            <g transform="translate(70 30)"><rect width="260" height="340" fill="#1d7a44"/><rect width="260" height="40" fill="#ec7621"/><text x="130" y="27" font-family="Open Sans, sans-serif" font-weight="900" font-size="14" fill="#1d7a44" text-anchor="middle">ANNUAL REPORT</text><text x="130" y="100" font-family="Open Sans, sans-serif" font-weight="900" font-size="32" fill="#ec7621" text-anchor="middle">2026</text><line x1="60" y1="120" x2="200" y2="120" stroke="#ec7621" stroke-width="1.5"/><text x="130" y="144" font-family="Open Sans, sans-serif" font-weight="700" font-size="13" fill="white" text-anchor="middle">A year of growth</text><rect x="40" y="170" width="180" height="6" fill="white" opacity="0.6"/><rect x="40" y="184" width="140" height="6" fill="white" opacity="0.4"/><rect x="40" y="198" width="160" height="6" fill="white" opacity="0.5"/><rect x="40" y="224" width="100" height="6" fill="white" opacity="0.4"/></g>
+          </svg>
+          <div class="vc-overlay"><button class="vc-quick-add">+ Quick add</button></div>
+        </div>
+        <div class="vc-body">
+          <div class="vc-name">Annual Reports / Booklets</div>
+          <div class="vc-meta">Saddle-stitched · 24 pages</div>
+          <div class="vc-price-row">
+            <span class="vc-price">$245</span>
+            <span class="vc-rating">★ 4.9 · 22</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="vc-card">
+        <div class="vc-photo">
+          <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+            <rect width="400" height="400" fill="#f8f4ec"/>
+            <circle cx="140" cy="180" r="60" fill="#1d7a44"/>
+            <text x="140" y="190" font-family="Open Sans, sans-serif" font-weight="900" font-size="18" fill="white" text-anchor="middle">MMP</text>
+            <circle cx="240" cy="220" r="50" fill="#ec7621"/>
+            <text x="240" y="228" font-family="Open Sans, sans-serif" font-weight="900" font-size="14" fill="white" text-anchor="middle">2026</text>
+            <rect x="190" y="120" width="80" height="50" fill="#1d7a44" transform="rotate(-12 230 145)"/>
+            <text x="230" y="150" font-family="Open Sans, sans-serif" font-weight="800" font-size="10" fill="#ec7621" text-anchor="middle" transform="rotate(-12 230 145)">YOUR LOGO</text>
+          </svg>
+          <div class="vc-overlay"><button class="vc-quick-add">+ Quick add</button></div>
+        </div>
+        <div class="vc-body">
+          <div class="vc-name">Stickers — Die-Cut (100 ct)</div>
+          <div class="vc-meta">Vinyl · Custom shape · 4 days</div>
+          <div class="vc-price-row">
+            <span class="vc-price">$42</span>
+            <span class="vc-rating">★ 4.9 · 105</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<footer class="site">
+  <div class="cols">
+    <div>
+      <h5>Minuteman Press Uptown</h5>
+      <p>4024 Washington Ave N<br>Minneapolis, MN 55412<br>612-870-9008</p>
+      <p style="margin-top:10px;font-style:italic;color:#ec7621;">We Design, Print &amp; Promote...YOU!</p>
+    </div>
+    <div>
+      <h5>Browse</h5>
+      <a href="#">All Products</a>
+      <a href="#">New This Month</a>
+      <a href="#">On Sale</a>
+      <a href="#">Bestsellers</a>
+      <a href="#">Quick Reorder</a>
+    </div>
+    <div>
+      <h5>Help</h5>
+      <a href="#">Get a Quote</a>
+      <a href="#">Send Files</a>
+      <a href="#">File Setup Guide</a>
+      <a href="#">Pickup &amp; Shipping</a>
+    </div>
+    <div>
+      <h5>Hours</h5>
+      <p>Mon–Fri 8a–5:30p<br>Sat 10a–2p<br>Sun closed</p>
+    </div>
+  </div>
+  <div class="legal">
+    <span>© 2026 I A Z Corporation dba Minuteman Press Uptown</span><span class="sep">·</span>
+    <span>Site built by <b>CARES Consulting</b></span><span class="sep">·</span>
+    <a href="#" style="display:inline;color:rgba(255,255,255,0.6);">Privacy</a><span class="sep">·</span>
+    <a href="#" style="display:inline;color:rgba(255,255,255,0.6);">Terms</a>
+  </div>
+</footer>
+
+<script src="https://chat.karikounkel.com/widget.js" defer></script>
+</body>
+</html>
