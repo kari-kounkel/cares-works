@@ -2513,11 +2513,15 @@
       : 'Showing ' + brand.name + ' branded version · their price, their template';
   }
 
-  window.addEventListener('DOMContentLoaded', function() {
+  // Script is at end of body, so DOM is ready; run init synchronously.
+  // Avoids any defer/DOMContentLoaded timing weirdness with the widget script.
+  try {
     initStaticChrome();
     renderBrandedView(CLIENTS.lakeshore);
     setPreviewStore('mmp');
-  });
+  } catch (e) {
+    console.error('mmp demo init failed:', e);
+  }
 </script>
 
 <script src="https://chat.karikounkel.com/widget.js" defer></script>
