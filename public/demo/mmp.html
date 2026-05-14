@@ -1048,6 +1048,34 @@
         <div class="pc-price">$79.00</div>
         <div class="pc-desc">Professional letterhead on 70lb premium text stock. Standard 8.5x11 size, printer-friendly for laser and inkjet. Pair with matching envelopes for a fully branded business correspondence package.</div>
       </div>
+      <div class="product-card" onclick="show('product')">
+        <div class="product-photo"><div class="pp-fill pp-7"></div><div class="product-badge">ORDER ONLINE<span class="pb-line">no minimum order</span></div></div>
+        <h4>Presentation Folders | Foil Stamp</h4>
+        <div class="pc-price-label">100 folders, foil stamp + die-cut pocket starting at</div>
+        <div class="pc-price">$385.00</div>
+        <div class="pc-desc">9x12 presentation folders with two interior pockets, business-card slits, and your choice of gold or silver foil stamp on the cover. The closer for any pitch — listings, policy reviews, tax wrap-ups, capital campaigns.</div>
+      </div>
+      <div class="product-card" onclick="show('product')">
+        <div class="product-photo"><div class="pp-fill pp-8"></div><div class="product-badge">ORDER ONLINE<span class="pb-line">no minimum order</span></div></div>
+        <h4>Door Hangers | Double-Sided</h4>
+        <div class="pc-price-label">250 pieces, full color both sides, die-cut starting at</div>
+        <div class="pc-price">$98.00</div>
+        <div class="pc-desc">Standard 4.25x11 door hangers with a die-cut hook so they ride the doorknob without falling off. Great for neighborhood saturation — real estate, home services, churches, political, restaurants doing local drops.</div>
+      </div>
+      <div class="product-card" onclick="show('product')">
+        <div class="product-photo"><div class="pp-fill pp-9"></div><div class="product-badge">ORDER ONLINE<span class="pb-line">no minimum order</span></div></div>
+        <h4>Posters | 11×17 Full Color</h4>
+        <div class="pc-price-label">50 posters, premium gloss, single-sided starting at</div>
+        <div class="pc-price">$64.00</div>
+        <div class="pc-desc">11x17 posters on premium gloss stock. Perfect for in-store promotions, event lobbies, studio walls, classroom signage, sermon-series art. Roll-up tubes available at checkout for shipping safely.</div>
+      </div>
+      <div class="product-card" onclick="show('product')">
+        <div class="product-photo"><div class="pp-fill pp-10"></div><div class="product-badge">ORDER ONLINE<span class="pb-line">no minimum order</span></div></div>
+        <h4>Envelopes | #10 Window</h4>
+        <div class="pc-price-label">500 envelopes, 2-color logo print starting at</div>
+        <div class="pc-price">$58.00</div>
+        <div class="pc-desc">Standard #10 business envelopes with a left-side window and your logo printed in up to two colors. Pairs cleanly with our 70lb letterhead. Built for invoices, statements, policy renewals — anything that ships paper.</div>
+      </div>
     </div>
   </div>
 </div>
@@ -2250,13 +2278,24 @@
   };
 
   var MMP_PRODUCTS = [
-    { n: 'Premium Business Cards | 14pt Gloss', d: '250 pieces, full color, double-sided', p: '$39.00', t: 'bc' },
-    { n: 'Tri-Fold Brochures | 100lb Gloss Text', d: '100 pieces, full color, two-sided', p: '$129.00', t: 'brochure' },
-    { n: "Vinyl Banner | 3' x 6' with Grommets", d: 'Single banner, full color, indoor/outdoor', p: '$89.00', t: 'sign' },
-    { n: 'Postcards | 100lb Gloss Cover', d: '100 pieces, full color, double-sided', p: '$59.00', t: 'postcard' },
-    { n: 'Yard Signs | 4mm Coroplast', d: 'Single sign, full color, with H-stake', p: '$24.00', t: 'sign' },
-    { n: 'Letterhead | 70lb Premium Text', d: '250 sheets, full color, single-sided', p: '$79.00', t: 'folder' }
+    { sku: 'BC-14PT-GLS',  n: 'Premium Business Cards | 14pt Gloss',  d: '250 pieces, full color, double-sided',  p: '$39.00',  t: 'bc' },
+    { sku: 'BR-TRI-100',   n: 'Tri-Fold Brochures | 100lb Gloss Text',d: '100 pieces, full color, two-sided',      p: '$129.00', t: 'brochure' },
+    { sku: 'BN-VYL-36',    n: "Vinyl Banner | 3' x 6' with Grommets", d: 'Single banner, full color, indoor/outdoor', p: '$89.00', t: 'sign' },
+    { sku: 'PC-100GL',     n: 'Postcards | 100lb Gloss Cover',        d: '100 pieces, full color, double-sided',   p: '$59.00',  t: 'postcard' },
+    { sku: 'YS-CORO-1824', n: 'Yard Signs | 4mm Coroplast',           d: 'Single sign, full color, with H-stake',  p: '$24.00',  t: 'sign' },
+    { sku: 'LH-70-PREM',   n: 'Letterhead | 70lb Premium Text',       d: '250 sheets, full color, single-sided',   p: '$79.00',  t: 'folder' },
+    { sku: 'FOLDER-FOIL',  n: 'Presentation Folders | Foil Stamp',    d: '100 folders, foil stamp + die cut',      p: '$385.00', t: 'folder' },
+    { sku: 'DH-DBL',       n: 'Door Hangers | Double-Sided',          d: '250 pieces, full color, both sides',     p: '$98.00',  t: 'postcard' },
+    { sku: 'PO-1117',      n: 'Posters | 11×17 Full Color',           d: '50 pieces, full color, premium gloss',   p: '$64.00',  t: 'postcard' },
+    { sku: 'EN-10-WIN',    n: 'Envelopes | #10 Window',               d: '500 envelopes, 2-color logo print',      p: '$58.00',  t: 'folder' }
   ];
+
+  function masterBySku(sku) {
+    for (var i = 0; i < MMP_PRODUCTS.length; i++) {
+      if (MMP_PRODUCTS[i].sku === sku) return MMP_PRODUCTS[i];
+    }
+    return null;
+  }
 
   var CLIENTS = {
     lakeshore: {
@@ -2275,14 +2314,14 @@
         '<path d="M 11 38 Q 18 34, 25 38 Q 32 42, 39 38" stroke="#fbbf24" stroke-width="2.5" fill="none" stroke-linecap="round"/>' +
         '</svg>',
       products: [
-        { n: 'Agent Business Cards', d: '250 cards · Lakeshore template', p: '$39.00', b: 'LR Template', t: 'bc' },
-        { n: 'Open House Yard Sign 18×24', d: 'Single sign + H-stake', p: '$24.00', b: 'LR Template', t: 'sign' },
-        { n: 'Listing Postcards 4×6', d: '100 cards · custom address', p: '$59.00', b: 'LR Template', t: 'postcard' },
-        { n: 'Tri-Fold Listing Brochures', d: '100 brochures · full color', p: '$129.00', b: 'LR Template', t: 'brochure' },
-        { n: 'Just-Listed Door Hangers', d: '250 hangers · double-sided', p: '$98.00', b: 'LR Template', t: 'postcard' },
-        { n: 'A-Frame Open House Sign', d: '24×36 corrugated insert', p: '$56.00', b: 'LR Template', t: 'sign' },
-        { n: 'Listing Presentation Folders', d: '100 folders · foil stamped', p: '$385.00', b: 'Custom', t: 'folder' },
-        { n: 'Closing Gift Notecards', d: '50 cards · matching envelopes', p: '$72.00', b: 'Custom', t: 'bc' }
+        { sku: 'BC-14PT-GLS',  name: 'Agent Business Cards',           desc: '250 cards · Lakeshore template',     price: '$39.00',  badge: 'LR Template' },
+        { sku: 'YS-CORO-1824', name: 'Open House Yard Sign 18×24',     desc: 'Single sign + H-stake',               price: '$24.00',  badge: 'LR Template' },
+        { sku: 'PC-100GL',     name: 'Listing Postcards 4×6',          desc: '100 cards · custom address',          price: '$59.00',  badge: 'LR Template' },
+        { sku: 'BR-TRI-100',   name: 'Tri-Fold Listing Brochures',     desc: '100 brochures · full color',          price: '$129.00', badge: 'LR Template' },
+        { sku: 'DH-DBL',       name: 'Just-Listed Door Hangers',       desc: '250 hangers · double-sided',          price: '$98.00',  badge: 'LR Template' },
+        { sku: 'BN-VYL-36',    name: 'A-Frame Open House Sign',        desc: '24×36 corrugated insert',             price: '$56.00',  badge: 'LR Template' },
+        { sku: 'FOLDER-FOIL',  name: 'Listing Presentation Folders',   desc: '100 folders · foil stamped',          price: '$385.00', badge: 'Custom' },
+        { sku: 'PO-1117',      name: 'Open House Posters 11×17',       desc: '50 posters · property photo prints',  price: '$64.00',  badge: 'Custom' }
       ]
     },
     heritage: {
@@ -2299,14 +2338,12 @@
         '<text x="25" y="31" font-family="Georgia, serif" font-weight="800" font-size="16" fill="#7c2d12" text-anchor="middle">H</text>' +
         '</svg>',
       products: [
-        { n: 'Agent Business Cards', d: '500 cards · Heritage template', p: '$59.00', b: 'HI Template', t: 'bc' },
-        { n: 'Policy Folders | Foil Stamp', d: '100 folders · navy + gold', p: '$420.00', b: 'HI Template', t: 'folder' },
-        { n: 'Welcome Packets', d: '100 packets · 8 inserts each', p: '$310.00', b: 'HI Template', t: 'folder' },
-        { n: 'Refrigerator Magnet Calendars', d: '500 magnets · 2026 design', p: '$285.00', b: 'HI Template', t: 'postcard' },
-        { n: 'Letterhead | 70lb Premium', d: '500 sheets · agent branded', p: '$145.00', b: 'HI Template', t: 'folder' },
-        { n: '#10 Window Envelopes', d: '500 envelopes · 2-color logo', p: '$98.00', b: 'HI Template', t: 'folder' },
-        { n: 'Auto ID Card Holders', d: '250 wallet sleeves', p: '$74.00', b: 'Custom', t: 'bc' },
-        { n: 'Home Service Brochures', d: '250 brochures · tri-fold', p: '$189.00', b: 'Custom', t: 'brochure' }
+        { sku: 'BC-14PT-GLS', name: 'Agent Business Cards',            desc: '500 cards · Heritage template',   price: '$59.00',  badge: 'HI Template' },
+        { sku: 'FOLDER-FOIL', name: 'Policy Folders | Foil Stamp',     desc: '100 folders · navy + gold',       price: '$420.00', badge: 'HI Template' },
+        { sku: 'LH-70-PREM',  name: 'Letterhead | 70lb Premium',       desc: '500 sheets · agent branded',      price: '$145.00', badge: 'HI Template' },
+        { sku: 'EN-10-WIN',   name: '#10 Window Envelopes',            desc: '500 envelopes · 2-color logo',    price: '$98.00',  badge: 'HI Template' },
+        { sku: 'PC-100GL',    name: 'Renewal Reminder Postcards',      desc: '250 cards · custom merge fields', price: '$95.00',  badge: 'HI Template' },
+        { sku: 'BR-TRI-100',  name: 'Home Service Brochures',          desc: '250 brochures · tri-fold',        price: '$189.00', badge: 'Custom' }
       ]
     },
     hagen: {
@@ -2324,10 +2361,10 @@
         '<text x="25" y="42" font-family="Open Sans, sans-serif" font-weight="700" font-size="6" fill="#fbbf24" text-anchor="middle" letter-spacing="0.15em">CPA</text>' +
         '</svg>',
       products: [
-        { n: 'Tax Organizer Folders', d: '200 folders · 8.5×11 pocket', p: '$185.00', b: 'MH Template', t: 'folder' },
-        { n: 'Firm Letterhead', d: '500 sheets · navy 2-color', p: '$94.00', b: 'MH Template', t: 'folder' },
-        { n: 'CPA Business Cards', d: '500 cards · matte 14pt', p: '$59.00', b: 'MH Template', t: 'bc' },
-        { n: '1040 Filing Folders', d: '100 folders · with client labels', p: '$78.00', b: 'MH Template', t: 'folder' }
+        { sku: 'FOLDER-FOIL', name: 'Tax Organizer Folders',  desc: '200 folders · 8.5×11 pocket',      price: '$185.00', badge: 'MH Template' },
+        { sku: 'LH-70-PREM',  name: 'Firm Letterhead',        desc: '500 sheets · navy 2-color',        price: '$94.00',  badge: 'MH Template' },
+        { sku: 'BC-14PT-GLS', name: 'CPA Business Cards',     desc: '500 cards · matte 14pt',           price: '$59.00',  badge: 'MH Template' },
+        { sku: 'EN-10-WIN',   name: 'Tax Document Envelopes', desc: '500 envelopes · firm letterhead',  price: '$78.00',  badge: 'MH Template' }
       ]
     },
     yoga: {
@@ -2344,12 +2381,11 @@
         '<circle cx="36" cy="32" r="1.8" fill="#d9b88a"/>' +
         '</svg>',
       products: [
-        { n: 'Class Schedule Postcards', d: '250 cards · monthly drop', p: '$48.00', b: 'UY Template', t: 'postcard' },
-        { n: 'Gift Cards | Plastic', d: '100 cards · activated', p: '$95.00', b: 'UY Template', t: 'bc' },
-        { n: 'Studio Business Cards', d: '500 cards · matte', p: '$48.00', b: 'UY Template', t: 'bc' },
-        { n: 'Mat Numbers / Hooks', d: '50 tags · waterproof', p: '$32.00', b: 'UY Template', t: 'bc' },
-        { n: 'Workshop Posters 11×17', d: '50 posters · full color', p: '$64.00', b: 'UY Template', t: 'postcard' },
-        { n: 'New Student Welcome Cards', d: '100 cards · letterpress feel', p: '$72.00', b: 'Custom', t: 'bc' }
+        { sku: 'PC-100GL',    name: 'Class Schedule Postcards',  desc: '250 cards · monthly drop',           price: '$48.00', badge: 'UY Template' },
+        { sku: 'BC-14PT-GLS', name: 'Studio Business Cards',     desc: '500 cards · matte',                  price: '$48.00', badge: 'UY Template' },
+        { sku: 'PO-1117',     name: 'Workshop Posters 11×17',    desc: '50 posters · full color',            price: '$64.00', badge: 'UY Template' },
+        { sku: 'DH-DBL',      name: 'New-Class Door Hangers',    desc: '250 hangers · trial offer printed',  price: '$72.00', badge: 'UY Template' },
+        { sku: 'BR-TRI-100',  name: 'Studio Welcome Brochures',  desc: '100 brochures · class menu',         price: '$98.00', badge: 'Custom' }
       ]
     },
     grace: {
@@ -2366,12 +2402,12 @@
         '<rect x="14" y="20" width="22" height="6" fill="#fbbf24"/>' +
         '</svg>',
       products: [
-        { n: 'Sunday Bulletins | 4-page', d: '500 bulletins · weekly drop', p: '$129.00', b: 'GC Template', t: 'folder' },
-        { n: 'Sermon Series Postcards', d: '500 cards · 6-week series', p: '$185.00', b: 'GC Template', t: 'postcard' },
-        { n: 'Connection Cards', d: '1,000 cards · pew tear-off', p: '$98.00', b: 'GC Template', t: 'bc' },
-        { n: 'Event Flyers 8.5×11', d: '250 flyers · full color', p: '$78.00', b: 'GC Template', t: 'postcard' },
-        { n: 'Welcome Brochures', d: '500 brochures · tri-fold', p: '$165.00', b: 'GC Template', t: 'brochure' },
-        { n: 'Volunteer T-shirt Printing', d: '50 shirts · per order', p: '$425.00', b: 'Custom', t: 'folder' }
+        { sku: 'BR-TRI-100',  name: 'Welcome Brochures',          desc: '500 brochures · tri-fold',         price: '$165.00', badge: 'GC Template' },
+        { sku: 'PC-100GL',    name: 'Sermon Series Postcards',    desc: '500 cards · 6-week series',        price: '$185.00', badge: 'GC Template' },
+        { sku: 'BC-14PT-GLS', name: 'Connection Cards',           desc: '1,000 cards · pew tear-off',       price: '$98.00',  badge: 'GC Template' },
+        { sku: 'PO-1117',     name: 'Event Flyers 8.5×11',        desc: '250 flyers · full color',          price: '$78.00',  badge: 'GC Template' },
+        { sku: 'FOLDER-FOIL', name: 'New-Member Welcome Folders', desc: '100 folders · 6 inserts each',     price: '$245.00', badge: 'GC Template' },
+        { sku: 'DH-DBL',      name: 'Community Outreach Hangers', desc: '250 hangers · neighborhood drop',  price: '$72.00',  badge: 'Custom' }
       ]
     }
   };
@@ -2519,16 +2555,19 @@
     if (grid) {
       var html = '';
       for (var i = 0; i < c.products.length; i++) {
-        var p = c.products[i];
+        var item = c.products[i];
+        var master = masterBySku(item.sku);
+        var type = master ? master.t : 'bc';
         html += '<div class="lr-product">' +
           '<div class="lr-prod-photo">' +
-            buildProductMockup(p.t, c) +
-            '<span class="lr-prod-badge" style="background:' + c.accent + ';color:' + c.accentText + ';">' + p.b + '</span>' +
+            buildProductMockup(type, c) +
+            '<span class="lr-prod-badge" style="background:' + c.accent + ';color:' + c.accentText + ';">' + item.badge + '</span>' +
           '</div>' +
           '<div class="lr-prod-body">' +
-            '<h4>' + p.n + '</h4>' +
-            '<div class="lr-price-label">' + p.d + '</div>' +
-            '<div class="lr-price" style="color:' + c.primary + ';">' + p.p + '</div>' +
+            '<h4>' + item.name + '</h4>' +
+            '<div class="lr-price-label" style="font-size:10px;color:var(--ink-fade);font-family:monospace;letter-spacing:0.04em;">SKU ' + item.sku + '</div>' +
+            '<div class="lr-price-label" style="margin-top:3px;">' + item.desc + '</div>' +
+            '<div class="lr-price" style="color:' + c.primary + ';">' + item.price + '</div>' +
           '</div></div>';
       }
       grid.innerHTML = html;
