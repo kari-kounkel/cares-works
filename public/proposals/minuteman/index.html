@@ -26,6 +26,25 @@
     -webkit-font-smoothing:antialiased;
   }
 
+  /* === SCROLLING NOTICE BANNER === */
+  .notice-banner{
+    background:var(--accent);color:var(--cream);
+    overflow:hidden;white-space:nowrap;
+    border-bottom:2px solid var(--gold);
+  }
+  .notice-banner-track{
+    display:inline-block;padding:9px 0;
+    font-size:12px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;
+    animation:notice-scroll 38s linear infinite;
+  }
+  .notice-banner-track span{padding:0 2.4em}
+  .notice-banner-track span b{color:var(--cream);font-weight:800}
+  @keyframes notice-scroll{
+    0%{transform:translateX(0)}
+    100%{transform:translateX(-50%)}
+  }
+  .notice-banner:hover .notice-banner-track{animation-play-state:paused}
+
   /* === COVER === */
   .cover{
     background:var(--navy);color:var(--cream);padding:80px 64px;position:relative;overflow:hidden;
@@ -187,6 +206,18 @@
 </head>
 <body>
 
+<!-- =============== SCROLLING NOTICE =============== -->
+<div class="notice-banner">
+  <div class="notice-banner-track">
+    <span>The <b>Website &amp; E-Commerce Proposal</b> has been removed from this online package — a printed copy is available upon request. Contact CARES Consulting.</span>
+    <span>The <b>Website &amp; E-Commerce Proposal</b> has been removed from this online package — a printed copy is available upon request. Contact CARES Consulting.</span>
+    <span>The <b>Website &amp; E-Commerce Proposal</b> has been removed from this online package — a printed copy is available upon request. Contact CARES Consulting.</span>
+    <span>The <b>Website &amp; E-Commerce Proposal</b> has been removed from this online package — a printed copy is available upon request. Contact CARES Consulting.</span>
+    <span>The <b>Website &amp; E-Commerce Proposal</b> has been removed from this online package — a printed copy is available upon request. Contact CARES Consulting.</span>
+    <span>The <b>Website &amp; E-Commerce Proposal</b> has been removed from this online package — a printed copy is available upon request. Contact CARES Consulting.</span>
+  </div>
+</div>
+
 <!-- =============== COVER =============== -->
 <div class="cover">
   <div class="cover-meta">
@@ -338,9 +369,9 @@
 
   <h3>Download the agreement</h3>
   <div class="downloads">
-    <a href="Bookkeeping_Services_Agreement_Minuteman.docx" class="dl" download>
+    <a href="Bookkeeping_Services_Agreement_Minuteman.pdf" class="dl" download>
       <span class="ico">📄</span>
-      <span>Bookkeeping Services Agreement<br><small style="opacity:.7;font-weight:400;font-size:12px">Word document · two tiers + hourly</small></span>
+      <span>Bookkeeping Services Agreement<br><small style="opacity:.7;font-weight:400;font-size:12px">PDF · two tiers + hourly</small></span>
     </a>
   </div>
 
