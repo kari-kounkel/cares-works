@@ -36,51 +36,9 @@ const S = {
   grad: "linear-gradient(135deg, #e8773a, #c95f22)",
 };
 
-// Tools grouped by category. Each tool: icon, title, slug OR href, desc, optional tag, optional tier
-// tier: "free" or "member" (defaults to "member" if omitted)
-// tag: "NEW" or "FREE" (visual badge — FREE tag implies tier "free")
-// href: external static URL — used INSTEAD of slug for non-React routes (like /vendor-decoder.html)
-const TOOLS = {
-  bookkeeping: [
-    { icon: "🗂️", title: "Vendor Decoder", slug: "vendor-decoder", desc: "Turn your vendor list into a posting playbook. Map every vendor to its account so the new bookkeeper inherits clarity instead of chaos.", tag: "NEW", tier: "free" },
-    { icon: "📗", title: "Year-End QuickBooks Triage", slug: "quickbooks-triage", desc: "8 diagnostic zones. Find the fires, name the fires, put out the ones that matter. Full version." },
-    { icon: "📈", title: "Chart of Accounts Cheat Sheet", slug: "chart-of-accounts", desc: "The categories you actually need, the ones you don't, and why your P&L is lying to you." },
-    { icon: "📥", title: "QuickBooks IIF Import — The Right Way", slug: "iif-import", desc: "Stop manually entering transactions. Build and import IIF files without losing your mind." },
-    { icon: "🔍", title: "QBO Discovery Assessment", slug: "qbo-discovery", desc: "Thirteen sections for scoping a new QBO client. Chart of accounts, payroll, reconciliation, pain points. Walk in knowing nothing. Walk out with scope, price, and a verdict.", tag: "NEW" },
-    { icon: "📥", title: "Stop Drowning in Email Attachments", slug: "email-attachments", desc: "The Python script that pulls every invoice and vendor doc out of your inbox — sorted, named, waiting for you every morning.", tag: "FREE", tier: "free" },
-    { icon: "📧", title: "Advanced Email Attachments", slug: "email-attachments-advanced", desc: "The enhanced Python script that writes a full email-detail.csv with auto-categorization. Six workflows: Monday rhythm, QuickBooks bridge, monthly recon, year-end 1099 prep, and more.", tag: "NEW" },
-    { icon: "📋", title: "Bookkeeper Scope Matrix", slug: "bookkeeper-scope", desc: "30 bookkeeping tasks. Three answers: your bookkeeper owns it, it stays out of their lane, or it needs a specialist. Stop giving away access you will regret.", tag: "NEW" },
-  ],
-  money: [
-    { icon: "📊", title: "Net Profit Ratios + What's Your Number", slug: "net-profit-ratios", desc: "The worksheet that shows you what revenue actually needs to be — starting from what you need to take home.", tag: "NEW" },
-    { icon: "💰", title: "Pricing Metrics Framework", slug: "pricing-metrics", desc: "Cost of goods, labor burden, overhead allocation, margin vs markup. The math people are too embarrassed to ask about." },
-    { icon: "🧾", title: "Finding a CPA — The Right Questions", slug: "finding-a-cpa", desc: "What to ask before you hire one. What red flags to run from. Most people pick whoever answers the phone." },
-    { icon: "📊", title: "Fractional CFO Scope Matrix", slug: "fractional-cfo-scope", desc: "Three columns: what a fractional CFO does, what they do not touch, and where your authority stays yours. Know the scope before you sign the contract.", tag: "NEW" },
-    { icon: "🔍", title: "Busy vs. Profitable — The Busyness Audit", slug: "busyness-audit", desc: "Revenue is vanity. Net profit is sanity. This shows you whether your busyness is profitable or just exhausting." },
-  ],
-  people: [
-    { icon: "✅", title: "The Payroll Checklist Nobody Gave You", slug: "payroll-checklist", desc: "Pay period, quarterly, annual, and 1099 — three checklists in one. Each tracks independently.", tag: "FREE", tier: "free" },
-    { icon: "🗂️", title: "New Hire First 30 Days", slug: "new-hire-30-days", desc: "The sequence that makes you look like you have a whole HR team behind you when it's just you." },
-    { icon: "📝", title: "Separation Script + Resignation Templates", slug: "separation-script", desc: "Word for word. Walk in, say this, walk out. No drama, no liability." },
-  ],
-  clientwork: [
-    { icon: "✉️", title: "What to Actually Say", slug: "communication-templates", desc: "10 templates for late invoices, scope creep, bad news, after-hours texters, and the client you need to fire.", tag: "FREE", tier: "free" },
-    { icon: "📋", title: "Client Visit Summary", slug: "client-visit-summary", desc: "Fill it out in the parking lot. Leave it behind. Your client knows what happened and what is next.", tag: "FREE", tier: "free" },
-    { icon: "🏦", title: "ACH Banking Form", slug: "ach-form", desc: "Collect banking details from a vendor or employee — or package your own to share. Printable, fillable, no data stored.", tag: "FREE", tier: "free" },
-    { icon: "💵", title: "Payroll Stub Calculator", slug: "payroll-calculator", desc: "Calculate gross pay, federal and state withholding, FICA, and deductions. Print a clean pay stub. All 50 states — you look up your state table, we do the rest.", tag: "FREE", tier: "free" },
-    { icon: "⏱️", title: "Buying Time Scripts", slug: "buying-time-scripts", desc: "Exactly what to say when a client asks something you don't know the answer to. Sound confident while you go figure it out." },
-    { icon: "📋", title: "Post-Meeting Debrief One-Pager", slug: "post-meeting-debrief", desc: "Fill it out in the parking lot, send it before you get home. Never forget what you committed to again." },
-  ],
-  leadership: [
-    { icon: "🤝", title: "Building Your Advisory Team", slug: "advisory-team", desc: "Who you actually need in your corner. CPA, attorney, banker, insurance, mentor. What to ask each one." },
-    { icon: "📅", title: "Planning Meetings That Actually Work", slug: "meeting-planning", desc: "The agenda, the time blocks, and the follow-up protocol. One page. Laminate it." },
-    { icon: "🏗️", title: "In-House vs. Contract Decision Matrix", slug: "inhouse-vs-contract", desc: "HR, bookkeeping, marketing, IT, legal. When you're big enough to bring it in, when you're not." },
-    { icon: "📚", title: "Founders Series — Module 1", slug: "founders-series-1", desc: "The business foundation framework. Where it all starts." },
-  ],
-  utilities: [
-    { icon: "✅", title: "Build Your Own Checklist", slug: "checklist-builder", desc: "Multi-section checklist with status circles and notes. Drag rows to rearrange. Save as many as you want. For audits, project tracking, decision matrices, anything.", tag: "FREE", tier: "free" },
-  ],
-};
+// The tool catalog lives in Supabase (public.tools) — edited from the admin side, read here.
+// Category display order + labels stay in code; the tool rows come from the database.
+const CATEGORY_ORDER = ["bookkeeping", "money", "people", "clientwork", "leadership", "utilities"];
 
 const CAT_LABELS = { bookkeeping: "Bookkeeping", money: "Money", people: "People", clientwork: "Client Work", leadership: "Leadership", utilities: "Utilities" };
 const CAT_ICONS = { bookkeeping: "📒", money: "💰", people: "👥", clientwork: "🤝", leadership: "🎯", utilities: "🛠️" };
@@ -101,6 +59,8 @@ export default function Dashboard({ session }) {
   const [member, setMember] = useState(null);
   const [activeTab, setActiveTab] = useState("tools");
   const [loading, setLoading] = useState(true);
+  const [tools, setTools] = useState([]);
+  const [toolsLoading, setToolsLoading] = useState(true);
 
   // Filter state for Tool Library
   const [searchQuery, setSearchQuery] = useState("");
@@ -115,6 +75,17 @@ export default function Dashboard({ session }) {
       setLoading(false);
     };
     fetchMember();
+
+    const fetchTools = async () => {
+      const { data } = await supabase
+        .from("tools")
+        .select("*")
+        .eq("is_published", true)
+        .order("sort_order", { ascending: true });
+      setTools(data || []);
+      setToolsLoading(false);
+    };
+    fetchTools();
     const script = document.createElement("script");
     script.src = "https://chat.karikounkel.com/widget.js";
     script.defer = true;
@@ -127,12 +98,19 @@ export default function Dashboard({ session }) {
     window.location.href = "/";
   };
 
-  // Flatten all tools with category attached
+  // Map database rows to the shape the grid expects (description -> desc)
   const allTools = useMemo(() => {
-    return Object.entries(TOOLS).flatMap(([cat, tools]) =>
-      tools.map(t => ({ ...t, category: cat, tier: t.tier || "member" }))
-    );
-  }, []);
+    return tools.map(t => ({
+      icon: t.icon,
+      title: t.title,
+      slug: t.slug,
+      href: t.href || undefined,
+      desc: t.description,
+      tag: t.tag || undefined,
+      tier: t.tier || "member",
+      category: t.category,
+    }));
+  }, [tools]);
 
   // Apply filters
   const filteredTools = useMemo(() => {
@@ -197,7 +175,7 @@ export default function Dashboard({ session }) {
 
   const tabs = ["tools", "debrief", "court", "shop", "account"];
   const tabLabels = { tools: "Tool Library", debrief: "The Debrief", court: "Court of Accounts", shop: "Shop", account: "Account" };
-  const categories = Object.keys(TOOLS);
+  const categories = CATEGORY_ORDER;
 
   return (
     <div style={{ minHeight: "100vh", background: S.paper, fontFamily: "'Figtree', sans-serif", color: S.ink }}>
@@ -301,7 +279,11 @@ export default function Dashboard({ session }) {
             </div>
 
             {/* TOOLS GRID */}
-            {filteredTools.length === 0 ? (
+            {toolsLoading ? (
+              <div style={{ background: S.cream, border: "1px dashed " + S.rule, borderRadius: 12, padding: "48px 24px", textAlign: "center", color: S.muted, fontFamily: "'DM Mono', monospace", fontSize: 13, letterSpacing: "0.06em" }}>
+                Loading your tool library…
+              </div>
+            ) : filteredTools.length === 0 ? (
               <div style={{ background: S.cream, border: "1px dashed " + S.rule, borderRadius: 12, padding: "48px 24px", textAlign: "center", color: S.muted }}>
                 <div style={{ fontSize: 32, marginBottom: 12 }}>🔍</div>
                 <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: S.slate, marginBottom: 8 }}>No tools match your filters.</div>
