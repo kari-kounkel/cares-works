@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "../supabaseClient";
 import { navigate } from "../App";
+import Workspace from "./Workspace";
 
 const MOBILE_DASH = `
   @media (max-width: 640px) {
@@ -173,8 +174,8 @@ export default function Dashboard({ session }) {
   const plan = member?.plan || "monthly";
   const isAnnual = plan === "annual";
 
-  const tabs = ["tools", "debrief", "court", "shop", "account"];
-  const tabLabels = { tools: "Tool Library", debrief: "The Debrief", court: "Court of Accounts", shop: "Shop", account: "Account" };
+  const tabs = ["tools", "workspace", "debrief", "court", "shop", "account"];
+  const tabLabels = { tools: "Tool Library", workspace: "My Work", debrief: "The Debrief", court: "Court of Accounts", shop: "Shop", account: "Account" };
   const categories = CATEGORY_ORDER;
 
   return (
@@ -325,6 +326,9 @@ export default function Dashboard({ session }) {
             )}
           </>
         )}
+
+        {/* MY WORK — member workspace */}
+        {activeTab === "workspace" && <Workspace session={session} />}
 
         {/* THE DEBRIEF */}
         {activeTab === "debrief" && (
