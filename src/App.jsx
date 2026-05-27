@@ -31,6 +31,7 @@ import MeetingPlanning from "./pages/MeetingPlanning";
 import BusynessAudit from "./pages/BusynessAudit";
 import AchForm from "./pages/AchForm";
 import PayrollCalculator from "./pages/PayrollCalculator";
+import Ledger from "./pages/Ledger";
 
 export function navigate(path) {
   window.history.pushState({}, "", path);
@@ -131,6 +132,10 @@ export default function App() {
   if (path === "/tools/busyness-audit") return <BusynessAudit session={session} />;
   if (path === "/tools/ach-form") return <AchForm />;
   if (path === "/tools/payroll-calculator") return <PayrollCalculator session={session} />;
+  if (path === "/tools/ledger") {
+    if (!session) { navigate("/login"); return null; }
+    return <Ledger session={session} />;
+  }
 
   if (path.startsWith("/tools/")) {
     const slug = path.replace("/tools/", "");
