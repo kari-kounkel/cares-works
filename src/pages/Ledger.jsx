@@ -41,6 +41,34 @@ function todayISO() {
   return new Date().toISOString().slice(0, 10);
 }
 
+function computeDateRange(kind, customStart, customEnd) {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth();
+  const pad = (n) => String(n).padStart(2, "0");
+  const iso = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const monthName = (yr, mo) => new Date(yr, mo, 1).toLocaleString("en-US", { month: "long", year: "numeric" });
+
+  if (kind === "all") return { rangeStart: null, rangeEnd: null, rangeLabel: "All time" };
+  if (kind === "this-month") {
+    return { rangeStart: iso(new Date(y, m, 1)), rangeEnd: iso(new Date(y, m + 1, 0)), rangeLabel: monthName(y, m) };
+  }
+  if (kind === "last-month") {
+    return { rangeStart: iso(new Date(y, m - 1, 1)), rangeEnd: iso(new Date(y, m, 0)), rangeLabel: monthName(y, m - 1) };
+  }
+  if (kind === "last-3-months") {
+    return { rangeStart: iso(new Date(y, m - 2, 1)), rangeEnd: iso(new Date(y, m + 1, 0)), rangeLabel: `${monthName(y, m - 2)} – ${monthName(y, m)}` };
+  }
+  if (kind === "this-year") {
+    return { rangeStart: iso(new Date(y, 0, 1)), rangeEnd: iso(new Date(y, 11, 31)), rangeLabel: `${y}` };
+  }
+  if (kind === "custom") {
+    if (!customStart && !customEnd) return { rangeStart: null, rangeEnd: null, rangeLabel: "Custom (pick dates)" };
+    return { rangeStart: customStart || null, rangeEnd: customEnd || null, rangeLabel: `${customStart || "…"} – ${customEnd || "…"}` };
+  }
+  return { rangeStart: null, rangeEnd: null, rangeLabel: "All time" };
+}
+
 export default function Ledger({ session }) {
   const [orgs, setOrgs] = useState([]);
   const [orgId, setOrgId] = useState(null);
@@ -268,7 +296,22 @@ function Shell({ children }) {
   return (
     <div style={{ minHeight: "100vh", background: S.paper, fontFamily: "'Figtree', sans-serif", color: S.ink }}>
       <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
-      <div style={{ background: "#fff", borderBottom: `1px solid ${S.rule}`, padding: "14px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <style>{`
+        @media print {
+          body { background: #fff !important; }
+          .ledger-shell-header,
+          .ledger-org-header,
+          .ledger-summary,
+          .ledger-tabs,
+          .ledger-add-card,
+          .ledger-toolbar,
+          .ledger-row-delete { display: none !important; }
+          .print-only-header { display: block !important; }
+          .ledger-entry-row { page-break-inside: avoid; }
+          @page { margin: 0.6in 0.5in; }
+        }
+      `}</style>
+      <div className="ledger-shell-header" style={{ background: "#fff", borderBottom: `1px solid ${S.rule}`, padding: "14px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <button onClick={() => navigate("/dashboard")} style={{ background: "none", border: "none", color: S.slate, cursor: "pointer", fontSize: 14, fontFamily: "inherit", fontWeight: 500, display: "flex", alignItems: "center", gap: 6 }}>← Dashboard</button>
         <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 16, color: S.slate }}>CARES <span style={{ color: S.orange }}>Ledger</span></div>
         <div style={{ width: 90 }} />
@@ -288,7 +331,7 @@ function Header({ org, orgs, onSwitch, onUpdate, onCreate }) {
   useEffect(() => { setName(org?.name || ""); }, [org?.id]);
 
   return (
-    <div style={{ marginBottom: 24 }}>
+    <div className="ledger-org-header" style={{ marginBottom: 24 }}>
       <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: ".14em", textTransform: "uppercase", color: S.muted, marginBottom: 8 }}>Bookkeeping for</div>
       <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
         {editingName ? (
@@ -335,7 +378,7 @@ function Header({ org, orgs, onSwitch, onUpdate, onCreate }) {
 /* ---------- Summary ---------- */
 function Summary({ monthTotals, totals }) {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 24 }}>
+    <div className="ledger-summary" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 24 }}>
       <Stat label="This month — in" value={fmt(monthTotals.in)} accent={S.green} />
       <Stat label="This month — out" value={fmt(monthTotals.out)} accent={S.red} />
       <Stat label="This month — net" value={fmt(monthTotals.net)} accent={monthTotals.net >= 0 ? S.green : S.red} />
@@ -355,7 +398,7 @@ function Stat({ label, value, accent }) {
 /* ---------- Tabs ---------- */
 function Tabs({ tab, onTab }) {
   return (
-    <div style={{ display: "flex", gap: 4, borderBottom: `1px solid ${S.rule}`, marginBottom: 22, flexWrap: "wrap" }}>
+    <div className="ledger-tabs" style={{ display: "flex", gap: 4, borderBottom: `1px solid ${S.rule}`, marginBottom: 22, flexWrap: "wrap" }}>
       {TABS.map(t => (
         <button key={t.key} onClick={() => onTab(t.key)} style={{
           background: "transparent", border: "none", padding: "12px 16px",
@@ -383,6 +426,9 @@ function LedgerTab({ entries, funds, donors, campaigns, accounts, onAdd, onDelet
   const [accountId, setAccountId] = useState("");
   const [filterDir, setFilterDir] = useState("all");
   const [filterAccount, setFilterAccount] = useState("all");
+  const [dateRange, setDateRange] = useState("this-month");
+  const [customStart, setCustomStart] = useState("");
+  const [customEnd, setCustomEnd] = useState("");
 
   const reset = () => { setAmount(""); setDescription(""); setCategory(""); setFundId(""); setDonorId(""); setCampaignId(""); };
 
@@ -404,19 +450,30 @@ function LedgerTab({ entries, funds, donors, campaigns, accounts, onAdd, onDelet
     reset();
   };
 
+  const { rangeStart, rangeEnd, rangeLabel } = useMemo(() => computeDateRange(dateRange, customStart, customEnd), [dateRange, customStart, customEnd]);
+
   const filtered = entries.filter(e => {
     if (filterDir !== "all" && e.direction !== filterDir) return false;
     if (filterAccount === "none" && e.account_id) return false;
     if (filterAccount !== "all" && filterAccount !== "none" && e.account_id !== filterAccount) return false;
+    if (rangeStart && (e.entry_date || "") < rangeStart) return false;
+    if (rangeEnd && (e.entry_date || "") > rangeEnd) return false;
     return true;
   });
+
+  const filteredTotals = useMemo(() => {
+    const inCents = filtered.filter(e => e.direction === "in").reduce((s, e) => s + (e.amount_cents || 0), 0);
+    const outCents = filtered.filter(e => e.direction === "out").reduce((s, e) => s + (e.amount_cents || 0), 0);
+    return { in: inCents, out: outCents, net: inCents - outCents };
+  }, [filtered]);
+
   const donorById = Object.fromEntries(donors.map(d => [d.id, d]));
   const fundById = Object.fromEntries(funds.map(f => [f.id, f]));
   const accountById = Object.fromEntries(accounts.map(a => [a.id, a]));
 
   return (
     <div>
-      <div style={{ background: "#fff", border: `1px solid ${S.rule}`, borderRadius: 14, padding: showAdd ? "20px 22px" : "14px 22px", marginBottom: 20 }}>
+      <div className="ledger-add-card" style={{ background: "#fff", border: `1px solid ${S.rule}`, borderRadius: 14, padding: showAdd ? "20px 22px" : "14px 22px", marginBottom: 20 }}>
         {!showAdd && (
           <button onClick={() => setShowAdd(true)} style={{ ...btnPrimary, width: "100%", justifyContent: "center", padding: "12px 16px", fontSize: 14 }}>+ Add entry</button>
         )}
@@ -466,23 +523,66 @@ function LedgerTab({ entries, funds, donors, campaigns, accounts, onAdd, onDelet
         )}
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, gap: 12, flexWrap: "wrap" }}>
-        <div style={{ fontSize: 13, color: S.muted }}>{filtered.length} {filtered.length === 1 ? "entry" : "entries"}</div>
-        <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-          {accounts.length > 0 && (
-            <select value={filterAccount} onChange={e => setFilterAccount(e.target.value)} style={{ ...inputStyle, padding: "6px 10px", fontSize: 12 }}>
-              <option value="all">All accounts</option>
-              <option value="none">No account tagged</option>
-              {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-            </select>
+      <div className="ledger-toolbar" style={{ background: "#fff", border: `1px solid ${S.rule}`, borderRadius: 12, padding: "12px 16px", marginBottom: 14 }}>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+          <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: ".14em", textTransform: "uppercase", color: S.muted, marginRight: 4 }}>When</span>
+          {[
+            { key: "this-month", label: "This month" },
+            { key: "last-month", label: "Last month" },
+            { key: "last-3-months", label: "Last 3 months" },
+            { key: "this-year", label: "This year" },
+            { key: "all", label: "All time" },
+            { key: "custom", label: "Custom" },
+          ].map(opt => (
+            <button key={opt.key} onClick={() => setDateRange(opt.key)} style={smallPill(dateRange === opt.key)}>{opt.label}</button>
+          ))}
+          {dateRange === "custom" && (
+            <>
+              <input type="date" value={customStart} onChange={e => setCustomStart(e.target.value)} style={{ ...inputStyle, padding: "5px 8px", fontSize: 12 }} />
+              <span style={{ color: S.muted, fontSize: 12 }}>to</span>
+              <input type="date" value={customEnd} onChange={e => setCustomEnd(e.target.value)} style={{ ...inputStyle, padding: "5px 8px", fontSize: 12 }} />
+            </>
           )}
-          <div style={{ display: "flex", gap: 4 }}>
-            {["all", "in", "out"].map(k => (
-              <button key={k} onClick={() => setFilterDir(k)} style={smallPill(filterDir === k)}>
-                {k === "all" ? "All" : k === "in" ? "Money in" : "Money out"}
-              </button>
-            ))}
-          </div>
+        </div>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center", marginTop: 10 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: ".14em", textTransform: "uppercase", color: S.muted, marginRight: 4 }}>Type</span>
+          {["all", "in", "out"].map(k => (
+            <button key={k} onClick={() => setFilterDir(k)} style={smallPill(filterDir === k)}>
+              {k === "all" ? "All" : k === "in" ? "Money in" : "Money out"}
+            </button>
+          ))}
+          {accounts.length > 0 && (
+            <>
+              <span style={{ width: 1, height: 18, background: S.rule, margin: "0 8px" }} />
+              <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: ".14em", textTransform: "uppercase", color: S.muted, marginRight: 4 }}>Account</span>
+              <select value={filterAccount} onChange={e => setFilterAccount(e.target.value)} style={{ ...inputStyle, padding: "5px 10px", fontSize: 12 }}>
+                <option value="all">All accounts</option>
+                <option value="none">Untagged</option>
+                {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+              </select>
+            </>
+          )}
+          <span style={{ flex: 1 }} />
+          <button onClick={() => window.print()} style={{ ...btnGhost, padding: "6px 14px", fontSize: 12 }} title="Print or save as PDF">🖨 Print</button>
+        </div>
+      </div>
+
+      <div className="print-only-header" style={{ display: "none", marginBottom: 14 }}>
+        <h2 style={{ fontFamily: "'DM Serif Display', serif", margin: 0, color: S.slate }}>Ledger — {rangeLabel}</h2>
+        <div style={{ fontSize: 12, color: S.muted, marginTop: 4 }}>
+          {filtered.length} {filtered.length === 1 ? "entry" : "entries"} ·
+          In {fmt(filteredTotals.in)} · Out {fmt(filteredTotals.out)} · Net {fmt(filteredTotals.net)}
+        </div>
+      </div>
+
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, gap: 12, flexWrap: "wrap" }}>
+        <div style={{ fontSize: 13, color: S.muted }}>
+          {filtered.length} {filtered.length === 1 ? "entry" : "entries"} · <strong style={{ color: S.slate }}>{rangeLabel}</strong>
+        </div>
+        <div style={{ fontSize: 13, color: S.muted, display: "flex", gap: 14, flexWrap: "wrap" }}>
+          <span>In <strong style={{ color: S.green }}>{fmt(filteredTotals.in)}</strong></span>
+          <span>Out <strong style={{ color: S.red }}>{fmt(filteredTotals.out)}</strong></span>
+          <span>Net <strong style={{ color: filteredTotals.net >= 0 ? S.green : S.red }}>{fmt(filteredTotals.net)}</strong></span>
         </div>
       </div>
 
@@ -491,7 +591,7 @@ function LedgerTab({ entries, funds, donors, campaigns, accounts, onAdd, onDelet
       ) : (
         <div style={{ background: "#fff", border: `1px solid ${S.rule}`, borderRadius: 14, overflow: "hidden" }}>
           {filtered.map((e, i) => (
-            <div key={e.id} style={{ display: "grid", gridTemplateColumns: "90px 1fr 220px 130px 30px", gap: 14, padding: "12px 18px", alignItems: "center", borderTop: i === 0 ? "none" : `1px solid ${S.rule}`, opacity: e.reconciliation_id ? 0.7 : 1 }}>
+            <div key={e.id} className="ledger-entry-row" style={{ display: "grid", gridTemplateColumns: "90px 1fr 220px 130px 30px", gap: 14, padding: "12px 18px", alignItems: "center", borderTop: i === 0 ? "none" : `1px solid ${S.rule}`, opacity: e.reconciliation_id ? 0.7 : 1 }}>
               <div style={{ fontSize: 13, color: S.muted, fontVariantNumeric: "tabular-nums" }}>
                 {e.entry_date}
                 {e.reconciliation_id && <span title="Reconciled" style={{ color: S.green, marginLeft: 4 }}>✓</span>}
@@ -508,7 +608,7 @@ function LedgerTab({ entries, funds, donors, campaigns, accounts, onAdd, onDelet
               <div style={{ fontSize: 15, fontWeight: 600, textAlign: "right", color: e.direction === "in" ? S.green : S.red, fontVariantNumeric: "tabular-nums" }}>
                 {e.direction === "in" ? "+" : "−"}{fmt(e.amount_cents)}
               </div>
-              <button onClick={() => { if (confirm("Delete this entry?")) onDelete(e.id); }} style={iconBtn} title="Delete">×</button>
+              <button className="ledger-row-delete" onClick={() => { if (confirm("Delete this entry?")) onDelete(e.id); }} style={iconBtn} title="Delete">×</button>
             </div>
           ))}
         </div>
