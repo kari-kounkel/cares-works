@@ -231,6 +231,8 @@ export default function Ledger({ session }) {
   // Load org data when org changes.
   const reload = useCallback(async () => {
     if (!orgId) return;
+    // Bump last_seen_at if I'm a member of this org (no-op if I'm the owner).
+    supabase.rpc("touch_org_member", { p_org_id: orgId });
     const [e, f, d, c, a, r, m] = await Promise.all([
       supabase.from("ledger_entries").select("*").eq("org_id", orgId).order("entry_date", { ascending: false }).order("created_at", { ascending: false }),
       supabase.from("ledger_funds").select("*").eq("org_id", orgId).eq("archived", false).order("created_at", { ascending: true }),
@@ -560,6 +562,13 @@ function Header({ org, orgs, isOwner, members, userEmail, onSwitch, onUpdate, on
         )}
       </div>
 
+      {isOwner && members.length > 0 && !showShare && (
+        <div style={{ marginTop: 10, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+          <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: ".12em", textTransform: "uppercase", color: S.muted }}>Shared with</span>
+          {members.map(m => <MemberChip key={m.id} member={m} onClick={() => setShowShare(true)} />)}
+        </div>
+      )}
+
       {showShare && isOwner && (
         <div style={{ marginTop: 16, background: "#fff", border: `1px solid ${S.rule}`, borderLeft: `4px solid ${S.orange}`, borderRadius: 10, padding: "16px 20px", maxWidth: 720 }}>
           <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 17, color: S.slate, marginBottom: 4 }}>Share {org.name}</div>
@@ -582,11 +591,17 @@ function Header({ org, orgs, isOwner, members, userEmail, onSwitch, onUpdate, on
             <div style={{ borderTop: `1px solid ${S.rule}`, paddingTop: 12 }}>
               <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: ".12em", textTransform: "uppercase", color: S.muted, marginBottom: 8 }}>People with access</div>
               {members.map(m => (
-                <div key={m.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 0", borderBottom: `1px solid ${S.cream}` }}>
+                <div key={m.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${S.cream}` }}>
                   <div>
-                    <div style={{ fontSize: 14 }}>{m.member_email}</div>
-                    <div style={{ fontSize: 11, color: S.muted }}>
-                      {m.role === "editor" ? "Editor" : "Viewer"} · invited {m.invited_at?.slice(0, 10)} · {m.accepted_at ? `joined ${m.accepted_at.slice(0, 10)}` : "not yet signed in"}
+                    <div style={{ fontSize: 14, display: "flex", alignItems: "center", gap: 8 }}>
+                      <MemberStatusDot member={m} />
+                      <span>{m.member_email}</span>
+                    </div>
+                    <div style={{ fontSize: 11, color: S.muted, marginTop: 2 }}>
+                      {m.role === "editor" ? "Editor" : "Viewer"} · invited {m.invited_at?.slice(0, 10)} ·{" "}
+                      {!m.accepted_at && <span style={{ color: S.gold, fontWeight: 600 }}>not signed in yet</span>}
+                      {m.accepted_at && !m.last_seen_at && <>joined {m.accepted_at.slice(0, 10)}</>}
+                      {m.last_seen_at && <>last active {relativeTime(m.last_seen_at)}</>}
                     </div>
                   </div>
                   <button onClick={() => { if (confirm(`Remove ${m.member_email}'s access?`)) onRemoveMember(m.id); }} style={iconBtnSubtle}>Remove</button>
@@ -598,6 +613,59 @@ function Header({ org, orgs, isOwner, members, userEmail, onSwitch, onUpdate, on
       )}
     </div>
   );
+}
+
+function MemberChip({ member, onClick }) {
+  const status = memberStatus(member);
+  return (
+    <button onClick={onClick} title={status.tooltip} style={{
+      background: status.bg, color: status.color, border: `1px solid ${status.border}`,
+      borderRadius: 999, padding: "4px 12px", fontFamily: "inherit", fontSize: 12, fontWeight: 500,
+      cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6,
+    }}>
+      <span style={{ width: 7, height: 7, borderRadius: "50%", background: status.dot, display: "inline-block" }} />
+      {member.member_email}
+      <span style={{ opacity: 0.7, fontSize: 11 }}>· {status.short}</span>
+    </button>
+  );
+}
+
+function MemberStatusDot({ member }) {
+  const status = memberStatus(member);
+  return <span title={status.tooltip} style={{ width: 9, height: 9, borderRadius: "50%", background: status.dot, display: "inline-block" }} />;
+}
+
+function memberStatus(m) {
+  if (!m.accepted_at) {
+    return { dot: "#C9A84C", color: "#8C6927", bg: "#fdf6e3", border: "#e9d9a8", short: "invited", tooltip: "Invited but not yet signed in" };
+  }
+  if (!m.last_seen_at) {
+    return { dot: "#5a9a5a", color: "#2f5233", bg: "#eef6ee", border: "#bcdbbc", short: "joined", tooltip: `Joined ${m.accepted_at?.slice(0, 10)}` };
+  }
+  const ms = Date.now() - new Date(m.last_seen_at).getTime();
+  const days = ms / (1000 * 60 * 60 * 24);
+  if (days < 7) {
+    return { dot: "#5a9a5a", color: "#2f5233", bg: "#eef6ee", border: "#bcdbbc", short: relativeTime(m.last_seen_at), tooltip: `Last active ${m.last_seen_at?.slice(0, 16).replace("T", " ")}` };
+  }
+  return { dot: "#7a7585", color: "#5b4d40", bg: "#f3efe6", border: "#ddd8cc", short: relativeTime(m.last_seen_at), tooltip: `Last active ${m.last_seen_at?.slice(0, 10)}` };
+}
+
+function relativeTime(iso) {
+  if (!iso) return "";
+  const ms = Date.now() - new Date(iso).getTime();
+  const s = Math.floor(ms / 1000);
+  if (s < 60) return "just now";
+  const min = Math.floor(s / 60);
+  if (min < 60) return `${min} min ago`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr} hr ago`;
+  const d = Math.floor(hr / 24);
+  if (d < 7) return `${d} day${d === 1 ? "" : "s"} ago`;
+  const w = Math.floor(d / 7);
+  if (w < 5) return `${w} wk ago`;
+  const mo = Math.floor(d / 30);
+  if (mo < 12) return `${mo} mo ago`;
+  return `${Math.floor(d / 365)} yr ago`;
 }
 
 /* ---------- Summary ---------- */
