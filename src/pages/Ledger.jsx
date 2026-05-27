@@ -41,6 +41,119 @@ function todayISO() {
   return new Date().toISOString().slice(0, 10);
 }
 
+/* ---------- CSV parsing ---------- */
+function parseCsv(text, accountType) {
+  const lines = text.replace(/\r/g, "").split("\n").filter(l => l.trim().length > 0);
+  if (lines.length < 2) throw new Error("File is empty or has no data rows.");
+
+  // Find header row — first row that contains at least one date-like column name.
+  let headerIdx = 0;
+  for (let i = 0; i < Math.min(lines.length, 6); i++) {
+    const lower = lines[i].toLowerCase();
+    if (/date|posted|transaction/.test(lower)) { headerIdx = i; break; }
+  }
+
+  const headers = splitCsvLine(lines[headerIdx]).map(h => h.trim().toLowerCase());
+  const dataLines = lines.slice(headerIdx + 1);
+
+  const dateIdx = headers.findIndex(h => /^(date|posted date|posting date|trans date|transaction date|post date|posted)$/i.test(h));
+  const descIdxs = headers.map((h, i) => /^(description|memo|payee|merchant|details|name|notes)$/i.test(h) ? i : -1).filter(i => i >= 0);
+  const amountIdx = headers.findIndex(h => /^(amount|transaction amount|tran amount)$/i.test(h));
+  const debitIdx = headers.findIndex(h => /^(debit|debits|withdrawal|withdrawals|amount debit)$/i.test(h));
+  const creditIdx = headers.findIndex(h => /^(credit|credits|deposit|deposits|amount credit)$/i.test(h));
+
+  if (dateIdx < 0) throw new Error("Couldn't find a Date column. Headers: " + headers.join(", "));
+  if (descIdxs.length === 0) throw new Error("Couldn't find a Description column. Headers: " + headers.join(", "));
+  if (amountIdx < 0 && debitIdx < 0 && creditIdx < 0) throw new Error("Couldn't find an Amount column (or Debit/Credit pair). Headers: " + headers.join(", "));
+
+  const rows = [];
+  for (const line of dataLines) {
+    const cells = splitCsvLine(line);
+    if (cells.length < 2) continue;
+    const dateRaw = (cells[dateIdx] || "").trim();
+    if (!dateRaw) continue;
+    const entry_date = parseDateFlexible(dateRaw);
+    if (!entry_date) continue;
+    const description = descIdxs.map(i => (cells[i] || "").trim()).filter(Boolean).join(" — ").slice(0, 220) || "Imported entry";
+
+    let cents = 0;
+    let direction = "out";
+    if (amountIdx >= 0) {
+      const raw = (cells[amountIdx] || "").replace(/[$,\s]/g, "");
+      const num = parseFloat(raw);
+      if (isNaN(num) || num === 0) continue;
+      cents = Math.round(Math.abs(num) * 100);
+      direction = num < 0 ? "out" : "in";
+      // For credit cards, banks often show charges as positive — invert if the user said this is a CC.
+      if (accountType === "credit_card") direction = num < 0 ? "in" : "out";
+    } else {
+      const debitRaw = debitIdx >= 0 ? (cells[debitIdx] || "").replace(/[$,\s]/g, "") : "";
+      const creditRaw = creditIdx >= 0 ? (cells[creditIdx] || "").replace(/[$,\s]/g, "") : "";
+      const debit = parseFloat(debitRaw);
+      const credit = parseFloat(creditRaw);
+      if (!isNaN(debit) && debit !== 0) {
+        cents = Math.round(Math.abs(debit) * 100);
+        direction = "out";
+      } else if (!isNaN(credit) && credit !== 0) {
+        cents = Math.round(Math.abs(credit) * 100);
+        direction = "in";
+      } else {
+        continue;
+      }
+    }
+
+    const source_hash = `${entry_date}|${direction}|${cents}|${description.toLowerCase().replace(/\s+/g, " ").slice(0, 80)}`;
+
+    rows.push({ entry_date, direction, amount_cents: cents, description, category: null, reference: null, source_hash });
+  }
+
+  return { headers, rows };
+}
+
+function splitCsvLine(line) {
+  const out = [];
+  let cur = "";
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (inQuotes) {
+      if (c === '"' && line[i + 1] === '"') { cur += '"'; i++; }
+      else if (c === '"') { inQuotes = false; }
+      else cur += c;
+    } else {
+      if (c === '"') inQuotes = true;
+      else if (c === ',') { out.push(cur); cur = ""; }
+      else cur += c;
+    }
+  }
+  out.push(cur);
+  return out;
+}
+
+function parseDateFlexible(s) {
+  s = s.trim();
+  if (!s) return null;
+  // ISO YYYY-MM-DD
+  let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (m) {
+    const y = +m[1], mo = +m[2], d = +m[3];
+    if (mo >= 1 && mo <= 12 && d >= 1 && d <= 31) return `${y}-${String(mo).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+  }
+  // MM/DD/YYYY or M/D/YY
+  m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+  if (m) {
+    let mo = +m[1], d = +m[2], y = +m[3];
+    if (y < 100) y += 2000;
+    if (mo >= 1 && mo <= 12 && d >= 1 && d <= 31) return `${y}-${String(mo).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+  }
+  // Try Date constructor as last resort
+  const t = new Date(s);
+  if (!isNaN(t.getTime())) {
+    return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,"0")}-${String(t.getDate()).padStart(2,"0")}`;
+  }
+  return null;
+}
+
 function computeDateRange(kind, customStart, customEnd) {
   const now = new Date();
   const y = now.getFullYear();
@@ -82,6 +195,7 @@ export default function Ledger({ session }) {
   const [accounts, setAccounts] = useState([]);
   const [reconciliations, setReconciliations] = useState([]);
   const [reconcileAccountId, setReconcileAccountId] = useState(null);
+  const [importAccountId, setImportAccountId] = useState(null);
 
   const userId = session?.user?.id;
   const org = orgs.find(o => o.id === orgId);
@@ -194,7 +308,26 @@ export default function Ledger({ session }) {
       )}
 
       {tab === "accounts" && (
-        reconcileAccountId ? (
+        importAccountId ? (
+          <ImportCsvView
+            account={accounts.find(a => a.id === importAccountId)}
+            existingEntries={entries.filter(e => e.account_id === importAccountId)}
+            funds={funds}
+            onClose={() => setImportAccountId(null)}
+            onCommit={async (rows) => {
+              const enriched = rows.map(r => ({
+                ...r,
+                user_id: userId,
+                org_id: orgId,
+                account_id: importAccountId,
+              }));
+              const { error } = await supabase.from("ledger_entries").insert(enriched);
+              await reload();
+              setImportAccountId(null);
+              return error;
+            }}
+          />
+        ) : reconcileAccountId ? (
           <ReconcileView
             account={accounts.find(a => a.id === reconcileAccountId)}
             entries={entries.filter(e => e.account_id === reconcileAccountId)}
@@ -234,6 +367,7 @@ export default function Ledger({ session }) {
               reload();
             }}
             onReconcile={(id) => setReconcileAccountId(id)}
+            onImport={(id) => setImportAccountId(id)}
           />
         )
       )}
@@ -898,7 +1032,7 @@ function CampaignsTab({ campaigns, entries, funds, onAdd, onUpdate }) {
 }
 
 /* ---------- Accounts Tab ---------- */
-function AccountsTab({ accounts, entries, reconciliations, onAdd, onUpdate, onArchive, onReconcile }) {
+function AccountsTab({ accounts, entries, reconciliations, onAdd, onUpdate, onArchive, onReconcile, onImport }) {
   const [showAdd, setShowAdd] = useState(accounts.length === 0);
   const [name, setName] = useState("");
   const [accountType, setAccountType] = useState("bank");
@@ -1010,6 +1144,7 @@ function AccountsTab({ accounts, entries, reconciliations, onAdd, onUpdate, onAr
                   <span>Last rec: {lastRec || "never"}</span>
                 </div>
                 <div style={{ marginTop: 14, display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  <button onClick={() => onImport(a.id)} style={{ ...btnPrimary, padding: "7px 14px", fontSize: 12, background: S.slate }}>↑ Upload CSV</button>
                   <button onClick={() => onReconcile(a.id)} style={{ ...btnPrimary, padding: "7px 14px", fontSize: 12 }}>Reconcile →</button>
                   <button onClick={() => { const n = prompt("Rename account:", a.name); if (n && n.trim()) onUpdate(a.id, { name: n.trim() }); }} style={iconBtnSubtle}>Rename</button>
                   <button onClick={() => { if (confirm("Archive this account? Entries tagged to it stay.")) onArchive(a.id); }} style={iconBtnSubtle}>Archive</button>
@@ -1018,6 +1153,174 @@ function AccountsTab({ accounts, entries, reconciliations, onAdd, onUpdate, onAr
             );
           })}
         </div>
+      )}
+    </div>
+  );
+}
+
+/* ---------- CSV Import View ---------- */
+function ImportCsvView({ account, existingEntries, funds, onClose, onCommit }) {
+  const [rawText, setRawText] = useState("");
+  const [parseError, setParseError] = useState("");
+  const [parsed, setParsed] = useState(null); // { headers, mapping, rows }
+  const [rows, setRows] = useState([]); // editable preview
+  const [busy, setBusy] = useState(false);
+  const [importedCount, setImportedCount] = useState(null);
+
+  const existingHashes = useMemo(() => {
+    const s = new Set();
+    for (const e of existingEntries) if (e.source_hash) s.add(e.source_hash);
+    return s;
+  }, [existingEntries]);
+
+  const onFile = (file) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const text = String(ev.target?.result || "");
+      setRawText(text);
+      try {
+        const p = parseCsv(text, account.account_type);
+        setParseError("");
+        setParsed(p);
+        setRows(p.rows.map(r => ({
+          ...r,
+          include: !existingHashes.has(r.source_hash),
+          duplicate: existingHashes.has(r.source_hash),
+        })));
+      } catch (e) {
+        setParseError(e.message || "Couldn't parse this file.");
+        setParsed(null);
+        setRows([]);
+      }
+    };
+    reader.onerror = () => setParseError("Couldn't read the file.");
+    reader.readAsText(file);
+  };
+
+  const toggle = (i) => setRows(prev => prev.map((r, idx) => idx === i ? { ...r, include: !r.include } : r));
+  const setRowField = (i, field, value) => setRows(prev => prev.map((r, idx) => idx === i ? { ...r, [field]: value } : r));
+  const flipDirection = (i) => setRows(prev => prev.map((r, idx) => idx === i ? { ...r, direction: r.direction === "in" ? "out" : "in" } : r));
+
+  const selected = rows.filter(r => r.include);
+  const selectedInCents = selected.filter(r => r.direction === "in").reduce((s, r) => s + r.amount_cents, 0);
+  const selectedOutCents = selected.filter(r => r.direction === "out").reduce((s, r) => s + r.amount_cents, 0);
+  const dupCount = rows.filter(r => r.duplicate).length;
+
+  const commit = async () => {
+    if (busy) return;
+    setBusy(true);
+    const toInsert = selected.map(r => ({
+      entry_date: r.entry_date,
+      direction: r.direction,
+      amount_cents: r.amount_cents,
+      description: r.description,
+      category: r.category || null,
+      reference: r.reference || null,
+      source_hash: r.source_hash,
+    }));
+    const err = await onCommit(toInsert);
+    setBusy(false);
+    if (!err) setImportedCount(toInsert.length);
+  };
+
+  if (importedCount !== null) {
+    return (
+      <div style={{ background: "#fff", border: `1px solid ${S.rule}`, borderRadius: 14, padding: 36, textAlign: "center" }}>
+        <div style={{ fontSize: 48, marginBottom: 12 }}>✓</div>
+        <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 24, color: S.slate, marginBottom: 8 }}>Imported {importedCount} {importedCount === 1 ? "entry" : "entries"}</div>
+        <div style={{ color: S.muted, marginBottom: 24 }}>They&rsquo;re in the ledger now, tagged to {account.name}. You can review, edit, or reconcile them.</div>
+        <button onClick={onClose} style={btnPrimary}>Back to accounts</button>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div style={{ marginBottom: 16, display: "flex", alignItems: "center", gap: 12 }}>
+        <button onClick={onClose} style={btnGhost}>← Back to accounts</button>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: ".14em", textTransform: "uppercase", color: S.muted }}>Upload CSV to</div>
+          <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: S.slate }}>{account.name}</div>
+        </div>
+      </div>
+
+      {!parsed && (
+        <div style={{ background: "#fff", border: `2px dashed ${S.rule}`, borderRadius: 14, padding: 40, textAlign: "center" }}>
+          <div style={{ fontSize: 14, color: S.muted, marginBottom: 16 }}>
+            Export a CSV from your bank or credit card&rsquo;s online portal, then upload it here. <br />
+            We&rsquo;ll handle standard formats — Date / Description / Amount, or Date / Description / Debit / Credit.
+          </div>
+          <input
+            type="file"
+            accept=".csv,text/csv"
+            onChange={(e) => onFile(e.target.files?.[0])}
+            style={{ display: "block", margin: "0 auto", maxWidth: 380 }}
+          />
+          {parseError && <div style={{ color: S.red, marginTop: 14, fontSize: 13 }}>{parseError}</div>}
+          <details style={{ marginTop: 24, fontSize: 12, color: S.muted, textAlign: "left", maxWidth: 560, marginLeft: "auto", marginRight: "auto" }}>
+            <summary style={{ cursor: "pointer", textAlign: "center", marginBottom: 8 }}>What columns we look for</summary>
+            <div style={{ background: S.paper, padding: 14, borderRadius: 8, border: `1px solid ${S.rule}` }}>
+              <strong style={{ color: S.slate }}>Date</strong> — Date, Posted Date, Transaction Date, Post Date<br />
+              <strong style={{ color: S.slate }}>Description</strong> — Description, Memo, Payee, Merchant, Details, Name<br />
+              <strong style={{ color: S.slate }}>Amount</strong> — Amount (single signed column, − for out)<br />
+              <em style={{ color: S.muted }}>or</em><br />
+              <strong style={{ color: S.slate }}>Debit + Credit</strong> — Debit (out) / Credit (in), or Withdrawal / Deposit
+            </div>
+          </details>
+        </div>
+      )}
+
+      {parsed && (
+        <>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 14 }}>
+            <RecStat label="Found" value={`${rows.length} rows`} hint={`${dupCount} duplicates skipped`} />
+            <RecStat label="Selected" value={`${selected.length}`} accent={S.slate} />
+            <RecStat label="Will add — in" value={fmt(selectedInCents)} accent={S.green} />
+            <RecStat label="Will add — out" value={fmt(selectedOutCents)} accent={S.red} />
+          </div>
+
+          <div style={{ background: "#fff", border: `1px solid ${S.rule}`, borderRadius: 14, overflow: "hidden", marginBottom: 18 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "30px 100px 90px 1fr 130px 60px", gap: 10, padding: "10px 14px", fontSize: 11, fontWeight: 600, letterSpacing: ".12em", textTransform: "uppercase", color: S.muted, background: S.paper, borderBottom: `1px solid ${S.rule}` }}>
+              <div></div>
+              <div>Date</div>
+              <div>Direction</div>
+              <div>Description</div>
+              <div style={{ textAlign: "right" }}>Amount</div>
+              <div></div>
+            </div>
+            {rows.length === 0 && <Empty msg="No usable rows found in this file." />}
+            {rows.map((r, i) => (
+              <div key={i} style={{ display: "grid", gridTemplateColumns: "30px 100px 90px 1fr 130px 60px", gap: 10, padding: "8px 14px", alignItems: "center", borderTop: `1px solid ${S.rule}`, background: r.duplicate ? S.cream : r.include ? S.orangeLight : "transparent", opacity: r.duplicate ? 0.55 : 1 }}>
+                <input type="checkbox" checked={r.include} disabled={r.duplicate} onChange={() => toggle(i)} />
+                <input type="date" value={r.entry_date} onChange={e => setRowField(i, "entry_date", e.target.value)} style={{ ...inputStyle, padding: "4px 6px", fontSize: 12 }} />
+                <button onClick={() => flipDirection(i)} style={pill(true, r.direction === "in" ? S.green : S.red, r.direction === "in" ? S.greenLight : S.redLight)}>
+                  {r.direction === "in" ? "In" : "Out"}
+                </button>
+                <input value={r.description} onChange={e => setRowField(i, "description", e.target.value)} style={{ ...inputStyle, padding: "4px 8px", fontSize: 13 }} />
+                <div style={{ fontSize: 13, fontWeight: 600, textAlign: "right", color: r.direction === "in" ? S.green : S.red, fontVariantNumeric: "tabular-nums" }}>
+                  {r.direction === "in" ? "+" : "−"}{fmt(r.amount_cents)}
+                </div>
+                <div style={{ fontSize: 10, color: S.muted, textTransform: "uppercase", letterSpacing: ".1em" }}>
+                  {r.duplicate ? "Dup" : ""}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            <div style={{ fontSize: 12, color: S.muted }}>
+              Click "In/Out" to flip direction. Edit description inline. Untick rows you don&rsquo;t want.
+              {dupCount > 0 && <> Duplicates of existing entries are <strong>auto-skipped</strong> (greyed out).</>}
+            </div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={() => { setRawText(""); setParsed(null); setRows([]); setParseError(""); }} style={btnGhost}>Pick another file</button>
+              <button onClick={commit} disabled={busy || selected.length === 0} style={{ ...btnPrimary, opacity: selected.length === 0 ? 0.5 : 1, cursor: selected.length === 0 ? "not-allowed" : "pointer", padding: "11px 22px" }}>
+                {busy ? "Saving…" : `Import ${selected.length} ${selected.length === 1 ? "entry" : "entries"}`}
+              </button>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );
