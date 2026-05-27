@@ -26,6 +26,7 @@ const TABS = [
   { key: "funds", label: "Funds" },
   { key: "donors", label: "Donors" },
   { key: "campaigns", label: "Fundraising" },
+  { key: "reports", label: "Reports" },
 ];
 
 function fmt(cents) {
@@ -430,6 +431,10 @@ export default function Ledger({ session }) {
             reload();
           }}
         />
+      )}
+
+      {tab === "reports" && (
+        <ReportsTab org={org} entries={entries} funds={funds} donors={donors} accounts={accounts} />
       )}
 
       {tab === "campaigns" && (
@@ -1315,6 +1320,171 @@ function AccountsTab({ accounts, entries, reconciliations, onAdd, onUpdate, onAr
       )}
     </div>
   );
+}
+
+/* ---------- Reports Tab ---------- */
+function ReportsTab({ org, entries, funds, donors, accounts }) {
+  const [dateRange, setDateRange] = useState("this-year");
+  const [customStart, setCustomStart] = useState("");
+  const [customEnd, setCustomEnd] = useState("");
+
+  const { rangeStart, rangeEnd, rangeLabel } = useMemo(() => computeDateRange(dateRange, customStart, customEnd), [dateRange, customStart, customEnd]);
+
+  const filtered = useMemo(() => entries.filter(e => {
+    if (rangeStart && (e.entry_date || "") < rangeStart) return false;
+    if (rangeEnd && (e.entry_date || "") > rangeEnd) return false;
+    return true;
+  }), [entries, rangeStart, rangeEnd]);
+
+  const isNonprofit = org?.org_type === "nonprofit";
+
+  const incomeByCategory = useMemo(() => groupByCategory(filtered, "in"), [filtered]);
+  const expenseByCategory = useMemo(() => groupByCategory(filtered, "out"), [filtered]);
+  const totalIn = incomeByCategory.reduce((s, r) => s + r.total, 0);
+  const totalOut = expenseByCategory.reduce((s, r) => s + r.total, 0);
+  const net = totalIn - totalOut;
+
+  const fundById = Object.fromEntries(funds.map(f => [f.id, f]));
+  const byFund = useMemo(() => {
+    const map = {};
+    for (const e of filtered) {
+      const fid = e.fund_id || "_none";
+      if (!map[fid]) map[fid] = { in: 0, out: 0, name: fid === "_none" ? "(unassigned)" : (fundById[fid]?.name || "(deleted fund)"), color: fid === "_none" ? S.muted : (fundById[fid]?.color || S.slate) };
+      if (e.direction === "in") map[fid].in += e.amount_cents || 0;
+      else map[fid].out += e.amount_cents || 0;
+    }
+    return Object.values(map).sort((a, b) => (b.in + b.out) - (a.in + a.out));
+  }, [filtered, fundById]);
+
+  const generatedAt = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+
+  return (
+    <div>
+      <div className="ledger-toolbar" style={{ background: "#fff", border: `1px solid ${S.rule}`, borderRadius: 12, padding: "12px 16px", marginBottom: 18 }}>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+          <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: ".14em", textTransform: "uppercase", color: S.muted, marginRight: 4 }}>Report period</span>
+          {[
+            { key: "this-month", label: "This month" },
+            { key: "last-month", label: "Last month" },
+            { key: "last-3-months", label: "Last 3 months" },
+            { key: "this-year", label: "This year" },
+            { key: "all", label: "All time" },
+            { key: "custom", label: "Custom" },
+          ].map(opt => (
+            <button key={opt.key} onClick={() => setDateRange(opt.key)} style={smallPill(dateRange === opt.key)}>{opt.label}</button>
+          ))}
+          {dateRange === "custom" && (
+            <>
+              <input type="date" value={customStart} onChange={e => setCustomStart(e.target.value)} style={{ ...inputStyle, padding: "5px 8px", fontSize: 12 }} />
+              <span style={{ color: S.muted, fontSize: 12 }}>to</span>
+              <input type="date" value={customEnd} onChange={e => setCustomEnd(e.target.value)} style={{ ...inputStyle, padding: "5px 8px", fontSize: 12 }} />
+            </>
+          )}
+          <span style={{ flex: 1 }} />
+          <button onClick={() => window.print()} style={{ ...btnGhost, padding: "6px 14px", fontSize: 12 }}>🖨 Print</button>
+        </div>
+      </div>
+
+      <div style={{ background: "#fff", border: `1px solid ${S.rule}`, borderRadius: 14, padding: "36px 44px" }}>
+        {/* Report header */}
+        <div style={{ textAlign: "center", borderBottom: `2px solid ${S.slate}`, paddingBottom: 16, marginBottom: 24 }}>
+          <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 24, color: S.slate }}>{org?.name}</div>
+          <div style={{ fontSize: 16, color: S.slate, marginTop: 4 }}>{isNonprofit ? "Statement of Activities" : "Income Statement"}</div>
+          <div style={{ fontSize: 13, color: S.muted, marginTop: 6 }}>For the period of {rangeLabel}</div>
+        </div>
+
+        {/* Income */}
+        <div style={{ marginBottom: 28 }}>
+          <SectionHead label={isNonprofit ? "Support and Revenue" : "Income"} />
+          {incomeByCategory.length === 0 ? <RowMuted>No income in this period</RowMuted> : incomeByCategory.map((r, i) => (
+            <Row key={i} label={r.category} value={fmt(r.total)} indent />
+          ))}
+          <RowTotal label={`Total ${isNonprofit ? "Support and Revenue" : "Income"}`} value={fmt(totalIn)} color={S.green} />
+        </div>
+
+        {/* Expenses */}
+        <div style={{ marginBottom: 28 }}>
+          <SectionHead label="Expenses" />
+          {expenseByCategory.length === 0 ? <RowMuted>No expenses in this period</RowMuted> : expenseByCategory.map((r, i) => (
+            <Row key={i} label={r.category} value={fmt(r.total)} indent />
+          ))}
+          <RowTotal label="Total Expenses" value={fmt(totalOut)} color={S.red} />
+        </div>
+
+        {/* Net */}
+        <div style={{ marginBottom: 28, borderTop: `2px solid ${S.slate}`, paddingTop: 14 }}>
+          <Row
+            label={isNonprofit ? "Change in Net Assets" : "Net Income"}
+            value={fmt(net)}
+            bold
+            color={net >= 0 ? S.green : S.red}
+          />
+        </div>
+
+        {/* By fund */}
+        {byFund.length > 0 && (
+          <div style={{ marginTop: 36, paddingTop: 24, borderTop: `1px solid ${S.rule}` }}>
+            <SectionHead label="Activity by Fund" />
+            <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 10, fontSize: 11, fontWeight: 600, letterSpacing: ".12em", textTransform: "uppercase", color: S.muted, padding: "8px 12px", borderBottom: `1px solid ${S.rule}` }}>
+              <div>Fund</div>
+              <div style={{ textAlign: "right" }}>In</div>
+              <div style={{ textAlign: "right" }}>Out</div>
+              <div style={{ textAlign: "right" }}>Net</div>
+            </div>
+            {byFund.map((f, i) => (
+              <div key={i} style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 10, padding: "10px 12px", borderBottom: `1px solid ${S.cream}`, fontVariantNumeric: "tabular-nums" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: "50%", background: f.color }} />
+                  {f.name}
+                </div>
+                <div style={{ textAlign: "right", color: S.green }}>{fmt(f.in)}</div>
+                <div style={{ textAlign: "right", color: S.red }}>{fmt(f.out)}</div>
+                <div style={{ textAlign: "right", fontWeight: 600, color: (f.in - f.out) >= 0 ? S.green : S.red }}>{fmt(f.in - f.out)}</div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div style={{ marginTop: 36, paddingTop: 14, borderTop: `1px solid ${S.rule}`, fontSize: 11, color: S.muted, textAlign: "center" }}>
+          Generated {generatedAt} from CARES Ledger · {filtered.length} {filtered.length === 1 ? "entry" : "entries"}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function groupByCategory(entries, direction) {
+  const map = {};
+  for (const e of entries) {
+    if (e.direction !== direction) continue;
+    const key = (e.category || "Uncategorized").trim() || "Uncategorized";
+    if (!map[key]) map[key] = 0;
+    map[key] += e.amount_cents || 0;
+  }
+  return Object.entries(map).map(([category, total]) => ({ category, total })).sort((a, b) => b.total - a.total);
+}
+
+function SectionHead({ label }) {
+  return <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: "#3d4560", marginBottom: 10, paddingBottom: 6, borderBottom: `1px solid #ddd8cc` }}>{label}</div>;
+}
+function Row({ label, value, indent, bold, color }) {
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0", paddingLeft: indent ? 18 : 0 }}>
+      <div style={{ fontSize: bold ? 16 : 14, fontWeight: bold ? 600 : 400, color: bold ? (color || "#1e1e2a") : "#1e1e2a" }}>{label}</div>
+      <div style={{ fontSize: bold ? 16 : 14, fontWeight: bold ? 600 : 500, color: color || "#1e1e2a", fontVariantNumeric: "tabular-nums" }}>{value}</div>
+    </div>
+  );
+}
+function RowTotal({ label, value, color }) {
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", marginTop: 4, borderTop: `1px solid #ddd8cc`, fontWeight: 600 }}>
+      <div style={{ fontSize: 14, color: "#3d4560" }}>{label}</div>
+      <div style={{ fontSize: 15, color: color || "#1e1e2a", fontVariantNumeric: "tabular-nums" }}>{value}</div>
+    </div>
+  );
+}
+function RowMuted({ children }) {
+  return <div style={{ fontSize: 13, color: "#7a7585", fontStyle: "italic", padding: "8px 18px" }}>{children}</div>;
 }
 
 /* ---------- CSV Import View ---------- */
