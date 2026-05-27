@@ -22,6 +22,7 @@ const S = {
 const FUND_COLORS = ["#2F5233", "#C9A84C", "#3d4560", "#e8773a", "#7a5b8a", "#3a7d8a", "#c44a3a", "#5a9a5a"];
 const TABS = [
   { key: "ledger", label: "Ledger" },
+  { key: "accounts", label: "Accounts" },
   { key: "funds", label: "Funds" },
   { key: "donors", label: "Donors" },
   { key: "campaigns", label: "Fundraising" },
@@ -50,6 +51,9 @@ export default function Ledger({ session }) {
   const [funds, setFunds] = useState([]);
   const [donors, setDonors] = useState([]);
   const [campaigns, setCampaigns] = useState([]);
+  const [accounts, setAccounts] = useState([]);
+  const [reconciliations, setReconciliations] = useState([]);
+  const [reconcileAccountId, setReconcileAccountId] = useState(null);
 
   const userId = session?.user?.id;
   const org = orgs.find(o => o.id === orgId);
@@ -82,16 +86,20 @@ export default function Ledger({ session }) {
   // Load org data when org changes.
   const reload = useCallback(async () => {
     if (!orgId) return;
-    const [e, f, d, c] = await Promise.all([
+    const [e, f, d, c, a, r] = await Promise.all([
       supabase.from("ledger_entries").select("*").eq("org_id", orgId).order("entry_date", { ascending: false }).order("created_at", { ascending: false }),
       supabase.from("ledger_funds").select("*").eq("org_id", orgId).eq("archived", false).order("created_at", { ascending: true }),
       supabase.from("ledger_donors").select("*").eq("org_id", orgId).order("name", { ascending: true }),
       supabase.from("ledger_campaigns").select("*").eq("org_id", orgId).order("created_at", { ascending: false }),
+      supabase.from("ledger_accounts").select("*").eq("org_id", orgId).eq("archived", false).order("created_at", { ascending: true }),
+      supabase.from("ledger_reconciliations").select("*").eq("org_id", orgId).order("statement_ending_date", { ascending: false }),
     ]);
     setEntries(e.data || []);
     setFunds(f.data || []);
     setDonors(d.data || []);
     setCampaigns(c.data || []);
+    setAccounts(a.data || []);
+    setReconciliations(r.data || []);
   }, [orgId]);
 
   useEffect(() => { reload(); }, [reload]);
@@ -145,6 +153,7 @@ export default function Ledger({ session }) {
           funds={funds}
           donors={donors}
           campaigns={campaigns}
+          accounts={accounts}
           onAdd={async (row) => {
             await supabase.from("ledger_entries").insert({ ...row, user_id: userId, org_id: orgId });
             reload();
@@ -154,6 +163,51 @@ export default function Ledger({ session }) {
             reload();
           }}
         />
+      )}
+
+      {tab === "accounts" && (
+        reconcileAccountId ? (
+          <ReconcileView
+            account={accounts.find(a => a.id === reconcileAccountId)}
+            entries={entries.filter(e => e.account_id === reconcileAccountId)}
+            reconciliations={reconciliations.filter(r => r.account_id === reconcileAccountId)}
+            onClose={() => setReconcileAccountId(null)}
+            onCommit={async ({ statementEndingDate, statementEndingBalanceCents, entryIds, notes }) => {
+              const { data: rec } = await supabase.from("ledger_reconciliations").insert({
+                account_id: reconcileAccountId,
+                org_id: orgId,
+                user_id: userId,
+                statement_ending_date: statementEndingDate,
+                statement_ending_balance_cents: statementEndingBalanceCents,
+                notes: notes || null,
+              }).select().single();
+              if (rec && entryIds.length > 0) {
+                await supabase.from("ledger_entries").update({ reconciliation_id: rec.id }).in("id", entryIds);
+              }
+              await reload();
+              setReconcileAccountId(null);
+            }}
+          />
+        ) : (
+          <AccountsTab
+            accounts={accounts}
+            entries={entries}
+            reconciliations={reconciliations}
+            onAdd={async (row) => {
+              await supabase.from("ledger_accounts").insert({ ...row, user_id: userId, org_id: orgId });
+              reload();
+            }}
+            onUpdate={async (id, patch) => {
+              await supabase.from("ledger_accounts").update(patch).eq("id", id);
+              reload();
+            }}
+            onArchive={async (id) => {
+              await supabase.from("ledger_accounts").update({ archived: true }).eq("id", id);
+              reload();
+            }}
+            onReconcile={(id) => setReconcileAccountId(id)}
+          />
+        )
       )}
 
       {tab === "funds" && (
@@ -316,7 +370,7 @@ function Tabs({ tab, onTab }) {
 }
 
 /* ---------- Ledger Tab ---------- */
-function LedgerTab({ entries, funds, donors, campaigns, onAdd, onDelete }) {
+function LedgerTab({ entries, funds, donors, campaigns, accounts, onAdd, onDelete }) {
   const [showAdd, setShowAdd] = useState(entries.length === 0);
   const [direction, setDirection] = useState("in");
   const [date, setDate] = useState(todayISO());
@@ -326,7 +380,9 @@ function LedgerTab({ entries, funds, donors, campaigns, onAdd, onDelete }) {
   const [fundId, setFundId] = useState("");
   const [donorId, setDonorId] = useState("");
   const [campaignId, setCampaignId] = useState("");
+  const [accountId, setAccountId] = useState("");
   const [filterDir, setFilterDir] = useState("all");
+  const [filterAccount, setFilterAccount] = useState("all");
 
   const reset = () => { setAmount(""); setDescription(""); setCategory(""); setFundId(""); setDonorId(""); setCampaignId(""); };
 
@@ -343,13 +399,20 @@ function LedgerTab({ entries, funds, donors, campaigns, onAdd, onDelete }) {
       fund_id: fundId || null,
       donor_id: donorId || null,
       campaign_id: campaignId || null,
+      account_id: accountId || null,
     });
     reset();
   };
 
-  const filtered = entries.filter(e => filterDir === "all" || e.direction === filterDir);
+  const filtered = entries.filter(e => {
+    if (filterDir !== "all" && e.direction !== filterDir) return false;
+    if (filterAccount === "none" && e.account_id) return false;
+    if (filterAccount !== "all" && filterAccount !== "none" && e.account_id !== filterAccount) return false;
+    return true;
+  });
   const donorById = Object.fromEntries(donors.map(d => [d.id, d]));
   const fundById = Object.fromEntries(funds.map(f => [f.id, f]));
+  const accountById = Object.fromEntries(accounts.map(a => [a.id, a]));
 
   return (
     <div>
@@ -371,7 +434,10 @@ function LedgerTab({ entries, funds, donors, campaigns, onAdd, onDelete }) {
               <input placeholder="$0.00" value={amount} onChange={e => setAmount(e.target.value)} style={{ ...inputStyle, textAlign: "right" }} required />
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 10 }}>
-              <input placeholder="Category (optional)" value={category} onChange={e => setCategory(e.target.value)} style={inputStyle} />
+              <select value={accountId} onChange={e => setAccountId(e.target.value)} style={inputStyle}>
+                <option value="">— No account —</option>
+                {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+              </select>
               <select value={fundId} onChange={e => setFundId(e.target.value)} style={inputStyle}>
                 <option value="">— No fund —</option>
                 {funds.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
@@ -381,13 +447,17 @@ function LedgerTab({ entries, funds, donors, campaigns, onAdd, onDelete }) {
                   <option value="">— No donor —</option>
                   {donors.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                 </select>
-              ) : <div />}
+              ) : (
+                <input placeholder="Category (optional)" value={category} onChange={e => setCategory(e.target.value)} style={inputStyle} />
+              )}
               {direction === "in" ? (
                 <select value={campaignId} onChange={e => setCampaignId(e.target.value)} style={inputStyle}>
                   <option value="">— No campaign —</option>
                   {campaigns.filter(c => c.is_active).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
-              ) : <div />}
+              ) : (
+                <input placeholder="Reference (check #, etc.)" value={category === description ? "" : ""} onChange={() => {}} style={{ ...inputStyle, opacity: 0.5 }} disabled />
+              )}
             </div>
             <div style={{ marginTop: 14, display: "flex", justifyContent: "flex-end", gap: 8 }}>
               <button type="submit" style={btnPrimary}>Save entry</button>
@@ -396,14 +466,23 @@ function LedgerTab({ entries, funds, donors, campaigns, onAdd, onDelete }) {
         )}
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, gap: 12, flexWrap: "wrap" }}>
         <div style={{ fontSize: 13, color: S.muted }}>{filtered.length} {filtered.length === 1 ? "entry" : "entries"}</div>
-        <div style={{ display: "flex", gap: 4 }}>
-          {["all", "in", "out"].map(k => (
-            <button key={k} onClick={() => setFilterDir(k)} style={smallPill(filterDir === k)}>
-              {k === "all" ? "All" : k === "in" ? "Money in" : "Money out"}
-            </button>
-          ))}
+        <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+          {accounts.length > 0 && (
+            <select value={filterAccount} onChange={e => setFilterAccount(e.target.value)} style={{ ...inputStyle, padding: "6px 10px", fontSize: 12 }}>
+              <option value="all">All accounts</option>
+              <option value="none">No account tagged</option>
+              {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+            </select>
+          )}
+          <div style={{ display: "flex", gap: 4 }}>
+            {["all", "in", "out"].map(k => (
+              <button key={k} onClick={() => setFilterDir(k)} style={smallPill(filterDir === k)}>
+                {k === "all" ? "All" : k === "in" ? "Money in" : "Money out"}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -412,13 +491,17 @@ function LedgerTab({ entries, funds, donors, campaigns, onAdd, onDelete }) {
       ) : (
         <div style={{ background: "#fff", border: `1px solid ${S.rule}`, borderRadius: 14, overflow: "hidden" }}>
           {filtered.map((e, i) => (
-            <div key={e.id} style={{ display: "grid", gridTemplateColumns: "90px 1fr 180px 130px 30px", gap: 14, padding: "12px 18px", alignItems: "center", borderTop: i === 0 ? "none" : `1px solid ${S.rule}` }}>
-              <div style={{ fontSize: 13, color: S.muted, fontVariantNumeric: "tabular-nums" }}>{e.entry_date}</div>
+            <div key={e.id} style={{ display: "grid", gridTemplateColumns: "90px 1fr 220px 130px 30px", gap: 14, padding: "12px 18px", alignItems: "center", borderTop: i === 0 ? "none" : `1px solid ${S.rule}`, opacity: e.reconciliation_id ? 0.7 : 1 }}>
+              <div style={{ fontSize: 13, color: S.muted, fontVariantNumeric: "tabular-nums" }}>
+                {e.entry_date}
+                {e.reconciliation_id && <span title="Reconciled" style={{ color: S.green, marginLeft: 4 }}>✓</span>}
+              </div>
               <div>
                 <div style={{ fontSize: 14, fontWeight: 500 }}>{e.description}</div>
                 {e.category && <div style={{ fontSize: 12, color: S.muted, marginTop: 2 }}>{e.category}</div>}
               </div>
-              <div style={{ fontSize: 12, color: S.muted }}>
+              <div style={{ fontSize: 12, color: S.muted, display: "flex", flexWrap: "wrap", gap: 2 }}>
+                {e.account_id && accountById[e.account_id] && <span style={tag(S.slate)}>{accountById[e.account_id].name}</span>}
                 {e.donor_id && donorById[e.donor_id] && <span style={tag(S.gold)}>{donorById[e.donor_id].name}</span>}
                 {e.fund_id && fundById[e.fund_id] && <span style={tag(fundById[e.fund_id].color || S.slate)}>{fundById[e.fund_id].name}</span>}
               </div>
@@ -713,6 +796,298 @@ function CampaignsTab({ campaigns, entries, funds, onAdd, onUpdate }) {
     </div>
   );
 }
+
+/* ---------- Accounts Tab ---------- */
+function AccountsTab({ accounts, entries, reconciliations, onAdd, onUpdate, onArchive, onReconcile }) {
+  const [showAdd, setShowAdd] = useState(accounts.length === 0);
+  const [name, setName] = useState("");
+  const [accountType, setAccountType] = useState("bank");
+  const [institution, setInstitution] = useState("");
+  const [lastFour, setLastFour] = useState("");
+  const [opening, setOpening] = useState("");
+
+  const balanceByAccount = useMemo(() => {
+    const map = {};
+    for (const a of accounts) map[a.id] = a.opening_balance_cents || 0;
+    for (const e of entries) {
+      if (!e.account_id || !(e.account_id in map)) continue;
+      map[e.account_id] += (e.direction === "in" ? 1 : -1) * (e.amount_cents || 0);
+    }
+    return map;
+  }, [accounts, entries]);
+
+  const unreconciledCountByAccount = useMemo(() => {
+    const map = {};
+    for (const e of entries) {
+      if (!e.account_id || e.reconciliation_id) continue;
+      map[e.account_id] = (map[e.account_id] || 0) + 1;
+    }
+    return map;
+  }, [entries]);
+
+  const lastReconciledByAccount = useMemo(() => {
+    const map = {};
+    for (const r of reconciliations) {
+      if (!map[r.account_id] || r.statement_ending_date > map[r.account_id]) {
+        map[r.account_id] = r.statement_ending_date;
+      }
+    }
+    return map;
+  }, [reconciliations]);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!name.trim()) return;
+    await onAdd({
+      name: name.trim(),
+      account_type: accountType,
+      institution: institution.trim() || null,
+      last_four: lastFour.trim() || null,
+      opening_balance_cents: opening ? parseDollars(opening) : 0,
+    });
+    setName(""); setInstitution(""); setLastFour(""); setOpening(""); setAccountType("bank");
+  };
+
+  const typeLabel = (t) => ({ bank: "Bank account", credit_card: "Credit card", cash: "Cash", other: "Other" }[t] || t);
+
+  return (
+    <div>
+      <div style={{ marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <p style={{ color: S.muted, fontSize: 14, margin: 0, maxWidth: 540 }}>
+          Bank accounts and credit cards. Tag each entry to an account so balances stay accurate,
+          then reconcile against monthly statements.
+        </p>
+        {!showAdd && <button onClick={() => setShowAdd(true)} style={btnPrimary}>+ New account</button>}
+      </div>
+
+      {showAdd && (
+        <form onSubmit={submit} style={{ background: "#fff", border: `1px solid ${S.rule}`, borderRadius: 14, padding: 20, marginBottom: 18 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 10, marginBottom: 10 }}>
+            <input placeholder="Account name (e.g. Wells Fargo Checking, Business Visa)" value={name} onChange={e => setName(e.target.value)} style={inputStyle} required />
+            <select value={accountType} onChange={e => setAccountType(e.target.value)} style={inputStyle}>
+              <option value="bank">Bank account</option>
+              <option value="credit_card">Credit card</option>
+              <option value="cash">Cash</option>
+              <option value="other">Other</option>
+            </select>
+            <input placeholder="Institution (optional)" value={institution} onChange={e => setInstitution(e.target.value)} style={inputStyle} />
+            <input placeholder="Last 4 (optional)" maxLength={4} value={lastFour} onChange={e => setLastFour(e.target.value.replace(/\D/g, ""))} style={inputStyle} />
+          </div>
+          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+            <input placeholder="Opening balance $ (optional)" value={opening} onChange={e => setOpening(e.target.value)} style={{ ...inputStyle, maxWidth: 220 }} />
+            <span style={{ fontSize: 12, color: S.muted }}>Use the balance the day before your first entry, or leave at $0.</span>
+            <span style={{ flex: 1 }} />
+            <button type="button" onClick={() => setShowAdd(false)} style={btnGhost}>Cancel</button>
+            <button type="submit" style={btnPrimary}>Save account</button>
+          </div>
+        </form>
+      )}
+
+      {accounts.length === 0 && !showAdd ? (
+        <Empty msg="No accounts yet. Add one to start tracking balances and reconciling statements." />
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 14 }}>
+          {accounts.map(a => {
+            const bal = balanceByAccount[a.id] || 0;
+            const unrec = unreconciledCountByAccount[a.id] || 0;
+            const lastRec = lastReconciledByAccount[a.id];
+            const accent = a.account_type === "credit_card" ? S.red : a.account_type === "cash" ? S.gold : S.green;
+            return (
+              <div key={a.id} style={{ background: "#fff", border: `1px solid ${S.rule}`, borderTop: `4px solid ${accent}`, borderRadius: 14, padding: 20 }}>
+                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: ".14em", textTransform: "uppercase", color: S.muted, marginBottom: 4 }}>{typeLabel(a.account_type)}</div>
+                <div style={{ fontWeight: 600, fontSize: 17, color: S.slate, marginBottom: 2 }}>{a.name}</div>
+                {(a.institution || a.last_four) && (
+                  <div style={{ fontSize: 12, color: S.muted, marginBottom: 12 }}>
+                    {a.institution}{a.institution && a.last_four ? " · " : ""}{a.last_four && `••${a.last_four}`}
+                  </div>
+                )}
+                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: ".14em", textTransform: "uppercase", color: S.muted, marginTop: 12 }}>
+                  {a.account_type === "credit_card" ? "Balance owed" : "Current balance"}
+                </div>
+                <div style={{ fontSize: 28, fontWeight: 600, color: bal >= 0 ? S.slate : S.red, fontVariantNumeric: "tabular-nums", marginTop: 2 }}>{fmt(bal)}</div>
+                <div style={{ display: "flex", gap: 14, fontSize: 12, color: S.muted, marginTop: 10 }}>
+                  <span><strong style={{ color: unrec > 0 ? S.orange : S.muted }}>{unrec}</strong> unreconciled</span>
+                  <span>Last rec: {lastRec || "never"}</span>
+                </div>
+                <div style={{ marginTop: 14, display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  <button onClick={() => onReconcile(a.id)} style={{ ...btnPrimary, padding: "7px 14px", fontSize: 12 }}>Reconcile →</button>
+                  <button onClick={() => { const n = prompt("Rename account:", a.name); if (n && n.trim()) onUpdate(a.id, { name: n.trim() }); }} style={iconBtnSubtle}>Rename</button>
+                  <button onClick={() => { if (confirm("Archive this account? Entries tagged to it stay.")) onArchive(a.id); }} style={iconBtnSubtle}>Archive</button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ---------- Reconcile View ---------- */
+function ReconcileView({ account, entries, reconciliations, onClose, onCommit }) {
+  const [statementDate, setStatementDate] = useState(todayISO());
+  const [statementBalance, setStatementBalance] = useState("");
+  const [selected, setSelected] = useState(() => new Set());
+  const [notes, setNotes] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  // Previously reconciled balance = opening + net of already-reconciled entries
+  const previouslyReconciledNet = useMemo(() => {
+    return entries
+      .filter(e => e.reconciliation_id)
+      .reduce((s, e) => s + (e.direction === "in" ? 1 : -1) * (e.amount_cents || 0), 0);
+  }, [entries]);
+  const previousBalance = (account?.opening_balance_cents || 0) + previouslyReconciledNet;
+
+  const unreconciled = useMemo(() => {
+    return entries
+      .filter(e => !e.reconciliation_id)
+      .sort((a, b) => (a.entry_date || "").localeCompare(b.entry_date || ""));
+  }, [entries]);
+
+  const selectedNet = useMemo(() => {
+    let s = 0;
+    for (const e of unreconciled) {
+      if (selected.has(e.id)) s += (e.direction === "in" ? 1 : -1) * (e.amount_cents || 0);
+    }
+    return s;
+  }, [selected, unreconciled]);
+
+  const computedEnding = previousBalance + selectedNet;
+  const statementCents = parseDollars(statementBalance);
+  const difference = statementCents - computedEnding;
+  const matched = statementBalance !== "" && difference === 0 && selected.size > 0;
+
+  const toggle = (id) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const selectAll = () => setSelected(new Set(unreconciled.map(e => e.id)));
+  const selectNone = () => setSelected(new Set());
+
+  const handleCommit = async () => {
+    if (!matched || busy) return;
+    setBusy(true);
+    await onCommit({
+      statementEndingDate: statementDate,
+      statementEndingBalanceCents: statementCents,
+      entryIds: Array.from(selected),
+      notes,
+    });
+  };
+
+  if (!account) return null;
+  const lastRec = reconciliations[0];
+
+  return (
+    <div>
+      <div style={{ marginBottom: 16, display: "flex", alignItems: "center", gap: 12 }}>
+        <button onClick={onClose} style={btnGhost}>← Back to accounts</button>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: ".14em", textTransform: "uppercase", color: S.muted }}>Reconciling</div>
+          <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: S.slate }}>{account.name}</div>
+        </div>
+      </div>
+
+      <div style={{ background: "#fff", border: `1px solid ${S.rule}`, borderRadius: 14, padding: 22, marginBottom: 18 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 2fr", gap: 14, alignItems: "end" }}>
+          <div>
+            <label style={labelStyle}>Statement ending date</label>
+            <input type="date" value={statementDate} onChange={e => setStatementDate(e.target.value)} style={{ ...inputStyle, width: "100%" }} />
+          </div>
+          <div>
+            <label style={labelStyle}>Statement ending balance</label>
+            <input placeholder="$0.00" value={statementBalance} onChange={e => setStatementBalance(e.target.value)} style={{ ...inputStyle, width: "100%", textAlign: "right" }} />
+          </div>
+          <div>
+            <label style={labelStyle}>Notes (optional)</label>
+            <input placeholder="e.g. Jan 2026 Wells Fargo statement" value={notes} onChange={e => setNotes(e.target.value)} style={{ ...inputStyle, width: "100%" }} />
+          </div>
+        </div>
+
+        <div style={{ marginTop: 18, display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 10 }}>
+          <RecStat label="Previously reconciled" value={fmt(previousBalance)} hint={lastRec ? `as of ${lastRec.statement_ending_date}` : "starting balance"} />
+          <RecStat label={`Selected (${selected.size})`} value={`${selectedNet >= 0 ? "+" : "−"}${fmt(Math.abs(selectedNet))}`} accent={selectedNet >= 0 ? S.green : S.red} />
+          <RecStat label="Will bring balance to" value={fmt(computedEnding)} accent={S.slate} />
+          <RecStat
+            label="Difference vs. statement"
+            value={statementBalance === "" ? "—" : fmt(Math.abs(difference))}
+            accent={statementBalance === "" ? S.muted : difference === 0 ? S.green : S.red}
+            hint={statementBalance === "" ? "" : difference === 0 ? "Matched ✓" : difference > 0 ? "Short — pick more" : "Over — uncheck some"}
+          />
+        </div>
+      </div>
+
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10, gap: 10, flexWrap: "wrap" }}>
+        <div style={{ fontSize: 13, color: S.muted }}>{unreconciled.length} unreconciled {unreconciled.length === 1 ? "entry" : "entries"} for this account</div>
+        <div style={{ display: "flex", gap: 6 }}>
+          <button onClick={selectAll} style={iconBtnSubtle}>Select all</button>
+          <button onClick={selectNone} style={iconBtnSubtle}>Select none</button>
+        </div>
+      </div>
+
+      {unreconciled.length === 0 ? (
+        <Empty msg="Nothing unreconciled here. Tag some ledger entries to this account first." />
+      ) : (
+        <div style={{ background: "#fff", border: `1px solid ${S.rule}`, borderRadius: 14, overflow: "hidden", marginBottom: 18 }}>
+          {unreconciled.map((e, i) => {
+            const isSelected = selected.has(e.id);
+            return (
+              <label key={e.id} style={{ display: "grid", gridTemplateColumns: "30px 90px 1fr 130px", gap: 14, padding: "12px 18px", alignItems: "center", borderTop: i === 0 ? "none" : `1px solid ${S.rule}`, cursor: "pointer", background: isSelected ? S.orangeLight : "transparent" }}>
+                <input type="checkbox" checked={isSelected} onChange={() => toggle(e.id)} />
+                <div style={{ fontSize: 13, color: S.muted, fontVariantNumeric: "tabular-nums" }}>{e.entry_date}</div>
+                <div style={{ fontSize: 14, fontWeight: 500 }}>{e.description}{e.category && <span style={{ color: S.muted, fontWeight: 400 }}> · {e.category}</span>}</div>
+                <div style={{ fontSize: 14, fontWeight: 600, textAlign: "right", color: e.direction === "in" ? S.green : S.red, fontVariantNumeric: "tabular-nums" }}>
+                  {e.direction === "in" ? "+" : "−"}{fmt(e.amount_cents)}
+                </div>
+              </label>
+            );
+          })}
+        </div>
+      )}
+
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
+        <button onClick={onClose} style={btnGhost}>Cancel</button>
+        <button
+          onClick={handleCommit}
+          disabled={!matched || busy}
+          style={{
+            ...btnPrimary,
+            background: matched ? S.green : S.rule,
+            cursor: matched ? "pointer" : "not-allowed",
+            padding: "11px 22px",
+          }}
+        >
+          {busy ? "Saving..." : matched ? `Mark ${selected.size} entries reconciled` : "Match the statement first"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function RecStat({ label, value, accent, hint }) {
+  return (
+    <div style={{ background: S.paper, border: `1px solid ${S.rule}`, borderRadius: 10, padding: "12px 14px" }}>
+      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: ".14em", textTransform: "uppercase", color: S.muted, marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 18, fontWeight: 600, color: accent || S.slate, fontVariantNumeric: "tabular-nums" }}>{value}</div>
+      {hint && <div style={{ fontSize: 11, color: S.muted, marginTop: 2 }}>{hint}</div>}
+    </div>
+  );
+}
+
+const labelStyle = {
+  display: "block",
+  fontSize: 11,
+  fontWeight: 600,
+  letterSpacing: ".14em",
+  textTransform: "uppercase",
+  color: "#7a7585",
+  marginBottom: 6,
+};
 
 /* ---------- Helpers ---------- */
 function Empty({ msg }) {
