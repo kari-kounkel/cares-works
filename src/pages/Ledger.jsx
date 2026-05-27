@@ -196,9 +196,12 @@ export default function Ledger({ session }) {
   const [reconciliations, setReconciliations] = useState([]);
   const [reconcileAccountId, setReconcileAccountId] = useState(null);
   const [importAccountId, setImportAccountId] = useState(null);
+  const [members, setMembers] = useState([]);
 
   const userId = session?.user?.id;
+  const userEmail = session?.user?.email;
   const org = orgs.find(o => o.id === orgId);
+  const isOwner = org && org.user_id === userId;
 
   // Bootstrap: load orgs, auto-create one if none.
   useEffect(() => {
@@ -228,13 +231,14 @@ export default function Ledger({ session }) {
   // Load org data when org changes.
   const reload = useCallback(async () => {
     if (!orgId) return;
-    const [e, f, d, c, a, r] = await Promise.all([
+    const [e, f, d, c, a, r, m] = await Promise.all([
       supabase.from("ledger_entries").select("*").eq("org_id", orgId).order("entry_date", { ascending: false }).order("created_at", { ascending: false }),
       supabase.from("ledger_funds").select("*").eq("org_id", orgId).eq("archived", false).order("created_at", { ascending: true }),
       supabase.from("ledger_donors").select("*").eq("org_id", orgId).order("name", { ascending: true }),
       supabase.from("ledger_campaigns").select("*").eq("org_id", orgId).order("created_at", { ascending: false }),
       supabase.from("ledger_accounts").select("*").eq("org_id", orgId).eq("archived", false).order("created_at", { ascending: true }),
       supabase.from("ledger_reconciliations").select("*").eq("org_id", orgId).order("statement_ending_date", { ascending: false }),
+      supabase.from("ledger_org_members").select("*").eq("org_id", orgId).order("invited_at", { ascending: false }),
     ]);
     setEntries(e.data || []);
     setFunds(f.data || []);
@@ -242,6 +246,7 @@ export default function Ledger({ session }) {
     setCampaigns(c.data || []);
     setAccounts(a.data || []);
     setReconciliations(r.data || []);
+    setMembers(m.data || []);
   }, [orgId]);
 
   useEffect(() => { reload(); }, [reload]);
@@ -270,6 +275,9 @@ export default function Ledger({ session }) {
       <Header
         org={org}
         orgs={orgs}
+        isOwner={isOwner}
+        members={members}
+        userEmail={userEmail}
         onSwitch={setOrgId}
         onUpdate={async (patch) => {
           await supabase.from("ledger_orgs").update(patch).eq("id", org.id);
@@ -282,6 +290,22 @@ export default function Ledger({ session }) {
             setOrgs(prev => [...prev, data]);
             setOrgId(data.id);
           }
+        }}
+        onInvite={async (email, role) => {
+          const clean = email.trim().toLowerCase();
+          if (!clean) return;
+          const { error } = await supabase.from("ledger_org_members").insert({
+            org_id: org.id,
+            member_email: clean,
+            role,
+            invited_by: userId,
+          });
+          if (!error) reload();
+          return error;
+        }}
+        onRemoveMember={async (id) => {
+          await supabase.from("ledger_org_members").delete().eq("id", id);
+          reload();
         }}
       />
 
@@ -456,13 +480,35 @@ function Shell({ children }) {
 }
 
 /* ---------- Header ---------- */
-function Header({ org, orgs, onSwitch, onUpdate, onCreate }) {
+function Header({ org, orgs, isOwner, members, userEmail, onSwitch, onUpdate, onCreate, onInvite, onRemoveMember }) {
   const [editingName, setEditingName] = useState(false);
   const [name, setName] = useState(org?.name || "");
   const [showNew, setShowNew] = useState(false);
   const [newName, setNewName] = useState("");
+  const [showShare, setShowShare] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState("editor");
+  const [inviteError, setInviteError] = useState("");
 
   useEffect(() => { setName(org?.name || ""); }, [org?.id]);
+  useEffect(() => { setInviteError(""); }, [showShare]);
+
+  const submitInvite = async (e) => {
+    e?.preventDefault?.();
+    setInviteError("");
+    if (!inviteEmail.trim()) return;
+    if (inviteEmail.trim().toLowerCase() === (userEmail || "").toLowerCase()) {
+      setInviteError("That's your own email.");
+      return;
+    }
+    if (members.some(m => m.member_email.toLowerCase() === inviteEmail.trim().toLowerCase())) {
+      setInviteError("That email is already invited.");
+      return;
+    }
+    const err = await onInvite(inviteEmail, inviteRole);
+    if (err) setInviteError(err.message || "Could not add member.");
+    else setInviteEmail("");
+  };
 
   return (
     <div className="ledger-org-header" style={{ marginBottom: 24 }}>
@@ -504,7 +550,52 @@ function Header({ org, orgs, onSwitch, onUpdate, onCreate }) {
         ) : (
           <button onClick={() => setShowNew(true)} style={{ background: "transparent", border: `1px dashed ${S.rule}`, color: S.muted, borderRadius: 999, padding: "6px 12px", fontFamily: "inherit", fontSize: 13, cursor: "pointer" }}>+ Add organization</button>
         )}
+        {isOwner && (
+          <button onClick={() => setShowShare(s => !s)} style={{ background: showShare ? S.orange : "transparent", color: showShare ? "#fff" : S.orange, border: `1px solid ${S.orange}`, borderRadius: 999, padding: "6px 14px", fontFamily: "inherit", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+            {showShare ? "Close" : `↗ Share${members.length > 0 ? ` · ${members.length}` : ""}`}
+          </button>
+        )}
+        {!isOwner && org && (
+          <span style={{ fontSize: 12, color: S.muted, fontStyle: "italic", marginLeft: 4 }}>shared with you</span>
+        )}
       </div>
+
+      {showShare && isOwner && (
+        <div style={{ marginTop: 16, background: "#fff", border: `1px solid ${S.rule}`, borderLeft: `4px solid ${S.orange}`, borderRadius: 10, padding: "16px 20px", maxWidth: 720 }}>
+          <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 17, color: S.slate, marginBottom: 4 }}>Share {org.name}</div>
+          <div style={{ fontSize: 13, color: S.muted, marginBottom: 14 }}>
+            Invite by email. They&rsquo;ll see this organization the next time they log into tools.caresmn.com — they must sign in using the email below.
+          </div>
+          <form onSubmit={submitInvite} style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginBottom: 10 }}>
+            <input type="email" placeholder="pastor@example.org" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} style={{ ...inputStyle, flex: 1, minWidth: 220 }} required />
+            <select value={inviteRole} onChange={e => setInviteRole(e.target.value)} style={inputStyle}>
+              <option value="editor">Editor (can add/edit)</option>
+              <option value="viewer">Viewer (read only)</option>
+            </select>
+            <button type="submit" style={btnPrimary}>Invite</button>
+          </form>
+          {inviteError && <div style={{ fontSize: 13, color: S.red, marginBottom: 10 }}>{inviteError}</div>}
+
+          {members.length === 0 ? (
+            <div style={{ fontSize: 13, color: S.muted, fontStyle: "italic", padding: "8px 0" }}>No one else has access yet.</div>
+          ) : (
+            <div style={{ borderTop: `1px solid ${S.rule}`, paddingTop: 12 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: ".12em", textTransform: "uppercase", color: S.muted, marginBottom: 8 }}>People with access</div>
+              {members.map(m => (
+                <div key={m.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 0", borderBottom: `1px solid ${S.cream}` }}>
+                  <div>
+                    <div style={{ fontSize: 14 }}>{m.member_email}</div>
+                    <div style={{ fontSize: 11, color: S.muted }}>
+                      {m.role === "editor" ? "Editor" : "Viewer"} · invited {m.invited_at?.slice(0, 10)} · {m.accepted_at ? `joined ${m.accepted_at.slice(0, 10)}` : "not yet signed in"}
+                    </div>
+                  </div>
+                  <button onClick={() => { if (confirm(`Remove ${m.member_email}'s access?`)) onRemoveMember(m.id); }} style={iconBtnSubtle}>Remove</button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
