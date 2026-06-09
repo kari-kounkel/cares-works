@@ -11,7 +11,7 @@
 <meta name="theme-color" content="#1F9D55" />
 <style>
   /* ============================================================
-     CASH DRAWER HELPER  (generic template — configure in Settings)
+     CASH DRAWER HELPER  (IBK Thrift)
      Count the drawer (type dollars OR tap a count). The tool
      AUTOMATICALLY keeps the smallest bills/coins that total the
      drawer amount and shows the big money to bag. No warnings,
@@ -39,9 +39,6 @@
   .howto b{display:block;font-size:18px;margin-bottom:4px;}
   .howto ol{margin:0;padding-left:22px;}
   .howto li{margin:3px 0;}
-  .setupcb{background:#EAF1FC;border:2px dashed #9CBDF0;border-radius:var(--radius);margin:18px 0 0;padding:14px 16px;color:#1c3a66;}
-  .setupcb b{display:block;font-size:17px;margin-bottom:3px;}
-  .setupcb span{font-size:15px;color:#3a5a86;}
 
   .colhead{display:flex;align-items:center;gap:12px;padding:6px 16px 0;color:var(--muted);font-size:13px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;}
   .colhead .h-name{flex:1 1 auto;}
@@ -155,18 +152,14 @@
 <body>
 
 <header>
-  <button class="gear" id="gearBtn" title="Settings" aria-label="Settings">⚙ Settings</button>
-  <div class="eyebrow" id="storeLine">NAME YOUR STORE IN SETTINGS</div>
+  <button class="gear" id="gearBtn" title="Set up the drawer" aria-label="Set up the drawer">⚙ Set up</button>
+  <div class="eyebrow" id="storeLine">IBK Thrift</div>
   <h1>Cash Drawer Helper</h1>
   <p id="targetLine">Count the drawer. We'll show you what to take out.</p>
 </header>
 
 <div class="wrap">
   <section id="counting">
-    <div class="setupcb">
-      <b>⚙ First time? Tap Settings (top right) to:</b>
-      <span>Name your store &middot; Name where the extra cash goes &middot; Set the drawer amount. The tool keeps the smallest bills &amp; coins for you.</span>
-    </div>
     <div class="howto">
       <b>How to count — two ways</b>
       <ol>
@@ -190,7 +183,7 @@
 
 <div class="modal" id="modal">
   <div class="sheet">
-    <h2>Settings</h2>
+    <h2>Set up the drawer</h2>
     <p>Set your store name, where the extra cash goes, and how much to leave in the drawer. The tool keeps the smallest bills and coins for you — you don't pick them.</p>
     <div class="field"><label for="storeName">Store name</label><input type="text" id="storeName" /></div>
     <div class="field"><label for="bagName">Where extra cash goes (e.g. "gray bag", "safe")</label><input type="text" id="bagName" /></div>
@@ -227,8 +220,8 @@ const DENOMS = [
 
 /* 2) SETTINGS — manager sets only these three + which rows show */
 let TARGET = 6500;            /* cents to leave in the drawer ($65.00) */
-let STORE  = "NAME YOUR STORE IN SETTINGS";
-let BAG    = "place you name in Settings";
+let STORE  = "IBK Thrift";
+let BAG    = "gray bag";
 let SHOW   = { 10000:true,5000:true,2000:true,1000:true,500:true,100:true,50:true,25:true,10:true,5:true,1:true };
 
 /* 3) MONEY PICTURES (drawn — offline-safe, no currency-reproduction issues) */
