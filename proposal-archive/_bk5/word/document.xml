@@ -1,0 +1,3848 @@
+<?xml version="1.0" encoding="UTF-8"?><w:document xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:w10="urn:schemas-microsoft-com:office:word" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" xmlns:w15="http://schemas.microsoft.com/office/word/2012/wordml" xmlns:wpg="http://schemas.microsoft.com/office/word/2010/wordprocessingGroup" xmlns:wpi="http://schemas.microsoft.com/office/word/2010/wordprocessingInk" xmlns:wne="http://schemas.microsoft.com/office/word/2006/wordml" xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape" xmlns:cx="http://schemas.microsoft.com/office/drawing/2014/chartex" xmlns:cx1="http://schemas.microsoft.com/office/drawing/2015/9/8/chartex" xmlns:cx2="http://schemas.microsoft.com/office/drawing/2015/10/21/chartex" xmlns:cx3="http://schemas.microsoft.com/office/drawing/2016/5/9/chartex" xmlns:cx4="http://schemas.microsoft.com/office/drawing/2016/5/10/chartex" xmlns:cx5="http://schemas.microsoft.com/office/drawing/2016/5/11/chartex" xmlns:cx6="http://schemas.microsoft.com/office/drawing/2016/5/12/chartex" xmlns:cx7="http://schemas.microsoft.com/office/drawing/2016/5/13/chartex" xmlns:cx8="http://schemas.microsoft.com/office/drawing/2016/5/14/chartex" xmlns:aink="http://schemas.microsoft.com/office/drawing/2016/ink" xmlns:am3d="http://schemas.microsoft.com/office/drawing/2017/model3d" xmlns:w16cex="http://schemas.microsoft.com/office/word/2018/wordml/cex" xmlns:w16cid="http://schemas.microsoft.com/office/word/2016/wordml/cid" xmlns:w16="http://schemas.microsoft.com/office/word/2018/wordml" xmlns:w16sdtdh="http://schemas.microsoft.com/office/word/2020/wordml/sdtdatahash" xmlns:w16se="http://schemas.microsoft.com/office/word/2015/wordml/symex" mc:Ignorable="w14 w15 wp14">
+  <w:body>
+    <w:tbl>
+      <w:tblPr>
+        <w:tblW w:type="dxa" w:w="9360"/>
+        <w:tblBorders>
+          <w:top w:val="single" w:color="auto" w:sz="4"/>
+          <w:left w:val="single" w:color="auto" w:sz="4"/>
+          <w:bottom w:val="single" w:color="auto" w:sz="4"/>
+          <w:right w:val="single" w:color="auto" w:sz="4"/>
+          <w:insideH w:val="single" w:color="auto" w:sz="4"/>
+          <w:insideV w:val="single" w:color="auto" w:sz="4"/>
+        </w:tblBorders>
+      </w:tblPr>
+      <w:tblGrid>
+        <w:gridCol w:w="9360"/>
+      </w:tblGrid>
+      <w:tr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="9360"/>
+            <w:tcBorders>
+              <w:top w:val="none"/>
+              <w:left w:val="none"/>
+              <w:bottom w:val="none"/>
+              <w:right w:val="none"/>
+            </w:tcBorders>
+            <w:shd w:fill="1F2D4D" w:val="clear"/>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="400"/>
+              <w:left w:type="dxa" w:w="320"/>
+              <w:bottom w:type="dxa" w:w="400"/>
+              <w:right w:type="dxa" w:w="320"/>
+            </w:tcMar>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="left"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b/>
+                <w:bCs/>
+                <w:color w:val="FFFFFF"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">CARES CONSULTING, INC.</w:t>
+            </w:r>
+          </w:p>
+          <w:p>
+            <w:pPr>
+              <w:spacing w:before="60"/>
+              <w:jc w:val="left"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b/>
+                <w:bCs/>
+                <w:color w:val="FFFFFF"/>
+                <w:sz w:val="44"/>
+                <w:szCs w:val="44"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Bookkeeping Services Agreement</w:t>
+            </w:r>
+          </w:p>
+          <w:p>
+            <w:pPr>
+              <w:spacing w:before="60"/>
+              <w:jc w:val="left"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:color w:val="E8C547"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Three-Tier Service Engagement</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+    </w:tbl>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="200" w:before="200"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve"/>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="80" w:before="80" w:line="300"/>
+        <w:jc w:val="left"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b w:val="false"/>
+          <w:bCs w:val="false"/>
+          <w:i w:val="false"/>
+          <w:iCs w:val="false"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">This Bookkeeping Services Agreement (the &#x201C;Agreement&#x201D;) is entered into as of June 1, 2026 between:</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="40" w:before="40"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve"/>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="80" w:before="80" w:line="300"/>
+        <w:jc w:val="left"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b/>
+          <w:bCs/>
+          <w:i w:val="false"/>
+          <w:iCs w:val="false"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">CARES Consulting, Inc. (&#x201C;Consultant&#x201D;)</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="80" w:before="80" w:line="300"/>
+        <w:jc w:val="left"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b w:val="false"/>
+          <w:bCs w:val="false"/>
+          <w:i w:val="false"/>
+          <w:iCs w:val="false"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Kari Hoglund Kounkel</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="80" w:before="80" w:line="300"/>
+        <w:jc w:val="left"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b w:val="false"/>
+          <w:bCs w:val="false"/>
+          <w:i w:val="false"/>
+          <w:iCs w:val="false"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Saint Paul, Minnesota</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="40" w:before="40"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve"/>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="80" w:before="80" w:line="300"/>
+        <w:jc w:val="left"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b w:val="false"/>
+          <w:bCs w:val="false"/>
+          <w:i/>
+          <w:iCs/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">and</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="40" w:before="40"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve"/>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="80" w:before="80" w:line="300"/>
+        <w:jc w:val="left"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b/>
+          <w:bCs/>
+          <w:i w:val="false"/>
+          <w:iCs w:val="false"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">I A Z Corporation dba Minuteman Press Uptown (&#x201C;Client&#x201D;)</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="80" w:before="80" w:line="300"/>
+        <w:jc w:val="left"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b w:val="false"/>
+          <w:bCs w:val="false"/>
+          <w:i w:val="false"/>
+          <w:iCs w:val="false"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Attn: Frank Brown</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="80" w:before="80" w:line="300"/>
+        <w:jc w:val="left"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b w:val="false"/>
+          <w:bCs w:val="false"/>
+          <w:i w:val="false"/>
+          <w:iCs w:val="false"/>
+          <w:color w:val="666666"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">4024 Washington Ave N, Minneapolis, MN 55412</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="200" w:before="200"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve"/>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="Heading2"/>
+        <w:spacing w:after="100" w:before="240"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="1F2D4D"/>
+          <w:sz w:val="24"/>
+          <w:szCs w:val="24"/>
+        </w:rPr>
+        <w:t xml:space="preserve">1. Background</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="80" w:before="80" w:line="300"/>
+        <w:jc w:val="left"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b w:val="false"/>
+          <w:bCs w:val="false"/>
+          <w:i w:val="false"/>
+          <w:iCs w:val="false"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Client engages Consultant to provide ongoing bookkeeping, accounting, and related administrative services for two affiliated entities: I A Z Corporation dba Minuteman Press Uptown and Infinity Alpha Omega LLC (collectively, the &#x201C;Entities&#x201D;). This Agreement replaces all bookkeeping services previously provided to Client by Laura Mills / ProResources.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="Heading2"/>
+        <w:spacing w:after="100" w:before="240"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="1F2D4D"/>
+          <w:sz w:val="24"/>
+          <w:szCs w:val="24"/>
+        </w:rPr>
+        <w:t xml:space="preserve">2. Scope of Services</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="80" w:before="80" w:line="300"/>
+        <w:jc w:val="left"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b w:val="false"/>
+          <w:bCs w:val="false"/>
+          <w:i w:val="false"/>
+          <w:iCs w:val="false"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Client may select Tier 1 or Tier 2 below. Tier 3 (Hourly) is available to all clients for work outside the selected tier.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="80" w:before="80"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve"/>
+      </w:r>
+    </w:p>
+    <w:tbl>
+      <w:tblPr>
+        <w:tblW w:type="dxa" w:w="9360"/>
+        <w:tblBorders>
+          <w:top w:val="single" w:color="auto" w:sz="4"/>
+          <w:left w:val="single" w:color="auto" w:sz="4"/>
+          <w:bottom w:val="single" w:color="auto" w:sz="4"/>
+          <w:right w:val="single" w:color="auto" w:sz="4"/>
+          <w:insideH w:val="single" w:color="auto" w:sz="4"/>
+          <w:insideV w:val="single" w:color="auto" w:sz="4"/>
+        </w:tblBorders>
+      </w:tblPr>
+      <w:tblGrid>
+        <w:gridCol w:w="3120"/>
+        <w:gridCol w:w="3120"/>
+        <w:gridCol w:w="3120"/>
+      </w:tblGrid>
+      <w:tr>
+        <w:trPr>
+          <w:tblHeader/>
+        </w:trPr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="3120"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:left w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:bottom w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:right w:val="single" w:color="BFBFBF" w:sz="4"/>
+            </w:tcBorders>
+            <w:shd w:fill="1F2D4D" w:val="clear"/>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="120"/>
+              <w:left w:type="dxa" w:w="160"/>
+              <w:bottom w:type="dxa" w:w="120"/>
+              <w:right w:type="dxa" w:w="160"/>
+            </w:tcMar>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="left"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b/>
+                <w:bCs/>
+                <w:color w:val="FFFFFF"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Component</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="3120"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:left w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:bottom w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:right w:val="single" w:color="BFBFBF" w:sz="4"/>
+            </w:tcBorders>
+            <w:shd w:fill="1F2D4D" w:val="clear"/>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="120"/>
+              <w:left w:type="dxa" w:w="160"/>
+              <w:bottom w:type="dxa" w:w="120"/>
+              <w:right w:type="dxa" w:w="160"/>
+            </w:tcMar>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="center"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b/>
+                <w:bCs/>
+                <w:color w:val="FFFFFF"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Tier 1: Bookkeeping</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="3120"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:left w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:bottom w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:right w:val="single" w:color="BFBFBF" w:sz="4"/>
+            </w:tcBorders>
+            <w:shd w:fill="1F2D4D" w:val="clear"/>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="120"/>
+              <w:left w:type="dxa" w:w="160"/>
+              <w:bottom w:type="dxa" w:w="120"/>
+              <w:right w:type="dxa" w:w="160"/>
+            </w:tcMar>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="center"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b/>
+                <w:bCs/>
+                <w:color w:val="FFFFFF"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Tier 2: Bookkeeping Plus</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="3120"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:left w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:bottom w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:right w:val="single" w:color="BFBFBF" w:sz="4"/>
+            </w:tcBorders>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="120"/>
+              <w:left w:type="dxa" w:w="160"/>
+              <w:bottom w:type="dxa" w:w="120"/>
+              <w:right w:type="dxa" w:w="160"/>
+            </w:tcMar>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="left"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b/>
+                <w:bCs/>
+                <w:color w:val="1A1A1A"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Monthly Fee</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="3120"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:left w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:bottom w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:right w:val="single" w:color="BFBFBF" w:sz="4"/>
+            </w:tcBorders>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="120"/>
+              <w:left w:type="dxa" w:w="160"/>
+              <w:bottom w:type="dxa" w:w="120"/>
+              <w:right w:type="dxa" w:w="160"/>
+            </w:tcMar>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="center"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b w:val="false"/>
+                <w:bCs w:val="false"/>
+                <w:color w:val="1A1A1A"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">$3,000</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="3120"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:left w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:bottom w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:right w:val="single" w:color="BFBFBF" w:sz="4"/>
+            </w:tcBorders>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="120"/>
+              <w:left w:type="dxa" w:w="160"/>
+              <w:bottom w:type="dxa" w:w="120"/>
+              <w:right w:type="dxa" w:w="160"/>
+            </w:tcMar>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="center"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b w:val="false"/>
+                <w:bCs w:val="false"/>
+                <w:color w:val="1A1A1A"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">$5,000</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="3120"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:left w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:bottom w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:right w:val="single" w:color="BFBFBF" w:sz="4"/>
+            </w:tcBorders>
+            <w:shd w:fill="F2F2F2" w:val="clear"/>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="120"/>
+              <w:left w:type="dxa" w:w="160"/>
+              <w:bottom w:type="dxa" w:w="120"/>
+              <w:right w:type="dxa" w:w="160"/>
+            </w:tcMar>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="left"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b w:val="false"/>
+                <w:bCs w:val="false"/>
+                <w:color w:val="1A1A1A"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Accounts Payable processing</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="3120"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:left w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:bottom w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:right w:val="single" w:color="BFBFBF" w:sz="4"/>
+            </w:tcBorders>
+            <w:shd w:fill="F2F2F2" w:val="clear"/>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="120"/>
+              <w:left w:type="dxa" w:w="160"/>
+              <w:bottom w:type="dxa" w:w="120"/>
+              <w:right w:type="dxa" w:w="160"/>
+            </w:tcMar>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="center"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b w:val="false"/>
+                <w:bCs w:val="false"/>
+                <w:color w:val="1A1A1A"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Included</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="3120"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:left w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:bottom w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:right w:val="single" w:color="BFBFBF" w:sz="4"/>
+            </w:tcBorders>
+            <w:shd w:fill="F2F2F2" w:val="clear"/>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="120"/>
+              <w:left w:type="dxa" w:w="160"/>
+              <w:bottom w:type="dxa" w:w="120"/>
+              <w:right w:type="dxa" w:w="160"/>
+            </w:tcMar>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="center"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b w:val="false"/>
+                <w:bCs w:val="false"/>
+                <w:color w:val="1A1A1A"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Included</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="3120"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:left w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:bottom w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:right w:val="single" w:color="BFBFBF" w:sz="4"/>
+            </w:tcBorders>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="120"/>
+              <w:left w:type="dxa" w:w="160"/>
+              <w:bottom w:type="dxa" w:w="120"/>
+              <w:right w:type="dxa" w:w="160"/>
+            </w:tcMar>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="left"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b w:val="false"/>
+                <w:bCs w:val="false"/>
+                <w:color w:val="1A1A1A"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">AR journal entries (monthly from Flex)</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="3120"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:left w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:bottom w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:right w:val="single" w:color="BFBFBF" w:sz="4"/>
+            </w:tcBorders>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="120"/>
+              <w:left w:type="dxa" w:w="160"/>
+              <w:bottom w:type="dxa" w:w="120"/>
+              <w:right w:type="dxa" w:w="160"/>
+            </w:tcMar>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="center"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b w:val="false"/>
+                <w:bCs w:val="false"/>
+                <w:color w:val="1A1A1A"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Included</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="3120"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:left w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:bottom w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:right w:val="single" w:color="BFBFBF" w:sz="4"/>
+            </w:tcBorders>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="120"/>
+              <w:left w:type="dxa" w:w="160"/>
+              <w:bottom w:type="dxa" w:w="120"/>
+              <w:right w:type="dxa" w:w="160"/>
+            </w:tcMar>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="center"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b w:val="false"/>
+                <w:bCs w:val="false"/>
+                <w:color w:val="1A1A1A"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Included</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="3120"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:left w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:bottom w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:right w:val="single" w:color="BFBFBF" w:sz="4"/>
+            </w:tcBorders>
+            <w:shd w:fill="F2F2F2" w:val="clear"/>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="120"/>
+              <w:left w:type="dxa" w:w="160"/>
+              <w:bottom w:type="dxa" w:w="120"/>
+              <w:right w:type="dxa" w:w="160"/>
+            </w:tcMar>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="left"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b w:val="false"/>
+                <w:bCs w:val="false"/>
+                <w:color w:val="1A1A1A"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Sales tax payments + recording</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="3120"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:left w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:bottom w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:right w:val="single" w:color="BFBFBF" w:sz="4"/>
+            </w:tcBorders>
+            <w:shd w:fill="F2F2F2" w:val="clear"/>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="120"/>
+              <w:left w:type="dxa" w:w="160"/>
+              <w:bottom w:type="dxa" w:w="120"/>
+              <w:right w:type="dxa" w:w="160"/>
+            </w:tcMar>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="center"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b w:val="false"/>
+                <w:bCs w:val="false"/>
+                <w:color w:val="1A1A1A"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Included</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="3120"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:left w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:bottom w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:right w:val="single" w:color="BFBFBF" w:sz="4"/>
+            </w:tcBorders>
+            <w:shd w:fill="F2F2F2" w:val="clear"/>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="120"/>
+              <w:left w:type="dxa" w:w="160"/>
+              <w:bottom w:type="dxa" w:w="120"/>
+              <w:right w:type="dxa" w:w="160"/>
+            </w:tcMar>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="center"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b w:val="false"/>
+                <w:bCs w:val="false"/>
+                <w:color w:val="1A1A1A"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Included</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="3120"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:left w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:bottom w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:right w:val="single" w:color="BFBFBF" w:sz="4"/>
+            </w:tcBorders>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="120"/>
+              <w:left w:type="dxa" w:w="160"/>
+              <w:bottom w:type="dxa" w:w="120"/>
+              <w:right w:type="dxa" w:w="160"/>
+            </w:tcMar>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="left"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b w:val="false"/>
+                <w:bCs w:val="false"/>
+                <w:color w:val="1A1A1A"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Bank reconciliations (6 accounts)</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="3120"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:left w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:bottom w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:right w:val="single" w:color="BFBFBF" w:sz="4"/>
+            </w:tcBorders>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="120"/>
+              <w:left w:type="dxa" w:w="160"/>
+              <w:bottom w:type="dxa" w:w="120"/>
+              <w:right w:type="dxa" w:w="160"/>
+            </w:tcMar>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="center"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b w:val="false"/>
+                <w:bCs w:val="false"/>
+                <w:color w:val="1A1A1A"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Included</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="3120"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:left w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:bottom w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:right w:val="single" w:color="BFBFBF" w:sz="4"/>
+            </w:tcBorders>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="120"/>
+              <w:left w:type="dxa" w:w="160"/>
+              <w:bottom w:type="dxa" w:w="120"/>
+              <w:right w:type="dxa" w:w="160"/>
+            </w:tcMar>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="center"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b w:val="false"/>
+                <w:bCs w:val="false"/>
+                <w:color w:val="1A1A1A"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Included</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="3120"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:left w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:bottom w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:right w:val="single" w:color="BFBFBF" w:sz="4"/>
+            </w:tcBorders>
+            <w:shd w:fill="F2F2F2" w:val="clear"/>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="120"/>
+              <w:left w:type="dxa" w:w="160"/>
+              <w:bottom w:type="dxa" w:w="120"/>
+              <w:right w:type="dxa" w:w="160"/>
+            </w:tcMar>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="left"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b w:val="false"/>
+                <w:bCs w:val="false"/>
+                <w:color w:val="1A1A1A"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Tenant billing + CAM tracking</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="3120"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:left w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:bottom w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:right w:val="single" w:color="BFBFBF" w:sz="4"/>
+            </w:tcBorders>
+            <w:shd w:fill="F2F2F2" w:val="clear"/>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="120"/>
+              <w:left w:type="dxa" w:w="160"/>
+              <w:bottom w:type="dxa" w:w="120"/>
+              <w:right w:type="dxa" w:w="160"/>
+            </w:tcMar>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="center"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b w:val="false"/>
+                <w:bCs w:val="false"/>
+                <w:color w:val="1A1A1A"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Included</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="3120"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:left w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:bottom w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:right w:val="single" w:color="BFBFBF" w:sz="4"/>
+            </w:tcBorders>
+            <w:shd w:fill="F2F2F2" w:val="clear"/>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="120"/>
+              <w:left w:type="dxa" w:w="160"/>
+              <w:bottom w:type="dxa" w:w="120"/>
+              <w:right w:type="dxa" w:w="160"/>
+            </w:tcMar>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="center"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b w:val="false"/>
+                <w:bCs w:val="false"/>
+                <w:color w:val="1A1A1A"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Included</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="3120"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:left w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:bottom w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:right w:val="single" w:color="BFBFBF" w:sz="4"/>
+            </w:tcBorders>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="120"/>
+              <w:left w:type="dxa" w:w="160"/>
+              <w:bottom w:type="dxa" w:w="120"/>
+              <w:right w:type="dxa" w:w="160"/>
+            </w:tcMar>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="left"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b w:val="false"/>
+                <w:bCs w:val="false"/>
+                <w:color w:val="1A1A1A"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Payroll processing + products</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="3120"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:left w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:bottom w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:right w:val="single" w:color="BFBFBF" w:sz="4"/>
+            </w:tcBorders>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="120"/>
+              <w:left w:type="dxa" w:w="160"/>
+              <w:bottom w:type="dxa" w:w="120"/>
+              <w:right w:type="dxa" w:w="160"/>
+            </w:tcMar>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="center"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b w:val="false"/>
+                <w:bCs w:val="false"/>
+                <w:color w:val="1A1A1A"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Included</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="3120"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:left w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:bottom w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:right w:val="single" w:color="BFBFBF" w:sz="4"/>
+            </w:tcBorders>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="120"/>
+              <w:left w:type="dxa" w:w="160"/>
+              <w:bottom w:type="dxa" w:w="120"/>
+              <w:right w:type="dxa" w:w="160"/>
+            </w:tcMar>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="center"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b w:val="false"/>
+                <w:bCs w:val="false"/>
+                <w:color w:val="1A1A1A"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Included</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="3120"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:left w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:bottom w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:right w:val="single" w:color="BFBFBF" w:sz="4"/>
+            </w:tcBorders>
+            <w:shd w:fill="F2F2F2" w:val="clear"/>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="120"/>
+              <w:left w:type="dxa" w:w="160"/>
+              <w:bottom w:type="dxa" w:w="120"/>
+              <w:right w:type="dxa" w:w="160"/>
+            </w:tcMar>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="left"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b w:val="false"/>
+                <w:bCs w:val="false"/>
+                <w:color w:val="1A1A1A"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Financial statements</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="3120"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:left w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:bottom w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:right w:val="single" w:color="BFBFBF" w:sz="4"/>
+            </w:tcBorders>
+            <w:shd w:fill="F2F2F2" w:val="clear"/>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="120"/>
+              <w:left w:type="dxa" w:w="160"/>
+              <w:bottom w:type="dxa" w:w="120"/>
+              <w:right w:type="dxa" w:w="160"/>
+            </w:tcMar>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="center"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b w:val="false"/>
+                <w:bCs w:val="false"/>
+                <w:color w:val="1A1A1A"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Monthly, by 15th</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="3120"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:left w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:bottom w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:right w:val="single" w:color="BFBFBF" w:sz="4"/>
+            </w:tcBorders>
+            <w:shd w:fill="F2F2F2" w:val="clear"/>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="120"/>
+              <w:left w:type="dxa" w:w="160"/>
+              <w:bottom w:type="dxa" w:w="120"/>
+              <w:right w:type="dxa" w:w="160"/>
+            </w:tcMar>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="center"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b w:val="false"/>
+                <w:bCs w:val="false"/>
+                <w:color w:val="1A1A1A"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Weekly + monthly</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="3120"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:left w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:bottom w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:right w:val="single" w:color="BFBFBF" w:sz="4"/>
+            </w:tcBorders>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="120"/>
+              <w:left w:type="dxa" w:w="160"/>
+              <w:bottom w:type="dxa" w:w="120"/>
+              <w:right w:type="dxa" w:w="160"/>
+            </w:tcMar>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="left"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b w:val="false"/>
+                <w:bCs w:val="false"/>
+                <w:color w:val="1A1A1A"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Business meeting attendance</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="3120"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:left w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:bottom w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:right w:val="single" w:color="BFBFBF" w:sz="4"/>
+            </w:tcBorders>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="120"/>
+              <w:left w:type="dxa" w:w="160"/>
+              <w:bottom w:type="dxa" w:w="120"/>
+              <w:right w:type="dxa" w:w="160"/>
+            </w:tcMar>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="center"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b w:val="false"/>
+                <w:bCs w:val="false"/>
+                <w:color w:val="1A1A1A"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Not included</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="3120"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:left w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:bottom w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:right w:val="single" w:color="BFBFBF" w:sz="4"/>
+            </w:tcBorders>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="120"/>
+              <w:left w:type="dxa" w:w="160"/>
+              <w:bottom w:type="dxa" w:w="120"/>
+              <w:right w:type="dxa" w:w="160"/>
+            </w:tcMar>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="center"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b w:val="false"/>
+                <w:bCs w:val="false"/>
+                <w:color w:val="1A1A1A"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Included</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="3120"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:left w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:bottom w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:right w:val="single" w:color="BFBFBF" w:sz="4"/>
+            </w:tcBorders>
+            <w:shd w:fill="F2F2F2" w:val="clear"/>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="120"/>
+              <w:left w:type="dxa" w:w="160"/>
+              <w:bottom w:type="dxa" w:w="120"/>
+              <w:right w:type="dxa" w:w="160"/>
+            </w:tcMar>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="left"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b w:val="false"/>
+                <w:bCs w:val="false"/>
+                <w:color w:val="1A1A1A"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">HR monitoring with appointed staff</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="3120"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:left w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:bottom w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:right w:val="single" w:color="BFBFBF" w:sz="4"/>
+            </w:tcBorders>
+            <w:shd w:fill="F2F2F2" w:val="clear"/>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="120"/>
+              <w:left w:type="dxa" w:w="160"/>
+              <w:bottom w:type="dxa" w:w="120"/>
+              <w:right w:type="dxa" w:w="160"/>
+            </w:tcMar>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="center"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b w:val="false"/>
+                <w:bCs w:val="false"/>
+                <w:color w:val="1A1A1A"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Not included</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="3120"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:left w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:bottom w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:right w:val="single" w:color="BFBFBF" w:sz="4"/>
+            </w:tcBorders>
+            <w:shd w:fill="F2F2F2" w:val="clear"/>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="120"/>
+              <w:left w:type="dxa" w:w="160"/>
+              <w:bottom w:type="dxa" w:w="120"/>
+              <w:right w:type="dxa" w:w="160"/>
+            </w:tcMar>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="center"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b w:val="false"/>
+                <w:bCs w:val="false"/>
+                <w:color w:val="1A1A1A"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Included</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="3120"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:left w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:bottom w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:right w:val="single" w:color="BFBFBF" w:sz="4"/>
+            </w:tcBorders>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="120"/>
+              <w:left w:type="dxa" w:w="160"/>
+              <w:bottom w:type="dxa" w:w="120"/>
+              <w:right w:type="dxa" w:w="160"/>
+            </w:tcMar>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="left"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b w:val="false"/>
+                <w:bCs w:val="false"/>
+                <w:color w:val="1A1A1A"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">General business administration</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="3120"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:left w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:bottom w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:right w:val="single" w:color="BFBFBF" w:sz="4"/>
+            </w:tcBorders>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="120"/>
+              <w:left w:type="dxa" w:w="160"/>
+              <w:bottom w:type="dxa" w:w="120"/>
+              <w:right w:type="dxa" w:w="160"/>
+            </w:tcMar>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="center"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b w:val="false"/>
+                <w:bCs w:val="false"/>
+                <w:color w:val="1A1A1A"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Not included</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="3120"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:left w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:bottom w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:right w:val="single" w:color="BFBFBF" w:sz="4"/>
+            </w:tcBorders>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="120"/>
+              <w:left w:type="dxa" w:w="160"/>
+              <w:bottom w:type="dxa" w:w="120"/>
+              <w:right w:type="dxa" w:w="160"/>
+            </w:tcMar>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="center"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b w:val="false"/>
+                <w:bCs w:val="false"/>
+                <w:color w:val="1A1A1A"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Included</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="3120"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:left w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:bottom w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:right w:val="single" w:color="BFBFBF" w:sz="4"/>
+            </w:tcBorders>
+            <w:shd w:fill="F2F2F2" w:val="clear"/>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="120"/>
+              <w:left w:type="dxa" w:w="160"/>
+              <w:bottom w:type="dxa" w:w="120"/>
+              <w:right w:type="dxa" w:w="160"/>
+            </w:tcMar>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="left"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b w:val="false"/>
+                <w:bCs w:val="false"/>
+                <w:color w:val="1A1A1A"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">On-site presence</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="3120"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:left w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:bottom w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:right w:val="single" w:color="BFBFBF" w:sz="4"/>
+            </w:tcBorders>
+            <w:shd w:fill="F2F2F2" w:val="clear"/>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="120"/>
+              <w:left w:type="dxa" w:w="160"/>
+              <w:bottom w:type="dxa" w:w="120"/>
+              <w:right w:type="dxa" w:w="160"/>
+            </w:tcMar>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="center"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b w:val="false"/>
+                <w:bCs w:val="false"/>
+                <w:color w:val="1A1A1A"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Up to 6 hrs/week</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="3120"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:left w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:bottom w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:right w:val="single" w:color="BFBFBF" w:sz="4"/>
+            </w:tcBorders>
+            <w:shd w:fill="F2F2F2" w:val="clear"/>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="120"/>
+              <w:left w:type="dxa" w:w="160"/>
+              <w:bottom w:type="dxa" w:w="120"/>
+              <w:right w:type="dxa" w:w="160"/>
+            </w:tcMar>
+            <w:vAlign w:val="center"/>
+          </w:tcPr>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="center"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b w:val="false"/>
+                <w:bCs w:val="false"/>
+                <w:color w:val="1A1A1A"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Up to 15 hrs/week, as needed</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+    </w:tbl>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="120" w:before="120"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve"/>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="Heading2"/>
+        <w:spacing w:after="100" w:before="240"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="1F2D4D"/>
+          <w:sz w:val="24"/>
+          <w:szCs w:val="24"/>
+        </w:rPr>
+        <w:t xml:space="preserve">3. Tier 1 — Bookkeeping ($3,000 per month)</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="80" w:before="80" w:line="300"/>
+        <w:jc w:val="left"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b w:val="false"/>
+          <w:bCs w:val="false"/>
+          <w:i w:val="false"/>
+          <w:iCs w:val="false"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Tier 1 includes the following routine bookkeeping services across both Entities:</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Accounts Payable: bill entry, payment processing, vendor email correspondence, and AP recording in QuickBooks Online.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Accounts Receivable: monthly AR journal entry import from Flex into QuickBooks Online.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Sales tax: payment preparation, submission tracking, and recording.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Income recording across all revenue sources.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Bank reconciliations for six (6) accounts: three (3) on I A Z Corporation and three (3) on Infinity Alpha Omega LLC.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Tenant/rent billing and Common Area Maintenance (CAM) tracking.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Payroll processing and payroll product management.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Miscellaneous routine bookkeeping consistent with prior service standards.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Monthly financial statements delivered by the 15th day of the following month.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">On-site presence at Client's place of business up to six (6) hours per week.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="Heading2"/>
+        <w:spacing w:after="100" w:before="240"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="1F2D4D"/>
+          <w:sz w:val="24"/>
+          <w:szCs w:val="24"/>
+        </w:rPr>
+        <w:t xml:space="preserve">4. Tier 2 — Bookkeeping Plus ($5,000 per month)</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="80" w:before="80" w:line="300"/>
+        <w:jc w:val="left"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b w:val="false"/>
+          <w:bCs w:val="false"/>
+          <w:i w:val="false"/>
+          <w:iCs w:val="false"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Tier 2 includes all Tier 1 services, plus the following expanded operational support:</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Weekly financial statement preparation in addition to monthly financials.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Attendance at scheduled business and operations meetings.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">HR monitoring in coordination with Client&#x2019;s designated staff.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">General business administration oversight.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">In-person attendance at Client&#x2019;s place of business as needed, up to fifteen (15) hours per week.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="80" w:before="80"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve"/>
+      </w:r>
+    </w:p>
+    <w:tbl>
+      <w:tblPr>
+        <w:tblW w:type="dxa" w:w="9360"/>
+        <w:tblBorders>
+          <w:top w:val="single" w:color="auto" w:sz="4"/>
+          <w:left w:val="single" w:color="auto" w:sz="4"/>
+          <w:bottom w:val="single" w:color="auto" w:sz="4"/>
+          <w:right w:val="single" w:color="auto" w:sz="4"/>
+          <w:insideH w:val="single" w:color="auto" w:sz="4"/>
+          <w:insideV w:val="single" w:color="auto" w:sz="4"/>
+        </w:tblBorders>
+      </w:tblPr>
+      <w:tblGrid>
+        <w:gridCol w:w="9360"/>
+      </w:tblGrid>
+      <w:tr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="9360"/>
+            <w:tcBorders>
+              <w:top w:val="single" w:color="C9A227" w:sz="18"/>
+              <w:left w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:bottom w:val="single" w:color="BFBFBF" w:sz="4"/>
+              <w:right w:val="single" w:color="BFBFBF" w:sz="4"/>
+            </w:tcBorders>
+            <w:shd w:fill="FAF6E8" w:val="clear"/>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="200"/>
+              <w:left w:type="dxa" w:w="280"/>
+              <w:bottom w:type="dxa" w:w="200"/>
+              <w:right w:type="dxa" w:w="280"/>
+            </w:tcMar>
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:b/>
+                <w:bCs/>
+                <w:color w:val="1F2D4D"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Sidebar Note</w:t>
+            </w:r>
+          </w:p>
+          <w:p>
+            <w:pPr>
+              <w:spacing w:before="80" w:line="280"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:i/>
+                <w:iCs/>
+                <w:color w:val="1A1A1A"/>
+                <w:sz w:val="21"/>
+                <w:szCs w:val="21"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Tier 2 caps on-site presence at fifteen (15) hours per week. Consultant is currently averaging 15 to 35 hours per week on-site under prior, undocumented arrangements; this Agreement establishes a sustainable cap. Any sustained on-site work above 15 hours per week becomes Tier 3 hourly work, or triggers renegotiation of the monthly fee in writing.</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+    </w:tbl>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="80" w:before="80"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve"/>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="Heading2"/>
+        <w:spacing w:after="100" w:before="240"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="1F2D4D"/>
+          <w:sz w:val="24"/>
+          <w:szCs w:val="24"/>
+        </w:rPr>
+        <w:t xml:space="preserve">5. Tier 3 — Hourly Additional Work ($125 per hour)</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="80" w:before="80" w:line="300"/>
+        <w:jc w:val="left"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b w:val="false"/>
+          <w:bCs w:val="false"/>
+          <w:i w:val="false"/>
+          <w:iCs w:val="false"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Work outside the scope of the selected tier is billed at $125 per hour. Before any additional work begins, Consultant will deliver to Client a written estimate of anticipated time and total cost. No additional work will commence until Client provides written approval of the estimate.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="40" w:before="40"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve"/>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="80" w:before="80" w:line="300"/>
+        <w:jc w:val="left"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b w:val="false"/>
+          <w:bCs w:val="false"/>
+          <w:i w:val="false"/>
+          <w:iCs w:val="false"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Examples of work typically billed under Tier 3 include, but are not limited to:</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Direct conversations and meetings with Client&#x2019;s customers or vendors on Client&#x2019;s behalf.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Negotiation of financial arrangements, payment plans, settlements, or vendor terms.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Real estate matters, including landlord/tenant negotiations, lease review, and CAM disputes.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Crisis management, urgent operational issues, and time-sensitive interventions.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Meetings with labor unions, including contract discussions and grievance response.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Historical cleanup of prior-period books or chart of accounts restructuring.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Audit response, IRS or state agency correspondence.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Special projects (loan applications, financial modeling, ad-hoc reporting).</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Software migrations, integrations, or new module implementations.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Year-end tax preparation support beyond standard bookkeeping close.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="Heading2"/>
+        <w:spacing w:after="100" w:before="240"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="1F2D4D"/>
+          <w:sz w:val="24"/>
+          <w:szCs w:val="24"/>
+        </w:rPr>
+        <w:t xml:space="preserve">6. Transaction Volume</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="80" w:before="80" w:line="300"/>
+        <w:jc w:val="left"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b w:val="false"/>
+          <w:bCs w:val="false"/>
+          <w:i w:val="false"/>
+          <w:iCs w:val="false"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Tier 1 and Tier 2 monthly fees assume a combined transaction volume of up to six hundred (600) recorded transactions per month across both Entities. Sustained volume above this threshold for two (2) or more consecutive months may, at Consultant&#x2019;s discretion, trigger either (a) renegotiation of the monthly fee in writing or (b) billing of overage transactions at the Tier 3 hourly rate. &#x201C;Transaction&#x201D; means any posted entry to a bank, credit card, loan, or general ledger account, including AP bills, payments, deposits, journal entries, and payroll postings.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="Heading2"/>
+        <w:spacing w:after="100" w:before="240"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="1F2D4D"/>
+          <w:sz w:val="24"/>
+          <w:szCs w:val="24"/>
+        </w:rPr>
+        <w:t xml:space="preserve">7. Selected Tier</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="80" w:before="80" w:line="300"/>
+        <w:jc w:val="left"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b w:val="false"/>
+          <w:bCs w:val="false"/>
+          <w:i w:val="false"/>
+          <w:iCs w:val="false"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Client selects the following service tier as of the Effective Date:</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">☐  Tier 1 — Bookkeeping — $3,000 per month</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">&#x2612;  Tier 2 — Bookkeeping Plus — $5,000 per month  &#x2014;  SELECTED</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="40" w:before="40"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve"/>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="80" w:before="80" w:line="300"/>
+        <w:jc w:val="left"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b w:val="false"/>
+          <w:bCs w:val="false"/>
+          <w:i w:val="false"/>
+          <w:iCs w:val="false"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Tier 3 hourly billing applies to additional work regardless of selected tier.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="Heading2"/>
+        <w:spacing w:after="100" w:before="240"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="1F2D4D"/>
+          <w:sz w:val="24"/>
+          <w:szCs w:val="24"/>
+        </w:rPr>
+        <w:t xml:space="preserve">8. Fees, Invoicing &amp; Payment</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Monthly fees are invoiced no later than the twenty-fifth (25th) day of the prior month and are due on or before the first (1st) day of the month of service.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Hourly work (Tier 3) is invoiced upon completion of approved work and is due net fifteen (15) days from invoice date.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Invoices not paid within thirty (30) days of invoice date will accrue a late fee of 1.5% per month or the maximum permitted by law, whichever is lower.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Consultant may suspend services after any invoice becomes thirty (30) days past due, upon five (5) days&#x2019; written notice to Client.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="Heading2"/>
+        <w:spacing w:after="100" w:before="240"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="1F2D4D"/>
+          <w:sz w:val="24"/>
+          <w:szCs w:val="24"/>
+        </w:rPr>
+        <w:t xml:space="preserve">9. Changes Between Tiers</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="80" w:before="80" w:line="300"/>
+        <w:jc w:val="left"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b w:val="false"/>
+          <w:bCs w:val="false"/>
+          <w:i w:val="false"/>
+          <w:iCs w:val="false"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Client may change between Tier 1 and Tier 2 with thirty (30) days&#x2019; written notice. The new tier fee applies beginning the month following the notice period.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="Heading2"/>
+        <w:spacing w:after="100" w:before="240"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="1F2D4D"/>
+          <w:sz w:val="24"/>
+          <w:szCs w:val="24"/>
+        </w:rPr>
+        <w:t xml:space="preserve">10. Term &amp; Termination</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="80" w:before="80" w:line="300"/>
+        <w:jc w:val="left"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b w:val="false"/>
+          <w:bCs w:val="false"/>
+          <w:i w:val="false"/>
+          <w:iCs w:val="false"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">This Agreement begins on the Effective Date and continues month-to-month until terminated. Either party may terminate this Agreement with thirty (30) days&#x2019; written notice. Outstanding work and any unpaid fees through the termination date remain due. Consultant will deliver final reconciled books and reports through the last day of the final paid month.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="Heading2"/>
+        <w:spacing w:after="100" w:before="240"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="1F2D4D"/>
+          <w:sz w:val="24"/>
+          <w:szCs w:val="24"/>
+        </w:rPr>
+        <w:t xml:space="preserve">11. Client Responsibilities</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Provide timely access to all bank statements, credit card statements, loan documents, payroll records, and supporting documentation.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Provide ongoing access to QuickBooks Online, Flex, payroll systems, and any other software required to perform the services.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Respond to Consultant&#x2019;s questions and approval requests within five (5) business days to keep the monthly close on schedule.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Designate a primary point of contact authorized to approve estimates, invoices, and operational decisions.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Notify Consultant in writing of any material change to Client&#x2019;s entities, banking relationships, or financial structure.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="Heading2"/>
+        <w:spacing w:after="100" w:before="240"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="1F2D4D"/>
+          <w:sz w:val="24"/>
+          <w:szCs w:val="24"/>
+        </w:rPr>
+        <w:t xml:space="preserve">12. Out of Scope</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="80" w:before="80" w:line="300"/>
+        <w:jc w:val="left"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b w:val="false"/>
+          <w:bCs w:val="false"/>
+          <w:i w:val="false"/>
+          <w:iCs w:val="false"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">This Agreement does not include the following services, which require a separate written engagement:</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Tax return preparation or filing for any entity or individual.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Audit, review, or compilation services as defined by the AICPA.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Legal, investment, or fiduciary advice.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Forensic accounting or fraud investigation services.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Software development, website design, or other technical builds (see separate proposals).</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="Heading2"/>
+        <w:spacing w:after="100" w:before="240"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="1F2D4D"/>
+          <w:sz w:val="24"/>
+          <w:szCs w:val="24"/>
+        </w:rPr>
+        <w:t xml:space="preserve">13. Confidentiality</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="80" w:before="80" w:line="300"/>
+        <w:jc w:val="left"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b w:val="false"/>
+          <w:bCs w:val="false"/>
+          <w:i w:val="false"/>
+          <w:iCs w:val="false"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Consultant agrees to keep all Client financial, customer, vendor, employee, and operational information strictly confidential, and to use such information only for the purpose of performing the services under this Agreement. This obligation survives termination of the Agreement.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="Heading2"/>
+        <w:spacing w:after="100" w:before="240"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="1F2D4D"/>
+          <w:sz w:val="24"/>
+          <w:szCs w:val="24"/>
+        </w:rPr>
+        <w:t xml:space="preserve">14. Limitation of Liability</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="80" w:before="80" w:line="300"/>
+        <w:jc w:val="left"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b w:val="false"/>
+          <w:bCs w:val="false"/>
+          <w:i w:val="false"/>
+          <w:iCs w:val="false"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Consultant is not responsible for: (a) incomplete or missing records not provided by Client; (b) actions or decisions taken by Client based on Consultant&#x2019;s deliverables; (c) errors or omissions resulting from inaccurate information provided by Client; or (d) any third-party software outages, data losses, or integration failures outside Consultant&#x2019;s control. Consultant&#x2019;s total liability under this Agreement is limited to fees paid by Client in the ninety (90) days immediately preceding any claim.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="80" w:before="80" w:line="300"/>
+        <w:jc w:val="left"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b w:val="false"/>
+          <w:bCs w:val="false"/>
+          <w:i w:val="false"/>
+          <w:iCs w:val="false"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Consultant provides bookkeeping and financial record-keeping services and does not perform an audit, examination, or fraud investigation. In the ordinary course of its work, Consultant will promptly notify Client of any transaction, balance, or pattern that appears irregular, unusual, or inconsistent. Responsibility for internal controls, for safeguarding assets, and for the honesty and conduct of Client&#x2019;s employees, officers, and representatives rests solely with Client. Consultant shall not be liable for any loss, shortage, or damage resulting from employee or third-party dishonesty, theft, misappropriation, or fraud, including, without limitation, any such loss occurring after Consultant has advised Client of a concern relating to a transaction, an account, or an individual. The decision to investigate, act upon, or disregard any such notice remains Client&#x2019;s, and Client assumes the consequences of that decision.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="80" w:before="80" w:line="300"/>
+        <w:jc w:val="left"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b w:val="false"/>
+          <w:bCs w:val="false"/>
+          <w:i w:val="false"/>
+          <w:iCs w:val="false"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Client shall defend, indemnify, and hold harmless Consultant from and against any claim, demand, or proceeding brought by a third party arising out of or related to the matters described in this Section, including the conduct of Client&#x2019;s employees, officers, representatives, contractors, or vendors, together with any resulting losses, damages, costs, and reasonable attorneys&#x2019; fees.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="80" w:before="80" w:line="300"/>
+        <w:jc w:val="left"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b w:val="false"/>
+          <w:bCs w:val="false"/>
+          <w:i w:val="false"/>
+          <w:iCs w:val="false"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Consultant&#x2019;s notification duty under this Section runs solely to the Client. Consultant has no obligation to report any concern to law enforcement, regulators, third parties, or any other person, and shall not be liable for declining to do so.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="80" w:before="80" w:line="300"/>
+        <w:jc w:val="left"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b w:val="false"/>
+          <w:bCs w:val="false"/>
+          <w:i w:val="false"/>
+          <w:iCs w:val="false"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Notwithstanding the notice period set out in Section 10 (Term &amp; Termination), Consultant may terminate this engagement immediately, without further notice, if it determines in its sole professional judgment that continued performance would create a material risk to its reputation, legal standing, or professional integrity.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="Heading2"/>
+        <w:spacing w:after="100" w:before="240"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="1F2D4D"/>
+          <w:sz w:val="24"/>
+          <w:szCs w:val="24"/>
+        </w:rPr>
+        <w:t xml:space="preserve">15. Independent Contractor &amp; Corporate Status</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="80" w:before="80" w:line="300"/>
+        <w:jc w:val="left"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b w:val="false"/>
+          <w:bCs w:val="false"/>
+          <w:i w:val="false"/>
+          <w:iCs w:val="false"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Consultant is CARES Consulting, Inc., a Minnesota C-corporation, engaged by Client as an independent contractor. As a corporate entity, Consultant is generally exempt from IRS Form 1099-NEC and Form 1099-MISC reporting requirements. Consultant will provide a completed Form W-9 to Client upon request to document corporate status.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="80" w:before="80" w:line="300"/>
+        <w:jc w:val="left"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b w:val="false"/>
+          <w:bCs w:val="false"/>
+          <w:i w:val="false"/>
+          <w:iCs w:val="false"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Consultant is not an employee, partner, or agent of Client. Consultant is responsible for its own taxes, insurance, employee compensation, and business expenses. Nothing in this Agreement creates a partnership, joint venture, or employment relationship between the parties or between Client and any individual employee, officer, or representative of Consultant.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="Heading2"/>
+        <w:spacing w:after="100" w:before="240"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="1F2D4D"/>
+          <w:sz w:val="24"/>
+          <w:szCs w:val="24"/>
+        </w:rPr>
+        <w:t xml:space="preserve">16. General Provisions</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Entire Agreement: This document represents the entire agreement between the parties regarding bookkeeping services and supersedes any prior verbal or written understandings.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Amendment: Any change to this Agreement must be in writing and signed by both parties.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Governing Law: This Agreement is governed by the laws of the State of Minnesota.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Severability: If any provision is found unenforceable, the remaining provisions remain in full effect.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="ListParagraph"/>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+        <w:spacing w:after="40" w:before="40" w:line="280"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Electronic Signatures: This Agreement may be executed electronically, and electronic signatures have the same legal effect as wet signatures.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="Heading2"/>
+        <w:spacing w:after="100" w:before="240"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b/>
+          <w:bCs/>
+          <w:color w:val="1F2D4D"/>
+          <w:sz w:val="24"/>
+          <w:szCs w:val="24"/>
+        </w:rPr>
+        <w:t xml:space="preserve">17. Acceptance</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="80" w:before="80" w:line="300"/>
+        <w:jc w:val="left"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b w:val="false"/>
+          <w:bCs w:val="false"/>
+          <w:i w:val="false"/>
+          <w:iCs w:val="false"/>
+          <w:color w:val="1A1A1A"/>
+          <w:sz w:val="22"/>
+          <w:szCs w:val="22"/>
+        </w:rPr>
+        <w:t xml:space="preserve">By signing below, the parties agree to be bound by the terms of this Agreement as of the Effective Date written above.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="200" w:before="200"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve"/>
+      </w:r>
+    </w:p>
+    <w:tbl>
+      <w:tblPr>
+        <w:tblW w:type="dxa" w:w="9360"/>
+        <w:tblBorders>
+          <w:top w:val="single" w:color="auto" w:sz="4"/>
+          <w:left w:val="single" w:color="auto" w:sz="4"/>
+          <w:bottom w:val="single" w:color="auto" w:sz="4"/>
+          <w:right w:val="single" w:color="auto" w:sz="4"/>
+          <w:insideH w:val="single" w:color="auto" w:sz="4"/>
+          <w:insideV w:val="single" w:color="auto" w:sz="4"/>
+        </w:tblBorders>
+      </w:tblPr>
+      <w:tblGrid>
+        <w:gridCol w:w="4400"/>
+        <w:gridCol w:w="560"/>
+        <w:gridCol w:w="4400"/>
+      </w:tblGrid>
+      <w:tr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="4400"/>
+            <w:tcBorders>
+              <w:top w:val="none"/>
+              <w:left w:val="none"/>
+              <w:bottom w:val="single" w:color="1A1A1A" w:sz="6"/>
+              <w:right w:val="none"/>
+            </w:tcBorders>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="400"/>
+              <w:left w:type="dxa" w:w="0"/>
+              <w:bottom w:type="dxa" w:w="60"/>
+              <w:right w:type="dxa" w:w="0"/>
+            </w:tcMar>
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve"/>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="560"/>
+            <w:tcBorders>
+              <w:top w:val="none"/>
+              <w:left w:val="none"/>
+              <w:bottom w:val="none"/>
+              <w:right w:val="none"/>
+            </w:tcBorders>
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve"/>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="4400"/>
+            <w:tcBorders>
+              <w:top w:val="none"/>
+              <w:left w:val="none"/>
+              <w:bottom w:val="single" w:color="1A1A1A" w:sz="6"/>
+              <w:right w:val="none"/>
+            </w:tcBorders>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="400"/>
+              <w:left w:type="dxa" w:w="0"/>
+              <w:bottom w:type="dxa" w:w="60"/>
+              <w:right w:type="dxa" w:w="0"/>
+            </w:tcMar>
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve"/>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="4400"/>
+            <w:tcBorders>
+              <w:top w:val="none"/>
+              <w:left w:val="none"/>
+              <w:bottom w:val="none"/>
+              <w:right w:val="none"/>
+            </w:tcBorders>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="40"/>
+              <w:left w:type="dxa" w:w="0"/>
+              <w:bottom w:type="dxa" w:w="40"/>
+              <w:right w:type="dxa" w:w="0"/>
+            </w:tcMar>
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:color w:val="666666"/>
+                <w:sz w:val="20"/>
+                <w:szCs w:val="20"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Client Signature</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="560"/>
+            <w:tcBorders>
+              <w:top w:val="none"/>
+              <w:left w:val="none"/>
+              <w:bottom w:val="none"/>
+              <w:right w:val="none"/>
+            </w:tcBorders>
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve"/>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="4400"/>
+            <w:tcBorders>
+              <w:top w:val="none"/>
+              <w:left w:val="none"/>
+              <w:bottom w:val="none"/>
+              <w:right w:val="none"/>
+            </w:tcBorders>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="40"/>
+              <w:left w:type="dxa" w:w="0"/>
+              <w:bottom w:type="dxa" w:w="40"/>
+              <w:right w:type="dxa" w:w="0"/>
+            </w:tcMar>
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:color w:val="666666"/>
+                <w:sz w:val="20"/>
+                <w:szCs w:val="20"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Consultant Signature</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="4400"/>
+            <w:tcBorders>
+              <w:top w:val="none"/>
+              <w:left w:val="none"/>
+              <w:bottom w:val="single" w:color="1A1A1A" w:sz="6"/>
+              <w:right w:val="none"/>
+            </w:tcBorders>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="400"/>
+              <w:left w:type="dxa" w:w="0"/>
+              <w:bottom w:type="dxa" w:w="60"/>
+              <w:right w:type="dxa" w:w="0"/>
+            </w:tcMar>
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve"/>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="560"/>
+            <w:tcBorders>
+              <w:top w:val="none"/>
+              <w:left w:val="none"/>
+              <w:bottom w:val="none"/>
+              <w:right w:val="none"/>
+            </w:tcBorders>
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve"/>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="4400"/>
+            <w:tcBorders>
+              <w:top w:val="none"/>
+              <w:left w:val="none"/>
+              <w:bottom w:val="single" w:color="1A1A1A" w:sz="6"/>
+              <w:right w:val="none"/>
+            </w:tcBorders>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="400"/>
+              <w:left w:type="dxa" w:w="0"/>
+              <w:bottom w:type="dxa" w:w="60"/>
+              <w:right w:type="dxa" w:w="0"/>
+            </w:tcMar>
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve"/>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="4400"/>
+            <w:tcBorders>
+              <w:top w:val="none"/>
+              <w:left w:val="none"/>
+              <w:bottom w:val="none"/>
+              <w:right w:val="none"/>
+            </w:tcBorders>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="40"/>
+              <w:left w:type="dxa" w:w="0"/>
+              <w:bottom w:type="dxa" w:w="40"/>
+              <w:right w:type="dxa" w:w="0"/>
+            </w:tcMar>
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:color w:val="666666"/>
+                <w:sz w:val="20"/>
+                <w:szCs w:val="20"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Printed Name / Title</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="560"/>
+            <w:tcBorders>
+              <w:top w:val="none"/>
+              <w:left w:val="none"/>
+              <w:bottom w:val="none"/>
+              <w:right w:val="none"/>
+            </w:tcBorders>
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve"/>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="4400"/>
+            <w:tcBorders>
+              <w:top w:val="none"/>
+              <w:left w:val="none"/>
+              <w:bottom w:val="none"/>
+              <w:right w:val="none"/>
+            </w:tcBorders>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="40"/>
+              <w:left w:type="dxa" w:w="0"/>
+              <w:bottom w:type="dxa" w:w="40"/>
+              <w:right w:type="dxa" w:w="0"/>
+            </w:tcMar>
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:color w:val="666666"/>
+                <w:sz w:val="20"/>
+                <w:szCs w:val="20"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Kari Hoglund Kounkel</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="4400"/>
+            <w:tcBorders>
+              <w:top w:val="none"/>
+              <w:left w:val="none"/>
+              <w:bottom w:val="single" w:color="1A1A1A" w:sz="6"/>
+              <w:right w:val="none"/>
+            </w:tcBorders>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="400"/>
+              <w:left w:type="dxa" w:w="0"/>
+              <w:bottom w:type="dxa" w:w="60"/>
+              <w:right w:type="dxa" w:w="0"/>
+            </w:tcMar>
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve"/>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="560"/>
+            <w:tcBorders>
+              <w:top w:val="none"/>
+              <w:left w:val="none"/>
+              <w:bottom w:val="none"/>
+              <w:right w:val="none"/>
+            </w:tcBorders>
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve"/>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="4400"/>
+            <w:tcBorders>
+              <w:top w:val="none"/>
+              <w:left w:val="none"/>
+              <w:bottom w:val="single" w:color="1A1A1A" w:sz="6"/>
+              <w:right w:val="none"/>
+            </w:tcBorders>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="400"/>
+              <w:left w:type="dxa" w:w="0"/>
+              <w:bottom w:type="dxa" w:w="60"/>
+              <w:right w:type="dxa" w:w="0"/>
+            </w:tcMar>
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:sz w:val="22"/>
+                <w:szCs w:val="22"/>
+              </w:rPr>
+              <w:t xml:space="preserve"/>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="4400"/>
+            <w:tcBorders>
+              <w:top w:val="none"/>
+              <w:left w:val="none"/>
+              <w:bottom w:val="none"/>
+              <w:right w:val="none"/>
+            </w:tcBorders>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="40"/>
+              <w:left w:type="dxa" w:w="0"/>
+              <w:bottom w:type="dxa" w:w="40"/>
+              <w:right w:type="dxa" w:w="0"/>
+            </w:tcMar>
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:color w:val="666666"/>
+                <w:sz w:val="20"/>
+                <w:szCs w:val="20"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Date</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="560"/>
+            <w:tcBorders>
+              <w:top w:val="none"/>
+              <w:left w:val="none"/>
+              <w:bottom w:val="none"/>
+              <w:right w:val="none"/>
+            </w:tcBorders>
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:t xml:space="preserve"/>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:type="dxa" w:w="4400"/>
+            <w:tcBorders>
+              <w:top w:val="none"/>
+              <w:left w:val="none"/>
+              <w:bottom w:val="none"/>
+              <w:right w:val="none"/>
+            </w:tcBorders>
+            <w:tcMar>
+              <w:top w:type="dxa" w:w="40"/>
+              <w:left w:type="dxa" w:w="0"/>
+              <w:bottom w:type="dxa" w:w="40"/>
+              <w:right w:type="dxa" w:w="0"/>
+            </w:tcMar>
+          </w:tcPr>
+          <w:p>
+            <w:r>
+              <w:rPr>
+                <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+                <w:color w:val="666666"/>
+                <w:sz w:val="20"/>
+                <w:szCs w:val="20"/>
+              </w:rPr>
+              <w:t xml:space="preserve">Date</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+    </w:tbl>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="160" w:before="160"/>
+      </w:pPr>
+      <w:r>
+        <w:t xml:space="preserve"/>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="80" w:before="80" w:line="300"/>
+        <w:jc w:val="center"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Arial" w:cs="Arial" w:eastAsia="Arial" w:hAnsi="Arial"/>
+          <w:b w:val="false"/>
+          <w:bCs w:val="false"/>
+          <w:i w:val="false"/>
+          <w:iCs w:val="false"/>
+          <w:color w:val="666666"/>
+          <w:sz w:val="18"/>
+          <w:szCs w:val="18"/>
+        </w:rPr>
+        <w:t xml:space="preserve">CARES Consulting, Inc.  •  Saint Paul, Minnesota  •  caresmn.com</w:t>
+      </w:r>
+    </w:p>
+    <w:sectPr>
+      <w:pgSz w:w="12240" w:h="15840" w:orient="portrait"/>
+      <w:pgMar w:top="1080" w:right="1440" w:bottom="1080" w:left="1440" w:header="708" w:footer="708" w:gutter="0"/>
+      <w:pgNumType/>
+      <w:docGrid w:linePitch="360"/>
+    </w:sectPr>
+  </w:body>
+</w:document>
