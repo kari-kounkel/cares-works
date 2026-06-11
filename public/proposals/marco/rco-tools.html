@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>RCO Toolkit — a peek · CARES</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{ --blue:#1a7af0; --blueDeep:#0f52c9; --blueSoft:#e9f3ff; --ink:#202632; --inkSoft:#49515f; --muted:#828a98; --rule:#e4e2dd; --paper:#f5f7fb; --green:#2f8f5b; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'Inter',system-ui,sans-serif;line-height:1.5}
+  a{color:var(--blue)}
+  header{background:linear-gradient(150deg,var(--blue),var(--blueDeep));color:#fff;padding:22px 24px}
+  .wrap{max-width:980px;margin:0 auto}
+  header .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  header h1{font-family:'Fraunces',serif;font-size:22px;margin:0}
+  header p{margin:4px 0 0;font-size:13px;color:rgba(255,255,255,.8)}
+  .back{color:#fff;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:8px 14px;font-size:13px;font-weight:600;text-decoration:none}
+  nav.tabs{background:#fff;border-bottom:1px solid var(--rule);position:sticky;top:0;z-index:5}
+  nav.tabs .wrap{display:flex;gap:4px;padding:0 12px}
+  .tab{background:none;border:none;cursor:pointer;font-family:inherit;font-size:14.5px;font-weight:600;padding:14px 16px;color:var(--muted);border-bottom:3px solid transparent}
+  .tab.on{color:var(--blue);border-bottom-color:var(--blue)}
+  main{padding:28px 24px 70px}
+  .panel{display:none} .panel.on{display:block}
+  h2{font-family:'Fraunces',serif;color:var(--blue);font-size:24px;margin:0 0 4px}
+  .sub{color:var(--inkSoft);margin:0 0 20px;max-width:62ch}
+  .card{background:#fff;border:1px solid var(--rule);border-radius:14px;box-shadow:0 1px 2px rgba(28,36,34,.04),0 8px 24px rgba(28,36,34,.06);padding:20px 22px;margin-bottom:16px}
+  .ic{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin:0 0 12px}
+
+  /* compliance */
+  .checkrow{display:flex;align-items:center;gap:14px;padding:11px 0;border-top:1px solid #f0ece2}
+  .checkrow:first-child{border-top:none}
+  .box{width:24px;height:24px;border-radius:7px;border:2px solid var(--rule);flex:none;cursor:pointer;display:grid;place-items:center;color:#fff;font-size:15px;transition:all .12s}
+  .box.done{background:var(--green);border-color:var(--green)}
+  .checkrow .t{flex:1;font-size:15px}
+  .checkrow.done .t{color:var(--muted)}
+  .progwrap{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+  .prog{flex:1;height:12px;border-radius:99px;background:#eef0f4;overflow:hidden}
+  .prog>div{height:100%;background:linear-gradient(90deg,var(--blue),var(--green));width:0;transition:width .3s}
+  .pill{display:inline-block;font-size:12.5px;font-weight:600;padding:4px 11px;border-radius:999px;background:var(--blueSoft);color:var(--blueDeep)}
+
+  /* board */
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .agenda li{padding:8px 0;border-top:1px dashed var(--rule);font-size:14.5px;display:flex;gap:8px}
+  .agenda li:first-child{border-top:none}
+  .num{color:var(--blue);font-weight:700}
+  .member{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid #f0ece2;font-size:14.5px}
+  .member:first-child{border-top:none}
+  .toggle{margin-left:auto;cursor:pointer;font-size:12.5px;font-weight:600;border-radius:999px;padding:4px 11px;border:1px solid var(--rule);background:#fff;color:var(--inkSoft)}
+  .toggle.yes{background:#e4f1ea;color:var(--green);border-color:#bfe0cd}
+  .bizbar{height:14px;border-radius:99px;background:#eef0f4;overflow:hidden;margin:10px 0 6px;position:relative}
+  .bizbar>div{height:100%;background:var(--green);width:0;transition:width .3s}
+  .bizbar .mark{position:absolute;left:50%;top:-3px;bottom:-3px;width:2px;background:#c2532f}
+
+  /* social generator */
+  .gen{display:grid;grid-template-columns:300px 1fr;gap:22px;align-items:start}
+  label.l{display:block;font-size:12px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--inkSoft);margin:14px 0 5px}
+  .in{width:100%;box-sizing:border-box;font-family:inherit;font-size:14.5px;padding:10px 12px;border:1.5px solid var(--rule);border-radius:9px}
+  .in:focus{outline:none;border-color:var(--blue)}
+  .drop{border:1.5px dashed var(--rule);border-radius:10px;padding:16px;text-align:center;color:var(--muted);font-size:13.5px;cursor:pointer;background:#fff}
+  .thumbs{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .thumbs img{width:46px;height:46px;object-fit:cover;border-radius:7px;border:1px solid var(--rule)}
+  .swatches{display:flex;gap:8px;margin-top:6px}
+  .sw{width:26px;height:26px;border-radius:50%;cursor:pointer;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.12)}
+  .previewwrap{background:#eef0f4;border-radius:12px;padding:14px;display:flex;flex-direction:column;align-items:center}
+  #canvas{width:100%;max-width:420px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);background:#fff}
+  .btn{cursor:pointer;font-family:inherit;font-size:15px;font-weight:700;border:none;border-radius:10px;padding:12px 18px;background:var(--blue);color:#fff;margin-top:14px;width:100%}
+  .note{font-size:12.5px;color:var(--muted);margin-top:14px;text-align:center}
+  @media (max-width:760px){ .two,.gen{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div>
+      <h1>RCO Toolkit — a peek</h1>
+      <p>What CARES would build for the RCOs you certify. Click around — it's interactive.</p>
+    </div>
+    <a class="back" href="./">← Back to proposal</a>
+  </div>
+</header>
+
+<nav class="tabs">
+  <div class="wrap">
+    <button class="tab on" data-tab="compliance">📋 Compliance toolkit</button>
+    <button class="tab" data-tab="board">🗂️ Board meeting kit</button>
+    <button class="tab" data-tab="social">📣 Social media generator</button>
+  </div>
+</nav>
+
+<main class="wrap">
+  <!-- COMPLIANCE -->
+  <section class="panel on" id="compliance">
+    <h2>Compliance toolkit</h2>
+    <p class="sub">Every requirement in one place, with check-offs and reminders — so the paperwork RCOs get dinged on stays current. Tap a box to mark it done.</p>
+    <div class="card">
+      <div class="progwrap"><div class="prog"><div id="prog-bar"></div></div><span class="pill" id="prog-pill">0 of 11 ready</span></div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:6px">Next quarterly reminder: <b id="next-date"></b></div>
+    </div>
+    <div class="card" id="check-list"></div>
+  </section>
+
+  <!-- BOARD -->
+  <section class="panel" id="board">
+    <h2>Board meeting kit</h2>
+    <p class="sub">Builds the agenda, captures the minutes, and shows board composition at a glance — including the &gt;50%-in-recovery rule reviewers look for.</p>
+    <div class="two">
+      <div class="card">
+        <div class="ic">Meeting agenda · Board meeting</div>
+        <ol class="agenda" id="agenda"></ol>
+        <button class="toggle" style="margin:12px 0 0" onclick="alert('In the real tool, this exports a clean agenda + a minutes template ready to fill in during the meeting.')">↓ Export agenda &amp; minutes template</button>
+      </div>
+      <div class="card">
+        <div class="ic">Board composition</div>
+        <div id="members"></div>
+        <div class="bizbar"><div id="biz-fill"></div><div class="mark" title="50% required"></div></div>
+        <div style="font-size:14px" id="biz-label"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SOCIAL -->
+  <section class="panel" id="social">
+    <h2>Social media generator</h2>
+    <p class="sub">Upload a few photos, type your event details, and it builds a ready-to-post graphic — download and share. No design software, no overwhelm.</p>
+    <div class="card">
+      <div class="gen">
+        <div>
+          <label class="l">Photos (up to 4)</label>
+          <div class="drop" id="drop">Click to add photos<input type="file" id="files" accept="image/*" multiple style="display:none" /></div>
+          <div class="thumbs" id="thumbs"></div>
+          <label class="l">Event title</label>
+          <input class="in" id="f-title" value="Community Recovery Day" />
+          <label class="l">Date &amp; time</label>
+          <input class="in" id="f-date" value="Saturday, Aug 9 · 11am–3pm" />
+          <label class="l">Location</label>
+          <input class="in" id="f-loc" value="Frogtown Community Center" />
+          <label class="l">Organization</label>
+          <input class="in" id="f-org" value="Continuum Care Center" />
+          <label class="l">Color</label>
+          <div class="swatches" id="swatches"></div>
+        </div>
+        <div class="previewwrap">
+          <canvas id="canvas" width="1080" height="1080"></canvas>
+          <button class="btn" id="download">⬇ Download for social media</button>
+          <div class="note">1080×1080 — perfect for Instagram &amp; Facebook.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+(function(){
+  // tabs
+  document.querySelectorAll('.tab').forEach(function(t){
+    t.addEventListener('click',function(){
+      document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('on');});
+      document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('on');});
+      t.classList.add('on'); document.getElementById(t.getAttribute('data-tab')).classList.add('on');
+    });
+  });
+
+  // ---- compliance checklist ----
+  var CRIT = ["501(c)(3) nonprofit, free from conflicts & autonomous","Peer-led board — over 50% in personal recovery","Recovery-from-SUD mission & matching activities","Ongoing community engagement in the region served","Accountability — participatory decision-making","Non-clinical peer recovery support services","All pathways of recovery — written policy","Diversity, equity & inclusion practices","Recovery-friendly, stigma-reducing language","Code of ethics & public grievance policy","Participant notice & Ombudsman orientation"];
+  var list=document.getElementById('check-list'); var done=0;
+  function refreshProg(){
+    var pct=Math.round(done/CRIT.length*100);
+    document.getElementById('prog-bar').style.width=pct+'%';
+    document.getElementById('prog-pill').textContent=done+' of '+CRIT.length+' ready';
+  }
+  CRIT.forEach(function(c){
+    var row=document.createElement('div'); row.className='checkrow';
+    var box=document.createElement('div'); box.className='box'; box.innerHTML='✓'; box.style.color='transparent';
+    var t=document.createElement('div'); t.className='t'; t.textContent=c;
+    box.addEventListener('click',function(){
+      var on=box.classList.toggle('done'); box.style.color=on?'#fff':'transparent'; row.classList.toggle('done',on);
+      done+=on?1:-1; refreshProg();
+    });
+    row.appendChild(box); row.appendChild(t); list.appendChild(row);
+  });
+  refreshProg();
+  (function(){ var d=new Date(); d.setMonth(d.getMonth()+3); document.getElementById('next-date').textContent=d.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}); })();
+
+  // ---- board kit ----
+  var AGENDA=["Call to order & welcome","Approve previous minutes","Treasurer's report","Program & outreach updates","Old business","New business","Set next meeting & adjourn"];
+  var ag=document.getElementById('agenda');
+  AGENDA.forEach(function(a,i){ var li=document.createElement('li'); li.innerHTML='<span class="num">'+(i+1)+'.</span> '+a; ag.appendChild(li); });
+  var MEMBERS=[["Eric Bacon","Director",true],["Karen Argo","President",false],["Vice Chair","Vice President",true],["Cynthia Noel","Secretary",true],["Danelle Petersen","Treasurer",true],["Saran Cryer","Director",false]];
+  var mWrap=document.getElementById('members');
+  function refreshBiz(){
+    var yes=MEMBERS.filter(function(m){return m[2];}).length, pct=Math.round(yes/MEMBERS.length*100);
+    document.getElementById('biz-fill').style.width=pct+'%';
+    var ok=pct>50;
+    document.getElementById('biz-label').innerHTML='<b style="color:'+(ok?'#2f8f5b':'#c2532f')+'">'+pct+'% in personal recovery</b> — '+(ok?'✓ meets the >50% rule':'⚠ below the >50% rule');
+  }
+  MEMBERS.forEach(function(m,i){
+    var row=document.createElement('div'); row.className='member';
+    var name=document.createElement('div'); name.innerHTML='<b>'+m[0]+'</b> <span style="color:var(--muted);font-size:13px">· '+m[1]+'</span>';
+    var tg=document.createElement('button'); tg.className='toggle'+(m[2]?' yes':''); tg.textContent=m[2]?'In recovery ✓':'Ally';
+    tg.addEventListener('click',function(){ m[2]=!m[2]; tg.className='toggle'+(m[2]?' yes':''); tg.textContent=m[2]?'In recovery ✓':'Ally'; refreshBiz(); });
+    row.appendChild(name); row.appendChild(tg); mWrap.appendChild(row);
+  });
+  refreshBiz();
+
+  // ---- social generator ----
+  var canvas=document.getElementById('canvas'), ctx=canvas.getContext('2d');
+  var photos=[], color='#1a7af0';
+  var COLORS=['#1a7af0','#0f766e','#c2410c','#6d28d9','#15803d','#be123c'];
+  var sw=document.getElementById('swatches');
+  COLORS.forEach(function(c){ var b=document.createElement('div'); b.className='sw'; b.style.background=c; b.addEventListener('click',function(){ color=c; draw(); }); sw.appendChild(b); });
+
+  document.getElementById('drop').addEventListener('click',function(){ document.getElementById('files').click(); });
+  document.getElementById('files').addEventListener('change',function(e){
+    var fs=[].slice.call(e.target.files).slice(0,4); photos=[]; var th=document.getElementById('thumbs'); th.innerHTML='';
+    var loaded=0; if(!fs.length){ draw(); return; }
+    fs.forEach(function(f){
+      var img=new Image(); img.onload=function(){ photos.push(img); loaded++; var t=document.createElement('img'); t.src=img.src; th.appendChild(t); if(loaded===fs.length) draw(); };
+      img.src=URL.createObjectURL(f);
+    });
+  });
+  ['f-title','f-date','f-loc','f-org'].forEach(function(id){ document.getElementById(id).addEventListener('input',draw); });
+
+  function coverDraw(img,x,y,w,h){
+    var ir=img.width/img.height, r=w/h, sw2,sh2,sx,sy;
+    if(ir>r){ sh2=img.height; sw2=sh2*r; sx=(img.width-sw2)/2; sy=0; } else { sw2=img.width; sh2=sw2/r; sx=0; sy=(img.height-sh2)/2; }
+    ctx.drawImage(img,sx,sy,sw2,sh2,x,y,w,h);
+  }
+  function wrap(text,x,y,max,lh,font){
+    ctx.font=font; var words=text.split(' '),line='',yy=y;
+    for(var i=0;i<words.length;i++){ var test=line+words[i]+' '; if(ctx.measureText(test).width>max && i>0){ ctx.fillText(line.trim(),x,yy); line=words[i]+' '; yy+=lh; } else line=test; }
+    ctx.fillText(line.trim(),x,yy); return yy;
+  }
+  function draw(){
+    var W=1080,H=1080; ctx.clearRect(0,0,W,H);
+    // photo area (top 62%) — grid by count
+    var ph=H*0.62, n=photos.length;
+    ctx.fillStyle='#dfe6ef'; ctx.fillRect(0,0,W,ph);
+    if(n===1){ coverDraw(photos[0],0,0,W,ph); }
+    else if(n===2){ coverDraw(photos[0],0,0,W/2-2,ph); coverDraw(photos[1],W/2+2,0,W/2-2,ph); }
+    else if(n===3){ coverDraw(photos[0],0,0,W/2-2,ph); coverDraw(photos[1],W/2+2,0,W/2-2,ph/2-2); coverDraw(photos[2],W/2+2,ph/2+2,W/2-2,ph/2-2); }
+    else if(n>=4){ var cw=W/2-2,ch=ph/2-2; coverDraw(photos[0],0,0,cw,ch); coverDraw(photos[1],W/2+2,0,cw,ch); coverDraw(photos[2],0,ph/2+2,cw,ch); coverDraw(photos[3],W/2+2,ph/2+2,cw,ch); }
+    else { ctx.fillStyle='#aeb9c7'; ctx.font='600 34px Inter,sans-serif'; ctx.textAlign='center'; ctx.fillText('Add photos →', W/2, ph/2); ctx.textAlign='left'; }
+    // color band (bottom 38%)
+    ctx.fillStyle=color; ctx.fillRect(0,ph,W,H-ph);
+    // accent stripe
+    ctx.fillStyle='rgba(255,255,255,0.25)'; ctx.fillRect(0,ph,W,8);
+    // text
+    var pad=64, ty=ph+78;
+    ctx.fillStyle='#fff'; ctx.textAlign='left';
+    var endY=wrap((document.getElementById('f-title').value||'Event Title').toUpperCase(), pad, ty, W-pad*2, 70, '700 62px Fraunces, serif');
+    ctx.font='500 30px Inter,sans-serif'; ctx.fillStyle='rgba(255,255,255,0.92)';
+    ctx.fillText(document.getElementById('f-date').value||'', pad, endY+52);
+    ctx.fillText('📍 '+(document.getElementById('f-loc').value||''), pad, endY+96);
+    ctx.font='700 26px Inter,sans-serif'; ctx.fillStyle='rgba(255,255,255,0.9)';
+    ctx.fillText((document.getElementById('f-org').value||'').toUpperCase(), pad, H-46);
+  }
+  draw();
+  document.getElementById('download').addEventListener('click',function(){
+    var a=document.createElement('a'); a.download='event-graphic.png'; a.href=canvas.toDataURL('image/png'); a.click();
+  });
+})();
+</script>
+</body>
+</html>
