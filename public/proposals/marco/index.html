@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>RCO Certification Review Console — Proposal for MARCO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  /* ─────────────────────────────────────────────────────────────
+     EASY EDITS — the numbers MARCO sees are all in the pricing
+     cards below. Search "PRICE" to jump straight to them. The
+     contact line is at the very bottom (search "CONTACT").
+     ───────────────────────────────────────────────────────────── */
+  :root{
+    /* CARES Consulting Inc brand — bright blue + logo orange */
+    --teal:#1a7af0; --tealDeep:#0f52c9; --tealPanel:#3088f5; --tealSoft:#e9f3ff;
+    --gold:#fc6f27; --goldBright:#ff8746; --pink:#cf1e4e; --ink:#202632; --inkSoft:#49515f;
+    --paper:#f7f6f3; --cream:#ffffff; --rule:#e4e2dd; --muted:#828a98;
+    --serif:'Fraunces',Georgia,serif; --sans:'Inter',system-ui,sans-serif; --mono:'DM Mono',monospace;
+    --shadow:0 1px 2px rgba(28,36,34,.04),0 10px 30px rgba(28,36,34,.07);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:880px;margin:0 auto;padding:0 24px}
+  h1,h2,h3{font-family:var(--serif);font-weight:700;line-height:1.15;margin:0}
+  p{margin:0 0 14px}
+  a{color:var(--teal)}
+  .eyebrow{font-size:12.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--pink)}
+  header.hero .eyebrow{color:#ffd2a8}
+
+  /* hero */
+  header.hero{background:linear-gradient(155deg,var(--tealPanel),var(--tealDeep));color:#fff;padding:64px 0 56px}
+  .brand{display:flex;align-items:center;gap:13px;margin-bottom:34px}
+  .logo{width:42px;height:42px;border-radius:10px;background:rgba(255,255,255,.08);display:grid;place-items:center;color:var(--goldBright);font-family:var(--serif);font-weight:700;font-size:22px;border:1px solid rgba(255,255,255,.16)}
+  .brand b{font-family:var(--serif);font-size:18px}
+  .brand span{display:block;font-size:12px;color:rgba(255,255,255,.6)}
+  header.hero h1{font-size:40px;letter-spacing:-.5px;margin:14px 0 16px;max-width:18ch}
+  header.hero .lede{font-size:18px;color:rgba(255,255,255,.82);max-width:54ch}
+  .hero .meta{margin-top:30px;display:flex;flex-wrap:wrap;gap:10px 26px;font-size:13.5px;color:rgba(255,255,255,.7)}
+  .hero .meta b{color:#fff;font-weight:600}
+
+  section{padding:46px 0;border-bottom:1px solid var(--rule)}
+  section h2{font-size:27px;color:var(--teal);margin-bottom:8px}
+  section .sub{color:var(--inkSoft);max-width:60ch;margin-bottom:22px}
+
+  /* letter */
+  .letter{font-size:16.5px}
+  .letter p{margin-bottom:16px}
+  .sig{font-family:var(--serif);font-size:19px;color:var(--teal);margin-top:6px}
+
+  /* problem / solution lists */
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .panel{background:var(--cream);border:1px solid var(--rule);border-radius:14px;padding:20px 22px;box-shadow:var(--shadow)}
+  .panel h3{font-size:17px;margin-bottom:10px}
+  .panel.bad h3{color:#a4502f}
+  .panel.good h3{color:var(--teal)}
+  ul.clean{list-style:none;margin:0;padding:0}
+  ul.clean li{padding:7px 0 7px 26px;position:relative;font-size:15px;border-top:1px solid #f0ece2}
+  ul.clean li:first-child{border-top:none}
+  ul.clean li::before{position:absolute;left:0;top:7px}
+  .bad ul.clean li::before{content:"✕";color:#bf6a4a;font-weight:700}
+  .good ul.clean li::before{content:"✓";color:var(--teal);font-weight:700}
+
+  /* feature grid */
+  .features{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:6px}
+  .feature{background:var(--cream);border:1px solid var(--rule);border-radius:14px;padding:18px 20px;box-shadow:var(--shadow)}
+  .feature .ic{font-size:20px}
+  .feature h3{font-size:16px;margin:8px 0 6px}
+  .feature p{font-size:14px;color:var(--inkSoft);margin:0}
+
+  /* phases */
+  .phase{display:flex;gap:16px;padding:16px 0;border-top:1px solid var(--rule)}
+  .phase:first-of-type{border-top:none}
+  .phase .num{flex:none;width:34px;height:34px;border-radius:9px;background:var(--teal);color:#fff;font-family:var(--serif);font-weight:700;display:grid;place-items:center}
+  .phase.done .num{background:var(--gold)}
+  .phase h3{font-size:17px;margin-bottom:4px}
+  .phase .tag{display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--gold);margin-bottom:4px}
+  .phase.done .tag{color:#3a8f63}
+  .phase p{font-size:14.5px;color:var(--inkSoft);margin:0}
+
+  /* pricing */
+  .tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:8px}
+  .tier{background:var(--cream);border:1px solid var(--rule);border-radius:16px;padding:24px 20px;box-shadow:var(--shadow);display:flex;flex-direction:column}
+  .tier.featured{border:2px solid var(--teal);position:relative}
+  .tier.featured::before{content:"Recommended";position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--teal);color:#fff;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:4px 12px;border-radius:999px;white-space:nowrap}
+  .tier h3{font-size:18px;color:var(--teal);margin-bottom:4px}
+  .tier .who{font-size:12.5px;color:var(--muted);min-height:34px;margin-bottom:12px}
+  .tier .price{font-family:var(--serif);font-size:30px;color:var(--ink);line-height:1.1}
+  .tier .price small{display:block;font-family:var(--sans);font-size:12.5px;color:var(--muted);font-weight:500;margin-top:6px}
+  .tier ul{list-style:none;margin:16px 0 0;padding:16px 0 0;border-top:1px solid var(--rule)}
+  .tier ul li{font-size:13.5px;padding:5px 0 5px 20px;position:relative;color:var(--inkSoft)}
+  .tier ul li::before{content:"✓";position:absolute;left:0;color:var(--teal);font-weight:700}
+  .tier .own{margin-top:14px;font-size:12px;color:var(--muted);font-style:italic}
+
+  .note{background:var(--tealSoft);border:1px solid var(--rule);border-radius:12px;padding:16px 18px;font-size:14px;color:var(--inkSoft);margin-top:22px}
+  .note b{color:var(--teal)}
+
+  /* cta */
+  .cta{background:linear-gradient(155deg,var(--tealPanel),var(--tealDeep));color:#fff;border-radius:18px;padding:36px 34px;margin:8px 0}
+  .cta h2{color:#fff;font-size:25px;margin-bottom:8px}
+  .cta p{color:rgba(255,255,255,.82);max-width:54ch}
+  .steps{counter-reset:s;margin:18px 0 0;padding:0;list-style:none}
+  .steps li{counter-increment:s;padding:8px 0 8px 38px;position:relative;color:rgba(255,255,255,.9)}
+  .steps li::before{content:counter(s);position:absolute;left:0;top:6px;width:24px;height:24px;border-radius:99px;background:var(--gold);color:#3a2a08;font-weight:700;font-size:13px;display:grid;place-items:center}
+
+  footer{padding:34px 0 56px;text-align:center;color:var(--muted);font-size:13px}
+  .contact{font-size:15px;color:var(--ink);margin-bottom:6px}
+  .contact b{color:var(--teal)}
+
+  .jf{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:#a4502f;background:#f7e9e2;border:1px solid #ecd3c6;border-radius:999px;padding:2px 8px;margin-left:8px;vertical-align:middle}
+  .founder{background:#fff;border:2px dashed var(--gold);border-radius:16px;padding:22px 24px;margin-top:18px}
+  .founder .eyebrow{margin-bottom:6px}
+  .founder h3{font-size:19px;color:var(--teal);margin-bottom:8px}
+  .founder p{font-size:14.5px;color:var(--inkSoft);margin:0}
+  .cares-mark{font-family:var(--serif);font-weight:700;font-size:27px;color:var(--teal);letter-spacing:.5px}
+  .cares-mark span{font-size:15px;color:var(--inkSoft);font-weight:600}
+  .cares-tag{font-family:var(--sans);font-size:11.5px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:var(--pink);margin:7px 0 16px}
+
+  @media (max-width:760px){
+    .cols,.features,.tiers{grid-template-columns:1fr}
+    header.hero h1{font-size:30px}
+  }
+  @media print{
+    body{background:#fff}
+    header.hero,.cta{background:var(--teal)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    section{break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="brand">
+      <div class="logo">M</div>
+      <div><b>MARCO</b><span>Minnesota Alliance of Recovery Community Organizations</span></div>
+    </div>
+    <div class="eyebrow">Proposal · Prepared by CARES Consulting Inc</div>
+    <h1>The RCO Certification Review Console</h1>
+    <p class="lede">One place for your Peer Reviewers to do the entire certification review — application, site visit, and panel — with the statute built in and a clean record at the end.</p>
+    <div class="meta">
+      <span><b>For:</b> MARCO RCO Certification Team</span>
+      <span><b>Working preview:</b> <a href="demo/" target="_blank" style="color:#fff;text-decoration:underline">open the live demo ↗</a></span>
+      <span><b>Built on:</b> the Continuum Care Center review</span>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap letter">
+    <p class="eyebrow">A quick note</p>
+    <h2 style="margin:8px 0 18px">You've built a strong process. Let's make it effortless.</h2>
+    <p>You've often discussed improvements to your review process and documentation. Having had a "front-row seat" to the whole thing, I'm impressed with where you're at — you've done a magnificent job of simplifying the process.</p>
+    <p>While participating in the most recent review, I thought of some ways to make it even more friendly and comprehensive.</p>
+    <p>Right now, a Peer Reviewer evaluating an RCO is juggling a JotForm application, a Google Drive full of PDFs, separate forms for the site visit and the panel, and a conflict-of-interest step that lives somewhere else entirely. It works — but it's a lot of tabs, and it's hard to keep a clean, auditable record for a process that runs under a DHS contract — and for a busy team at MARCO.</p>
+    <p>I built a working preview of something streamlined: a single reviewer console where the applicant's answers, the statute, the uploaded documents, and the scoring all sit on one screen — and the conflict-of-interest recusal is handled before anyone sees a thing. It ends with the close-out: stipend, mileage, and expenses, plus a compilation to use in the response to the applicant.</p>
+    <p>I recognize there are parts of your process the reviewers (me!) never see, so this proposal is necessarily limited. The actual product is your entire review process, built end-to-end — plus anything else you're currently running through JotForm, Google, or other tools. I'd like to offer you one comprehensive system.</p>
+    <p>This proposal walks through what it does, how we'd build it for real, and a couple of ways to pay for it so you can pick what fits your budget.</p>
+    <p class="sig">— Kari Hoglund Kounkel, CARES Consulting Inc</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>The review process today</h2>
+    <p class="sub">A side-by-side of where reviewers spend their effort now versus where the console puts it.</p>
+    <div class="cols">
+      <div class="panel bad">
+        <h3>Scattered across tools</h3>
+        <ul class="clean">
+          <li>Application answers live in JotForm</li>
+          <li>Supporting PDFs live in Drive folders</li>
+          <li>Site visit &amp; panel are separate forms</li>
+          <li>Conflict-of-interest sign-off is ad hoc</li>
+          <li>The statute is in a different document</li>
+          <li>No single record of who reviewed what</li>
+        </ul>
+      </div>
+      <div class="panel good">
+        <h3>One console</h3>
+        <ul class="clean">
+          <li>Reviewer signs in and sees their assigned applicant</li>
+          <li>Conflict-of-interest gate up front — recused reviewers never see the file</li>
+          <li>Answers, documents, and the exact statute on one screen</li>
+          <li>Application, site visit, and panel reviews all in one place</li>
+          <li>See how the rest of the cohort scored each criterion</li>
+          <li>A complete, exportable record for the DHS contract</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>For your reviewers</h2>
+    <p class="sub">What a Peer Reviewer sees — already designed and demonstrated in the working preview you just walked through.</p>
+    <div class="features">
+      <div class="feature"><div class="ic">🔐</div><h3>Conflict-of-interest recusal</h3><p>Reviewers attest before access. Anyone with a conflict is locked out of that applicant's materials automatically.</p></div>
+      <div class="feature"><div class="ic">⬍</div><h3>Split-screen review</h3><p>Pick a criterion and the applicant's answers, documents, and the verbatim Minnesota statute appear next to your scoring.</p></div>
+      <div class="feature"><div class="ic">📄</div><h3>Documents in context</h3><p>Every uploaded PDF opens right where it belongs — no hunting through Drive folders.</p></div>
+      <div class="feature"><div class="ic">📋</div><h3>All three reviews, one tool</h3><p>Written application review, site visit, and panel recommendation — the whole workflow in a single console.</p></div>
+      <div class="feature"><div class="ic">👥</div><h3>Cohort visibility</h3><p>As the panel converges, each reviewer can see how the others scored each criterion.</p></div>
+      <div class="feature"><div class="ic">📜</div><h3>The statute, built in</h3><p>Every criterion shows the exact MN Statute 254B.05 language and the national standard, so judgments are grounded.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>The admin side — for your MARCO staff</h2>
+    <p class="sub">A separate workspace for MARCO, where the real time-savings live: managing reviewers, availability, assignments, applicants, and the close-out — without the email tangle.</p>
+    <div class="features">
+      <div class="feature"><div class="ic">🧑‍💼</div><h3>Reviewer recruiting &amp; hiring</h3><p>Applications, vetting, interviews, and hiring for your peer reviewers — the whole pipeline in one place, not scattered across docs and inboxes.</p></div>
+      <div class="feature"><div class="ic">📅</div><h3>Availability &amp; one-screen assignment</h3><p>When a review session comes up, the system asks reviewers for their availability — then MARCO assigns the cohort right on the same screen.</p></div>
+      <div class="feature"><div class="ic">🔔</div><h3>One clear notice — not twenty emails</h3><p>Today it's a tangle: emails about dates, then conflicts, then a separate note for each assignment. The system replaces all of it with one clear notice per reviewer.</p></div>
+      <div class="feature"><div class="ic">🗂️</div><h3>Applicants &amp; completeness</h3><p>Add applicants, run the completeness check, track every application's status, and export the final determination packet.</p></div>
+      <div class="feature"><div class="ic">✉️</div><h3>Determination letters</h3><p>Compose the outcome letter to the organization, pulling in and editing the reviewers' comments — the whole decision in one place.</p></div>
+      <div class="feature"><div class="ic">🧮</div><h3>Reviewer stipends, auto-calculated</h3><p>Stipends per session, mileage at $0.725/mile, and expenses total into one invoice automatically — no spreadsheet math.</p></div>
+    </div>
+    <div class="note"><b>This is the big time-saver.</b> Recruiting reviewers, chasing availability, assigning cohorts, and sending a dozen emails per session collapses into a few clicks and one clear notice — saving your team a tremendous amount of time.</div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>The whole certification pipeline</h2>
+    <p class="sub">The reviewer console is one step of seven. Today this process runs on a stack of <b>JotForms</b> plus manual tracking. The full tool absorbs all of it into one system — so the JotForm subscription goes away.</p>
+    <div class="phase">
+      <div class="num">1</div>
+      <div><h3>Self-assessment &amp; application <span class="jf">JotForm ×2 today</span></h3><p>The applicant completes the self-assessment, then the full application with ~22 document uploads.</p></div>
+    </div>
+    <div class="phase">
+      <div class="num">2</div>
+      <div><h3>Reference survey <span class="jf">JotForm today</span></h3><p>Three outside references receive and complete a survey about the organization's community work.</p></div>
+    </div>
+    <div class="phase">
+      <div class="num">3</div>
+      <div><h3>Preliminary completeness review <span class="jf">manual today</span></h3><p>MARCO staff confirm the application is complete and request anything missing — handled in the admin panel.</p></div>
+    </div>
+    <div class="phase">
+      <div class="num">4</div>
+      <div><h3>Cohort assignment &amp; conflict check</h3><p>A 3–5 reviewer cohort is assigned; each signs the conflict-of-interest/release, and recused reviewers lose access automatically.</p></div>
+    </div>
+    <div class="phase">
+      <div class="num">5</div>
+      <div><h3>Written, site visit &amp; panel reviews <span class="jf">JotForm ×3 today</span></h3><p>Each reviewer completes the written application feedback, the site visit review, and the panel feedback — the console you previewed.</p></div>
+    </div>
+    <div class="phase">
+      <div class="num">6</div>
+      <div><h3>Determination, letter &amp; reporting</h3><p>MARCO composes the determination letter to the organization — pulling in and editing the reviewers' comments — then the outcome flows to the applicant and to DHS/MHCP, with the record retained for three years.</p></div>
+    </div>
+    <div class="phase">
+      <div class="num">7</div>
+      <div><h3>Reviewer stipends &amp; reimbursement <span class="jf">JotForm today</span></h3><p>Reviewers are paid a stipend per session, plus mileage at $0.725/mile and any expenses — totaled into one invoice automatically and tracked for MARCO's records.</p></div>
+    </div>
+    <div class="note"><b>Seven JotForms become one system.</b> Today the process is spread across seven JotForms plus manual tracking. The full tool covers all of it — eliminating the JotForm cost and giving MARCO one clean, auditable record per applicant.</div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>How it works — live in about four weeks</h2>
+    <p class="sub">A clear path with weekly check-ins, so there are no surprises. (A working preview already exists — you've just seen it.)</p>
+    <div class="phase"><div class="num">1</div><div><h3>We agree</h3><p>We settle on the package and scope together.</p></div></div>
+    <div class="phase"><div class="num">2</div><div><h3>60% down to begin</h3><p>The balance is due at <b>launch</b> — not at "completion," because you'll have changes after you're live. Your first annual ($1,200) starts one year after launch.</p></div></div>
+    <div class="phase"><div class="num">3</div><div><h3>Discovery — about 2 days with your team</h3><p>We map exactly what to build and which JotForms to link or replace — and whether payments should move to Stripe.</p></div></div>
+    <div class="phase"><div class="num">4</div><div><h3>Build — about 3 weeks</h3><p>Weekly check-ins with your staff so you see progress and catch anything early. (This is the full build-out.)</p></div></div>
+    <div class="phase"><div class="num">5</div><div><h3>Sandbox &amp; test</h3><p>You try the whole system with fake data in a safe copy before anything goes live.</p></div></div>
+    <div class="phase"><div class="num">6</div><div><h3>Full rollout</h3><p>Live within four weeks — your next certification cycle runs on it.</p></div></div>
+    <div class="phase"><div class="num">7</div><div><h3>Follow-up</h3><p>Monthly or on request until it's exactly what you want.</p></div></div>
+    <div class="note"><b>What the $1,200/year covers:</b> support, data storage, and changes to what's built — all directed by you. Brand-new features beyond the original scope are scoped separately; we decide together how to handle those.</div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Build the whole thing — or start with a piece</h2>
+    <p class="sub">Take the full system as one build — the best value, live in about four weeks — or pick the components you need now and add the rest later. Either way, $1,200/year ($100/month) covers hosting and every change you direct.</p>
+
+    <div class="tiers" style="grid-template-columns:1fr;max-width:520px;margin:8px auto 0">
+      <div class="tier featured">
+        <h3>The full build</h3>
+        <div class="who">Your entire certification process — for reviewers and staff — replacing every JotForm. Live in about four weeks.</div>
+        <div class="price">$3,500<small>one-time · then $1,200/year ($100/month)</small></div>
+        <ul>
+          <li>Reviewer console — application, site visit &amp; panel</li>
+          <li>Full admin side — reviewer onboarding, availability &amp; assignment</li>
+          <li>Applicant &amp; reference intake, determination letters, stipend math</li>
+          <li>Replaces every per-person JotForm in the process</li>
+          <li><b>$1,200/year covers hosting + all changes you direct.</b> Don't like something? I fix it. It's covered.</li>
+          <li>Live within ~4 weeks · your data is always yours to export</li>
+        </ul>
+        <div class="own">Best value — the components below add up to $4,200.</div>
+      </div>
+    </div>
+
+    <p class="sub" style="text-align:center;margin:30px 0 10px">Or start with one piece and add the rest later:</p>
+    <div class="tiers" style="grid-template-columns:repeat(3,1fr)">
+      <div class="tier">
+        <h3>Certification</h3>
+        <div class="who">The reviewer console plus the certification admin, intake, determinations &amp; stipends.</div>
+        <div class="price">$2,000<small>one-time</small></div>
+      </div>
+      <div class="tier">
+        <h3>Reviewer onboarding</h3>
+        <div class="who">Recruiting, vetting, interviews &amp; hiring — plus availability and one-screen assignment.</div>
+        <div class="price">$1,200<small>one-time</small></div>
+      </div>
+      <div class="tier">
+        <h3>Conferences</h3>
+        <div class="who">Registration &amp; payment, nametags, speaker intake, and the post-event packet.</div>
+        <div class="price">$1,000<small>one-time</small></div>
+      </div>
+    </div>
+
+    <div class="note"><b>About the numbers:</b> priced as a mission partner — to cover the build and keep it running, not to get rich. The full build is the bargain: the three pieces add up to $4,200, the whole system is $3,500. $1,200/year ($100/month) covers hosting and every change you direct — on any package, with no per-request invoices. Applicant data always belongs to MARCO.</div>
+
+    <div class="note" style="border-left:4px solid var(--gold)"><b>Compare to what you pay JotForm now:</b> three subscriptions run roughly <b>$1,400–$3,600 a year</b> (Silver to Gold tiers — Gold if you need the higher limits, payment collection, or HIPAA). The system's <b>$1,200/year</b> replaces all of it — so your ongoing cost actually goes <i>down</i>, and the one-time build pays back fast.</div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Add-on component · $1,000</div>
+    <h2 style="margin-top:6px">Your conferences, too</h2>
+    <p class="sub">Its own module — add it on or fold it into the full build. Same idea: you run conferences through JotForm today, and one engine can run them end-to-end, from a single registration to the thank-you email.</p>
+    <div class="features">
+      <div class="feature"><div class="ic">🎟️</div><h3>Registration &amp; payment</h3><p>Send one registration link, collect attendee details and payment together, and watch your roster fill in real time.</p></div>
+      <div class="feature"><div class="ic">🏷️</div><h3>Nametags &amp; materials</h3><p>Print nametags, badges, and attendee materials straight from the registration data — no retyping, no mail-merge gymnastics.</p></div>
+      <div class="feature"><div class="ic">🎤</div><h3>Speaker &amp; presenter intake</h3><p>As you build the agenda, collect each speaker's bio, headshot, session details, and AV needs in one place.</p></div>
+      <div class="feature"><div class="ic">📧</div><h3>Post-conference packet</h3><p>Send every attendee a digital “here's your conference info” recap — sessions, speaker bios, slides, and follow-up — automatically.</p></div>
+    </div>
+    <div class="note"><b>Same data, used everywhere.</b> One registration feeds the roster, the nametags, the materials, the speaker packets, and the follow-up — enter information once and the system does the rest. Add it as the $1,000 conference component, or fold it into the full build.</div>
+  </div>
+</section>
+
+<section style="border-bottom:none">
+  <div class="wrap">
+    <div class="cta">
+      <h2>So — what do you think?</h2>
+      <p>You've just walked through it. If this feels like the easier way to run your reviews, here's the path from here:</p>
+      <ol class="steps">
+        <li>You pick the option that fits MARCO's budget.</li>
+        <li>We build the live tool around your exact process — reviewers, admin, and all.</li>
+        <li>Your next certification cycle runs on it.</li>
+      </ol>
+      <a href="demo/" target="_blank" style="display:inline-block;margin-top:20px;background:var(--gold);color:#3a2208;font-weight:700;font-family:var(--sans);font-size:15px;text-decoration:none;padding:12px 22px;border-radius:10px">Open the live demo ↗</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <!-- Save your logo as cares-logo.png next to this file; it shows automatically. -->
+    <img src="cares-logo.png" alt="CARES Consulting Inc" style="height:104px;width:auto;display:block;margin:0 auto 8px"
+         onload="var w=document.getElementById('cares-wordmark'); if(w){w.style.display='none';}" onerror="this.style.display='none';" />
+    <div id="cares-wordmark" class="cares-mark">CARES <span>Consulting Inc</span></div>
+    <div class="cares-tag">Clarity · Accountability · Repair · Expectations · Support</div>
+    <!-- CONTACT — edit this line -->
+    <p class="contact"><b>Kari Hoglund Kounkel</b> · caresmn.com</p>
+    <p>Prepared for the Minnesota Alliance of Recovery Community Organizations</p>
+  </div>
+</footer>
+
+</body>
+</html>
