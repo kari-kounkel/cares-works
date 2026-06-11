@@ -15,7 +15,7 @@
   :root{
     /* CARES Consulting Inc brand — bright blue + logo orange */
     --teal:#1a7af0; --tealDeep:#0f52c9; --tealPanel:#3088f5; --tealSoft:#e9f3ff;
-    --gold:#fc6f27; --goldBright:#ff8746; --pink:#cf1e4e; --ink:#202632; --inkSoft:#49515f;
+    --gold:#0a93e6; --goldBright:#3aaef5; --pink:#1356be; --ink:#202632; --inkSoft:#49515f;
     --paper:#f7f6f3; --cream:#ffffff; --rule:#e4e2dd; --muted:#828a98;
     --serif:'Fraunces',Georgia,serif; --sans:'Inter',system-ui,sans-serif; --mono:'DM Mono',monospace;
     --shadow:0 1px 2px rgba(28,36,34,.04),0 10px 30px rgba(28,36,34,.07);
@@ -27,7 +27,7 @@
   p{margin:0 0 14px}
   a{color:var(--teal)}
   .eyebrow{font-size:12.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--pink)}
-  header.hero .eyebrow{color:#ffd2a8}
+  header.hero .eyebrow{color:#bcdcff}
 
   /* hero */
   header.hero{background:linear-gradient(155deg,var(--tealPanel),var(--tealDeep));color:#fff;padding:64px 0 56px}
@@ -133,8 +133,12 @@
 <header class="hero">
   <div class="wrap">
     <div class="brand">
-      <div class="logo">M</div>
-      <div><b>MARCO</b><span>Minnesota Alliance of Recovery Community Organizations</span></div>
+      <img src="marco-logo.png" alt="MARCO — Minnesota Alliance of Recovery Community Organizations" style="height:48px;width:auto;background:#fff;padding:8px 14px;border-radius:12px;box-shadow:0 3px 10px rgba(0,0,0,0.18)"
+           onload="var f=document.getElementById('marco-fallback'); if(f){f.style.display='none';}" onerror="this.style.display='none';" />
+      <div id="marco-fallback" style="display:flex;align-items:center;gap:13px">
+        <div class="logo">M</div>
+        <div><b>MARCO</b><span>Minnesota Alliance of Recovery Community Organizations</span></div>
+      </div>
     </div>
     <div class="eyebrow">Proposal · Prepared by CARES Consulting Inc</div>
     <h1>The RCO Certification Review Console</h1>
@@ -315,7 +319,7 @@
       </div>
     </div>
 
-    <div class="note"><b>About the numbers:</b> priced as a mission partner — to cover the build and keep it running, not to get rich. The full build is the bargain: the three pieces add up to $4,200, the whole system is $3,500. $1,200/year ($100/month) covers hosting and every change you direct — on any package, with no per-request invoices. Applicant data always belongs to MARCO.</div>
+    <div class="note"><b>About the numbers:</b> priced as a mission partner — to cover the build and keep it running sustainably. The full build is the bargain: the three pieces add up to $4,200, the whole system is $3,500. $1,200/year ($100/month) covers hosting and every change you direct — on any package, with no per-request invoices. Applicant data always belongs to MARCO.</div>
 
     <div class="note" style="border-left:4px solid var(--gold)"><b>Compare to what you pay JotForm now:</b> three subscriptions run roughly <b>$1,400–$3,600 a year</b> (Silver to Gold tiers — Gold if you need the higher limits, payment collection, or HIPAA). The system's <b>$1,200/year</b> replaces all of it — so your ongoing cost actually goes <i>down</i>, and the one-time build pays back fast.</div>
   </div>
@@ -336,6 +340,21 @@
   </div>
 </section>
 
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Included with the full build</div>
+    <h2 style="margin-top:6px">And while we're in there — your website</h2>
+    <p class="sub">Looking at marcomn.org, a few quick wins would make the public side as smooth as the back office. A focused first round of these comes with the full build:</p>
+    <div class="features">
+      <div class="feature"><div class="ic">🧭</div><h3>Clearer navigation</h3><p>The menu repeats itself and nests a few layers deep (Programs › Programs › Summit). One clean menu makes everything easier to find.</p></div>
+      <div class="feature"><div class="ic">📅</div><h3>Event pages that convert</h3><p>Recovery Day on the Hill and the 2026 Community Recovery Summit are missing dates, times, and a clear "register here." Let's fix that.</p></div>
+      <div class="feature"><div class="ic">📋</div><h3>A real RCO certification page</h3><p>A dedicated, step-by-step certification landing page — which pairs perfectly with the tool we're building.</p></div>
+      <div class="feature"><div class="ic">⚡</div><h3>Faster on phones</h3><p>Several heavy full-width images slow the site on mobile; optimizing them is a quick, noticeable win.</p></div>
+    </div>
+    <div class="note">A focused first round of website fixes is included with the full build. Larger redesigns we'd scope separately.</div>
+  </div>
+</section>
+
 <section style="border-bottom:none">
   <div class="wrap">
     <div class="cta">
@@ -346,7 +365,7 @@
         <li>We build the live tool around your exact process — reviewers, admin, and all.</li>
         <li>Your next certification cycle runs on it.</li>
       </ol>
-      <a href="demo/" target="_blank" style="display:inline-block;margin-top:20px;background:var(--gold);color:#3a2208;font-weight:700;font-family:var(--sans);font-size:15px;text-decoration:none;padding:12px 22px;border-radius:10px">Open the live demo ↗</a>
+      <a href="demo/" target="_blank" style="display:inline-block;margin-top:20px;background:var(--gold);color:#fff;font-weight:700;font-family:var(--sans);font-size:15px;text-decoration:none;padding:12px 22px;border-radius:10px">Open the live demo ↗</a>
     </div>
   </div>
 </section>
