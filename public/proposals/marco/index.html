@@ -132,6 +132,10 @@
   .pay-btn{margin-top:22px;width:100%;cursor:pointer;font-family:var(--sans);font-size:16px;font-weight:700;color:#fff;background:var(--gold);border:none;border-radius:12px;padding:15px 18px}
   .pay-btn:disabled{opacity:.5;cursor:not-allowed}
   .fineprint{font-size:12px;color:var(--muted);text-align:center;margin-top:10px}
+  .rco-card{display:flex;gap:20px;align-items:flex-start;background:#fff;border:1px solid var(--rule);border-left:5px solid var(--gold);border-radius:14px;box-shadow:var(--shadow);padding:22px 26px;margin:0 0 14px}
+  .rco-card .ic{font-size:30px;line-height:1;flex:none;margin-top:2px}
+  .rco-card h3{font-family:var(--serif);font-size:20px;margin:0 0 7px}
+  .rco-card p{font-size:15px;color:var(--inkSoft);margin:0;line-height:1.6}
   .presig{height:150px;background:#fff;border:1.5px solid var(--rule);border-radius:10px;display:flex;align-items:center;justify-content:center;text-align:center}
   .sig-script{font-family:'Caveat',cursive;font-size:42px;color:#16203a;line-height:1}
   .presig-note{font-size:12px;color:var(--muted);margin-top:6px}
@@ -182,6 +186,7 @@
     <p>I recognize there are parts of your process the reviewers (me!) never see, so this proposal is necessarily limited. The actual product is your entire review process, built end-to-end — plus anything else you're currently running through JotForm, Google, or other tools. I'd like to offer you one comprehensive system.</p>
     <p>This proposal walks through what it does, how we'd build it for real, and a couple of ways to pay for it so you can pick what fits your budget.</p>
     <p class="sig">— Kari Hoglund Kounkel, CARES Consulting Inc</p>
+    <a href="demo/" target="_blank" style="display:inline-block;margin-top:14px;background:var(--gold);color:#fff;font-weight:700;font-family:var(--sans);font-size:15px;text-decoration:none;padding:11px 20px;border-radius:10px">Open the live demo ↗</a>
   </div>
 </section>
 
@@ -333,26 +338,27 @@
   <div class="wrap">
     <div class="eyebrow">A resource for the RCOs you certify</div>
     <h2 style="margin-top:6px">Help your RCOs stay ready</h2>
-    <p class="sub">RCOs are great at the mission — not always at the back-office paperwork. Same idea as what we just built for you: CARES builds the <i>RCOs</i> a simple compliance tool, with your statutes built right in, so they stay ready between three-year reviews. No obligation for MARCO — just a resource you're welcome to point them toward if it's a fit.</p>
-    <div class="features">
-      <div class="feature"><div class="ic">📋</div><h3>Compliance toolkit</h3><p>The same Minnesota statutes you certify against, built into a tool — with check-off buttons and quarterly reminders — so nothing slips between reviews.</p></div>
-      <div class="feature"><div class="ic">🗂️</div><h3>Board meeting kit</h3><p>Builds the agenda, captures the minutes, and tracks board composition at a glance (the &gt;50%-in-recovery rule and the rest), so their governance is always documented.</p></div>
-      <div class="feature"><div class="ic">📣</div><h3>Social media generator</h3><p>The tool we already built — turns their updates and events into ready-to-post content, so their presence stays active without the overwhelm.</p></div>
+    <p class="sub">RCOs are great at the mission — not always at the back-office. We're not here to replace your review; we're here to support RCOs on the things they so often get called out on. Same idea as what we built for you: CARES builds them simple tools — with your statutes built right in — so the paperwork, board records, events, and public presence are handled. No obligation for MARCO; just a resource you're welcome to point them toward if it's a fit.</p>
+    <div style="margin-top:6px">
+      <div class="rco-card"><div class="ic">📋</div><div><h3>Compliance toolkit</h3><p>The Minnesota statutes you certify against, built into a simple tool with check-off buttons and reminders — so the paperwork RCOs always get dinged on stays organized and current, and nothing slips through the cracks.</p></div></div>
+      <div class="rco-card"><div class="ic">🗂️</div><div><h3>Board meeting kit</h3><p>Builds the agenda, captures the minutes, and tracks board composition at a glance — the &gt;50%-in-recovery rule and the rest — so their governance is documented and ready the way reviewers expect to see it.</p></div></div>
+      <div class="rco-card"><div class="ic">📅</div><div><h3>Events calendar</h3><p>A clean public calendar for their programs, trainings, and community events — the ongoing community-engagement evidence RCOs are always asked to show, kept current and easy to point to.</p></div></div>
+      <div class="rco-card"><div class="ic">📣</div><div><h3>Social media generator</h3><p>The tool we already built — turns their updates and events into ready-to-post content, so their public presence stays active and consistent without the overwhelm.</p></div></div>
     </div>
     <div class="tiers" style="grid-template-columns:1fr;max-width:520px;margin:20px auto 0">
       <div class="tier featured">
         <h3>All the tools</h3>
-        <div class="who">Compliance toolkit, board meeting kit, and social media generator — built for them.</div>
+        <div class="who">Compliance toolkit, board meeting kit, events calendar, and social media generator — built for them.</div>
         <div class="price">$13<small>per month · after a one-time setup</small></div>
         <ul>
-          <li>Statutes built in, check-off buttons &amp; quarterly reminders</li>
+          <li>Statutes built in, check-off buttons &amp; reminders</li>
           <li>Board agenda, minutes &amp; composition tracker</li>
-          <li>Social media generator</li>
+          <li>Events calendar &amp; social media generator</li>
           <li>Hosting, reminders &amp; statute updates included</li>
         </ul>
       </div>
     </div>
-    <p class="sub" style="text-align:center;margin:18px auto 0;max-width:560px">Optional, separate: a <b>90-minute review session — $395</b> — sit down with CARES to walk through their files and questions.</p>
+    <p class="sub" style="text-align:center;margin:18px auto 0;max-width:560px">Optional, separate: a <b>90-minute in-person help session — $395</b> — sit down together and tackle whatever they're stuck on.</p>
     <div class="note"><b>Nonprofit pricing.</b> A one-time setup builds the tools, then it's just <b>$13/month</b> — hosting, reminders, statute updates, and the social generator. (We'll keep the setup nonprofit-friendly, and these can live in the CARES store.) Whatever MARCO's ethics allow — this is simply here if it helps, no obligation.</div>
   </div>
 </section>
