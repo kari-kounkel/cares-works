@@ -136,12 +136,6 @@
   .sig-script{font-family:'Caveat',cursive;font-size:42px;color:#16203a;line-height:1}
   .presig-note{font-size:12px;color:var(--muted);margin-top:6px}
   #dl-btn{margin-top:12px;width:100%;cursor:pointer;font-family:var(--sans);font-size:14px;font-weight:600;color:var(--teal);background:#fff;border:1.5px solid var(--teal);border-radius:10px;padding:11px 16px}
-  @media print{
-    body.printing-agr *{visibility:hidden}
-    body.printing-agr #agreement, body.printing-agr #agreement *{visibility:visible}
-    body.printing-agr #agreement{position:absolute;top:0;left:0;width:100%;padding:18px;box-shadow:none}
-    body.printing-agr .pay-btn, body.printing-agr #dl-btn, body.printing-agr .clear-sig, body.printing-agr .fineprint{display:none!important}
-  }
 
   @media (max-width:760px){
     .cols,.features,.tiers{grid-template-columns:1fr}
@@ -581,10 +575,51 @@
   });
 
   document.getElementById("dl-btn").addEventListener("click", function(){
-    document.body.classList.add("printing-agr"); window.print();
-    setTimeout(function(){ document.body.classList.remove("printing-agr"); }, 500);
+    if(!ready()) return;
+    var p=PKG[current], dep=Math.round(p.price*0.6), bal=p.price-dep;
+    var esc=function(s){ return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); };
+    var clientSig=document.getElementById("sig-client").toDataURL("image/png");
+    var provImg=document.querySelector(".presig img");
+    var provSig=(provImg && provImg.naturalWidth>0 && getComputedStyle(provImg).display!=="none")
+      ? '<img src="'+provImg.src+'" alt="" style="height:54px">'
+      : '<span style="font-family:Caveat,cursive;font-size:34px;color:#16203a">Kari Hoglund Kounkel</span>';
+    var today=(function(){ try{ return new Date().toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"}); }catch(e){ return ""; } })();
+    var start=document.getElementById("a-start").value||"—";
+    var pri=(document.getElementById("a-priorities").value||"").trim();
+    var notes=(document.getElementById("a-notes").value||"").trim();
+    var signer=(document.getElementById("a-signer").value||"").trim();
+    var html='<!DOCTYPE html><html><head><meta charset="utf-8"><title>Service Agreement — '+esc(p.name)+'</title>'+
+      '<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;600;700&family=Caveat:wght@600&display=swap" rel="stylesheet">'+
+      '<style>body{font-family:Inter,system-ui,sans-serif;color:#202632;max-width:640px;margin:34px auto;padding:0 28px;line-height:1.5}'+
+      'h1{font-family:Fraunces,serif;color:#1a7af0;font-size:24px;margin:0 0 2px}.sub{color:#828a98;font-size:13px;margin:0 0 20px}'+
+      'table{width:100%;border-collapse:collapse;margin:0 0 8px}td{padding:8px 0;border-bottom:1px solid #eee;font-size:14px}td.r{text-align:right;font-weight:700}'+
+      'h2{font-size:12px;letter-spacing:.4px;text-transform:uppercase;color:#828a98;margin:18px 0 6px}'+
+      '.box{font-size:14px;white-space:pre-wrap;border:1px solid #e4e2dd;border-radius:8px;padding:12px 14px;background:#faf9f7}'+
+      '.terms{font-size:12px;color:#49515f;line-height:1.55;margin:16px 0}'+
+      '.sigs{display:flex;gap:32px;margin-top:26px}.sigs>div{flex:1}'+
+      '.sigline{border-bottom:1px solid #202632;height:62px;display:flex;align-items:flex-end;padding-bottom:3px}'+
+      '.cap{font-size:12px;color:#49515f;margin-top:6px}@media print{body{margin:0}}</style></head><body>'+
+      '<h1>Service Agreement</h1><div class="sub">CARES Consulting Inc &middot; '+today+'</div>'+
+      '<table>'+
+      '<tr><td>Package</td><td class="r">'+esc(p.name)+'</td></tr>'+
+      '<tr><td>One-time build</td><td class="r">$'+p.price.toLocaleString()+'</td></tr>'+
+      '<tr><td>Deposit to begin (60%)</td><td class="r">$'+dep.toLocaleString()+'</td></tr>'+
+      '<tr><td>Balance at launch (40%)</td><td class="r">$'+bal.toLocaleString()+'</td></tr>'+
+      '<tr><td>Annual (first due six months after launch)</td><td class="r">$1,200/year</td></tr>'+
+      '<tr><td>Preferred start date</td><td class="r">'+esc(start)+'</td></tr></table>'+
+      (pri?'<h2>Build priorities</h2><div class="box">'+esc(pri)+'</div>':'')+
+      (notes?'<h2>Notes / requests</h2><div class="box">'+esc(notes)+'</div>':'')+
+      '<div class="terms">CARES Consulting Inc will build the selected package and deliver it live within about four weeks of the start date, with weekly check-ins. 60% is due to begin; the 40% balance is due at launch. The first annual fee ($1,200) is due six months after launch and covers hosting, support, and changes to what\'s built. If HIPAA-level compliance is required, the annual rate increases. Brand-new features beyond this scope are scoped separately. Applicant data belongs to MARCO. This proposal is valid for 30 days from presentation.</div>'+
+      '<div class="sigs"><div><div class="sigline">'+provSig+'</div><div class="cap">CARES Consulting Inc &middot; Kari Hoglund Kounkel</div></div>'+
+      '<div><div class="sigline"><img src="'+clientSig+'" alt="" style="height:54px"></div><div class="cap">MARCO &middot; '+(esc(signer)||"authorized signer")+'</div></div></div>'+
+      '</body></html>';
+    var w=window.open("","_blank");
+    if(!w){ alert("Please allow pop-ups to download the signed copy."); return; }
+    w.document.open(); w.document.write(html); w.document.close();
+    setTimeout(function(){ w.focus(); w.print(); }, 450);
   });
 })();
 </script>
+<script src="https://chat.karikounkel.com/widget.js" defer></script>
 </body>
 </html>
