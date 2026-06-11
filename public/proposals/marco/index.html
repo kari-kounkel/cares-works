@@ -116,6 +116,22 @@
   .cares-mark{font-family:var(--serif);font-weight:700;font-size:27px;color:var(--teal);letter-spacing:.5px}
   .cares-mark span{font-size:15px;color:var(--inkSoft);font-weight:600}
   .cares-tag{font-family:var(--sans);font-size:11.5px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:var(--pink);margin:7px 0 16px}
+  .select-btn{margin-top:14px;width:100%;cursor:pointer;font-family:var(--sans);font-size:14.5px;font-weight:700;color:#fff;background:var(--teal);border:none;border-radius:10px;padding:12px 14px}
+  .select-btn:hover{filter:brightness(1.06)}
+  .agr-card{background:var(--tealSoft);border:1px solid var(--rule);border-radius:14px;padding:4px 18px;margin:6px 0 4px}
+  .agr-row{display:flex;justify-content:space-between;gap:16px;padding:11px 0;border-top:1px solid rgba(0,0,0,0.06);font-size:14.5px}
+  .agr-row:first-child{border-top:none}
+  .agr-row span{color:var(--inkSoft)} .agr-row b{color:var(--ink)}
+  .lbl{display:block;font-size:12.5px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--inkSoft);margin:16px 0 6px}
+  .inp{width:100%;box-sizing:border-box;font-family:var(--sans);font-size:15px;padding:11px 13px;border:1.5px solid var(--rule);border-radius:10px;color:var(--ink);background:#fff}
+  .inp:focus{outline:none;border-color:var(--teal)}
+  .terms{font-size:13.5px;line-height:1.6;color:var(--inkSoft);background:var(--paper);border:1px solid var(--rule);border-radius:12px;padding:16px 18px;margin:18px 0}
+  .sig-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:6px}
+  .sigpad{width:100%;height:150px;background:#fff;border:1.5px dashed var(--rule);border-radius:10px;touch-action:none;cursor:crosshair;display:block}
+  .clear-sig{margin-top:6px;cursor:pointer;font-size:12.5px;font-weight:600;color:var(--teal);background:none;border:none;text-decoration:underline;padding:0}
+  .pay-btn{margin-top:22px;width:100%;cursor:pointer;font-family:var(--sans);font-size:16px;font-weight:700;color:#fff;background:var(--gold);border:none;border-radius:12px;padding:15px 18px}
+  .pay-btn:disabled{opacity:.5;cursor:not-allowed}
+  .fineprint{font-size:12px;color:var(--muted);text-align:center;margin-top:10px}
 
   @media (max-width:760px){
     .cols,.features,.tiers{grid-template-columns:1fr}
@@ -280,53 +296,6 @@
 
 <section>
   <div class="wrap">
-    <h2>Build the whole thing — or start with a piece</h2>
-    <p class="sub">Take the full system as one build — the best value, live in about four weeks — or pick the components you need now and add the rest later. Either way, $1,200/year ($100/month) covers hosting and every change you direct.</p>
-
-    <div class="tiers" style="grid-template-columns:1fr;max-width:520px;margin:8px auto 0">
-      <div class="tier featured">
-        <h3>The full build</h3>
-        <div class="who">Your entire certification process — for reviewers and staff — replacing every JotForm. Live in about four weeks.</div>
-        <div class="price">$3,500<small>one-time · then $1,200/year ($100/month)</small></div>
-        <ul>
-          <li>Reviewer console — application, site visit &amp; panel</li>
-          <li>Full admin side — reviewer onboarding, availability &amp; assignment</li>
-          <li>Applicant &amp; reference intake, determination letters, stipend math</li>
-          <li>Replaces every per-person JotForm in the process</li>
-          <li><b>$1,200/year covers hosting + all changes you direct.</b> Don't like something? I fix it. It's covered.</li>
-          <li>Live within ~4 weeks · your data is always yours to export</li>
-        </ul>
-        <div class="own">Best value — the components below add up to $4,200.</div>
-      </div>
-    </div>
-
-    <p class="sub" style="text-align:center;margin:30px 0 10px">Or start with one piece and add the rest later:</p>
-    <div class="tiers" style="grid-template-columns:repeat(3,1fr)">
-      <div class="tier">
-        <h3>Certification</h3>
-        <div class="who">The reviewer console plus the certification admin, intake, determinations &amp; stipends.</div>
-        <div class="price">$2,000<small>one-time</small></div>
-      </div>
-      <div class="tier">
-        <h3>Reviewer onboarding</h3>
-        <div class="who">Recruiting, vetting, interviews &amp; hiring — plus availability and one-screen assignment.</div>
-        <div class="price">$1,200<small>one-time</small></div>
-      </div>
-      <div class="tier">
-        <h3>Conferences</h3>
-        <div class="who">Registration &amp; payment, nametags, speaker intake, and the post-event packet.</div>
-        <div class="price">$1,000<small>one-time</small></div>
-      </div>
-    </div>
-
-    <div class="note"><b>About the numbers:</b> priced as a mission partner — to cover the build and keep it running sustainably. The full build is the bargain: the three pieces add up to $4,200, the whole system is $3,500. $1,200/year ($100/month) covers hosting and every change you direct — on any package, with no per-request invoices. Applicant data always belongs to MARCO.</div>
-
-    <div class="note" style="border-left:4px solid var(--gold)"><b>Compare to what you pay JotForm now:</b> three subscriptions run roughly <b>$1,400–$3,600 a year</b> (Silver to Gold tiers — Gold if you need the higher limits, payment collection, or HIPAA). The system's <b>$1,200/year</b> replaces all of it — so your ongoing cost actually goes <i>down</i>, and the one-time build pays back fast.</div>
-  </div>
-</section>
-
-<section>
-  <div class="wrap">
     <div class="eyebrow">Add-on component · $1,000</div>
     <h2 style="margin-top:6px">Your conferences, too</h2>
     <p class="sub">Its own module — add it on or fold it into the full build. Same idea: you run conferences through JotForm today, and one engine can run them end-to-end, from a single registration to the thank-you email.</p>
@@ -370,6 +339,101 @@
   </div>
 </section>
 
+<!-- ===== CHOOSE YOUR OPTION (pricing, at the bottom) ===== -->
+<section id="choose">
+  <div class="wrap">
+    <h2>Choose your option</h2>
+    <p class="sub">Pick a package to start your service agreement. On any package, $1,200/year ($100/month) covers hosting and every change you direct.</p>
+
+    <div class="tiers" style="grid-template-columns:1fr;max-width:520px;margin:8px auto 16px">
+      <div class="tier featured">
+        <h3>The full build</h3>
+        <div class="who">Your entire certification process — for reviewers and staff — replacing every JotForm. Live in about four weeks.</div>
+        <div class="price">$3,500<small>one-time · then $1,200/year ($100/month)</small></div>
+        <ul>
+          <li>Reviewer console — application, site visit &amp; panel</li>
+          <li>Full admin side — reviewer onboarding, availability &amp; assignment</li>
+          <li>Applicant &amp; reference intake, determination letters, stipend math</li>
+          <li>First-round website fixes included</li>
+          <li><b>$1,200/year covers hosting + all changes you direct.</b></li>
+        </ul>
+        <button class="select-btn" data-pkg="full">Select the full build →</button>
+      </div>
+    </div>
+
+    <p class="sub" style="text-align:center;margin:24px 0 10px">Or start with one piece:</p>
+    <div class="tiers" style="grid-template-columns:repeat(3,1fr)">
+      <div class="tier">
+        <h3>Certification</h3>
+        <div class="who">Reviewer console + certification admin, intake, determinations &amp; stipends.</div>
+        <div class="price">$2,000<small>one-time</small></div>
+        <button class="select-btn" data-pkg="cert">Select →</button>
+      </div>
+      <div class="tier">
+        <h3>Reviewer onboarding</h3>
+        <div class="who">Recruiting, vetting, interviews &amp; hiring — plus availability and one-screen assignment.</div>
+        <div class="price">$1,200<small>one-time</small></div>
+        <button class="select-btn" data-pkg="reviewer">Select →</button>
+      </div>
+      <div class="tier">
+        <h3>Conferences</h3>
+        <div class="who">Registration &amp; payment, nametags, speaker intake, and the post-event packet.</div>
+        <div class="price">$1,000<small>one-time</small></div>
+        <button class="select-btn" data-pkg="conf">Select →</button>
+      </div>
+    </div>
+
+    <div class="note"><b>About the numbers:</b> priced as a mission partner — to cover the build and keep it running sustainably. The full build is the bargain: the three pieces add up to $4,200, the whole system is $3,500. $1,200/year ($100/month) covers hosting and every change you direct — on any package. Applicant data always belongs to MARCO.</div>
+    <div class="note" style="border-left:4px solid var(--gold)"><b>Compare to what you pay JotForm now:</b> three subscriptions run roughly <b>$1,400–$3,600 a year</b> (Silver to Gold tiers). The system's <b>$1,200/year</b> replaces all of it — so your ongoing cost goes <i>down</i>.</div>
+  </div>
+</section>
+
+<!-- ===== SERVICE AGREEMENT (revealed on selection) ===== -->
+<section id="agreement" style="display:none;background:#fff">
+  <div class="wrap" style="max-width:720px">
+    <div class="eyebrow">Service Agreement</div>
+    <h2 style="margin-top:6px">Let's make it official</h2>
+    <p class="sub">Review the terms, set your start date, tell me your priorities for the build, then we both sign and you pay the deposit to begin.</p>
+
+    <div class="agr-card">
+      <div class="agr-row"><span>Package</span><b id="a-pkg">—</b></div>
+      <div class="agr-row"><span>One-time build</span><b id="a-price">—</b></div>
+      <div class="agr-row"><span>Deposit to begin — 60%</span><b id="a-deposit">—</b></div>
+      <div class="agr-row"><span>Balance at launch — 40%</span><b id="a-balance">—</b></div>
+      <div class="agr-row"><span>Annual (first due one year after launch)</span><b>$1,200/year</b></div>
+    </div>
+
+    <label class="lbl">Preferred start date</label>
+    <input type="date" id="a-start" class="inp" />
+
+    <label class="lbl">For the ~3-week build, what matters most to you?</label>
+    <textarea id="a-priorities" class="inp" style="min-height:90px;resize:vertical" placeholder="Priorities, must-haves, anything to watch for…"></textarea>
+
+    <div class="terms">
+      <b>Terms.</b> CARES Consulting Inc will build the selected package and deliver it live within about four weeks of the start date, with weekly check-ins. 60% is due now to begin; the 40% balance is due at launch. The first annual fee ($1,200) is due one year after launch and covers hosting, support, and changes to what's built. Brand-new features beyond this scope are scoped separately. Applicant data belongs to MARCO.
+    </div>
+
+    <div class="sig-grid">
+      <div>
+        <label class="lbl">CARES Consulting Inc · Kari Hoglund Kounkel</label>
+        <canvas class="sigpad" id="sig-provider"></canvas>
+        <button class="clear-sig" data-target="sig-provider">Clear signature</button>
+      </div>
+      <div>
+        <label class="lbl">MARCO · authorized signer</label>
+        <canvas class="sigpad" id="sig-client"></canvas>
+        <button class="clear-sig" data-target="sig-client">Clear signature</button>
+      </div>
+    </div>
+
+    <label class="lbl">MARCO signer — name &amp; title</label>
+    <input type="text" id="a-signer" class="inp" placeholder="Name, title" />
+
+    <button id="pay-btn" class="pay-btn" disabled>Sign &amp; pay deposit on Stripe →</button>
+    <p class="fineprint" id="pay-note">Both signatures, a start date, and your name are needed to continue.</p>
+  </div>
+</section>
+
 <footer>
   <div class="wrap">
     <!-- Save your logo as cares-logo.png next to this file; it shows automatically. -->
@@ -383,5 +447,77 @@
   </div>
 </footer>
 
+<script>
+(function(){
+  var PKG = {
+    full:    {name:"The full build",      price:3500},
+    cert:    {name:"Certification",        price:2000},
+    reviewer:{name:"Reviewer onboarding",  price:1200},
+    conf:    {name:"Conferences",          price:1000}
+  };
+  // Stripe deposit Payment Links (60% of each package). Fill these in to go live.
+  var PAY_LINKS = { full:"", cert:"", reviewer:"", conf:"" };
+  var money = function(n){ return "$"+Number(n).toLocaleString("en-US"); };
+  var current = null;
+
+  // selection -> fill numbers + reveal agreement
+  document.querySelectorAll(".select-btn").forEach(function(b){
+    b.addEventListener("click", function(){
+      var k=b.getAttribute("data-pkg"), p=PKG[k]; if(!p) return;
+      current=k;
+      var dep=Math.round(p.price*0.6), bal=p.price-dep;
+      document.getElementById("a-pkg").textContent=p.name;
+      document.getElementById("a-price").textContent=money(p.price)+" one-time";
+      document.getElementById("a-deposit").textContent=money(dep)+" due now";
+      document.getElementById("a-balance").textContent=money(bal)+" at launch";
+      document.getElementById("pay-btn").textContent="Sign & pay "+money(dep)+" deposit on Stripe →";
+      var ag=document.getElementById("agreement"); ag.style.display="block";
+      setTimeout(function(){ resizeAll(); ag.scrollIntoView({behavior:"smooth"}); },30);
+      updatePay();
+    });
+  });
+
+  // signature pads (drawn, mouse + touch)
+  function setupPad(canvas){
+    var ctx=canvas.getContext("2d"), drawing=false;
+    canvas._resize=function(){
+      var r=canvas.getBoundingClientRect(), dpr=window.devicePixelRatio||1;
+      canvas.width=r.width*dpr; canvas.height=150*dpr;
+      ctx.setTransform(dpr,0,0,dpr,0,0); ctx.lineWidth=2.2; ctx.lineCap="round"; ctx.lineJoin="round"; ctx.strokeStyle="#16203a";
+      canvas._dirty=false;
+    };
+    function pos(e){ var r=canvas.getBoundingClientRect(), t=e.touches?e.touches[0]:e; return {x:t.clientX-r.left,y:t.clientY-r.top}; }
+    function start(e){ drawing=true; var p=pos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); e.preventDefault(); }
+    function move(e){ if(!drawing)return; var p=pos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); canvas._dirty=true; updatePay(); e.preventDefault(); }
+    function end(){ drawing=false; }
+    canvas.addEventListener("mousedown",start); canvas.addEventListener("mousemove",move); window.addEventListener("mouseup",end);
+    canvas.addEventListener("touchstart",start,{passive:false}); canvas.addEventListener("touchmove",move,{passive:false}); canvas.addEventListener("touchend",end);
+    canvas._clear=function(){ ctx.clearRect(0,0,canvas.width,canvas.height); canvas._dirty=false; updatePay(); };
+  }
+  var pads=[].slice.call(document.querySelectorAll(".sigpad"));
+  pads.forEach(setupPad);
+  function resizeAll(){ pads.forEach(function(c){ if(c._resize) c._resize(); }); }
+  document.querySelectorAll(".clear-sig").forEach(function(b){
+    b.addEventListener("click", function(){ var c=document.getElementById(b.getAttribute("data-target")); if(c&&c._clear) c._clear(); });
+  });
+
+  // validation + pay
+  function bothSigned(){ return pads.every(function(c){ return c._dirty; }); }
+  function ready(){ return current && bothSigned() && document.getElementById("a-start").value && document.getElementById("a-signer").value.trim().length>1; }
+  function updatePay(){
+    var btn=document.getElementById("pay-btn"), note=document.getElementById("pay-note");
+    if(ready()){ btn.disabled=false; note.textContent="You'll be taken to Stripe to pay the deposit securely."; }
+    else { btn.disabled=true; note.textContent="Both signatures, a start date, and your name are needed to continue."; }
+  }
+  document.getElementById("a-start").addEventListener("input",updatePay);
+  document.getElementById("a-signer").addEventListener("input",updatePay);
+  document.getElementById("pay-btn").addEventListener("click", function(){
+    if(!ready()) return;
+    var link=PAY_LINKS[current];
+    if(link){ window.location.href=link; }
+    else { alert("Stripe deposit link not connected yet.\n\n(Add the Payment Link for \""+PKG[current].name+"\" in the page's PAY_LINKS.)"); }
+  });
+})();
+</script>
 </body>
 </html>
