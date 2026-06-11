@@ -48,6 +48,10 @@ export default async function handler(req, res) {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
+    // Skip one-time payments (e.g. MARCO proposal deposits); memberships only.
+    if (session.mode !== "subscription" && !session.subscription) {
+      return res.status(200).json({ received: true, skipped: "non-subscription" });
+    }
     const email = session.customer_details?.email;
     const customerId = session.customer;
     const subscriptionId = session.subscription;

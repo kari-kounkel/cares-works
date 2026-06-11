@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>RCO Certification Review Console — Proposal for MARCO</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=Caveat:wght@500;700&display=swap" rel="stylesheet" />
 <style>
   /* ─────────────────────────────────────────────────────────────
      EASY EDITS — the numbers MARCO sees are all in the pricing
@@ -132,6 +132,16 @@
   .pay-btn{margin-top:22px;width:100%;cursor:pointer;font-family:var(--sans);font-size:16px;font-weight:700;color:#fff;background:var(--gold);border:none;border-radius:12px;padding:15px 18px}
   .pay-btn:disabled{opacity:.5;cursor:not-allowed}
   .fineprint{font-size:12px;color:var(--muted);text-align:center;margin-top:10px}
+  .presig{height:150px;background:#fff;border:1.5px solid var(--rule);border-radius:10px;display:flex;align-items:center;justify-content:center;text-align:center}
+  .sig-script{font-family:'Caveat',cursive;font-size:42px;color:#16203a;line-height:1}
+  .presig-note{font-size:12px;color:var(--muted);margin-top:6px}
+  #dl-btn{margin-top:12px;width:100%;cursor:pointer;font-family:var(--sans);font-size:14px;font-weight:600;color:var(--teal);background:#fff;border:1.5px solid var(--teal);border-radius:10px;padding:11px 16px}
+  @media print{
+    body.printing-agr *{visibility:hidden}
+    body.printing-agr #agreement, body.printing-agr #agreement *{visibility:visible}
+    body.printing-agr #agreement{position:absolute;top:0;left:0;width:100%;padding:18px;box-shadow:none}
+    body.printing-agr .pay-btn, body.printing-agr #dl-btn, body.printing-agr .clear-sig, body.printing-agr .fineprint{display:none!important}
+  }
 
   @media (max-width:760px){
     .cols,.features,.tiers{grid-template-columns:1fr}
@@ -416,8 +426,11 @@
     <div class="sig-grid">
       <div>
         <label class="lbl">CARES Consulting Inc · Kari Hoglund Kounkel</label>
-        <canvas class="sigpad" id="sig-provider"></canvas>
-        <button class="clear-sig" data-target="sig-provider">Clear signature</button>
+        <div class="presig">
+          <img src="kari-signature.png" alt="Kari Hoglund Kounkel" style="max-height:96px;max-width:90%;display:none" onload="this.style.display='inline';var s=this.nextElementSibling; if(s){s.style.display='none';}" />
+          <span class="sig-script">Kari Hoglund Kounkel</span>
+        </div>
+        <div class="presig-note">Pre-signed by CARES Consulting Inc · <span id="sig-date"></span></div>
       </div>
       <div>
         <label class="lbl">MARCO · authorized signer</label>
@@ -430,7 +443,8 @@
     <input type="text" id="a-signer" class="inp" placeholder="Name, title" />
 
     <button id="pay-btn" class="pay-btn" disabled>Sign &amp; pay deposit on Stripe →</button>
-    <p class="fineprint" id="pay-note">Both signatures, a start date, and your name are needed to continue.</p>
+    <button id="dl-btn" style="display:none">Download a signed copy (PDF)</button>
+    <p class="fineprint" id="pay-note">Your signature, a start date, and your name are needed to continue.</p>
   </div>
 </section>
 
@@ -455,10 +469,10 @@
     reviewer:{name:"Reviewer onboarding",  price:1200},
     conf:    {name:"Conferences",          price:1000}
   };
-  // Stripe deposit Payment Links (60% of each package). Fill these in to go live.
-  var PAY_LINKS = { full:"", cert:"", reviewer:"", conf:"" };
   var money = function(n){ return "$"+Number(n).toLocaleString("en-US"); };
-  var current = null;
+  var current = null, payText = "";
+  // stamp the pre-signed date
+  try{ var _d=new Date(); var _sd=document.getElementById("sig-date"); if(_sd) _sd.textContent=_d.toLocaleDateString("en-US",{year:"numeric",month:"short",day:"numeric"}); }catch(e){}
 
   // selection -> fill numbers + reveal agreement
   document.querySelectorAll(".select-btn").forEach(function(b){
@@ -470,7 +484,8 @@
       document.getElementById("a-price").textContent=money(p.price)+" one-time";
       document.getElementById("a-deposit").textContent=money(dep)+" due now";
       document.getElementById("a-balance").textContent=money(bal)+" at launch";
-      document.getElementById("pay-btn").textContent="Sign & pay "+money(dep)+" deposit on Stripe →";
+      payText="Sign & pay "+money(dep)+" deposit on Stripe →";
+      document.getElementById("pay-btn").textContent=payText;
       var ag=document.getElementById("agreement"); ag.style.display="block";
       setTimeout(function(){ resizeAll(); ag.scrollIntoView({behavior:"smooth"}); },30);
       updatePay();
@@ -496,26 +511,34 @@
   }
   var pads=[].slice.call(document.querySelectorAll(".sigpad"));
   pads.forEach(setupPad);
-  function resizeAll(){ pads.forEach(function(c){ if(c._resize) c._resize(); }); }
+  function resizeAll(){ pads.forEach(function(c){ if(c._resize) c._resize(); }); updatePay(); }
   document.querySelectorAll(".clear-sig").forEach(function(b){
     b.addEventListener("click", function(){ var c=document.getElementById(b.getAttribute("data-target")); if(c&&c._clear) c._clear(); });
   });
 
   // validation + pay
-  function bothSigned(){ return pads.every(function(c){ return c._dirty; }); }
-  function ready(){ return current && bothSigned() && document.getElementById("a-start").value && document.getElementById("a-signer").value.trim().length>1; }
+  function clientSigned(){ return pads.length>0 && pads.every(function(c){ return c._dirty; }); }
+  function ready(){ return current && clientSigned() && document.getElementById("a-start").value && document.getElementById("a-signer").value.trim().length>1; }
   function updatePay(){
-    var btn=document.getElementById("pay-btn"), note=document.getElementById("pay-note");
-    if(ready()){ btn.disabled=false; note.textContent="You'll be taken to Stripe to pay the deposit securely."; }
-    else { btn.disabled=true; note.textContent="Both signatures, a start date, and your name are needed to continue."; }
+    var btn=document.getElementById("pay-btn"), note=document.getElementById("pay-note"), dl=document.getElementById("dl-btn");
+    var ok=ready();
+    btn.disabled=!ok; if(dl) dl.style.display= ok ? "block" : "none";
+    note.textContent= ok ? "You'll be taken to Stripe to pay the deposit securely." : "Your signature, a start date, and your name are needed to continue.";
   }
   document.getElementById("a-start").addEventListener("input",updatePay);
   document.getElementById("a-signer").addEventListener("input",updatePay);
   document.getElementById("pay-btn").addEventListener("click", function(){
     if(!ready()) return;
-    var link=PAY_LINKS[current];
-    if(link){ window.location.href=link; }
-    else { alert("Stripe deposit link not connected yet.\n\n(Add the Payment Link for \""+PKG[current].name+"\" in the page's PAY_LINKS.)"); }
+    var btn=this; btn.disabled=true; btn.textContent="Connecting to Stripe…";
+    fetch("/api/marco-deposit",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({package:current,origin:location.origin})})
+      .then(function(r){ return r.json(); })
+      .then(function(j){ if(j&&j.url){ window.location.href=j.url; } else { alert("Couldn't start checkout: "+((j&&j.error)||"unknown")); btn.disabled=false; btn.textContent=payText; updatePay(); } })
+      .catch(function(){ alert("Payment runs on the live site (tools.caresmn.com), not this local preview."); btn.disabled=false; btn.textContent=payText; updatePay(); });
+  });
+
+  document.getElementById("dl-btn").addEventListener("click", function(){
+    document.body.classList.add("printing-agr"); window.print();
+    setTimeout(function(){ document.body.classList.remove("printing-agr"); }, 500);
   });
 })();
 </script>
