@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Signature maker — CARES</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet" />
+<style>
+  :root{ --blue:#1a7af0; --ink:#202632; --muted:#828a98; --rule:#e4e2dd; --paper:#f7f6f3; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'Inter',system-ui,sans-serif;display:flex;min-height:100vh;align-items:center;justify-content:center;padding:24px}
+  .card{background:#fff;border:1px solid var(--rule);border-radius:18px;box-shadow:0 10px 40px rgba(28,36,34,.08);max-width:640px;width:100%;padding:30px 32px}
+  h1{font-family:'Fraunces',serif;font-size:24px;color:var(--blue);margin:0 0 6px}
+  p{color:#49515f;line-height:1.55;margin:0 0 18px;font-size:15px}
+  .pad-wrap{position:relative;border:1.5px dashed var(--rule);border-radius:12px;overflow:hidden;background:#fff;
+    /* checkerboard so the transparent area is visible while signing */
+    background-image:linear-gradient(45deg,#f0f0f0 25%,transparent 25%),linear-gradient(-45deg,#f0f0f0 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#f0f0f0 75%),linear-gradient(-45deg,transparent 75%,#f0f0f0 75%);
+    background-size:18px 18px;background-position:0 0,0 9px,9px -9px,-9px 0}
+  canvas{display:block;width:100%;height:200px;touch-action:none;cursor:crosshair}
+  .hint{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;color:#aab;font-size:15px;pointer-events:none}
+  .row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+  button{cursor:pointer;font-family:inherit;font-size:15px;font-weight:600;border-radius:10px;padding:12px 18px;border:none}
+  .primary{background:var(--blue);color:#fff;flex:1}
+  .ghost{background:#fff;color:var(--blue);border:1.5px solid var(--blue)}
+  .primary:disabled{opacity:.5;cursor:not-allowed}
+  .note{font-size:13px;color:var(--muted);margin-top:16px;line-height:1.5}
+  .note b{color:var(--ink)}
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>Make your signature PNG</h1>
+    <p>Sign in the box below, then download. You'll get a clean PNG with a <b>transparent background</b> — no ugly white box. Save it as <b>kari-signature.png</b> and it drops straight into the proposal.</p>
+    <div class="pad-wrap">
+      <canvas id="pad"></canvas>
+      <div class="hint" id="hint">✍️ Sign here</div>
+    </div>
+    <div class="row">
+      <button class="ghost" id="clear">Clear</button>
+      <button class="primary" id="download" disabled>Download kari-signature.png</button>
+    </div>
+    <div class="note"><b>Then:</b> hand me the file (drop it in the same folder) and I'll bake it into the agreement — it'll show as your signature for everyone who opens the link. <b>Tip:</b> sign a little large; it gets trimmed to fit automatically.</div>
+  </div>
+
+<script>
+(function(){
+  var canvas=document.getElementById("pad"), ctx=canvas.getContext("2d");
+  var hint=document.getElementById("hint"), dl=document.getElementById("download");
+  var dpr=window.devicePixelRatio||1, dirty=false;
+  function resize(){
+    var r=canvas.getBoundingClientRect();
+    canvas.width=r.width*dpr; canvas.height=200*dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.lineWidth=2.6; ctx.lineCap="round"; ctx.lineJoin="round"; ctx.strokeStyle="#11203a";
+  }
+  resize(); window.addEventListener("resize",resize);
+  var drawing=false;
+  function pos(e){ var r=canvas.getBoundingClientRect(), t=e.touches?e.touches[0]:e; return {x:t.clientX-r.left,y:t.clientY-r.top}; }
+  function start(e){ drawing=true; hint.style.display="none"; var p=pos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); e.preventDefault(); }
+  function move(e){ if(!drawing)return; var p=pos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); dirty=true; dl.disabled=false; e.preventDefault(); }
+  function end(){ drawing=false; }
+  canvas.addEventListener("mousedown",start); canvas.addEventListener("mousemove",move); window.addEventListener("mouseup",end);
+  canvas.addEventListener("touchstart",start,{passive:false}); canvas.addEventListener("touchmove",move,{passive:false}); canvas.addEventListener("touchend",end);
+
+  document.getElementById("clear").addEventListener("click",function(){
+    ctx.clearRect(0,0,canvas.width,canvas.height); dirty=false; dl.disabled=true; hint.style.display="block";
+  });
+
+  // trim to the signature's bounding box, then download as a transparent PNG
+  document.getElementById("download").addEventListener("click",function(){
+    if(!dirty) return;
+    var w=canvas.width, h=canvas.height, img=ctx.getImageData(0,0,w,h).data;
+    var minX=w,minY=h,maxX=0,maxY=0,found=false;
+    for(var y=0;y<h;y++){ for(var x=0;x<w;x++){ if(img[(y*w+x)*4+3]>8){ found=true; if(x<minX)minX=x; if(x>maxX)maxX=x; if(y<minY)minY=y; if(y>maxY)maxY=y; } } }
+    if(!found) return;
+    var pad=Math.round(10*dpr);
+    minX=Math.max(0,minX-pad); minY=Math.max(0,minY-pad); maxX=Math.min(w,maxX+pad); maxY=Math.min(h,maxY+pad);
+    var cw=maxX-minX, ch=maxY-minY;
+    var out=document.createElement("canvas"); out.width=cw; out.height=ch;
+    out.getContext("2d").drawImage(canvas, minX,minY,cw,ch, 0,0,cw,ch);
+    var a=document.createElement("a"); a.download="kari-signature.png"; a.href=out.toDataURL("image/png"); a.click();
+  });
+})();
+</script>
+</body>
+</html>
