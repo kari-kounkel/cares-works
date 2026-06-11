@@ -28,8 +28,11 @@
   .ic{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin:0 0 12px}
 
   /* compliance */
-  .checkrow{display:flex;align-items:center;gap:14px;padding:11px 0;border-top:1px solid #f0ece2}
-  .checkrow:first-child{border-top:none}
+  .crit{padding:13px 0;border-top:1px solid #f0ece2}
+  .crit:first-child{border-top:none}
+  .checkrow{display:flex;align-items:center;gap:14px}
+  .evidence{display:block;width:calc(100% - 38px);box-sizing:border-box;margin:9px 0 0 38px;font-family:inherit;font-size:13.5px;line-height:1.45;padding:8px 11px;border:1px solid var(--rule);border-radius:8px;color:var(--ink);background:#fbfcfe;resize:vertical;min-height:40px}
+  .evidence:focus{outline:none;border-color:var(--blue)}
   .box{width:24px;height:24px;border-radius:7px;border:2px solid var(--rule);flex:none;cursor:pointer;display:grid;place-items:center;color:#fff;font-size:15px;transition:all .12s}
   .box.done{background:var(--green);border-color:var(--green)}
   .checkrow .t{flex:1;font-size:15px}
@@ -76,7 +79,7 @@
       <h1>RCO Toolkit — a peek</h1>
       <p>What CARES would build for the RCOs you certify. Click around — it's interactive.</p>
     </div>
-    <a class="back" href="./">← Back to proposal</a>
+    <a class="back" href="/proposals/marco/">← Back to proposal</a>
   </div>
 </header>
 
@@ -170,6 +173,7 @@
     document.getElementById('prog-pill').textContent=done+' of '+CRIT.length+' ready';
   }
   CRIT.forEach(function(c){
+    var block=document.createElement('div'); block.className='crit';
     var row=document.createElement('div'); row.className='checkrow';
     var box=document.createElement('div'); box.className='box'; box.innerHTML='✓'; box.style.color='transparent';
     var t=document.createElement('div'); t.className='t'; t.textContent=c;
@@ -177,7 +181,10 @@
       var on=box.classList.toggle('done'); box.style.color=on?'#fff':'transparent'; row.classList.toggle('done',on);
       done+=on?1:-1; refreshProg();
     });
-    row.appendChild(box); row.appendChild(t); list.appendChild(row);
+    row.appendChild(box); row.appendChild(t);
+    var ev=document.createElement('textarea'); ev.className='evidence'; ev.rows=1;
+    ev.placeholder="Evidence — how you know you meet this, or what you're working on…";
+    block.appendChild(row); block.appendChild(ev); list.appendChild(block);
   });
   refreshProg();
   (function(){ var d=new Date(); d.setMonth(d.getMonth()+3); document.getElementById('next-date').textContent=d.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}); })();
