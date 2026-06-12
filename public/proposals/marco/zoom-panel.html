@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Panel Review over Zoom — MARCO (preview)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600&display=swap" rel="stylesheet" />
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;height:100vh;overflow:hidden;background:#16181d;color:#fff;font-family:'Inter',system-ui,sans-serif;display:flex;flex-direction:column}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 18px;background:#101216;border-bottom:1px solid #23262d;font-size:13.5px}
+  .topbar .l{display:flex;align-items:center;gap:14px}
+  .rec{display:inline-flex;align-items:center;gap:6px;color:#ff5a5f;font-weight:600}
+  .rec .dot{width:9px;height:9px;border-radius:50%;background:#ff5a5f;animation:pulse 1.4s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+  .topbar .muted{color:#8b94a3}
+  .preview-tag{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:20;background:#1a7af0;color:#fff;font-size:12px;font-weight:700;letter-spacing:.5px;padding:5px 14px;border-radius:999px;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+
+  .stage{flex:1;display:flex;min-height:0}
+  .grid{flex:1;display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:1fr;gap:10px;padding:14px}
+  .tile{position:relative;border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#23262d}
+  .tile.speaking{outline:3px solid #36c46a;outline-offset:-3px}
+  .av{width:92px;height:92px;border-radius:50%;display:grid;place-items:center;font-size:34px;font-weight:700;color:#fff;font-family:'Fraunces',serif}
+  .name{position:absolute;left:10px;bottom:10px;background:rgba(0,0,0,.55);padding:4px 10px;border-radius:7px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:7px}
+  .mic{font-size:12px}
+  .mic.off{color:#ff7a7f}
+  .role{position:absolute;right:10px;top:10px;background:rgba(0,0,0,.5);padding:3px 9px;border-radius:7px;font-size:11px;color:#bcc4d0}
+
+  .side{width:330px;background:#101216;border-left:1px solid #23262d;display:flex;flex-direction:column}
+  .side h3{font-family:'Fraunces',serif;font-size:16px;margin:0;padding:16px 18px 4px}
+  .side .sub{font-size:12px;color:#8b94a3;padding:0 18px 12px;border-bottom:1px solid #23262d}
+  .crit{padding:11px 18px;border-bottom:1px solid #1c1f25;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13.5px}
+  .verdict{font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px}
+  .v-meets{background:#13351f;color:#5fd58a}
+  .v-part{background:#3a2f12;color:#e6b24a}
+  .reco{padding:16px 18px;margin-top:auto;border-top:1px solid #23262d}
+  .reco label{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#8b94a3}
+  .reco .pick{margin-top:8px;background:#1a7af0;color:#fff;border-radius:9px;padding:11px 13px;font-size:13.5px;font-weight:600;display:flex;align-items:center;justify-content:space-between}
+
+  .bar{display:flex;align-items:center;justify-content:center;gap:10px;padding:12px;background:#101216;border-top:1px solid #23262d}
+  .ctrl{background:none;border:none;color:#cfd6e0;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;padding:6px 12px;border-radius:9px}
+  .ctrl:hover{background:#1c1f25}
+  .ctrl .gi{font-size:20px}
+  .ctrl.red{color:#fff;background:#e02d3c}
+  .ctrl.red:hover{background:#c41f2d}
+  .ctrl .badge{position:absolute;transform:translate(14px,-6px);background:#1a7af0;color:#fff;font-size:10px;font-weight:700;border-radius:999px;padding:0 5px}
+  .back{position:fixed;bottom:84px;left:16px;z-index:20;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;text-decoration:none;font-size:12.5px;font-weight:600;padding:8px 13px;border-radius:999px}
+  @media (max-width:760px){ .side{display:none} .grid{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+  <div class="preview-tag">PREVIEW · this is what the panel review looks like over Zoom</div>
+
+  <div class="topbar">
+    <div class="l">
+      <strong>MARCO Panel Review</strong>
+      <span class="rec"><span class="dot"></span> REC</span>
+      <span class="muted">01:12:48</span>
+    </div>
+    <div class="muted">Continuum Care Center · Peer Cohort #9 · Thu, May 28 · 8–10am</div>
+  </div>
+
+  <div class="stage">
+    <div class="grid" id="grid"></div>
+    <aside class="side">
+      <h3>Panel Review · live</h3>
+      <div class="sub">Cohort agreement, captured as you talk</div>
+      <div id="crits"></div>
+      <div class="reco">
+        <label>Cohort recommendation</label>
+        <div class="pick">Recommend certification <span>▾</span></div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="bar">
+    <button class="ctrl"><span class="gi">🎤</span>Mute</button>
+    <button class="ctrl"><span class="gi">🎥</span>Stop Video</button>
+    <button class="ctrl"><span class="gi">👥</span><span class="badge">5</span>Participants</button>
+    <button class="ctrl"><span class="gi">💬</span>Chat</button>
+    <button class="ctrl"><span class="gi">⬆️</span>Share</button>
+    <button class="ctrl"><span class="gi">⏺️</span>Record</button>
+    <button class="ctrl red"><span class="gi">📞</span>Leave</button>
+  </div>
+
+  <a class="back" href="./">← Back to proposal</a>
+
+<script>
+  var PEOPLE=[
+    {n:"Caddy",r:"Peer Reviewer",c:"#1a7af0",mic:true,speaking:true},
+    {n:"Emanuel",r:"Peer Reviewer",c:"#0f766e",mic:true,speaking:false},
+    {n:"Meg",r:"Peer Reviewer",c:"#6d28d9",mic:false,speaking:false},
+    {n:"Eric Bacon",r:"CCC · Exec. Director",c:"#c2410c",mic:true,speaking:false},
+    {n:"MARCO Staff",r:"Facilitator",c:"#15803d",mic:false,speaking:false}
+  ];
+  var grid=document.getElementById('grid');
+  PEOPLE.forEach(function(p){
+    var initials=p.n.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+    var t=document.createElement('div'); t.className='tile'+(p.speaking?' speaking':'');
+    t.innerHTML='<div class="av" style="background:'+p.c+'">'+initials+'</div>'+
+      '<div class="role">'+p.r+'</div>'+
+      '<div class="name">'+p.n+' <span class="mic'+(p.mic?'':' off')+'">'+(p.mic?'🎙️':'🔇')+'</span></div>';
+    grid.appendChild(t);
+  });
+
+  var CRITS=[
+    ["Independent nonprofit","meets"],["Governance (peer-led board)","meets"],
+    ["SUD recovery focus","meets"],["Community engagement","meets"],
+    ["Accountability","part"],["Non-clinical peer support","meets"],
+    ["All pathways of recovery","meets"],["Code of ethics & grievance","meets"]
+  ];
+  var cr=document.getElementById('crits');
+  CRITS.forEach(function(c){
+    var v=c[1]==='meets'?'<span class="verdict v-meets">Meets</span>':'<span class="verdict v-part">Discuss</span>';
+    var row=document.createElement('div'); row.className='crit'; row.innerHTML='<span>'+c[0]+'</span>'+v;
+    cr.appendChild(row);
+  });
+
+  // gentle "active speaker" rotation for realism
+  var i=0;
+  setInterval(function(){
+    var tiles=document.querySelectorAll('.tile');
+    tiles.forEach(function(t){t.classList.remove('speaking');});
+    i=(i+1)%PEOPLE.length; if(!PEOPLE[i].mic){ i=(i+1)%PEOPLE.length; }
+    if(tiles[i]) tiles[i].classList.add('speaking');
+  },2600);
+</script>
+</body>
+</html>
