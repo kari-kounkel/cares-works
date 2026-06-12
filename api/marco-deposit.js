@@ -7,7 +7,7 @@ const DEPOSITS = {
   full:     { name: "MARCO RCO Tool — full build deposit (60%)",         amount: 210000 },
   cert:     { name: "MARCO RCO Tool — certification deposit (60%)",       amount: 120000 },
   reviewer: { name: "MARCO RCO Tool — reviewer onboarding deposit (60%)", amount: 72000 },
-  conf:     { name: "MARCO RCO Tool — conferences deposit (60%)",         amount: 60000 },
+  conf:     { name: "MARCO RCO Tool — conferences deposit (60%)",         amount: 72000 },
 };
 
 export default async function handler(req, res) {
