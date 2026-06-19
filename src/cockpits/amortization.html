@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Amortization & Journal Engine — FlowSuite MoneyFlow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Figtree:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --slate:#3d4560;--slate-deep:#2b3147;--slate-soft:#5a6480;
+    --orange:#e8773a;--orange-soft:#f4a373;
+    --paper:#f7f5f1;--card:#ffffff;--line:#e3ddd2;
+    --ink:#26293a;--muted:#8a8576;--good:#3f7a5a;--warn:#b5532a;--maroon:#7A1F2B;
+    --serif:'DM Serif Display',Georgia,serif;--body:'Figtree',system-ui,sans-serif;--mono:'DM Mono',ui-monospace,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:var(--body);background:var(--paper);color:var(--ink);line-height:1.5;
+    background-image:radial-gradient(circle at 15% -10%, rgba(232,119,58,.06), transparent 45%),radial-gradient(circle at 100% 0%, rgba(61,69,96,.07), transparent 40%);min-height:100vh;}
+  .wrap{max-width:1280px;margin:0 auto;padding:36px 22px 80px;}
+  header.masthead{border-bottom:2px solid var(--slate);padding-bottom:18px;margin-bottom:22px;display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;}
+  .brand-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--orange);font-weight:500;}
+  h1{font-family:var(--serif);font-size:33px;line-height:1.05;color:var(--slate-deep);margin-top:6px;}
+  .statute{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:8px;}
+  .masthead .seal{font-family:var(--serif);font-size:13px;color:var(--slate-soft);text-align:right;border-left:1px solid var(--line);padding-left:18px;line-height:1.35;}
+
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px;}
+  .btn{font-family:var(--body);font-weight:600;font-size:13px;border-radius:8px;cursor:pointer;padding:9px 16px;border:1px solid var(--slate);background:var(--slate);color:#fff;}
+  .btn:hover{background:var(--slate-deep);}
+  .btn.ghost{background:transparent;color:var(--slate);}
+  .btn.ghost:hover{background:#f1ede4;}
+  .btn.orange{background:var(--orange);border-color:var(--orange);}
+  .btn.orange:hover{background:#d9682f;}
+  .btn.sm{padding:6px 11px;font-size:12px;}
+  .spacer{flex:1;}
+  .savednote{font-family:var(--mono);font-size:11px;color:var(--good);}
+
+  .layout{display:grid;grid-template-columns:268px 1fr;gap:18px;align-items:start;}
+  @media(max-width:900px){.layout{grid-template-columns:1fr;}}
+
+  .rail{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 18px 40px -30px rgba(43,49,71,.4);}
+  .rail h2{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--slate-soft);margin-bottom:10px;}
+  .ilist{display:flex;flex-direction:column;gap:6px;max-height:62vh;overflow:auto;}
+  .icard{border:1px solid var(--line);border-radius:10px;padding:9px 11px;cursor:pointer;background:#fdfcfa;position:relative;}
+  .icard:hover{border-color:var(--orange-soft);}
+  .icard.on{border-color:var(--slate);background:#f1ede4;}
+  .icard .nm{font-weight:600;color:var(--slate-deep);font-size:13px;line-height:1.25;}
+  .icard .meta{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:3px;}
+  .pill{display:inline-block;font-family:var(--mono);font-size:8.5px;letter-spacing:.05em;text-transform:uppercase;border-radius:4px;padding:1px 5px;vertical-align:middle;color:#fff;}
+  .pill.loan{background:var(--slate);}.pill.finance_lease{background:var(--maroon);}
+  .pill.operating_lease{background:var(--orange);}.pill.contract{background:var(--good);}
+  .icard .del{position:absolute;top:7px;right:8px;border:none;background:none;color:var(--muted);cursor:pointer;font-size:13px;line-height:1;}
+  .icard .del:hover{color:var(--warn);}
+  .empty{font-size:12px;color:var(--muted);font-style:italic;padding:8px 2px;}
+
+  .main{display:flex;flex-direction:column;gap:18px;min-width:0;}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 40px -30px rgba(43,49,71,.4);overflow:hidden;}
+  .panel .ph{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:14px 18px;border-bottom:1px solid var(--line);background:#fbfaf7;}
+  .panel .ph h3{font-family:var(--serif);font-size:19px;color:var(--slate-deep);}
+  .panel .pb{padding:18px;}
+
+  .tabs{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;}
+  .tabs button{border:none;background:#fdfcfa;padding:8px 14px;cursor:pointer;font-family:var(--body);font-size:12.5px;font-weight:600;color:var(--slate-soft);border-right:1px solid var(--line);}
+  .tabs button:last-child{border-right:none;}
+  .tabs button.on{background:var(--slate);color:#fff;}
+
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:13px 18px;}
+  @media(max-width:620px){.grid{grid-template-columns:1fr;}}
+  .field{display:flex;flex-direction:column;gap:4px;}
+  .field.full{grid-column:1/-1;}
+  .field label{font-family:var(--mono);font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--slate-soft);}
+  .field input,.field select,.field textarea{font-family:var(--body);font-size:14px;color:var(--ink);background:#fdfcfa;border:1px solid var(--line);border-radius:8px;padding:9px 11px;width:100%;}
+  .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--orange);box-shadow:0 0 0 3px rgba(232,119,58,.14);}
+  .field .sub{font-size:10.5px;color:var(--muted);font-family:var(--mono);}
+  .secdiv{grid-column:1/-1;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--orange);border-top:1px solid var(--line);padding-top:13px;margin-top:3px;}
+
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;}
+  @media(max-width:760px){.cards{grid-template-columns:repeat(2,1fr);}}
+  .mc{background:var(--slate-deep);color:#fff;border-radius:13px;padding:14px 16px;}
+  .mc.accent{background:var(--maroon);}.mc.go{background:var(--good);}.mc.or{background:var(--orange);}
+  .mc .t{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.6);}
+  .mc .v{font-family:var(--mono);font-size:22px;font-weight:500;margin-top:6px;letter-spacing:-.5px;}
+  .mc .s{font-size:10.5px;color:rgba(255,255,255,.6);margin-top:2px;}
+
+  .tscroll{max-height:64vh;overflow:auto;}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  thead th{background:var(--slate-deep);color:#fff;font-family:var(--mono);font-weight:500;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;padding:10px 9px;text-align:right;position:sticky;top:0;}
+  thead th.l{text-align:left;}
+  tbody td{padding:8px 9px;text-align:right;font-family:var(--mono);border-bottom:1px solid var(--line);}
+  tbody td.l{text-align:left;font-family:var(--body);}
+  tbody tr:hover td{background:#faf8f4;cursor:pointer;}
+  tbody tr.sel td{background:#fdf6ee;}
+  tbody tr.totals td{background:#f1ede4;font-weight:600;border-top:2px solid var(--slate);}
+
+  .je{border:1px solid var(--line);border-radius:12px;overflow:hidden;}
+  .je .jh{background:#fbfaf7;padding:11px 15px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:11px;color:var(--slate-soft);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+  .je table td.acct{font-family:var(--body);text-align:left;}
+  .je .bal{padding:9px 15px;font-family:var(--mono);font-size:11px;}
+  .je .bal.ok{color:var(--good);}.je .bal.bad{color:var(--warn);}
+
+  .howto{background:#fff;border:1px solid var(--orange-soft);border-left:4px solid var(--orange);border-radius:12px;padding:16px 20px;}
+  .howto h3{font-family:var(--serif);font-size:17px;color:var(--warn);margin-bottom:7px;}
+  .howto li{font-size:12.5px;color:var(--ink);margin:0 0 6px 18px;line-height:1.5;}
+  .howto b{color:var(--slate-deep);}
+  .disclaimer{margin-top:14px;font-size:11px;color:var(--muted);font-style:italic;line-height:1.55;border-left:2px solid var(--line);padding-left:13px;}
+
+  .modal{position:fixed;inset:0;background:rgba(38,41,58,.55);display:none;align-items:center;justify-content:center;padding:24px;z-index:50;}
+  .modal.on{display:flex;}
+  .modal .box{background:var(--card);border-radius:16px;max-width:680px;width:100%;max-height:88vh;overflow:auto;padding:24px;}
+  .modal h3{font-family:var(--serif);font-size:22px;color:var(--slate-deep);margin-bottom:6px;}
+  .modal p{font-size:13px;color:var(--slate-soft);margin-bottom:12px;}
+  .modal textarea{width:100%;min-height:200px;font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-radius:9px;padding:11px;background:#fdfcfa;}
+  .modal .row{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;}
+  code.k{font-family:var(--mono);font-size:11px;background:#f1ede4;padding:1px 5px;border-radius:4px;color:var(--maroon);}
+
+  .foot{margin-top:34px;text-align:center;font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.1em;}
+  @media print{@page{margin:.4in;} body{background:#fff;background-image:none;} .toolbar,.rail,.tabs,.howto,.btn,.modal{display:none!important;} .layout{grid-template-columns:1fr;} thead th{position:static;} .panel{box-shadow:none;}}
+  @media print{
+    body.ye-print *{visibility:hidden;}
+    body.ye-print #yemodal, body.ye-print #yemodal *{visibility:visible;}
+    body.ye-print #yemodal{display:block!important;position:absolute;inset:0;background:#fff;padding:0;overflow:visible;}
+    body.ye-print #yemodal .box{max-width:100%;box-shadow:none;max-height:none;overflow:visible;padding:0;}
+    body.ye-print #yemodal .tscroll{max-height:none;overflow:visible;}
+    body.ye-print #exye, body.ye-print #printye, body.ye-print #closeye, body.ye-print #yemodal .field{display:none!important;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="masthead">
+    <div>
+      <div class="brand-eyebrow">FlowSuite · MoneyFlow</div>
+      <h1>Amortization &amp; Journal Engine</h1>
+      <div class="statute">Loans · Notes · Mortgages · Finance &amp; Operating Leases · Service Contracts → schedule + monthly journal entry</div>
+    </div>
+    <div class="seal">CARES Consulting™<br>Saint Paul, MN</div>
+  </header>
+
+  <div class="toolbar">
+    <button class="btn orange" id="newbtn">+ New instrument</button>
+    <button class="btn" id="monthbtn">📅 Monthly journal entries</button>
+    <button class="btn" id="yebtn">🏁 Year-end / Dossier</button>
+    <button class="btn ghost" id="importbtn">⇪ Bulk import data</button>
+    <button class="btn ghost" id="exportallbtn">⇩ Export all (JSON backup)</button>
+    <button class="btn ghost" id="templatebtn">CSV template</button>
+    <div class="spacer"></div>
+    <span class="savednote" id="savednote" title="Your instruments live in this browser on this computer — not inside the file, not in the cloud. Use Export (JSON backup) to keep a safe copy.">Auto-saved in this browser</span>
+  </div>
+
+  <div class="layout">
+    <aside class="rail">
+      <h2>Instruments (<span id="icount">0</span>)</h2>
+      <div class="ilist" id="ilist"></div>
+    </aside>
+
+    <section class="main">
+      <div class="panel">
+        <div class="ph">
+          <h3 id="edtitle">No instrument selected</h3>
+          <div class="tabs" id="tabs">
+            <button data-tab="details" class="on">Details</button>
+            <button data-tab="schedule">Schedule</button>
+            <button data-tab="je">Journal entry</button>
+          </div>
+        </div>
+        <div class="pb" id="pbody">
+          <div class="empty">Click <b>+ New instrument</b> to start, or pick one from the left. When the tool checks out, use <b>Bulk import</b> to push all your existing loans &amp; leases in at once.</div>
+        </div>
+      </div>
+
+      <div class="howto">
+        <h3>Which type do I pick?</h3>
+        <ul>
+          <li><b>Loan / Note / Mortgage</b> — money you borrowed (the 4026 Washington mortgage, an SBA note). JE splits each payment into <b>interest expense</b> + <b>principal</b>, credits cash.</li>
+          <li><b>Finance lease</b> — equipment you'll <b>keep</b> ($1-buyout, lease runs most of the asset's life). Books an asset you depreciate <i>plus</i> interest. Expense is front-loaded.</li>
+          <li><b>Operating lease</b> — space or gear you'll <b>hand back</b>. Same asset+liability on the balance sheet, but the P&amp;L shows <b>one flat lease expense</b> every month.</li>
+          <li><b>Service contract</b> — the plowing guy, the cleaner, your own retainers. No interest — just a scheduled payment and a plain expense (or revenue) entry feeding the cash forecast.</li>
+        </ul>
+        <div class="disclaimer">Working tool, v1. ASC 842 lease figures use a standard effective-interest method with monthly periods and initial ROU asset = lease liability (initial direct costs, prepaids, and incentives not yet modeled). This is bookkeeping math to speed your work — not tax or audit advice. Confirm lease classification and account mapping with your treatment before posting.</div>
+      </div>
+    </section>
+  </div>
+
+  <div class="foot">
+    <div style="margin-bottom:6px;letter-spacing:.1em;">FLOWSUITE PRO™ · MONEYFLOW · POWERED BY CARES WORKFLOWS</div>
+    <div style="font-size:10px;line-height:1.5;max-width:820px;margin:0 auto;text-transform:none;letter-spacing:normal;color:var(--muted);">FlowSuite MoneyFlow — Amortization &amp; Journal Engine is the proprietary intellectual property of CARES Consulting, Inc. &amp; Kari Hoglund Kounkel. © 2025–2026. All rights reserved. Unauthorized use, duplication, hosting, or distribution is strictly prohibited.</div>
+  </div>
+</div>
+
+<!-- Import modal -->
+<div class="modal" id="importmodal">
+  <div class="box">
+    <h3>Bulk import your data</h3>
+    <p>Paste a <b>JSON array</b> (matches the Export backup shape) or a <b>CSV</b> with a header row. CSV columns: <code class="k">name,type,direction,openingBalance,rate,termMonths,startDate,payment,timing</code>. <code class="k">type</code> = loan · finance_lease · operating_lease · contract. <code class="k">direction</code> = pay · receive (contracts/leases). <code class="k">timing</code> = arrears · advance. Dates: YYYY-MM-DD.</p>
+    <textarea id="importtext" placeholder="Paste JSON array or CSV here..."></textarea>
+    <div class="row">
+      <button class="btn orange" id="doimport">Import</button>
+      <button class="btn ghost" id="importreplace">Replace everything (wipe first)</button>
+      <button class="btn ghost" id="closeimport">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Monthly close modal -->
+<div class="modal" id="monthmodal">
+  <div class="box" style="max-width:780px;">
+    <h3>Monthly journal entries</h3>
+    <p>Pick a month. The tool finds the matching payment in <b>every</b> instrument's schedule and builds that month's journal entries — all in one place — then exports them as a single QBO-ready CSV.</p>
+    <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px;">
+      <div class="field" style="max-width:200px;"><label>Month</label><input type="month" id="monthinput" /></div>
+      <button class="btn orange" id="exmonth">⇩ Export month (CSV)</button>
+      <button class="btn ghost" onclick="window.print()">🖨 Print</button>
+      <button class="btn ghost" id="closemonth">Close</button>
+    </div>
+    <div id="monthresults"><div class="empty">Pick a month above.</div></div>
+  </div>
+</div>
+
+<!-- Year-end / Dossier modal -->
+<div class="modal" id="yemodal">
+  <div class="box" id="yebox" style="max-width:880px;">
+    <h3>Year-End Dossier &amp; Adjusting Entry</h3>
+    <p>Pick a year-end. Each loan's <b>correct balance</b> (from its schedule) sits next to <b>QuickBooks</b>, and the tool builds <b>ONE adjusting entry</b> to true them up — offset to "Ask My Accountant" for the CPA. Print it for the dossier. (Your 9/30/2025 QuickBooks balances are pre-loaded; edit any if needed.)</p>
+    <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:14px;">
+      <div class="field" style="max-width:200px;"><label>Year-end date</label><input type="date" id="yeinput" value="2025-09-30" /></div>
+      <button class="btn orange" id="exye">⇩ Export entry (CSV)</button>
+      <button class="btn" id="printye">🖨 Print dossier</button>
+      <button class="btn ghost" id="closeye">Close</button>
+    </div>
+    <div id="yeresults"><div class="empty">Pick a year-end date above.</div></div>
+  </div>
+</div>
+
+<input type="file" id="importfile" accept=".json,.csv,.txt" style="display:none" />
+
+<script>
+(function(){
+  "use strict";
+  var KEY='fs_amort_instruments_v1', SELKEY='fs_amort_sel_v1';
+  // ===== SEED =====================================================================
+  // Kari's real instruments get baked in here by Bob so they TRAVEL WITH THE FILE
+  // (no import step for her, works on any machine). Each entry can omit id.
+  // Empty until her loan / lease / contract details are confirmed.
+  // IAZ Corp (MMP Uptown) Notes Payable — current balances pulled from QBO as of 2026-06-18.
+  // openingBalance = CURRENT payoff balance (amortize forward from the next payment).
+  // rate / termMonths / payment / startDate still need confirming per instrument, then the
+  // schedule + JE go live. All typed 'loan' because the equipment is already capitalized +
+  // depreciated on the books (a separate ROU asset would double-count) — switch any true lease
+  // to finance_lease if its structure says so.
+  // Terms harvested 2026-06-18 from each loan's TValue amortization schedule (folder: MP Uptown
+  // OneDrive\Loans and Leases). FIX-2025 method: openingBalance = the loan's 12/31/2024 balance,
+  // startDate = first 2025 payment, so the tool regenerates the exact correct 2025 monthly entries.
+  var SEED=[
+    { name:'Confession of Judgment — Hennepin County', type:'loan', direction:'pay', openingBalance:'178031.59', rate:'7', termMonths:'', startDate:'2027-07-31', payment:'44507.90', timing:'arrears', paymentFreq:'12', numPayments:'4', interestMode:'fixed_principal', downPayment:'44982.90', downDate:'2026-07-31', originationDate:'2026-07-31', bookAgainst:'Delinquent Property Taxes', memo:'MN § 279.37 CoJ. Base $222,539.49 = 5 equal principal pmts of $44,507.90. Pmt #1 (down, no interest) = $44,507.90 + $475 setup = $44,982.90. FIXED PRINCIPAL + interest on declining bal @ 7% (2026; rate floats yearly per MN DOR — add a rate-change row each Nov). $25 closing fee on last pmt not yet modeled.' },
+    { name:'Konica Minolta KM-1',            type:'loan', direction:'pay', openingBalance:'748246.76', rate:'1.654', termMonths:'', startDate:'2024-10-31', payment:'12009.90', timing:'arrears', paymentFreq:'1', numPayments:'', memo:'Anchor = QBO 9/30/2024 reviewed FYE ($748,246.76). $12,009.90/mo @1.654%. ✅ KM-1 payments from Oct-2024 on are mis-booked as Konica Minolta (1835) AP bills (dept "Contracts & Leases") instead of split to note+interest — note understated, AP inflated. Fix: reverse those AP bills, run them through this schedule.' },
+    { name:'MEDA 310205',                    type:'loan', direction:'pay', openingBalance:'231015.01', rate:'5.00', termMonths:'', startDate:'2024-10-16', payment:'1548.96', timing:'arrears', paymentFreq:'1', numPayments:'', memo:'Anchor = QBO 9/30/2024 ($231,015.01 — matches MEDA lender stmt). 310205 = restructure that paid off old 310112+310114 on 12/15/2023 at $233,272.07. ⚠ payments may be ~interest-only (lender bal was flat) — confirm amortizing vs interest-only; QBO later drifted ~$33k low from over-booking principal.' },
+    { name:'Konica Minolta CPO ROLLEM',      type:'loan', direction:'pay', openingBalance:'201911.83', rate:'1.853', termMonths:'', startDate:'2024-10-31', payment:'2728.65', timing:'arrears', paymentFreq:'1', numPayments:'', memo:'Anchor = QBO 9/30/2024 ($201,911.83). ~1.853% implied, $2,728.65/mo. (Master rate 3.582% was stale.)' },
+    { name:'Canon 868683 Flatbed Cutter',    type:'loan', direction:'pay', openingBalance:'198793.81', rate:'1.991', termMonths:'', startDate:'2024-10-01', payment:'5375', timing:'arrears', paymentFreq:'1', numPayments:'', memo:'Anchor = QBO 9/30/2024 ($198,793.81; = TValue 10/01/2024 bal — verify the first Oct entry is not double-posted). 1.991%, $5,375/mo (3 Canon loans combined; pmt steps to $3,560 then $2,893 late 2027).' },
+    { name:'Highland Capital Iridesse',      type:'loan', direction:'pay', openingBalance:'197189.79', rate:'8.885', termMonths:'', startDate:'2024-10-20', payment:'6050', timing:'arrears', paymentFreq:'1', numPayments:'', memo:'Anchor = QBO 9/30/2024 ($197,189.79). ~8.885% implied, $6,050/mo, 60 mo ending 11/20/2027.' },
+    { name:'Brown #1',                       type:'loan', direction:'pay', interestMode:'capitalize', openingBalance:'176051.22', rate:'7', termMonths:'', startDate:'2024-10-01', payment:'', timing:'arrears', paymentFreq:'1', numPayments:'24', memo:'Anchor = QBO 9/30/2024 ($176,051.22 — matches Brown note detail). CAPITALIZE: Dr Interest Exp / Cr Brown Loan #1 monthly at 7%. Frank pays principal irregularly (enter those separately).' },
+    { name:'SBA 6724567807',                 type:'loan', direction:'pay', openingBalance:'96897.55',  rate:'3.75', termMonths:'', startDate:'2024-10-01', payment:'731', timing:'arrears', paymentFreq:'1', numPayments:'', memo:'Anchor = QBO 9/30/2024 ($96,897.55 — = TValue 09/01/2024 bal EXACTLY). 3.75%, $731/mo. Balloon $64,713 on 6/1/2030. Reconciles perfectly.' },
+    { name:'NEON',                           type:'loan', direction:'pay', openingBalance:'92509.94',  rate:'5.21', termMonths:'', startDate:'2024-10-03', payment:'2302.93', timing:'arrears', paymentFreq:'1', numPayments:'', memo:'Anchor = QBO 9/30/2024 ($92,509.94). ~5.21% implied, $2,302.93/mo, small balloon 2028.' },
+    { name:'Brown #2',                       type:'loan', direction:'pay', interestMode:'capitalize', openingBalance:'75238.48',  rate:'7', termMonths:'', startDate:'2024-10-01', payment:'', timing:'arrears', paymentFreq:'1', numPayments:'24', memo:'Anchor = QBO 9/30/2024 ($75,238.48). CAPITALIZE: 7% rolls into Brown Loan #2.' },
+    { name:'AIS Retainer',                   type:'loan', direction:'pay', openingBalance:'53015.86',  rate:'', termMonths:'', startDate:'', payment:'', timing:'arrears', memo:'⚠ Anchor = QBO 9/30/2024 ($53,015.86, a real liability then; has since flipped negative). Folder 2976 AIS Loan + AIS Lease Amort Schedule exist. Need rate + payment + treatment — and figure out why it went negative.' },
+    { name:'Loeffler KM6136 -8405',          type:'loan', direction:'pay', openingBalance:'35653.57',  rate:'19.26', termMonths:'', startDate:'2024-10-23', payment:'1037', timing:'arrears', paymentFreq:'1', numPayments:'', memo:'Anchor = QBO 9/30/2024 ($35,653.57). $1,037/mo. ⚠ implied rate ~19.26% (high for equipment) — CONFIRM nominal rate.' },
+    { name:'BMW Financial',                  type:'loan', direction:'pay', openingBalance:'12761.51',  rate:'2.9', termMonths:'', startDate:'2024-10-15', payment:'938', timing:'arrears', paymentFreq:'1', numPayments:'', memo:'Anchor = QBO 9/30/2024 ($12,761.51). 2.9%, $938/mo (master listing). Paid off / account deleted during the year — schedule should run to ~zero. Confirm payment day.' },
+    { name:'Loeffler SEAL 65 - 6706',        type:'loan', direction:'pay', openingBalance:'16263.30',  rate:'', termMonths:'', startDate:'', payment:'', timing:'arrears', memo:'⚠ Anchor = QBO 9/30/2024 ($16,263.30). No amortization schedule in folder (lease/purchase agreements only). Need rate + payment.' },
+    { name:'Birch Loan',                     type:'loan', direction:'pay', openingBalance:'',          rate:'', termMonths:'', startDate:'', payment:'', timing:'arrears', memo:'⚠ NOT in 9/30/2024 books — originated AFTER the reviewed anchor (a new 2025 loan; QBO now ~$50k). Add it fresh at its origination date with rate/payment.' }
+  ];
+  // ===============================================================================
+  // QuickBooks note balances at each reviewed year-end (pulled from QBO). Used by the
+  // Year-end / Dossier view to compute the true-up adjustment vs the schedule.
+  var QBO_YE={ '2025-09-30': {
+    'Konica Minolta KM-1':515071.28, 'Konica Minolta CPO ROLLEM':206258.70, 'Canon 868683 Flatbed Cutter':174051.16,
+    'Highland Capital Iridesse':139824.58, 'MEDA 310205':221981.70, 'SBA 6724567807':93015.53, 'NEON':68750.08,
+    'Loeffler KM6136 -8405':32682.81, 'Brown #1':177500.95, 'Brown #2':82872.48, 'AIS Retainer':42981.55,
+    'Loeffler SEAL 65 - 6706':14685.66, 'BMW Financial':3588.29 } };
+  var state={ items:[], sel:null, tab:'details', period:1 };
+
+  // ---------- storage ----------
+  function load(){
+    var raw=null; try{ raw=JSON.parse(localStorage.getItem(KEY)); }catch(e){ raw=null; }
+    if(raw && raw.length){ state.items=raw; }
+    else { state.items=SEED.map(function(s){ var it=Object.assign(blank(), s, {id:uid()}); var q=QBO_YE['2025-09-30'][it.name]; if(q!=null){ it.yeQbo={'2025-09-30':q}; } return it; }); } // first open / empty → load baked-in book + QBO year-end balances
+    state.sel=localStorage.getItem(SELKEY)||null;
+    if(state.sel && !state.items.some(function(x){return x.id===state.sel;})) state.sel=null;
+  }
+  function save(){
+    localStorage.setItem(KEY,JSON.stringify(state.items));
+    if(state.sel) localStorage.setItem(SELKEY,state.sel); else localStorage.removeItem(SELKEY);
+    flash();
+  }
+  var fT;
+  function flash(){ var n=document.getElementById('savednote'); n.textContent='Saved ✓'; clearTimeout(fT); fT=setTimeout(function(){n.textContent='Auto-saved in this browser';},1200); }
+
+  // ---------- helpers ----------
+  var _uidc=0;
+  function uid(){ return 'i'+Date.now().toString(36)+'_'+(_uidc++); }
+  function num(v){ var n=parseFloat(String(v==null?'':v).replace(/[^0-9.\-]/g,'')); return isFinite(n)?n:0; }
+  function round2(n){ return Math.round((n+Number.EPSILON)*100)/100; }
+  function fmt(n){ return (n<0?'-':'')+'$'+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+  function fmt0(n){ return '$'+Math.round(n).toLocaleString('en-US'); }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function parseDate(s){ if(!s) return null; var p=String(s).slice(0,10).split(/[-/]/); if(p.length<3) return null;
+    var y,m,d; if(p[0].length===4){y=+p[0];m=+p[1];d=+p[2];}else{m=+p[0];d=+p[1];y=+p[2];if(y<100)y+=2000;}
+    var dt=new Date(y,m-1,d); return isNaN(dt)?null:dt; }
+  function addMonths(dt,k){ if(!dt) return null; var d=new Date(dt.getTime()); var day=d.getDate(); d.setDate(1); d.setMonth(d.getMonth()+k);
+    var last=new Date(d.getFullYear(),d.getMonth()+1,0).getDate(); d.setDate(Math.min(day,last)); return d; }
+  function dstr(dt){ if(!dt) return ''; var m=('0'+(dt.getMonth()+1)).slice(-2),d=('0'+dt.getDate()).slice(-2); return dt.getFullYear()+'-'+m+'-'+d; }
+  function monthsBetween(a,b){ if(!a||!b) return 0; return (b.getFullYear()-a.getFullYear())*12 + (b.getMonth()-a.getMonth()); }
+  function monthlyRate(annualPct){ return (num(annualPct)/100)/12; }
+  function pmt(i,n,pv){ if(n<=0) return 0; if(i===0) return pv/n; return pv*i/(1-Math.pow(1+i,-n)); }
+  function pvAnnuity(i,n,pay,timing){ if(n<=0) return 0; var v= (i===0)? pay*n : pay*(1-Math.pow(1+i,-n))/i; if(timing==='advance') v*=(1+i); return v; }
+
+  var TYPES={ loan:'Loan / Note / Mortgage', finance_lease:'Finance lease', operating_lease:'Operating lease', contract:'Service contract' };
+
+  function blank(){ return { id:uid(), name:'', type:'loan', direction:'pay', openingBalance:'', rate:'', termMonths:'', startDate:'', payment:'', timing:'arrears', downPayment:'', downDate:'', paymentFreq:'1', numPayments:'', rateSchedule:[], interestMode:'amortize', bookAgainst:'', originationDate:'', yeQbo:{}, memo:'', accounts:{} }; }
+  function selItem(){ return state.items.find(function(x){return x.id===state.sel;})||null; }
+
+  // ---------- default accounts ----------
+  function defAccounts(type,direction){
+    if(type==='loan') return {interestExp:'Interest Expense', principal:'Loan / Note Payable', accrued:'Accrued Interest Payable', cash:'Cash / Operating Checking'};
+    if(type==='finance_lease') return {interestExp:'Interest Expense', liability:'Lease Liability', cash:'Cash / Operating Checking', amortExp:'Amortization Expense — ROU Asset', rou:'Accumulated Amortization — ROU Asset'};
+    if(type==='operating_lease') return {leaseExp:'Lease Expense', liability:'Lease Liability', cash:'Cash / Operating Checking', rou:'ROU Asset — Operating Lease'};
+    if(type==='contract'){ return direction==='receive' ? {cash:'Cash / Operating Checking', revenue:'Service Revenue'} : {expense:'Contract / Service Expense', cash:'Cash / Operating Checking'}; }
+    return {};
+  }
+  function acctFields(type,direction){
+    if(type==='loan') return [['interestExp','Interest expense acct'],['principal','Principal / payable acct'],['accrued','Accrued interest payable acct'],['cash','Cash / funding acct']];
+    if(type==='finance_lease') return [['interestExp','Interest expense acct'],['liability','Lease liability acct'],['cash','Cash acct'],['amortExp','ROU amortization expense'],['rou','Accum. amort. — ROU']];
+    if(type==='operating_lease') return [['leaseExp','Lease expense acct'],['liability','Lease liability acct'],['cash','Cash acct'],['rou','ROU asset acct']];
+    if(type==='contract') return direction==='receive' ? [['cash','Cash / AR acct'],['revenue','Revenue acct']] : [['expense','Expense acct'],['cash','Cash / AP acct']];
+    return [];
+  }
+
+  // ---------- schedule engine ----------
+  function buildSchedule(it){
+    var i=monthlyRate(it.rate), n=Math.max(0,Math.round(num(it.termMonths))), timing=it.timing||'arrears', t, rows=[];
+    var start=parseDate(it.startDate);
+    function dt(k){ return start? dstr(addMonths(start,k)) : ''; }
+    if(it.type==='loan') return buildLoan(it, start);
+
+    if(n===0) return {rows:[],payment:0,kind:it.type,note:'Set a term (months) to build the schedule.'};
+
+    if(it.type==='finance_lease'){
+      var pf=num(it.payment);
+      var liab= num(it.openingBalance)>0 ? num(it.openingBalance) : round2(pvAnnuity(i,n,pf,timing));
+      var rou0=liab, rouAmort=round2(rou0/n), rouBal=rou0, lb=liab;
+      for(t=1;t<=n;t++){
+        var intF=(timing==='advance'&&t===1)?0:round2(lb*i);
+        var redF=round2(pf-intF), payF=pf;
+        if(t===n){ redF=round2(lb); payF=round2(intF+redF); } // final payment trues up so JE balances
+        lb=round2(lb-redF);
+        var am=(t===n)?round2(rouBal):rouAmort; rouBal=round2(rouBal-am);
+        rows.push({t:t,date:dt(t-1),payment:payF,interest:intF,principal:redF,balance:lb,rouAmort:am,rouBalance:rouBal});
+      }
+      return {rows:rows,payment:pf,kind:'finance_lease',liab0:liab,rou0:rou0};
+    }
+
+    if(it.type==='operating_lease'){
+      var po=num(it.payment);
+      var liabO= num(it.openingBalance)>0 ? num(it.openingBalance) : round2(pvAnnuity(i,n,po,timing));
+      var rouO=liabO, sl=round2((po*n)/n), lbo=liabO, rbo=rouO;
+      for(t=1;t<=n;t++){
+        var intO=(timing==='advance'&&t===1)?0:round2(lbo*i);
+        var redO=round2(po-intO); if(t===n) redO=round2(lbo);
+        lbo=round2(lbo-redO);
+        var rouRed=round2(sl+redO-po); // ROU asset is the plug so the entry always balances
+        rbo=round2(rbo-rouRed);
+        rows.push({t:t,date:dt(t-1),payment:po,interest:intO,principal:redO,balance:lbo,leaseExp:sl,rouRed:rouRed,rouBalance:rbo});
+      }
+      return {rows:rows,payment:po,kind:'operating_lease',liab0:liabO,rou0:rouO};
+    }
+
+    // contract
+    var pc= num(it.payment)>0 ? num(it.payment) : round2(num(it.openingBalance)/n);
+    for(t=1;t<=n;t++){ rows.push({t:t,date:dt(t-1),payment:pc}); }
+    return {rows:rows,payment:pc,kind:'contract'};
+  }
+
+  // rate in effect for a given month: initial rate from start, plus any dated changes
+  function applicableRate(it, dateStr){
+    var list=[{date:it.startDate, rate:num(it.rate)}].concat((it.rateSchedule||[]).filter(function(r){return r && r.date;}).map(function(r){return {date:String(r.date).slice(0,10), rate:num(r.rate)};}));
+    list=list.filter(function(r){return r.date;}).sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:0;});
+    var rate=list.length?list[0].rate:num(it.rate);
+    for(var k=0;k<list.length;k++){ if(list[k].date<=dateStr) rate=list[k].rate; }
+    return rate;
+  }
+  // monthly walk: every month gets a row — a payment OR an interest accrual. Handles down
+  // payment, payment frequency (skip months), explicit # of payments, and rate changes.
+  function buildLoan(it, start){
+    var freq=Math.max(1, Math.round(num(it.paymentFreq)||1));
+    var opening=num(it.openingBalance);
+    if(it.interestMode==='capitalize'){ // interest rolls into the balance each month; principal paid irregularly (entered separately)
+      if(!start) return {rows:[],payment:0,kind:'loan',note:'Set the anchor date to build the capitalize schedule.'};
+      var cmon=num(it.numPayments)>0?Math.round(num(it.numPayments)):(num(it.termMonths)>0?Math.round(num(it.termMonths)):12);
+      var cb=opening, crows=[], ct=0, ccur=new Date(start.getTime());
+      for(var cm=0;cm<cmon;cm++){ var cds=dstr(ccur), crate=applicableRate(it,cds), ci=round2(cb*(crate/100)/12); cb=round2(cb+ci);
+        crows.push({t:++ct,date:cds,type:'capitalize',payment:0,interest:ci,priorAccrued:0,principal:0,accrued:0,balance:cb,rate:crate}); ccur=addMonths(ccur,1); }
+      return {rows:crows,payment:0,kind:'loan'};
+    }
+    var fixedPrin=(it.interestMode==='fixed_principal'); // payment field = principal; interest rides on top
+    var nPay= num(it.numPayments)>0 ? Math.round(num(it.numPayments)) : (num(it.termMonths)>0 ? Math.max(1,Math.round(num(it.termMonths)/freq)) : 0);
+    if(nPay<=0 && num(it.payment)>0){ // derive # of payments from balance + payment
+      if(fixedPrin){ nPay=Math.max(1,Math.ceil(opening/num(it.payment))); }
+      else { var im=monthlyRate(it.rate)*freq, pp=num(it.payment);
+        if(im>0 && pp>im*opening) nPay=Math.ceil(-Math.log(1-im*opening/pp)/Math.log(1+im));
+        else if(im===0 && pp>0) nPay=Math.ceil(opening/pp); }
+    }
+    if(nPay<=0) return {rows:[],payment:0,kind:'loan',note:'Set the number of payments, a term, or a payment amount to build the schedule.'};
+    if(!start) return {rows:[],payment:0,kind:'loan',note:'Set the first payment date to build the schedule.'};
+    var pay= num(it.payment)>0 ? num(it.payment) : (fixedPrin ? round2(opening/nPay) : round2(pmt(monthlyRate(it.rate)*freq, nPay, opening)));
+    var bal=opening, accrued=0, rows=[], t=0;
+    if(it.bookAgainst){ // origination — book the loan on day one
+      rows.push({t:++t, date:String(it.originationDate||it.downDate||dstr(start)).slice(0,10), type:'origination', payment:round2(opening+num(it.downPayment)), interest:0, priorAccrued:0, principal:0, accrued:0, balance:bal, book:it.bookAgainst, down:round2(num(it.downPayment)), financed:round2(opening)});
+    } else if(num(it.downPayment)>0){
+      rows.push({t:++t, date:String(it.downDate||dstr(start)).slice(0,10), type:'down', payment:round2(num(it.downPayment)), interest:0, priorAccrued:0, principal:0, accrued:0, balance:bal});
+    }
+    // walk monthly so interest accrues every month; if booking/down predates the first payment by >1 month, accrue that gap too
+    var anchor=parseDate(it.originationDate||it.downDate), walkStart=start, lead=0;
+    if(anchor && monthsBetween(anchor,start)>1){ walkStart=addMonths(anchor,1); lead=monthsBetween(walkStart,start); }
+    var made=0;
+    for(var idx=0; made<nPay && idx<2400; idx++){
+      var cur=addMonths(walkStart,idx), ds=dstr(cur), rate=applicableRate(it,ds), mInt=round2(bal*(rate/100)/12);
+      if(idx>=lead && (idx-lead)%freq===0){
+        made++;
+        var priorAccrued=round2(accrued), intPortion=round2(accrued+mInt), prinPortion, thisPay;
+        if(fixedPrin){ prinPortion=pay; if(made===nPay) prinPortion=round2(bal); thisPay=round2(prinPortion+intPortion); }
+        else { thisPay=pay; prinPortion=round2(thisPay-intPortion); if(made===nPay){ prinPortion=round2(bal); thisPay=round2(prinPortion+intPortion); } }
+        bal=round2(bal-prinPortion); accrued=0;
+        rows.push({t:++t, date:ds, type:'payment', payment:thisPay, interest:round2(mInt), priorAccrued:priorAccrued, principal:prinPortion, accrued:0, balance:bal, rate:rate});
+      } else {
+        accrued=round2(accrued+mInt);
+        rows.push({t:++t, date:ds, type:'accrual', payment:0, interest:round2(mInt), priorAccrued:0, principal:0, accrued:accrued, balance:bal, rate:rate});
+      }
+    }
+    return {rows:rows, payment:pay, kind:'loan'};
+  }
+
+  // ---------- journal entry for one period ----------
+  function buildJE(it,row){
+    var a=Object.assign({},defAccounts(it.type,it.direction),it.accounts||{});
+    var label = row.type==='origination'?'book the loan':row.type==='down'?'down payment':row.type==='accrual'?'interest accrual':row.type==='capitalize'?'interest accrual':row.type==='payment'?'payment':('period '+row.t);
+    var memo=(it.name||'Instrument')+' — '+label+(row.date?(' '+row.date):'');
+    var lines=[];
+    function L(acct,dr,cr){ lines.push({acct:acct,debit:round2(dr||0),credit:round2(cr||0),memo:memo}); }
+    if(it.type==='loan'){
+      if(row.type==='origination'){ L(row.book||'(loan purpose)',row.payment,0); if(row.down>0) L(a.cash,0,row.down); L(a.principal,0,row.financed); }
+      else if(row.type==='down'){ L(a.principal,row.payment,0); L(a.cash,0,row.payment); }
+      else if(row.type==='capitalize'){ L(a.interestExp,row.interest,0); L(a.principal,0,row.interest); } // interest rolls into the loan balance
+      else if(row.type==='accrual'){ L(a.interestExp,row.interest,0); L(a.accrued,0,row.interest); }
+      else { // payment month — clears any interest accrued during skipped months
+        L(a.interestExp,row.interest,0);
+        if(row.priorAccrued>0) L(a.accrued,row.priorAccrued,0);
+        L(a.principal,row.principal,0); L(a.cash,0,row.payment);
+      }
+    }else if(it.type==='finance_lease'){
+      L(a.interestExp,row.interest,0); L(a.liability,row.principal,0); L(a.cash,0,row.payment);
+      L(a.amortExp,row.rouAmort,0); L(a.rou,0,row.rouAmort);
+    }else if(it.type==='operating_lease'){
+      L(a.leaseExp,row.leaseExp,0); L(a.liability,row.principal,0); L(a.cash,0,row.payment); L(a.rou,0,row.rouRed);
+    }else{ // contract
+      if(it.direction==='receive'){ L(a.cash,row.payment,0); L(a.revenue,0,row.payment); }
+      else { L(a.expense,row.payment,0); L(a.cash,0,row.payment); }
+    }
+    var dr=0,cr=0; lines.forEach(function(l){dr+=l.debit;cr+=l.credit;});
+    return {lines:lines,dr:round2(dr),cr:round2(cr),date:row.date,memo:memo};
+  }
+
+  // ---------- render: instrument list ----------
+  function renderList(){
+    document.getElementById('icount').textContent=state.items.length;
+    var el=document.getElementById('ilist');
+    if(!state.items.length){ el.innerHTML='<div class="empty">No instruments yet.</div>'; return; }
+    el.innerHTML=state.items.map(function(it){
+      var sc=buildSchedule(it);
+      var sub= it.type==='contract' ? (fmt0(sc.payment)+'/pmt · '+ (num(it.termMonths)||0)+'mo')
+             : it.type==='loan' ? (fmt0(num(it.openingBalance))+' · '+(num(it.rate)||0)+'%'+(num(it.numPayments)?(' · '+Math.round(num(it.numPayments))+' pmts'):''))
+             : (fmt0(num(it.openingBalance)|| (sc.liab0||0))+' · '+(num(it.rate)||0)+'% · '+(num(it.termMonths)||0)+'mo');
+      return '<div class="icard'+(it.id===state.sel?' on':'')+'" data-id="'+it.id+'">'+
+        '<button class="del" data-del="'+it.id+'" title="Delete">✕</button>'+
+        '<div class="nm">'+esc(it.name||'(untitled)')+'</div>'+
+        '<div class="meta"><span class="pill '+it.type+'">'+TYPES[it.type].split(' ')[0]+'</span> '+esc(sub)+'</div>'+
+      '</div>';
+    }).join('');
+  }
+
+  // ---------- render: main panel ----------
+  function renderMain(){
+    var it=selItem();
+    document.getElementById('edtitle').textContent = it ? (it.name||'(untitled instrument)') : 'No instrument selected';
+    var pb=document.getElementById('pbody');
+    if(!it){ pb.innerHTML='<div class="empty">Click <b>+ New instrument</b> to start, or pick one from the left. When the tool checks out, use <b>Bulk import</b> to push all your existing loans &amp; leases in at once.</div>'; return; }
+    document.querySelectorAll('#tabs button').forEach(function(b){ b.classList.toggle('on',b.dataset.tab===state.tab); });
+    if(state.tab==='details') pb.innerHTML=detailsHTML(it), wireDetails(it);
+    else if(state.tab==='schedule') pb.innerHTML=scheduleHTML(it), wireSchedule(it);
+    else pb.innerHTML=jeHTML(it), wireJE(it);
+  }
+
+  function detailsHTML(it){
+    var isLoan=it.type==='loan', isContract=it.type==='contract', isLease=(it.type==='finance_lease'||it.type==='operating_lease');
+    var balLabel= isLoan?'Current / opening balance (amount to amortize)' : isLease?'Lease liability (blank = compute from payment)' : 'Total contract value (optional)';
+    var rows=''+
+      f('full','name','Name','text',it.name,'e.g. SBA 6724567807, Confession of Judgment — Acme')+
+      sel('type','Type',it.type,Object.keys(TYPES).map(function(k){return [k,TYPES[k]];}))+
+      sel('direction','Direction', it.direction, [['pay','I pay (expense / liability)'],['receive','I receive (revenue / asset)']])+
+      f('','openingBalance',balLabel,'number',it.openingBalance,'')+
+      f('','startDate','First payment date','date',it.startDate,'')+
+      f('','payment','Payment amount'+(isLoan?' (blank = compute)':''),'number',it.payment, (it.interestMode==='fixed_principal'?'this is the PRINCIPAL per payment — interest adds on top':''))+
+      (isContract?'':f('','rate','Annual interest rate % (initial)','number',it.rate,''));
+    if(isLoan){
+      rows+=''+
+        f('','numPayments','Number of payments','number',it.numPayments,'how many payments total')+
+        f('','paymentFreq','Months between payments','number',it.paymentFreq||'1','1 = monthly · 3 = quarterly · 12 = annual')+
+        f('','termMonths','Term (months) — optional','number',it.termMonths,'used only if # of payments is blank')+
+        sel('interestMode','Interest handling',it.interestMode||'amortize',[['amortize','Amortizing — payment = interest + principal'],['fixed_principal','Fixed principal + interest on top (confession of judgment)'],['capitalize','Capitalizing — interest rolls into balance, irregular payments']])+
+        f('','downPayment','Down payment $ (optional)','number',it.downPayment,'')+
+        f('','downDate','Down payment / origination date','date',it.downDate,'')+
+        f('full','bookAgainst','Book the loan against (optional)','text',it.bookAgainst,'fills the day-one origination entry — e.g. Delinquent Property Taxes')+
+        f('','originationDate','Origination date (if different)','date',it.originationDate,'');
+    } else {
+      rows+= f('','termMonths','Term (months)','number',it.termMonths,'');
+      if(!isContract) rows+= sel('timing','Payment timing',it.timing,[['arrears','In arrears (end of period)'],['advance','In advance (start of period)']]);
+    }
+    rows+= f('full','memo','Memo (optional)','text',it.memo,'');
+    var rsBlock = isLoan ? rateScheduleHTML(it) : '';
+    // account mapping
+    var af=acctFields(it.type,it.direction), defs=defAccounts(it.type,it.direction), acc=Object.assign({},defs,it.accounts||{});
+    var accRows='<div class="secdiv">Account mapping (for the journal entry)</div>'+af.map(function(p){
+      return '<div class="field"><label>'+esc(p[1])+'</label><input data-acc="'+p[0]+'" type="text" value="'+esc(acc[p[0]]||'')+'" /></div>';
+    }).join('');
+    return '<div class="grid">'+rows+rsBlock+accRows+'</div>';
+  }
+  function rateScheduleHTML(it){
+    var list=(it.rateSchedule||[]);
+    var head='<div class="secdiv">Interest rate changes (e.g., resets each November)</div>'+
+      '<div class="field full"><span class="sub">The initial rate above applies from the first payment. Add a row per change — the schedule uses whichever rate is in effect that month.</span></div>';
+    var rowsH=list.map(function(r,idx){
+      return '<div class="field"><label>Effective date</label><input data-rs-date="'+idx+'" type="date" value="'+esc(r.date||'')+'" /></div>'+
+             '<div class="field"><label>New rate % <button type="button" data-rs-del="'+idx+'" style="border:none;background:none;color:var(--warn);cursor:pointer;float:right;font-family:var(--mono);font-size:10px;">remove</button></label><input data-rs-rate="'+idx+'" type="number" step="any" value="'+esc(r.rate==null?'':r.rate)+'" /></div>';
+    }).join('');
+    var add='<div class="field full"><button type="button" class="btn ghost sm" id="addrate">+ Add rate change</button></div>';
+    return head+rowsH+add;
+  }
+  function f(cls,id,label,type,val,sub){
+    return '<div class="field '+cls+'"><label>'+esc(label)+'</label><input data-k="'+id+'" type="'+type+'" '+(type==='number'?'step="any" ':'')+'value="'+esc(val==null?'':val)+'" />'+(sub?'<span class="sub">'+esc(sub)+'</span>':'')+'</div>';
+  }
+  function sel(id,label,val,opts){
+    return '<div class="field"><label>'+esc(label)+'</label><select data-k="'+id+'">'+opts.map(function(o){return '<option value="'+o[0]+'"'+(o[0]===val?' selected':'')+'>'+esc(o[1])+'</option>';}).join('')+'</select></div>';
+  }
+  function wireDetails(it){
+    document.querySelectorAll('#pbody [data-k]').forEach(function(inp){
+      inp.addEventListener('change',function(){
+        var k=inp.dataset.k; it[k]=inp.value;
+        if(k==='type'||k==='direction'){ it.accounts={}; } // reset to fresh defaults for the new shape
+        save(); renderList();
+        if(k==='type'||k==='direction'){ renderMain(); } else { document.getElementById('edtitle').textContent=it.name||'(untitled instrument)'; }
+      });
+    });
+    document.querySelectorAll('#pbody [data-acc]').forEach(function(inp){
+      inp.addEventListener('change',function(){ it.accounts=it.accounts||{}; it.accounts[inp.dataset.acc]=inp.value; save(); });
+    });
+    var addr=document.getElementById('addrate');
+    if(addr) addr.addEventListener('click',function(){ it.rateSchedule=it.rateSchedule||[]; it.rateSchedule.push({date:'',rate:''}); save(); renderMain(); });
+    document.querySelectorAll('#pbody [data-rs-del]').forEach(function(b){ b.addEventListener('click',function(){ it.rateSchedule.splice(+b.dataset.rsDel,1); save(); renderMain(); }); });
+    document.querySelectorAll('#pbody [data-rs-date]').forEach(function(inp){ inp.addEventListener('change',function(){ it.rateSchedule[+inp.dataset.rsDate].date=inp.value; save(); renderMain(); }); });
+    document.querySelectorAll('#pbody [data-rs-rate]').forEach(function(inp){ inp.addEventListener('change',function(){ it.rateSchedule[+inp.dataset.rsRate].rate=inp.value; save(); }); });
+  }
+
+  function scheduleHTML(it){
+    var sc=buildSchedule(it);
+    if(!sc.rows.length) return '<div class="empty">'+(sc.note||'Add details to build the schedule.')+'</div>';
+    var totInt=0,totPrin=0,totPay=0;
+    sc.rows.forEach(function(r){ if(r.type==='origination') return; totPay+=r.payment; totInt+=(r.interest||0); totPrin+=(r.principal||0); });
+    var cards='';
+    if(it.type==='loan'){
+      var payoff= sc.rows.length? sc.rows[sc.rows.length-1].date : '—';
+      var npmts= sc.rows.filter(function(r){return r.type==='payment';}).length;
+      cards='<div class="cards">'+
+        card('Opening balance', fmt0(num(it.openingBalance)),'','')+
+        card('Payment', fmt(sc.payment),npmts+' payments','or')+
+        card('Total interest', fmt(totInt),'over the loan','accent')+
+        card('Payoff', payoff,'final entry','go')+
+      '</div>';
+    } else if(it.type==='finance_lease'||it.type==='operating_lease'){
+      cards='<div class="cards">'+
+        card('Opening liability', fmt0(sc.liab0||0),'','')+
+        card('Monthly payment', fmt(sc.payment),'','or')+
+        card('Total interest', fmt(totInt),(num(it.termMonths)||0)+' periods','accent')+
+        card('Total paid', fmt(totPay),'over the term','go')+
+      '</div>';
+    } else {
+      cards='<div class="cards">'+
+        card('Monthly payment', fmt(sc.payment),'','or')+
+        card('Periods', String(sc.rows.length),'months','')+
+        card('Total commitment', fmt(totPay),'','go')+
+        card('Direction', it.direction==='receive'?'Receivable':'Payable','','accent')+
+      '</div>';
+    }
+    var head, body;
+    if(it.type==='loan'){
+      head='<th class="l">#</th><th class="l">Date</th><th class="l">Type</th><th>Payment</th><th>Interest</th><th>Principal</th><th>Accrued int</th><th>Balance</th>';
+      body=sc.rows.map(function(r){
+        if(r.type==='origination'){
+          return '<tr style="background:#f1ede4;"><td class="l">'+r.t+'</td><td class="l">'+r.date+'</td><td class="l vname">Book loan</td><td class="l" colspan="4" style="color:var(--slate-soft);font-style:italic;">Origination — books '+fmt(r.payment)+' (Dr '+esc(r.book||'loan purpose')+') · see Journal entry tab</td><td>'+fmt(r.balance)+'</td></tr>';
+        }
+        var ty=r.type==='accrual'?'Accrual':r.type==='down'?'Down pmt':r.type==='capitalize'?'Int→bal':'Payment';
+        return '<tr><td class="l">'+r.t+'</td><td class="l">'+r.date+'</td><td class="l">'+ty+'</td><td>'+(r.payment?fmt(r.payment):'')+'</td><td>'+fmt(r.interest||0)+'</td><td>'+(r.principal?fmt(r.principal):'')+'</td><td>'+(r.accrued?fmt(r.accrued):'')+'</td><td>'+fmt(r.balance)+'</td></tr>';
+      }).join('');
+      body+='<tr class="totals"><td class="l" colspan="3">Totals</td><td>'+fmt(totPay)+'</td><td>'+fmt(totInt)+'</td><td>'+fmt(totPrin)+'</td><td></td><td></td></tr>';
+    } else if(it.type==='finance_lease'){
+      head='<th class="l">#</th><th class="l">Date</th><th>Payment</th><th>Interest</th><th>Liab. ↓</th><th>Liab. bal</th><th>ROU amort</th><th>ROU bal</th>';
+      body=sc.rows.map(function(r){return '<tr><td class="l">'+r.t+'</td><td class="l">'+r.date+'</td><td>'+fmt(r.payment)+'</td><td>'+fmt(r.interest)+'</td><td>'+fmt(r.principal)+'</td><td>'+fmt(r.balance)+'</td><td>'+fmt(r.rouAmort)+'</td><td>'+fmt(r.rouBalance)+'</td></tr>';}).join('');
+    } else if(it.type==='operating_lease'){
+      head='<th class="l">#</th><th class="l">Date</th><th>Payment</th><th>Lease exp</th><th>Interest</th><th>Liab. bal</th><th>ROU ↓</th><th>ROU bal</th>';
+      body=sc.rows.map(function(r){return '<tr><td class="l">'+r.t+'</td><td class="l">'+r.date+'</td><td>'+fmt(r.payment)+'</td><td>'+fmt(r.leaseExp)+'</td><td>'+fmt(r.interest)+'</td><td>'+fmt(r.balance)+'</td><td>'+fmt(r.rouRed)+'</td><td>'+fmt(r.rouBalance)+'</td></tr>';}).join('');
+    } else {
+      head='<th class="l">#</th><th class="l">Date</th><th>Payment</th>';
+      body=sc.rows.map(function(r){return '<tr><td class="l">'+r.t+'</td><td class="l">'+r.date+'</td><td>'+fmt(r.payment)+'</td></tr>';}).join('');
+      body+='<tr class="totals"><td class="l" colspan="2">Total</td><td>'+fmt(totPay)+'</td></tr>';
+    }
+    return cards+
+      '<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;"><button class="btn sm" id="exsched">⇩ Export schedule (CSV)</button><button class="btn sm ghost" id="goje">→ Build journal entries</button><button class="btn sm ghost" onclick="window.print()">🖨 Print</button></div>'+
+      '<div class="panel"><div class="tscroll"><table><thead><tr>'+head+'</tr></thead><tbody>'+body+'</tbody></table></div></div>';
+  }
+  function card(t,v,s,cls){ return '<div class="mc '+(cls||'')+'"><div class="t">'+esc(t)+'</div><div class="v">'+esc(v)+'</div><div class="s">'+esc(s||'')+'</div></div>'; }
+  function wireSchedule(it){
+    var ex=document.getElementById('exsched'); if(ex) ex.addEventListener('click',function(){ exportScheduleCSV(it); });
+    var gj=document.getElementById('goje'); if(gj) gj.addEventListener('click',function(){ state.tab='je'; renderMain(); });
+  }
+
+  function jeHTML(it){
+    var sc=buildSchedule(it);
+    if(!sc.rows.length) return '<div class="empty">'+(sc.note||'Add details first.')+'</div>';
+    if(state.period>sc.rows.length) state.period=1;
+    var opts=sc.rows.map(function(r){return '<option value="'+r.t+'"'+(r.t===state.period?' selected':'')+'>Period '+r.t+(r.date?(' — '+r.date):'')+'</option>';}).join('');
+    var row=sc.rows[state.period-1], je=buildJE(it,row);
+    var lines=je.lines.map(function(l){return '<tr><td class="acct l">'+esc(l.acct)+'</td><td>'+(l.debit?fmt(l.debit):'')+'</td><td>'+(l.credit?fmt(l.credit):'')+'</td></tr>';}).join('');
+    var bal=Math.abs(je.dr-je.cr)<0.005;
+    return '<div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:14px;">'+
+        '<div class="field" style="max-width:280px;"><label>Period</label><select id="periodsel">'+opts+'</select></div>'+
+        '<button class="btn sm" id="exje">⇩ Export THIS entry (CSV)</button>'+
+        '<button class="btn sm orange" id="exalje">⇩ Export ALL '+sc.rows.length+' entries (QBO CSV)</button>'+
+      '</div>'+
+      '<div class="je"><div class="jh"><span>Journal Entry · '+esc(je.date||'(set a start date)')+'</span><span>'+esc(je.memo)+'</span></div>'+
+        '<table><thead><tr><th class="l">Account</th><th>Debit</th><th>Credit</th></tr></thead><tbody>'+lines+
+        '<tr class="totals"><td class="l">Totals</td><td>'+fmt(je.dr)+'</td><td>'+fmt(je.cr)+'</td></tr></tbody></table>'+
+        '<div class="bal '+(bal?'ok':'bad')+'">'+(bal?'✓ In balance':'⚠ Out of balance by '+fmt(round2(je.dr-je.cr)))+'</div>'+
+      '</div>';
+  }
+  function wireJE(it){
+    var ps=document.getElementById('periodsel'); if(ps) ps.addEventListener('change',function(){ state.period=+ps.value; renderMain(); });
+    var ej=document.getElementById('exje'); if(ej) ej.addEventListener('click',function(){ exportJECSV(it,state.period); });
+    var ea=document.getElementById('exalje'); if(ea) ea.addEventListener('click',function(){ exportJECSV(it,null); });
+  }
+
+  // ---------- CSV exports ----------
+  function dl(name,text){ var b=new Blob([text],{type:'text/csv'}); var a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=name; a.click(); }
+  function csvCell(s){ s=String(s==null?'':s); return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; }
+  function csvRow(arr){ return arr.map(csvCell).join(','); }
+  function safeName(it){ return (it.name||'instrument').replace(/[^a-z0-9]+/gi,'_').replace(/^_+|_+$/g,''); }
+
+  function exportScheduleCSV(it){
+    var sc=buildSchedule(it), out=[];
+    if(it.type==='loan') out.push(csvRow(['Period','Date','Type','Payment','Interest','Principal','Accrued Interest','Balance']));
+    else if(it.type==='finance_lease') out.push(csvRow(['Period','Date','Payment','Interest','Liability Reduction','Liability Balance','ROU Amortization','ROU Balance']));
+    else if(it.type==='operating_lease') out.push(csvRow(['Period','Date','Payment','Lease Expense','Interest','Liability Balance','ROU Reduction','ROU Balance']));
+    else out.push(csvRow(['Period','Date','Payment']));
+    sc.rows.forEach(function(r){
+      if(it.type==='loan') out.push(csvRow([r.t,r.date,r.type||'payment',r.payment||'',r.interest||'',r.principal||'',r.accrued||'',r.balance]));
+      else if(it.type==='finance_lease') out.push(csvRow([r.t,r.date,r.payment,r.interest,r.principal,r.balance,r.rouAmort,r.rouBalance]));
+      else if(it.type==='operating_lease') out.push(csvRow([r.t,r.date,r.payment,r.leaseExp,r.interest,r.balance,r.rouRed,r.rouBalance]));
+      else out.push(csvRow([r.t,r.date,r.payment]));
+    });
+    dl(safeName(it)+'_schedule.csv',out.join('\n'));
+  }
+  function exportJECSV(it,period){
+    var sc=buildSchedule(it), out=[csvRow(['Date','Journal No','Account','Debit','Credit','Memo','Name'])];
+    var rows= period? [sc.rows[period-1]] : sc.rows;
+    rows.forEach(function(r){
+      var je=buildJE(it,r), jno='JE-'+safeName(it)+'-'+r.t;
+      je.lines.forEach(function(l){ out.push(csvRow([r.date,jno,l.acct,l.debit||'',l.credit||'',l.memo,it.name||''])); });
+    });
+    dl(safeName(it)+(period?('_JE_p'+period):'_ALL_journal_entries')+'.csv',out.join('\n'));
+  }
+
+  // ---------- monthly close (ALL instruments for one calendar month) ----------
+  function entriesForMonth(ym){
+    var res=[];
+    state.items.forEach(function(it){
+      var sc=buildSchedule(it); if(!sc.rows.length) return;
+      sc.rows.filter(function(r){return r.date && r.date.slice(0,7)===ym;}).forEach(function(row){ res.push({it:it,row:row,je:buildJE(it,row)}); });
+    });
+    return res;
+  }
+  function monthCash(list){ var c=0; list.forEach(function(e){ var p=e.row.payment||0; c+= (e.it.direction==='receive'? -p : p); }); return round2(c); }
+  function renderMonth(ym){
+    var box=document.getElementById('monthresults');
+    if(!ym){ box.innerHTML='<div class="empty">Pick a month above.</div>'; return; }
+    var list=entriesForMonth(ym);
+    var noDate=state.items.filter(function(it){ var sc=buildSchedule(it); return !sc.rows.length || !sc.rows[0].date; });
+    if(!list.length){ box.innerHTML='<div class="empty">No instrument has a payment dated in '+esc(ym)+'.'+(noDate.length?(' '+noDate.length+' instrument(s) have no start date set yet.'):'')+'</div>'; return; }
+    var gdr=0,gcr=0;
+    var html=list.map(function(e){
+      gdr+=e.je.dr; gcr+=e.je.cr;
+      var lines=e.je.lines.map(function(l){return '<tr><td class="acct l">'+esc(l.acct)+'</td><td>'+(l.debit?fmt(l.debit):'')+'</td><td>'+(l.credit?fmt(l.credit):'')+'</td></tr>';}).join('');
+      return '<div class="je" style="margin-bottom:12px;"><div class="jh"><span><b>'+esc(e.it.name||'(untitled)')+'</b> · '+esc(TYPES[e.it.type].split(' ')[0])+' · '+esc(e.row.date)+'</span><span>period '+e.row.t+'</span></div>'+
+        '<table><thead><tr><th class="l">Account</th><th>Debit</th><th>Credit</th></tr></thead><tbody>'+lines+
+        '<tr class="totals"><td class="l">Entry total</td><td>'+fmt(e.je.dr)+'</td><td>'+fmt(e.je.cr)+'</td></tr></tbody></table></div>';
+    }).join('');
+    var summary='<div class="cards" style="margin-bottom:14px;">'+
+      card('Entries this month', String(list.length), esc(ym),'')+
+      card('Total debits', fmt(round2(gdr)),'','accent')+
+      card('Total credits', fmt(round2(gcr)),'','go')+
+      card('Net cash out', fmt(monthCash(list)),'payments + rent','or')+
+    '</div>';
+    box.innerHTML=summary+html;
+  }
+  function exportMonthCSV(ym){
+    if(!ym){ alert('Pick a month first.'); return; }
+    var list=entriesForMonth(ym); if(!list.length){ alert('Nothing dated in '+ym+'.'); return; }
+    var out=[csvRow(['Date','Journal No','Account','Debit','Credit','Memo','Name'])];
+    list.forEach(function(e){ var jno='JE-'+safeName(e.it)+'-'+e.row.t; e.je.lines.forEach(function(l){ out.push(csvRow([e.row.date,jno,l.acct,l.debit||'',l.credit||'',l.memo,e.it.name||''])); }); });
+    dl('journal_entries_'+ym+'.csv',out.join('\n'));
+  }
+
+  // ---------- year-end / dossier ----------
+  function scheduleBalanceAt(it, dateStr){
+    var sc=buildSchedule(it); if(!sc.rows.length) return null;
+    var e=sc.rows.filter(function(r){return r.date && r.date<=dateStr;});
+    return e.length? e[e.length-1].balance : null;
+  }
+  function yeRows(dateStr){
+    return state.items.map(function(it){
+      var sched=scheduleBalanceAt(it,dateStr);
+      var qraw= it.yeQbo? it.yeQbo[dateStr] : undefined;
+      var qbo=(qraw!=null && qraw!=='')? num(qraw): null;
+      var diff=(sched!=null && qbo!=null)? round2(sched-qbo): null;
+      return {it:it, sched:sched, qbo:qbo, diff:diff};
+    });
+  }
+  function buildYearEndJE(dateStr){
+    var lines=[], dr=0, cr=0;
+    yeRows(dateStr).forEach(function(r){
+      if(r.diff==null || Math.abs(r.diff)<0.005) return;
+      var acct=(r.it.accounts&&r.it.accounts.principal)||defAccounts(r.it.type,r.it.direction).principal||r.it.name;
+      if(r.diff>0){ lines.push({acct:acct,debit:0,credit:r.diff,memo:r.it.name}); cr+=r.diff; }
+      else { lines.push({acct:acct,debit:round2(-r.diff),credit:0,memo:r.it.name}); dr+=-r.diff; }
+    });
+    var ama=round2(cr-dr);
+    if(Math.abs(ama)>=0.005){
+      if(ama>0) lines.push({acct:'Ask My Accountant',debit:ama,credit:0,memo:'CPA to allocate (interest / prior-year)'});
+      else lines.push({acct:'Ask My Accountant',debit:0,credit:round2(-ama),memo:'CPA to allocate (interest / prior-year)'});
+    }
+    var tdr=0,tcr=0; lines.forEach(function(l){tdr+=l.debit;tcr+=l.credit;});
+    return {lines:lines, dr:round2(tdr), cr:round2(tcr), date:dateStr};
+  }
+  function renderYearEnd(dateStr){
+    var box=document.getElementById('yeresults');
+    if(!dateStr){ box.innerHTML='<div class="empty">Pick a year-end date above.</div>'; return; }
+    var rows=yeRows(dateStr);
+    var trows=rows.map(function(r){
+      var sched= r.sched!=null? fmt(r.sched) : '<span style="color:var(--muted);font-style:italic;">no schedule</span>';
+      var qv=(r.it.yeQbo&&r.it.yeQbo[dateStr]!=null)? r.it.yeQbo[dateStr] : '';
+      var qinput='<input data-ye="'+r.it.id+'" type="number" step="any" value="'+esc(qv)+'" placeholder="QBO $" style="width:118px;font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-radius:6px;padding:5px 7px;text-align:right;background:#fdfcfa;" />';
+      var diff= r.diff==null? '<span style="color:var(--muted);">—</span>' : (Math.abs(r.diff)<0.005? '<span style="color:var(--good);font-weight:600;">✓ ties out</span>' : '<b style="color:var(--warn);">'+fmt(r.diff)+'</b>');
+      return '<tr><td class="l vname">'+esc(r.it.name)+'</td><td>'+sched+'</td><td>'+qinput+'</td><td>'+diff+'</td></tr>';
+    }).join('');
+    var je=buildYearEndJE(dateStr);
+    var jelines=je.lines.map(function(l){return '<tr><td class="acct l">'+esc(l.acct)+'</td><td class="l" style="font-size:11px;color:var(--muted);">'+esc(l.memo)+'</td><td>'+(l.debit?fmt(l.debit):'')+'</td><td>'+(l.credit?fmt(l.credit):'')+'</td></tr>';}).join('');
+    var bal=Math.abs(je.dr-je.cr)<0.005;
+    box.innerHTML=
+      '<div class="panel" style="margin-bottom:16px;"><div class="tscroll"><table><thead><tr><th class="l">Loan</th><th>Schedule (correct)</th><th>QuickBooks</th><th>Adjustment</th></tr></thead><tbody>'+trows+'</tbody></table></div></div>'+
+      '<h3 style="font-family:var(--serif);color:var(--slate-deep);font-size:18px;margin:6px 0 10px;">Year-End Adjusting Entry · '+esc(dateStr)+'</h3>'+
+      (je.lines.length? '<div class="je"><table><thead><tr><th class="l">Account</th><th class="l">Loan</th><th>Debit</th><th>Credit</th></tr></thead><tbody>'+jelines+'<tr class="totals"><td class="l" colspan="2">Totals</td><td>'+fmt(je.dr)+'</td><td>'+fmt(je.cr)+'</td></tr></tbody></table><div class="bal '+(bal?'ok':'bad')+'">'+(bal?'✓ In balance — offset parked in Ask My Accountant for the CPA':'⚠ Out of balance')+'</div></div>'
+        : '<div class="empty">Every loan with data ties out — no adjusting entry needed. 🎉</div>');
+  }
+  function exportYearEndCSV(dateStr){
+    var je=buildYearEndJE(dateStr); if(!je.lines.length){ alert('Nothing to adjust at '+dateStr+'.'); return; }
+    var out=[csvRow(['Date','Journal No','Account','Debit','Credit','Memo','Name'])], jno='YE-'+dateStr;
+    je.lines.forEach(function(l){ out.push(csvRow([dateStr,jno,l.acct,l.debit||'',l.credit||'',l.memo,''])); });
+    dl('year_end_adjusting_entry_'+dateStr+'.csv',out.join('\n'));
+  }
+
+  // ---------- bulk import ----------
+  function parseCSV(text){
+    var lines=text.replace(/\r/g,'').split('\n').filter(function(l){return l.trim()!=='';});
+    if(!lines.length) return [];
+    function splitLine(l){ var out=[],cur='',q=false; for(var i=0;i<l.length;i++){var c=l[i];
+      if(q){ if(c==='"'){ if(l[i+1]==='"'){cur+='"';i++;} else q=false; } else cur+=c; }
+      else { if(c==='"') q=true; else if(c===','){out.push(cur);cur='';} else cur+=c; } }
+      out.push(cur); return out; }
+    var headers=splitLine(lines[0]).map(function(h){return h.trim();});
+    return lines.slice(1).map(function(l){ var c=splitLine(l), o={}; headers.forEach(function(h,i){o[h]=(c[i]||'').trim();}); return o; });
+  }
+  function importData(text,replace){
+    text=text.trim(); if(!text){ alert('Nothing to import.'); return; }
+    var incoming=[];
+    try{
+      if(text[0]==='['||text[0]==='{'){ var j=JSON.parse(text); var arr=Array.isArray(j)?j:(j.items||[]); incoming=arr; }
+      else { incoming=parseCSV(text); }
+    }catch(e){ alert('Could not parse that. Check it is valid JSON array or CSV.\n\n'+e.message); return; }
+    if(!incoming.length){ alert('No rows found.'); return; }
+    var built=incoming.map(function(r){
+      var it=blank();
+      it.name=r.name||r.Name||'';
+      it.type=(r.type||'loan').trim(); if(!TYPES[it.type]) it.type='loan';
+      it.direction=(r.direction||'pay').trim()==='receive'?'receive':'pay';
+      it.openingBalance=r.openingBalance!=null?r.openingBalance:(r.principal||'');
+      it.rate=r.rate||'';
+      it.termMonths=r.termMonths||r.term||'';
+      it.startDate=r.startDate||r.start||'';
+      it.payment=r.payment||'';
+      it.timing=(r.timing||'arrears').trim()==='advance'?'advance':'arrears';
+      it.downPayment=r.downPayment||''; it.downDate=r.downDate||'';
+      it.paymentFreq=r.paymentFreq||'1'; it.numPayments=r.numPayments||'';
+      if(Array.isArray(r.rateSchedule)) it.rateSchedule=r.rateSchedule;
+      it.interestMode=(r.interestMode==='capitalize')?'capitalize':'amortize';
+      it.memo=r.memo||'';
+      if(r.accounts && typeof r.accounts==='object') it.accounts=r.accounts;
+      return it;
+    });
+    if(replace) state.items=built; else state.items=state.items.concat(built);
+    state.sel=built.length?built[built.length-1].id:state.sel;
+    save(); renderList(); renderMain();
+    document.getElementById('importmodal').classList.remove('on');
+    document.getElementById('importtext').value='';
+    alert('Imported '+built.length+' instrument'+(built.length===1?'':'s')+'.');
+  }
+
+  // ---------- wire toolbar ----------
+  function init(){
+    load();
+    document.getElementById('newbtn').addEventListener('click',function(){ var it=blank(); it.accounts={}; state.items.push(it); state.sel=it.id; state.tab='details'; save(); renderList(); renderMain(); });
+    document.getElementById('exportallbtn').addEventListener('click',function(){
+      var t=JSON.stringify(state.items,null,2); dl('amortization_instruments_backup.json',t);
+    });
+    document.getElementById('templatebtn').addEventListener('click',function(){
+      var t=[csvRow(['name','type','direction','openingBalance','rate','termMonths','startDate','payment','timing']),
+        csvRow(['4026 Washington Mortgage','loan','pay','850000','6.25','240','2024-01-01','','arrears']),
+        csvRow(['Xerox C70 (keep)','finance_lease','pay','','7.5','60','2025-03-01','525','advance']),
+        csvRow(['Suite 200 office','operating_lease','pay','','5','36','2026-01-01','2200','advance']),
+        csvRow(['ABC Snow Removal','contract','pay','','','12','2025-11-01','650','']) ].join('\n');
+      dl('amortization_import_template.csv',t);
+    });
+    document.getElementById('monthbtn').addEventListener('click',function(){ document.getElementById('monthmodal').classList.add('on'); renderMonth(document.getElementById('monthinput').value); });
+    document.getElementById('monthinput').addEventListener('change',function(){ renderMonth(this.value); });
+    document.getElementById('closemonth').addEventListener('click',function(){ document.getElementById('monthmodal').classList.remove('on'); });
+    document.getElementById('exmonth').addEventListener('click',function(){ exportMonthCSV(document.getElementById('monthinput').value); });
+    document.getElementById('monthmodal').addEventListener('click',function(e){ if(e.target.id==='monthmodal') this.classList.remove('on'); });
+    document.getElementById('yebtn').addEventListener('click',function(){ document.getElementById('yemodal').classList.add('on'); renderYearEnd(document.getElementById('yeinput').value); });
+    document.getElementById('yeinput').addEventListener('change',function(){ renderYearEnd(this.value); });
+    document.getElementById('closeye').addEventListener('click',function(){ document.getElementById('yemodal').classList.remove('on'); });
+    document.getElementById('exye').addEventListener('click',function(){ exportYearEndCSV(document.getElementById('yeinput').value); });
+    document.getElementById('printye').addEventListener('click',function(){ document.body.classList.add('ye-print'); window.print(); setTimeout(function(){document.body.classList.remove('ye-print');},300); });
+    document.getElementById('yemodal').addEventListener('click',function(e){ if(e.target.id==='yemodal') this.classList.remove('on'); });
+    document.getElementById('yeresults').addEventListener('change',function(e){ var inp=e.target.closest('[data-ye]'); if(!inp)return; var it=state.items.find(function(x){return x.id===inp.dataset.ye;}); if(!it)return; var d=document.getElementById('yeinput').value; if(!it.yeQbo)it.yeQbo={}; it.yeQbo[d]=inp.value; save(); renderYearEnd(d); });
+    document.getElementById('importbtn').addEventListener('click',function(){ document.getElementById('importmodal').classList.add('on'); });
+    document.getElementById('closeimport').addEventListener('click',function(){ document.getElementById('importmodal').classList.remove('on'); });
+    document.getElementById('doimport').addEventListener('click',function(){ importData(document.getElementById('importtext').value,false); });
+    document.getElementById('importreplace').addEventListener('click',function(){ if(confirm('Wipe ALL current instruments and replace with what you pasted?')) importData(document.getElementById('importtext').value,true); });
+    document.getElementById('importmodal').addEventListener('click',function(e){ if(e.target.id==='importmodal') this.classList.remove('on'); });
+
+    document.getElementById('ilist').addEventListener('click',function(e){
+      var del=e.target.closest('[data-del]');
+      if(del){ e.stopPropagation(); var id=del.dataset.del; var it=state.items.find(function(x){return x.id===id;});
+        if(confirm('Delete "'+((it&&it.name)||'this instrument')+'"? This cannot be undone.')){ state.items=state.items.filter(function(x){return x.id!==id;}); if(state.sel===id) state.sel=null; save(); renderList(); renderMain(); } return; }
+      var card=e.target.closest('[data-id]'); if(!card) return;
+      state.sel=card.dataset.id; state.tab='details'; state.period=1; save(); renderList(); renderMain();
+    });
+    document.getElementById('tabs').addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b)return; state.tab=b.dataset.tab; renderMain(); });
+
+    renderList(); renderMain();
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+})();
+</script>
+<script src="https://chat.karikounkel.com/widget.js" defer></script>
+</body>
+</html>

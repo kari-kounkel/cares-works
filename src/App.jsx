@@ -34,6 +34,8 @@ import PayrollCalculator from "./pages/PayrollCalculator";
 import Ledger from "./pages/Ledger";
 import KariCockpits from "./pages/KariCockpits";
 import KariOneList from "./pages/KariOneList";
+import KariCockpitFrame from "./pages/KariCockpitFrame";
+import { FRAME_COCKPITS } from "./cockpits/registry";
 
 export function navigate(path) {
   window.history.pushState({}, "", path);
@@ -101,6 +103,14 @@ export default function App() {
   if (path === "/kari/the-one-list") {
     if (!session) { navigate("/login"); return null; }
     return <KariOneList session={session} />;
+  }
+  if (path.startsWith("/kari/")) {
+    const slug = path.slice("/kari/".length);
+    const cfg = FRAME_COCKPITS[slug];
+    if (cfg) {
+      if (!session) { navigate("/login"); return null; }
+      return <KariCockpitFrame session={session} {...cfg} />;
+    }
   }
 
   if (path.startsWith("/court/")) {

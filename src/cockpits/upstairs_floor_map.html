@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Upstairs Floor Map — FlowSuite MoneyFlow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Figtree:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{--slate:#3d4560;--slate-deep:#2b3147;--slate-soft:#5a6480;--orange:#e8773a;--orange-soft:#f4a373;
+    --paper:#f7f5f1;--card:#ffffff;--line:#e3ddd2;--ink:#26293a;--muted:#8a8576;--good:#3f7a5a;--warn:#b5532a;--maroon:#7A1F2B;
+    --serif:'DM Serif Display',Georgia,serif;--body:'Figtree',system-ui,sans-serif;--mono:'DM Mono',ui-monospace,monospace;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:var(--body);background:var(--paper);color:var(--ink);line-height:1.5;
+    background-image:radial-gradient(circle at 15% -10%, rgba(232,119,58,.06), transparent 45%),radial-gradient(circle at 100% 0%, rgba(61,69,96,.07), transparent 40%);min-height:100vh;}
+  .wrap{max-width:1320px;margin:0 auto;padding:34px 24px 80px;}
+  header.masthead{border-bottom:2px solid var(--slate);padding-bottom:16px;margin-bottom:8px;display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;}
+  .brand-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--orange);font-weight:500;}
+  h1{font-family:var(--serif);font-size:32px;line-height:1.05;color:var(--slate-deep);margin-top:6px;}
+  .statute{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:8px;}
+  .masthead .seal{font-family:var(--serif);font-size:13px;color:var(--slate-soft);text-align:right;border-left:1px solid var(--line);padding-left:18px;line-height:1.35;}
+  .propbar{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;color:var(--maroon);background:#f6edef;border:1px solid #e6d3d6;border-radius:7px;padding:6px 12px;margin-bottom:16px;text-transform:uppercase;}
+  .warnbar{font-family:var(--mono);font-size:11px;color:var(--warn);background:#fff7ef;border:1px solid var(--orange-soft);border-radius:7px;padding:7px 12px;margin-bottom:14px;}
+  .cards{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px;}
+  @media(max-width:900px){.cards{grid-template-columns:repeat(2,1fr);}}
+  .mc{background:var(--slate-deep);color:#fff;border-radius:13px;padding:13px 15px;}
+  .mc.open{background:var(--orange);} .mc.go{background:var(--good);}
+  .mc .t{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.62);}
+  .mc .v{font-family:var(--mono);font-size:21px;font-weight:500;margin-top:4px;}
+  .mc .s{font-size:10px;color:rgba(255,255,255,.6);}
+  .layout{display:grid;grid-template-columns:1fr 330px;gap:16px;align-items:start;}
+  @media(max-width:980px){.layout{grid-template-columns:1fr;}}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 40px -28px rgba(43,49,71,.45);overflow:hidden;}
+  .panel-head{background:var(--slate);color:#fff;padding:11px 16px;font-family:var(--mono);font-size:11px;letter-spacing:.15em;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;}
+  .panel-body{padding:14px 16px;}
+  svg{width:100%;height:auto;display:block;background:#fbfaf7;}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--slate-soft);padding:10px 16px;font-family:var(--mono);}
+  .legend span{display:inline-flex;align-items:center;gap:5px;} .sw{width:12px;height:12px;border-radius:3px;display:inline-block;}
+  .selbtns{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+  .sb{font-family:var(--mono);font-size:10.5px;border:1px solid var(--line);background:#fdfcfa;border-radius:7px;padding:6px 9px;cursor:pointer;color:var(--slate);}
+  .sb:hover{background:#f1ede4;}
+  .ed label{display:block;font-size:11px;font-weight:600;color:var(--slate-soft);margin:10px 0 4px;}
+  .ed input,.ed select{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px 10px;font-family:var(--mono);font-size:13px;background:#fdfcfa;}
+  .ed input:focus,.ed select:focus{outline:none;border-color:var(--orange);box-shadow:0 0 0 3px rgba(232,119,58,.14);}
+  .selname{font-family:var(--serif);font-size:19px;color:var(--slate-deep);}
+  .selsf{font-family:var(--mono);font-size:12px;color:var(--muted);}
+  .applybtn{margin-top:12px;width:100%;font-family:var(--body);font-weight:600;font-size:13px;border-radius:8px;cursor:pointer;padding:10px;border:1px solid var(--orange);background:var(--orange);color:#fff;}
+  .ttl-row{display:flex;justify-content:space-between;font-size:12.5px;padding:5px 0;border-bottom:1px dashed var(--line);}
+  .ttl-row b{font-family:var(--mono);}
+  .toolbar{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin:14px 0;}
+  .btn{font-family:var(--body);font-weight:600;font-size:13px;border-radius:8px;cursor:pointer;padding:9px 15px;border:1px solid var(--slate);background:var(--slate);color:#fff;}
+  .btn.ghost{background:transparent;color:var(--slate);} .btn.ghost:hover{background:#f1ede4;}
+  .spacer{flex:1;} .savednote{font-family:var(--mono);font-size:11px;color:var(--good);}
+  .hint{font-size:11px;color:var(--muted);} .foot{margin-top:30px;text-align:center;font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.1em;}
+  .room{cursor:pointer;} .room:hover rect{stroke:var(--ink);stroke-width:2.5;}
+  @media print{.toolbar,.warnbar,.selbtns,.applybtn{display:none;} .panel{box-shadow:none;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="masthead">
+    <div>
+      <div class="brand-eyebrow">FlowSuite · MoneyFlow · Property</div>
+      <h1>Upstairs Floor Map — 2nd Floor</h1>
+      <div class="statute">4026 Washington Ave N · Existing Second Floor Plan · 4,179 sf</div>
+    </div>
+    <div class="seal">CARES Consulting™<br>Saint Paul, MN</div>
+  </header>
+  <div class="propbar">⚖ Proprietary &amp; Confidential — Property of CARES Consulting Inc. · © 2026 · Unauthorized use prohibited</div>
+  <div class="warnbar">⚠ Saving: open this file in your <b>browser</b> (double-click it on the Desktop), not the preview pane — the preview forgets on refresh. Use <b>⭳ Export</b> to back up your work to a file.</div>
+
+  <div class="cards">
+    <div class="mc"><div class="t">2nd floor total</div><div class="v" id="c-total">0</div><div class="s">sq ft</div></div>
+    <div class="mc"><div class="t">Rentable offices</div><div class="v" id="c-rentable">0</div><div class="s">sq ft</div></div>
+    <div class="mc go"><div class="t">Leased</div><div class="v" id="c-leased">0</div><div class="s" id="c-occ">0%</div></div>
+    <div class="mc open"><div class="t">🎯 Open offices</div><div class="v" id="c-open">0</div><div class="s" id="c-openn">0 rooms</div></div>
+    <div class="mc"><div class="t">Monthly rent</div><div class="v" id="c-rent">$0</div><div class="s" id="c-annual">/yr</div></div>
+  </div>
+
+  <div class="layout">
+    <div class="panel">
+      <div class="panel-head"><span>Floor Map (schematic — sized by area)</span><span>▲ NORTH ▶</span></div>
+      <svg id="map" viewBox="0 0 840 580" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div class="legend">
+        <span><i class="sw" style="background:#e8773a"></i> Open</span>
+        <span><i class="sw" style="background:#3f7a5a"></i> Rented</span>
+        <span><i class="sw" style="background:#7A1F2B"></i> MMP</span>
+        <span><i class="sw" style="background:#c9c3b6"></i> Common</span>
+        <span class="hint">· click = select · Shift/Ctrl-click = add more</span>
+      </div>
+    </div>
+
+    <div>
+      <div class="panel ed-edit">
+        <div class="panel-head"><span>Assign Space</span></div>
+        <div class="panel-body ed">
+          <div class="selbtns">
+            <button class="sb" id="sel-all">Select whole floor</button>
+            <button class="sb" id="sel-open">Select open offices</button>
+            <button class="sb" id="sel-clear">Clear</button>
+          </div>
+          <div id="editor"><div class="hint">Click rooms on the map. Shift/Ctrl-click to grab several (incl. common areas) and rent them as one suite.</div></div>
+        </div>
+      </div>
+      <div class="panel" style="margin-top:14px;">
+        <div class="panel-head"><span>By Renter</span></div>
+        <div class="panel-body" id="bytenant"><div class="hint">No spaces leased yet.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <span class="hint">🎯 = open office. Rent several rooms to one renter to build a suite.</span>
+    <span class="spacer"></span>
+    <span class="savednote" id="savednote">● Auto-saves in your browser</span>
+    <button class="btn ghost" onclick="window.print()">Print / PDF</button>
+    <button class="btn ghost" id="exportbtn">⭳ Export</button>
+    <button class="btn ghost" id="importbtn">⭱ Import</button>
+    <input type="file" id="importfile" accept="application/json" style="display:none">
+    <button class="btn ghost" id="resetbtn">Reset</button>
+  </div>
+  <div class="foot"><div style="margin-bottom:6px;letter-spacing:.1em;">FLOWSUITE PRO™ · MONEYFLOW · POWERED BY ASK™</div><div style="font-size:10px;line-height:1.5;max-width:780px;margin:0 auto;text-transform:none;letter-spacing:normal;color:var(--muted);">FlowSuite Property — Upstairs Floor Map is the proprietary intellectual property of CARES Consulting, Inc. &amp; Kari Hoglund Kounkel. © 2025–2026. All rights reserved. Unauthorized use, duplication, hosting, or distribution is strictly prohibited.</div></div>
+</div>
+
+<script>
+  // [id,label,sqft,kind('office'|'common'), x,y,w,h]
+  const ROOMS=[
+   ["207","Office 207",124.97,"office",20,28,150,72],
+   ["206","Office 206",215.23,"office",20,104,150,84],
+   ["205","Office 205",190.86,"office",20,192,150,76],
+   ["204","Office 204",190.86,"office",20,272,150,76],
+   ["203","Office 203",261.15,"office",20,352,150,96],
+   ["202","Office 202",159.39,"office",20,452,150,70],
+   ["208","Toilet 208",43.57,"common",185,28,72,46],
+   ["209","Restroom 209",144.74,"common",185,80,95,72],
+   ["210","Break 210",249.45,"common",300,28,150,92],
+   ["211","Open Office 211",1157.66,"office",300,136,330,256],
+   ["201","Reception 201",467.33,"common",185,452,265,70],
+   ["200","Storage 200",34.09,"common",20,530,150,40],
+   ["138","Stair A",207.88,"common",185,530,130,40],
+   ["218","Office 218",131.09,"office",662,28,156,74],
+   ["217","Office 217",128.27,"office",662,108,156,74],
+   ["216","Office 216",128.27,"office",662,188,156,74],
+   ["215","Office 215",128.27,"office",662,268,156,74],
+   ["214","Office 214",128.27,"office",662,348,156,74],
+   ["213","Office 213",131.09,"office",662,428,156,94],
+  ];
+  const KEY='mmp_floormap_v2';
+  const COL={Rented:"#3f7a5a",Vacant:"#e8773a",MMP:"#7A1F2B",Common:"#c9c3b6"};
+  const STATUS=["Vacant","Rented","MMP","Common"];
+  const fmt=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(n||0);
+  const sf=n=>new Intl.NumberFormat('en-US',{maximumFractionDigits:0}).format(n||0);
+  const room=id=>ROOMS.find(r=>r[0]===id);
+  let A=JSON.parse(localStorage.getItem(KEY)||'null')|| (()=>{const o={};ROOMS.forEach(r=>o[r[0]]={status:r[3]==='common'?'Common':'Vacant',renter:'',base:0});return o;})();
+  let SEL=new Set();
+  function save(){localStorage.setItem(KEY,JSON.stringify(A));const n=document.getElementById('savednote');n.textContent='● Saved';setTimeout(()=>n.textContent='● Auto-saves in your browser',1000);}
+
+  function drawMap(){
+    const svg=document.getElementById('map');svg.innerHTML='';
+    ROOMS.forEach(([id,label,sqft,kind,x,y,w,h])=>{
+      const a=A[id]||{status:'Vacant'};const fill=COL[a.status]||"#c9c3b6";const isSel=SEL.has(id);
+      const g=document.createElementNS('http://www.w3.org/2000/svg','g');g.setAttribute('class','room');
+      const rect=document.createElementNS('http://www.w3.org/2000/svg','rect');
+      rect.setAttribute('x',x);rect.setAttribute('y',y);rect.setAttribute('width',w);rect.setAttribute('height',h);
+      rect.setAttribute('rx',5);rect.setAttribute('fill',fill);rect.setAttribute('fill-opacity',kind==='common'?0.55:0.9);
+      rect.setAttribute('stroke',isSel?'#e8773a':'#ffffff');rect.setAttribute('stroke-width',isSel?4:1.5);
+      g.appendChild(rect);
+      const star=(a.status==='Vacant'&&kind==='office')?' 🎯':'';
+      const t1=document.createElementNS('http://www.w3.org/2000/svg','text');
+      t1.setAttribute('x',x+w/2);t1.setAttribute('y',y+h/2-4);t1.setAttribute('text-anchor','middle');
+      t1.setAttribute('font-family','DM Mono, monospace');t1.setAttribute('font-size',w<100?9:11);t1.setAttribute('font-weight','500');
+      t1.setAttribute('fill', a.status==='Common'?'#5a5446':'#ffffff');t1.textContent=label.replace('Office ','#')+star;
+      const t2=document.createElementNS('http://www.w3.org/2000/svg','text');
+      t2.setAttribute('x',x+w/2);t2.setAttribute('y',y+h/2+11);t2.setAttribute('text-anchor','middle');
+      t2.setAttribute('font-family','DM Mono, monospace');t2.setAttribute('font-size',w<100?8:9.5);
+      t2.setAttribute('fill', a.status==='Common'?'#7a7565':'rgba(255,255,255,.85)');t2.textContent=sf(sqft)+' sf';
+      g.appendChild(t1);g.appendChild(t2);
+      if(a.renter){const t3=document.createElementNS('http://www.w3.org/2000/svg','text');
+        t3.setAttribute('x',x+w/2);t3.setAttribute('y',y+h-7);t3.setAttribute('text-anchor','middle');
+        t3.setAttribute('font-family','Figtree, sans-serif');t3.setAttribute('font-size',9);t3.setAttribute('font-style','italic');
+        t3.setAttribute('fill', a.status==='Common'?'#5a5446':'#ffffff');t3.textContent=a.renter.slice(0,18);g.appendChild(t3);}
+      g.addEventListener('click',(e)=>{
+        if(e.shiftKey||e.ctrlKey||e.metaKey){ SEL.has(id)?SEL.delete(id):SEL.add(id); }
+        else { SEL=new Set([id]); }
+        drawMap();editor();});
+      svg.appendChild(g);
+    });
+  }
+  function editor(){
+    const el=document.getElementById('editor');
+    if(SEL.size===0){el.innerHTML='<div class="hint">Click rooms on the map. Shift/Ctrl-click to grab several (incl. common areas) and rent them as one suite.</div>';return;}
+    const ids=[...SEL];const totalSf=ids.reduce((s,id)=>s+room(id)[2],0);
+    if(SEL.size===1){
+      const id=ids[0],r=room(id),a=A[id];
+      el.innerHTML='<div class="selname">'+r[1]+'</div><div class="selsf">'+sf(r[2])+' sq ft · '+(r[3]==='office'?'rentable office':'common area')+'</div>'+
+        '<label>Status</label><select id="e-st">'+STATUS.map(s=>'<option '+(a.status===s?'selected':'')+'>'+s+'</option>').join('')+'</select>'+
+        '<label>Renter</label><input id="e-rt" value="'+(a.renter||'').replace(/"/g,'&quot;')+'" placeholder="renter name (blank = open)">'+
+        '<label>Base rent $/mo</label><input id="e-bs" inputmode="decimal" value="'+(a.base||'')+'">'+
+        '<div class="hint" style="margin-top:8px;">At $13/sf market, ≈ '+fmt(r[2]*13/12)+'/mo.</div>';
+      document.getElementById('e-st').addEventListener('change',e=>{a.status=e.target.value;save();drawMap();recompute();});
+      document.getElementById('e-rt').addEventListener('input',e=>{a.renter=e.target.value;if(a.renter&&a.status==='Vacant')a.status='Rented';save();drawMap();recompute();});
+      document.getElementById('e-bs').addEventListener('input',e=>{a.base=parseFloat(e.target.value.replace(/[^0-9.]/g,''))||0;save();recompute();});
+    } else {
+      el.innerHTML='<div class="selname">'+SEL.size+' spaces selected</div><div class="selsf">'+sf(totalSf)+' sq ft total · market ≈ '+fmt(totalSf*13/12)+'/mo</div>'+
+        '<label>Assign all to renter</label><input id="b-rt" placeholder="renter name">'+
+        '<label>Set status</label><select id="b-st"><option value="">— keep each as-is —</option>'+STATUS.map(s=>'<option>'+s+'</option>').join('')+'</select>'+
+        '<label>Total base rent $/mo (split across rooms by size)</label><input id="b-bs" inputmode="decimal" placeholder="e.g. '+Math.round(totalSf*13/12)+'">'+
+        '<button class="applybtn" id="b-apply">Assign these '+SEL.size+' spaces</button>'+
+        '<div class="hint" style="margin-top:8px;">Includes common areas you selected — perfect for a whole-floor or suite tenant.</div>';
+      document.getElementById('b-apply').addEventListener('click',()=>{
+        const rt=document.getElementById('b-rt').value.trim();const st=document.getElementById('b-st').value;
+        const totalBase=parseFloat(document.getElementById('b-bs').value.replace(/[^0-9.]/g,''))||0;
+        ids.forEach(id=>{const a=A[id];
+          if(rt!=='')a.renter=rt;
+          if(st)a.status=st; else if(rt!==''&&a.status==='Vacant')a.status='Rented';
+          if(totalBase>0)a.base=Math.round((room(id)[2]/totalSf)*totalBase*100)/100;
+        });
+        save();drawMap();recompute();editor();});
+    }
+  }
+  function recompute(){
+    let total=0,rentable=0,leased=0,open=0,openN=0,rent=0;const byT={};
+    ROOMS.forEach(([id,label,sqft,kind])=>{const a=A[id]||{status:'Vacant'};total+=sqft;
+      if(kind==='office')rentable+=sqft;
+      if(a.status==='Rented'){leased+=sqft;rent+=(+a.base||0);const k=a.renter||'(unnamed)';if(!byT[k])byT[k]={sf:0,n:0,rent:0};byT[k].sf+=sqft;byT[k].n++;byT[k].rent+=(+a.base||0);}
+      else if(a.renter){const k=a.renter;if(!byT[k])byT[k]={sf:0,n:0,rent:0};byT[k].sf+=sqft;byT[k].n++;byT[k].rent+=(+a.base||0);}
+      if(a.status==='Vacant'&&kind==='office'){open+=sqft;openN++;}
+    });
+    document.getElementById('c-total').textContent=sf(total);
+    document.getElementById('c-rentable').textContent=sf(rentable);
+    document.getElementById('c-leased').textContent=sf(leased);
+    document.getElementById('c-occ').textContent=(rentable?Math.round(leased/rentable*100):0)+'% of rentable';
+    document.getElementById('c-open').textContent=sf(open);
+    document.getElementById('c-openn').textContent=openN+' rooms · ~'+fmt(open*13)+'/yr at $13';
+    document.getElementById('c-rent').textContent=fmt(rent);
+    document.getElementById('c-annual').textContent=fmt(rent*12)+' /yr';
+    const bt=document.getElementById('bytenant');const ents=Object.entries(byT);
+    bt.innerHTML=ents.length?ents.sort((a,b)=>b[1].sf-a[1].sf).map(([k,d])=>'<div class="ttl-row"><span><b style="font-family:var(--body)">'+k+'</b> <span class="hint">'+sf(d.sf)+' sf · '+d.n+' rm</span></span><b>'+fmt(d.rent)+'/mo</b></div>').join(''):'<div class="hint">No spaces leased yet.</div>';
+  }
+  document.getElementById('sel-all').addEventListener('click',()=>{SEL=new Set(ROOMS.map(r=>r[0]));drawMap();editor();});
+  document.getElementById('sel-open').addEventListener('click',()=>{SEL=new Set(ROOMS.filter(r=>r[3]==='office'&&(A[r[0]]||{}).status==='Vacant').map(r=>r[0]));drawMap();editor();});
+  document.getElementById('sel-clear').addEventListener('click',()=>{SEL.clear();drawMap();editor();});
+  document.getElementById('exportbtn').addEventListener('click',()=>{const b=new Blob([JSON.stringify(A,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='Upstairs_floormap.json';a.click();});
+  document.getElementById('importbtn').addEventListener('click',()=>document.getElementById('importfile').click());
+  document.getElementById('importfile').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{A=JSON.parse(r.result);save();drawMap();editor();recompute();alert('Imported.');}catch(err){alert('Could not read that file.');}};r.readAsText(f);e.target.value='';});
+  document.getElementById('resetbtn').addEventListener('click',()=>{if(confirm('Reset all rooms to open?')){A={};ROOMS.forEach(r=>A[r[0]]={status:r[3]==='common'?'Common':'Vacant',renter:'',base:0});SEL.clear();save();drawMap();editor();recompute();}});
+  drawMap();editor();recompute();
+</script>
+<script src="https://chat.karikounkel.com/widget.js" defer></script>
+</body>
+</html>
