@@ -33,6 +33,7 @@ import AchForm from "./pages/AchForm";
 import PayrollCalculator from "./pages/PayrollCalculator";
 import Ledger from "./pages/Ledger";
 import KariCockpits from "./pages/KariCockpits";
+import KariOneList from "./pages/KariOneList";
 
 export function navigate(path) {
   window.history.pushState({}, "", path);
@@ -96,6 +97,10 @@ export default function App() {
   if (path === "/kari") {
     if (!session) { navigate("/login"); return null; }
     return <KariCockpits session={session} />;
+  }
+  if (path === "/kari/the-one-list") {
+    if (!session) { navigate("/login"); return null; }
+    return <KariOneList session={session} />;
   }
 
   if (path.startsWith("/court/")) {
