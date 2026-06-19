@@ -35,7 +35,7 @@ import Ledger from "./pages/Ledger";
 import KariCockpits from "./pages/KariCockpits";
 import KariOneList from "./pages/KariOneList";
 import KariCockpitFrame from "./pages/KariCockpitFrame";
-import { FRAME_COCKPITS } from "./cockpits/registry";
+import { FRAME_COCKPITS, CLOUD_COCKPITS } from "./cockpits/registry";
 
 export function navigate(path) {
   window.history.pushState({}, "", path);
@@ -110,6 +110,11 @@ export default function App() {
     if (cfg) {
       if (!session) { navigate("/login"); return null; }
       return <KariCockpitFrame session={session} {...cfg} />;
+    }
+    const cloud = CLOUD_COCKPITS[slug];
+    if (cloud) {
+      if (!session) { navigate("/login"); return null; }
+      return <KariCockpitFrame session={session} slug={slug} title={cloud.title} />;
     }
   }
 
