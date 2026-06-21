@@ -62,6 +62,10 @@ export default function Dashboard({ session }) {
   const [loading, setLoading] = useState(true);
   const [tools, setTools] = useState([]);
   const [toolsLoading, setToolsLoading] = useState(true);
+  const [debriefs, setDebriefs] = useState([]);
+  const [debriefsLoading, setDebriefsLoading] = useState(true);
+  const [openDebriefSlug, setOpenDebriefSlug] = useState(null);
+  const [debriefCategory, setDebriefCategory] = useState("All");
 
   // Onboarding modals + collapsible Library helper
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
@@ -92,6 +96,18 @@ export default function Dashboard({ session }) {
       setToolsLoading(false);
     };
     fetchTools();
+
+    const fetchDebriefs = async () => {
+      const { data } = await supabase
+        .from("debriefs")
+        .select("*")
+        .eq("is_published", true)
+        .order("sort_order", { ascending: true });
+      setDebriefs(data || []);
+      setDebriefsLoading(false);
+    };
+    fetchDebriefs();
+
     const script = document.createElement("script");
     script.src = "https://chat.karikounkel.com/widget.js";
     script.defer = true;
@@ -400,19 +416,77 @@ export default function Dashboard({ session }) {
         {activeTab === "debrief" && (
           <div>
             <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, color: S.slate, marginBottom: 6 }}>The Debrief</h1>
-            <p style={{ color: S.muted, fontSize: 15, marginBottom: 40 }}>Monthly teaching + real member questions answered by Kari.</p>
+            <p style={{ color: S.muted, fontSize: 15, marginBottom: 28, maxWidth: 700 }}>
+              Short business breakdowns. Why your vendor list is telling on you. Why cash flow is not a vibe. Honest answers to the questions you got tired of asking.
+            </p>
 
-            <div style={{ background: S.slate, borderRadius: 14, padding: "40px", color: "#fff", position: "relative", overflow: "hidden" }}>
-              <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 80% 50%, rgba(232,119,58,0.15) 0%, transparent 60%)" }} />
-              <div style={{ position: "relative" }}>
-                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase", color: S.orange, marginBottom: 12 }}>Latest Episode</div>
-                <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 28, marginBottom: 12 }}>{DEBRIEF_PLACEHOLDER.title}</h2>
-                <p style={{ fontSize: 15, color: "rgba(255,255,255,0.7)", marginBottom: 28, maxWidth: 500 }}>{DEBRIEF_PLACEHOLDER.desc}</p>
-                <div style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 10, padding: "16px 20px", display: "inline-block", fontFamily: "'DM Mono', monospace", fontSize: 12, color: "rgba(255,255,255,0.5)", letterSpacing: "0.08em" }}>
-                  Dropping soon — check back April 30
-                </div>
+            {/* CATEGORY FILTER CHIPS */}
+            {!debriefsLoading && debriefs.length > 0 && (
+              <div style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap" }}>
+                {["All", "Invisible Leaks", "The Drawer of Doom", "Nobody Told Owners This", "Fixed It Friday", "Live From My Business Feelings"].map(cat => {
+                  const active = debriefCategory === cat;
+                  return (
+                    <button key={cat} onClick={() => setDebriefCategory(cat)}
+                      style={{ padding: "7px 16px", borderRadius: 100, border: "1.5px solid " + (active ? S.orange : S.rule), background: active ? S.orange : "#fff", color: active ? "#fff" : S.muted, fontSize: 12, fontWeight: active ? 700 : 500, cursor: "pointer", fontFamily: "'Figtree', sans-serif" }}>
+                      {cat}
+                    </button>
+                  );
+                })}
               </div>
-            </div>
+            )}
+
+            {/* DEBRIEF LIST */}
+            {debriefsLoading ? (
+              <div style={{ background: S.cream, border: "1px dashed " + S.rule, borderRadius: 12, padding: "48px 24px", textAlign: "center", color: S.muted, fontFamily: "'DM Mono', monospace", fontSize: 13 }}>
+                Loading the Debriefs…
+              </div>
+            ) : debriefs.length === 0 ? (
+              <div style={{ background: S.cream, border: "1px dashed " + S.rule, borderRadius: 12, padding: "48px 24px", textAlign: "center", color: S.muted }}>
+                <div style={{ fontSize: 32, marginBottom: 12 }}>☕</div>
+                <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: S.slate, marginBottom: 8 }}>No Debriefs yet.</div>
+                <p style={{ fontSize: 14 }}>Check back soon — first issues are brewing.</p>
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                {debriefs.filter(d => debriefCategory === "All" || d.category === debriefCategory).map(d => {
+                  const isOpen = openDebriefSlug === d.slug;
+                  return (
+                    <div key={d.slug} style={{ background: "#fff", border: "1px solid " + (isOpen ? S.orange : S.rule), borderRadius: 12, overflow: "hidden", transition: "border-color 0.15s" }}>
+                      <div onClick={() => setOpenDebriefSlug(isOpen ? null : d.slug)}
+                        style={{ padding: "20px 26px", cursor: "pointer" }}>
+                        <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: S.orange, marginBottom: 6 }}>
+                          {d.category}
+                        </div>
+                        <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: S.slate, marginBottom: 8, lineHeight: 1.3 }}>{d.title}</h3>
+                        <p style={{ color: S.muted, fontSize: 14, lineHeight: 1.55, margin: 0 }}>{d.summary}</p>
+                        {!isOpen && (
+                          <div style={{ marginTop: 12, fontFamily: "'DM Mono', monospace", fontSize: 11, color: S.orange, fontWeight: 700, letterSpacing: "0.08em" }}>
+                            READ →
+                          </div>
+                        )}
+                      </div>
+                      {isOpen && (
+                        <div style={{ borderTop: "1px solid " + S.rule, padding: "24px 26px", background: S.cream }}>
+                          {d.body && d.body.split("\n\n").map((para, i) => (
+                            <p key={i} style={{ fontSize: 15, color: S.ink, lineHeight: 1.7, marginBottom: 14, whiteSpace: "pre-wrap" }}>{para}</p>
+                          ))}
+                          {d.cta_text && d.cta_link && (
+                            <a href={d.cta_link} onClick={e => { if (d.cta_link.startsWith("/tools/")) { e.preventDefault(); navigate(d.cta_link); } }}
+                              style={{ display: "inline-block", marginTop: 8, padding: "11px 22px", background: S.grad, color: "#fff", textDecoration: "none", borderRadius: 8, fontSize: 13, fontWeight: 700, fontFamily: "'Figtree', sans-serif" }}>
+                              {d.cta_text} →
+                            </a>
+                          )}
+                          <button onClick={() => setOpenDebriefSlug(null)}
+                            style={{ marginTop: 16, marginLeft: 12, background: "transparent", border: "none", color: S.muted, fontFamily: "'DM Mono', monospace", fontSize: 11, cursor: "pointer", letterSpacing: "0.08em" }}>
+                            ↑ Close
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
             <div style={{ marginTop: 32, background: S.cream, border: "1px solid " + S.rule, borderRadius: 12, padding: "24px 28px" }}>
               <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: S.slate, marginBottom: 8 }}>Submit a question for next month</h3>
