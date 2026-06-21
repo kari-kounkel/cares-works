@@ -44,11 +44,6 @@ const CATEGORY_ORDER = ["bookkeeping", "money", "people", "clientwork", "leaders
 const CAT_LABELS = { bookkeeping: "Bookkeeping", money: "Money", people: "People", clientwork: "Client Work", leadership: "Leadership", utilities: "Utilities" };
 const CAT_ICONS = { bookkeeping: "📒", money: "💰", people: "👥", clientwork: "🤝", leadership: "🎯", utilities: "🛠️" };
 
-const DEBRIEF_PLACEHOLDER = {
-  title: "The Debrief — April 2026",
-  desc: "This month: Net profit ratios, what your numbers are actually telling you, and member questions answered.",
-};
-
 const COURT_CHAPTERS = [
   { slug: "prologue", label: "Prologue", title: "Introduction and Prologue", available: true, hasAudio: true },
   { slug: "chapter-1", label: "Chapter 1", title: "The Kingdom of Eggerton", available: false },
@@ -107,12 +102,7 @@ export default function Dashboard({ session }) {
       setDebriefsLoading(false);
     };
     fetchDebriefs();
-
-    const script = document.createElement("script");
-    script.src = "https://chat.karikounkel.com/widget.js";
-    script.defer = true;
-    document.body.appendChild(script);
-    return () => { if (document.body.contains(script)) document.body.removeChild(script); };
+    // Widget is loaded once at the page level via index.html — no per-component injection.
   }, [session]);
 
   const handleLogout = async () => {

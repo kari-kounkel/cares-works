@@ -18,6 +18,10 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
-    <script src="https://chat.karikounkel.com/widget.js" defer></script>
+    <script>
+      // Lite "support" mode — no email gate, simpler "get in touch" flow.
+      window.AskKariConfig = { mode: "support", site: "CARES Works" };
+    </script>
+    <script src="https://chat.karikounkel.com/widget.js?v=2" defer></script>
   </body>
 </html>
