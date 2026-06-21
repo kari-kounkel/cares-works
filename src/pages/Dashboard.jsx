@@ -63,6 +63,11 @@ export default function Dashboard({ session }) {
   const [tools, setTools] = useState([]);
   const [toolsLoading, setToolsLoading] = useState(true);
 
+  // Onboarding modals + collapsible Library helper
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [showHowToModal, setShowHowToModal] = useState(false);
+  const [showLibraryHelp, setShowLibraryHelp] = useState(false);
+
   // Filter state for Tool Library
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCats, setSelectedCats] = useState([]); // empty = all
@@ -186,8 +191,11 @@ export default function Dashboard({ session }) {
       {/* HEADER */}
       <header className="dash-header" style={{ background: S.slate, padding: "0 32px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 58, boxShadow: "0 2px 12px rgba(0,0,0,0.15)", position: "sticky", top: 0, zIndex: 100 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
-          <a href="/" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: "#fff", textDecoration: "none" }}>
-            CARES <span style={{ color: S.orange }}>Works.</span>
+          <a href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
+            <img src="/cares-works-logo.png" alt="CARES Works" style={{ height: 36, width: "auto", display: "block" }} />
+            <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: "#fff" }}>
+              CARES <span style={{ color: S.orange }}>Works.</span>
+            </span>
           </a>
           <div className="dash-header-tabs" style={{ display: "flex", gap: 2, background: "rgba(0,0,0,0.2)", borderRadius: 8, padding: 3 }}>
             {tabs.map(t => (
@@ -212,11 +220,38 @@ export default function Dashboard({ session }) {
         {/* TOOLS TAB */}
         {activeTab === "tools" && (
           <>
-            <div style={{ marginBottom: 28 }}>
-              <h1 className="dash-h1" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, color: S.slate, marginBottom: 6 }}>
-                {"Welcome back" + (member?.full_name ? ", " + member.full_name.split(" ")[0] : "") + "."}
-              </h1>
-              <p style={{ color: S.muted, fontSize: 15 }}>Your full tool library. New tools added monthly. Search, filter, find what you need.</p>
+            <div style={{ display: "flex", alignItems: "center", gap: 28, marginBottom: 28, flexWrap: "wrap" }}>
+              <img src="/cares-works-logo.png" alt="CARES Works" style={{ width: 120, height: "auto", flexShrink: 0 }} />
+              <div style={{ flex: 1, minWidth: 260 }}>
+                <h1 className="dash-h1" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 36, color: S.slate, marginBottom: 8, lineHeight: 1.15 }}>
+                  {"Welcome back" + (member?.full_name ? ", " + member.full_name.split(" ")[0] : "") + "."}
+                </h1>
+                <p style={{ color: S.slate, fontSize: 17, lineHeight: 1.55, marginBottom: 6, maxWidth: 720 }}>
+                  Tools, Debriefs, and practical business systems for people who are done letting chaos run the meeting.
+                </p>
+                <p style={{ color: S.muted, fontSize: 14, fontStyle: "italic" }}>
+                  Start with one problem. Find one tool. Fix one thing.
+                </p>
+              </div>
+            </div>
+
+            {/* START HERE STRIP */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 14, marginBottom: 32 }}>
+              {[
+                { emoji: "👋", title: "Watch the 2-Minute Welcome", desc: "What this place is, how it works, and where not to panic.", btn: "Watch Welcome", onClick: () => setShowWelcomeModal(true) },
+                { emoji: "🧭", title: "Learn the Layout", desc: "Tools, Debriefs, downloads, categories, and how to find what you need fast.", btn: "How This Works", onClick: () => setShowHowToModal(true) },
+                { emoji: "🔥", title: "What's New This Week", desc: "Latest tools, newest Debriefs, featured fixes, and current chaos containment.", btn: "See What's New", onClick: () => { const el = document.getElementById("whats-new"); if (el) el.scrollIntoView({ behavior: "smooth" }); else setShowHowToModal(true); } },
+              ].map(card => (
+                <div key={card.title} style={{ background: "#fff", border: "1px solid " + S.rule, borderRadius: 12, padding: "20px 22px", display: "flex", flexDirection: "column", gap: 8 }}>
+                  <div style={{ fontSize: 26, lineHeight: 1 }}>{card.emoji}</div>
+                  <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 17, color: S.slate, lineHeight: 1.25 }}>{card.title}</div>
+                  <div style={{ fontSize: 13, color: S.muted, lineHeight: 1.5, flex: 1 }}>{card.desc}</div>
+                  <button onClick={card.onClick}
+                    style={{ marginTop: 6, padding: "9px 14px", background: S.grad, border: "none", borderRadius: 8, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'Figtree', sans-serif", textAlign: "left" }}>
+                    {card.btn} →
+                  </button>
+                </div>
+              ))}
             </div>
 
             {/* SEARCH BAR */}
@@ -234,6 +269,37 @@ export default function Dashboard({ session }) {
               {searchQuery && (
                 <button onClick={() => setSearchQuery("")}
                   style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "transparent", border: "none", color: S.muted, fontSize: 18, cursor: "pointer", padding: 4 }}>×</button>
+              )}
+            </div>
+
+            {/* COLLAPSIBLE: How to Use the Tool Library */}
+            <div style={{ marginBottom: 14 }}>
+              <button onClick={() => setShowLibraryHelp(v => !v)}
+                style={{ background: "transparent", border: "none", color: S.orange, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Mono', monospace", letterSpacing: "0.06em", textTransform: "uppercase", padding: "4px 0" }}>
+                {showLibraryHelp ? "− Hide" : "+ How"} to use the Tool Library
+              </button>
+              {showLibraryHelp && (
+                <div style={{ background: S.cream, border: "1px solid " + S.rule, borderRadius: 10, padding: "18px 22px", marginTop: 8, color: S.ink, fontSize: 14, lineHeight: 1.6 }}>
+                  <p style={{ margin: "0 0 12px" }}>
+                    Use the <strong>search bar</strong> when you know what you need. Use the <strong>category buttons</strong> when you only know what kind of problem you have. Use <strong>Free / Member / New</strong> to narrow the list.
+                  </p>
+                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", color: S.muted, marginBottom: 6 }}>CATEGORIES</div>
+                  <ul style={{ margin: "0 0 14px", paddingLeft: 18, fontSize: 13 }}>
+                    <li><strong>Bookkeeping</strong> — numbers, cleanup, QuickBooks, charts of accounts, ledgers, year-end triage.</li>
+                    <li><strong>Money</strong> — pricing, budgeting, cash flow, financial decisions, owner clarity.</li>
+                    <li><strong>People</strong> — hiring, onboarding, HR, payroll, team, accountability.</li>
+                    <li><strong>Client Work</strong> — intake, scope, proposals, client communication, project tracking.</li>
+                    <li><strong>Leadership</strong> — management systems, decision-making, meetings, follow-through.</li>
+                    <li><strong>Utilities</strong> — miscellaneous helpers, trackers, checklists, small-but-mighty fixes.</li>
+                  </ul>
+                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", color: S.muted, marginBottom: 6 }}>FILTERS</div>
+                  <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13 }}>
+                    <li><strong>All</strong> shows everything.</li>
+                    <li><strong>Free</strong> shows tools anyone can access.</li>
+                    <li><strong>Member</strong> shows tools included with membership.</li>
+                    <li><strong>New Only</strong> shows the newest additions.</li>
+                  </ul>
+                </div>
               )}
             </div>
 
@@ -578,6 +644,77 @@ export default function Dashboard({ session }) {
           </div>
         )}
       </div>
+
+      {/* MODAL: Welcome video placeholder */}
+      {showWelcomeModal && (
+        <div onClick={() => setShowWelcomeModal(false)}
+          style={{ position: "fixed", inset: 0, background: "rgba(30,30,42,0.62)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 20 }}>
+          <div onClick={e => e.stopPropagation()}
+            style={{ background: S.paper, maxWidth: 560, width: "100%", borderRadius: 14, padding: "32px 36px", position: "relative", maxHeight: "90vh", overflowY: "auto" }}>
+            <button onClick={() => setShowWelcomeModal(false)}
+              style={{ position: "absolute", top: 12, right: 14, background: "transparent", border: "none", fontSize: 22, cursor: "pointer", color: S.muted }}>×</button>
+            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: S.orange, marginBottom: 8 }}>WELCOME VIDEO</div>
+            <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 26, color: S.slate, marginBottom: 16, lineHeight: 1.2 }}>Coming soon — recording in progress.</h2>
+            <div style={{ background: S.cream, border: "1px dashed " + S.rule, borderRadius: 10, padding: "32px 20px", textAlign: "center", color: S.muted, fontSize: 14, marginBottom: 18 }}>
+              <div style={{ fontSize: 38, marginBottom: 8 }}>🎬</div>
+              The 2-minute welcome from Kari will live here.
+            </div>
+            <p style={{ fontSize: 14, color: S.ink, lineHeight: 1.6, marginBottom: 8 }}>
+              While you wait — pick one pain point. Open one tool. Use it before you collect more.
+            </p>
+            <p style={{ fontSize: 14, color: S.muted, fontStyle: "italic" }}>
+              That's the whole magic trick.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: How CARES Works… Works */}
+      {showHowToModal && (
+        <div onClick={() => setShowHowToModal(false)}
+          style={{ position: "fixed", inset: 0, background: "rgba(30,30,42,0.62)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 20 }}>
+          <div onClick={e => e.stopPropagation()}
+            style={{ background: S.paper, maxWidth: 680, width: "100%", borderRadius: 14, padding: "32px 40px", position: "relative", maxHeight: "90vh", overflowY: "auto" }}>
+            <button onClick={() => setShowHowToModal(false)}
+              style={{ position: "absolute", top: 12, right: 14, background: "transparent", border: "none", fontSize: 22, cursor: "pointer", color: S.muted }}>×</button>
+            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: S.orange, marginBottom: 8 }}>HOW THIS WORKS</div>
+            <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 28, color: S.slate, marginBottom: 14, lineHeight: 1.2 }}>How CARES Works… works.</h2>
+            <p style={{ fontSize: 15, color: S.ink, lineHeight: 1.65, marginBottom: 22 }}>
+              CARES Works is built like a practical business workshop. You do not have to use everything at once. In fact, please do not. That way lies the spreadsheet bog.
+            </p>
+            <p style={{ fontSize: 15, color: S.ink, lineHeight: 1.65, marginBottom: 24 }}>
+              Start with the problem you have today. Then grab the tool, watch the Debrief, or ask for help when the situation needs human eyes.
+            </p>
+            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.12em", color: S.muted, marginBottom: 10 }}>MAIN AREAS</div>
+            {[
+              { icon: "🛠️", title: "Tool Library", body: "Downloadable systems, templates, trackers, checklists, and operational shortcuts. Use the search bar or category filters to find the thing that matches your current business problem." },
+              { icon: "📂", title: "My Work", body: 'Your saved tools, active downloads, and resources you are currently using. This is the "where did I put that thing?" room.' },
+              { icon: "☕", title: "The Debrief", body: "Short business lessons and practical breakdowns about operational leaks, money messes, management problems, workflow fixes, and the weird human behavior that makes business harder than it needs to be." },
+              { icon: "⚖️", title: "Court of Accounts", body: "Financial education with a little kingdom drama and a lot less accountant fog. Use this when you want to understand what your numbers are trying to tell you." },
+              { icon: "🛒", title: "Shop", body: "Standalone products, bundles, kits, and other useful business tools." },
+              { icon: "👤", title: "Account", body: "Your membership, subscription, login details, and account settings." },
+            ].map(area => (
+              <div key={area.title} style={{ marginBottom: 16, padding: "14px 18px", background: "#fff", border: "1px solid " + S.rule, borderRadius: 10 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+                  <span style={{ fontSize: 18 }}>{area.icon}</span>
+                  <strong style={{ fontFamily: "'DM Serif Display', serif", fontSize: 17, color: S.slate }}>{area.title}</strong>
+                </div>
+                <div style={{ fontSize: 13.5, color: S.ink, lineHeight: 1.55 }}>{area.body}</div>
+              </div>
+            ))}
+            <div style={{ marginTop: 24, padding: "18px 22px", background: S.slate, borderRadius: 10, color: "#fff" }}>
+              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.12em", color: S.orange, marginBottom: 8 }}>YOUR FIRST 15 MINUTES</div>
+              <ol style={{ margin: 0, paddingLeft: 20, fontSize: 14, lineHeight: 1.7 }}>
+                <li>Pick one pain point. Not twelve. One.</li>
+                <li>Search for one tool that matches the words you'd use to describe it.</li>
+                <li>Open or download that one tool. Use it before you collect more.</li>
+                <li>Watch one Debrief. It explains the thinking behind the tool.</li>
+                <li>If you hit a wall, hit Ask Kari. Some messes need a real person.</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
