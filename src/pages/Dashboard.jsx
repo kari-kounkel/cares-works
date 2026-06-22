@@ -721,7 +721,7 @@ export default function Dashboard({ session }) {
             <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 26, color: S.slate, marginBottom: 16, lineHeight: 1.2 }}>Welcome to the workshop.</h2>
             <div style={{ position: "relative", paddingBottom: "62.5%", height: 0, marginBottom: 18, borderRadius: 10, overflow: "hidden", background: "#000" }}>
               <iframe
-                src="https://www.loom.com/embed/03d7b4259eeb4a19bf8de07d19b90bf9"
+                src="https://www.loom.com/embed/c3d53986bd4b4594995d1b0187c8678c"
                 frameBorder="0"
                 allow="autoplay; fullscreen"
                 allowFullScreen
