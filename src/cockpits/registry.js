@@ -20,4 +20,5 @@ export const CLOUD_COCKPITS = {
   "property-leasing": { title: "Property / Rent-Roll Cockpit" },
   "rollout-tracker": { title: "Monday 7AM Rollout Tracker" },
   "desktop-audit": { title: "Desktop Audit Cockpit" },
+  "confession": { title: "Confession of Judgment Calculator" },
 };
