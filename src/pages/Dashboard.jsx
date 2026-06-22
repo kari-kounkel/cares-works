@@ -718,13 +718,18 @@ export default function Dashboard({ session }) {
             <button onClick={() => setShowWelcomeModal(false)}
               style={{ position: "absolute", top: 12, right: 14, background: "transparent", border: "none", fontSize: 22, cursor: "pointer", color: S.muted }}>×</button>
             <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: S.orange, marginBottom: 8 }}>WELCOME VIDEO</div>
-            <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 26, color: S.slate, marginBottom: 16, lineHeight: 1.2 }}>Coming soon — recording in progress.</h2>
-            <div style={{ background: S.cream, border: "1px dashed " + S.rule, borderRadius: 10, padding: "32px 20px", textAlign: "center", color: S.muted, fontSize: 14, marginBottom: 18 }}>
-              <div style={{ fontSize: 38, marginBottom: 8 }}>🎬</div>
-              The 2-minute welcome from Kari will live here.
+            <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 26, color: S.slate, marginBottom: 16, lineHeight: 1.2 }}>Welcome to the workshop.</h2>
+            <div style={{ position: "relative", paddingBottom: "62.5%", height: 0, marginBottom: 18, borderRadius: 10, overflow: "hidden", background: "#000" }}>
+              <iframe
+                src="https://www.loom.com/embed/03d7b4259eeb4a19bf8de07d19b90bf9"
+                frameBorder="0"
+                allow="autoplay; fullscreen"
+                allowFullScreen
+                style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }}
+              />
             </div>
-            <p style={{ fontSize: 14, color: S.ink, lineHeight: 1.6, marginBottom: 8 }}>
-              While you wait — pick one pain point. Open one tool. Use it before you collect more.
+            <p style={{ fontSize: 14, color: S.ink, lineHeight: 1.6, marginBottom: 4 }}>
+              When you're done watching — pick one pain point. Open one tool. Use it before you collect more.
             </p>
             <p style={{ fontSize: 14, color: S.muted, fontStyle: "italic" }}>
               That's the whole magic trick.
