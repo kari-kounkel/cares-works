@@ -61,6 +61,7 @@ export default function Dashboard({ session }) {
   const [debriefsLoading, setDebriefsLoading] = useState(true);
   const [openDebriefSlug, setOpenDebriefSlug] = useState(null);
   const [debriefCategory, setDebriefCategory] = useState("All");
+  const [whatsNew, setWhatsNew] = useState(null);
 
   // Onboarding modals + collapsible Library helper
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
@@ -102,8 +103,37 @@ export default function Dashboard({ session }) {
       setDebriefsLoading(false);
     };
     fetchDebriefs();
+
+    const fetchWhatsNew = async () => {
+      const { data } = await supabase
+        .from("whats_new_current")
+        .select("*")
+        .eq("id", "current")
+        .maybeSingle();
+      setWhatsNew(data || null);
+    };
+    fetchWhatsNew();
     // Widget is loaded once at the page level via index.html — no per-component injection.
   }, [session]);
+
+  // Click handler for What's New block links — supports /tools/* navigation and "debrief:<slug>" hops.
+  const openWhatsNewLink = (link, slug) => {
+    if (!link) return;
+    if (link.startsWith("debrief:")) {
+      const targetSlug = link.split(":")[1];
+      setActiveTab("debrief");
+      setOpenDebriefSlug(targetSlug);
+      setDebriefCategory("All");
+      setTimeout(() => {
+        const el = document.querySelector("[data-debrief-slug=\"" + targetSlug + "\"]");
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 250);
+    } else if (link.startsWith("/tools/")) {
+      navigate(link);
+    } else {
+      window.location.href = link;
+    }
+  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -259,6 +289,51 @@ export default function Dashboard({ session }) {
                 </div>
               ))}
             </div>
+
+            {/* WHAT'S NEW THIS WEEK */}
+            {whatsNew && (
+              <div id="whats-new" style={{ marginBottom: 36, padding: "28px 30px", background: "linear-gradient(135deg, #fff8f1, #fff)", border: "1px solid " + S.rule, borderRadius: 14 }}>
+                <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 18, flexWrap: "wrap", gap: 8 }}>
+                  <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 24, color: S.slate, margin: 0 }}>
+                    🔥 What's New This Week
+                  </h2>
+                  <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: S.muted, letterSpacing: "0.06em" }}>
+                    Updated {whatsNew.updated_at ? new Date(whatsNew.updated_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : ""}
+                  </span>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 14 }}>
+                  {[
+                    { tag: "NEW TOOL", icon: "🛠️", data: whatsNew.new_tool, accent: S.orange },
+                    { tag: "NEW DEBRIEF", icon: "☕", data: whatsNew.new_debrief, accent: S.slate },
+                    { tag: "FEATURED FIX", icon: "🎯", data: whatsNew.featured_fix, accent: S.gold },
+                  ].map(block => block.data && (
+                    <div key={block.tag} style={{ background: "#fff", border: "1px solid " + S.rule, borderRadius: 10, padding: "18px 20px", display: "flex", flexDirection: "column", gap: 6 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
+                        <span style={{ fontSize: 16 }}>{block.icon}</span>
+                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.12em", color: block.accent, fontWeight: 700 }}>{block.tag}</span>
+                      </div>
+                      <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 16, color: S.slate, lineHeight: 1.3 }}>{block.data.title}</div>
+                      <div style={{ fontSize: 12.5, color: S.muted, lineHeight: 1.5, flex: 1 }}>{block.data.desc}</div>
+                      {block.data.button && block.data.link && (
+                        <button onClick={() => openWhatsNewLink(block.data.link)}
+                          style={{ marginTop: 8, padding: "8px 12px", background: S.grad, border: "none", borderRadius: 6, color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "'Figtree', sans-serif", textAlign: "left" }}>
+                          {block.data.button} →
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  {whatsNew.workshop_note && (
+                    <div style={{ background: S.slate, color: "#fff", borderRadius: 10, padding: "18px 20px", display: "flex", flexDirection: "column", gap: 6 }}>
+                      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.12em", color: S.orange, fontWeight: 700 }}>
+                        ✨ KARI'S WORKSHOP NOTE
+                      </div>
+                      <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 16, lineHeight: 1.3 }}>{whatsNew.workshop_note.title}</div>
+                      <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.78)", lineHeight: 1.55, fontStyle: "italic" }}>{whatsNew.workshop_note.body}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* SEARCH BAR */}
             <div style={{ marginBottom: 16, position: "relative" }} className="dash-filter-search">
@@ -441,7 +516,7 @@ export default function Dashboard({ session }) {
                 {debriefs.filter(d => debriefCategory === "All" || d.category === debriefCategory).map(d => {
                   const isOpen = openDebriefSlug === d.slug;
                   return (
-                    <div key={d.slug} style={{ background: "#fff", border: "1px solid " + (isOpen ? S.orange : S.rule), borderRadius: 12, overflow: "hidden", transition: "border-color 0.15s" }}>
+                    <div key={d.slug} data-debrief-slug={d.slug} style={{ background: "#fff", border: "1px solid " + (isOpen ? S.orange : S.rule), borderRadius: 12, overflow: "hidden", transition: "border-color 0.15s" }}>
                       <div onClick={() => setOpenDebriefSlug(isOpen ? null : d.slug)}
                         style={{ padding: "20px 26px", cursor: "pointer" }}>
                         <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: S.orange, marginBottom: 6 }}>
