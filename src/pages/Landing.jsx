@@ -77,8 +77,9 @@ export default function Landing({ session }) {
 
       {/* HEADER */}
       <header className="lp-header" style={{ padding: "20px 40px", borderBottom: "1px solid " + S.rule, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, background: "#fff" }}>
-        <a href="/" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: S.ink, textDecoration: "none" }}>
-          CARES <span style={{ color: S.orange }}>Works.</span>
+        <a href="/" style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none" }}>
+          <img src="/cares-works-logo.png" alt="CARES Works" style={{ height: 38, width: "auto", display: "block" }} />
+          <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: S.ink }}>CARES <span style={{ color: S.orange }}>Works.</span></span>
         </a>
         <nav className="lp-header-nav" style={{ display: "flex", gap: 20, alignItems: "center", flexWrap: "wrap" }}>
           <a href="https://caresmn.com" style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: S.muted, textDecoration: "none" }}>Home</a>

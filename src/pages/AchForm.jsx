@@ -110,7 +110,10 @@ export default function AchForm() {
 
       {/* HEADER */}
       <header className="ach-site-header">
-        <a href="/" className="ach-site-brand">CARES <span className="ach-brand-accent">Works.</span></a>
+        <a href="/" className="ach-site-brand" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
+          <img src="/cares-works-logo.png" alt="CARES Works" style={{ height: 32, width: 'auto', display: 'block' }} />
+          <span>CARES <span className="ach-brand-accent">Works.</span></span>
+        </a>
         <nav className="ach-site-nav">
           <a href="/" className="ach-nav-link">All Free Tools</a>
           <a href="/#join" className="ach-nav-link">Membership</a>

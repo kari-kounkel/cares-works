@@ -193,8 +193,9 @@ function Preview() {
 
       {/* HEADER */}
       <header style={{ background: '#fff', borderBottom: '1px solid #e8e8ec', padding: '18px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <a href="/" style={{ fontFamily: "'DM Serif Display', serif", fontSize: '20px', color: '#1e1e2a', textDecoration: 'none' }}>
-          CARES <span style={{ color: '#e8773a' }}>Works.</span>
+        <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
+          <img src="/cares-works-logo.png" alt="CARES Works" style={{ height: 36, width: 'auto', display: 'block' }} />
+          <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: '20px', color: '#1e1e2a' }}>CARES <span style={{ color: '#e8773a' }}>Works.</span></span>
         </a>
         <a href={MONTHLY_URL} style={{ background: '#e8773a', color: '#fff', fontFamily: "'DM Mono', monospace", fontSize: '11px', letterSpacing: '.12em', textTransform: 'uppercase', padding: '9px 18px', borderRadius: '4px', textDecoration: 'none' }}>Join — $27/mo</a>
       </header>
@@ -428,7 +429,10 @@ export default function PayrollCalculator({ session }) {
 
       {/* HEADER */}
       <header className="pc-header">
-        <a href="/" className="pc-brand">CARES <span className="pc-brand-accent">Works.</span></a>
+        <a href="/" className="pc-brand" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
+          <img src="/cares-works-logo.png" alt="CARES Works" style={{ height: 32, width: 'auto', display: 'block' }} />
+          <span>CARES <span className="pc-brand-accent">Works.</span></span>
+        </a>
         <nav className="pc-nav">
           <button className="pc-nav-link" onClick={() => navigate('/tools/payroll-checklist')}>Payroll Checklist</button>
           <button className="pc-nav-link" onClick={() => navigate('/dashboard')}>Dashboard</button>

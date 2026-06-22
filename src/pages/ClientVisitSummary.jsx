@@ -121,7 +121,10 @@ export default function ClientVisitSummary() {
       <style>{`@media print { .no-print { display: none !important; } header { display: none !important; } body { background: #fff; } .print-summary { page-break-inside: avoid; } }`}</style>
 
       <header className="no-print" style={{ background: S.slate, padding: "0 32px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 58, boxShadow: "0 2px 12px rgba(0,0,0,0.15)", position: "sticky", top: 0, zIndex: 100 }}>
-        <a href="/" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: "#fff", textDecoration: "none" }}>CARES <span style={{ color: S.orange }}>Works.</span></a>
+        <a href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
+          <img src="/cares-works-logo.png" alt="CARES Works" style={{ height: 32, width: "auto", display: "block" }} />
+          <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: "#fff" }}>CARES <span style={{ color: S.orange }}>Works.</span></span>
+        </a>
         <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
           <button onClick={() => window.print()} style={{ padding: "6px 16px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.25)", background: "transparent", color: "#fff", fontSize: 11, cursor: "pointer", fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>Print / Save PDF</button>
           <a onClick={(e) => { e.preventDefault(); navigate("/dashboard"); }} href="/dashboard" style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "rgba(255,255,255,0.6)", letterSpacing: "0.08em", textDecoration: "none" }}>{"<- Dashboard"}</a>

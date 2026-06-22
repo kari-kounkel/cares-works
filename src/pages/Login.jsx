@@ -50,8 +50,9 @@ export default function Login({ session, forceReset = false }) {
       <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
         <div style={{ width: "100%", maxWidth: 420 }}>
           <div style={{ textAlign: "center", marginBottom: 32 }}>
-            <a href="/" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 28, color: S.ink, textDecoration: "none" }}>
-              CARES <span style={{ color: S.orange }}>Works.</span>
+            <a href="/" style={{ display: "inline-flex", flexDirection: "column", alignItems: "center", gap: 12, textDecoration: "none" }}>
+              <img src="/cares-works-logo.png" alt="CARES Works" style={{ width: 140, height: "auto", display: "block" }} />
+              <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 28, color: S.ink }}>CARES <span style={{ color: S.orange }}>Works.</span></span>
             </a>
           </div>
           <div style={{ background: "#fff", border: "1px solid " + S.rule, borderRadius: 16, padding: "36px 32px" }}>

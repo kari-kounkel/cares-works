@@ -187,6 +187,7 @@ export default function Dashboard({ session }) {
       <div style={{ minHeight: "100vh", background: "#faf8f4", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Figtree', sans-serif", padding: 20 }}>
         <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
         <div style={{ textAlign: "center", maxWidth: 480 }}>
+          <img src="/cares-works-logo.png" alt="CARES Works" style={{ width: 140, height: "auto", display: "block", margin: "0 auto 16px" }} />
           <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 28, color: "#3d4560", marginBottom: 12 }}>
             CARES <span style={{ color: "#e8773a" }}>Works.</span>
           </div>

@@ -650,8 +650,9 @@ export default function ChecklistBuilder({ session }) {
         display: "flex", alignItems: "center", justifyContent: "space-between",
       }}>
         <a href="/dashboard" onClick={(e) => { e.preventDefault(); navigate("/dashboard"); }}
-          style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: "#fff", textDecoration: "none" }}>
-          CARES <span style={{ color: S.orange }}>Works.</span>
+          style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
+          <img src="/cares-works-logo.png" alt="CARES Works" style={{ height: 32, width: "auto", display: "block" }} />
+          <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: "#fff" }}>CARES <span style={{ color: S.orange }}>Works.</span></span>
         </a>
         <span style={{
           fontFamily: "'DM Mono', monospace", fontSize: 11,
