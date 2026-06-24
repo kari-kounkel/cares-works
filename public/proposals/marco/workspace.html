@@ -62,6 +62,30 @@
 </style>
 </head>
 <body>
+<div id="gate" style="position:fixed;inset:0;z-index:9999;background:linear-gradient(150deg,#1a7af0,#0f52c9);display:flex;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:16px;padding:30px 32px;max-width:360px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.25)">
+    <div style="font-family:'Fraunces',serif;font-size:22px;color:#1a7af0;margin-bottom:6px">MARCO Build · Workspace</div>
+    <p style="color:#49515f;font-size:14px;margin:0 0 18px">Enter the passcode to come in.</p>
+    <input id="gate-pass" type="text" autocomplete="off" placeholder="passcode" style="width:100%;box-sizing:border-box;font-size:16px;padding:12px 14px;border:1.5px solid #e4e2dd;border-radius:10px;text-align:center;font-family:'Inter',system-ui,sans-serif" />
+    <div id="gate-err" style="color:#c2410c;font-size:12.5px;margin-top:8px;display:none">Nope — try again. (Hint: 🏊 you shout it across a pool.)</div>
+    <button id="gate-go" style="width:100%;margin-top:14px;background:#1a7af0;color:#fff;border:none;border-radius:10px;padding:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',system-ui,sans-serif">Come in →</button>
+  </div>
+</div>
+<script>
+(function(){
+  var PASS = "marcopolo";
+  var g = document.getElementById("gate");
+  if (localStorage.getItem("mb_pass") === PASS) { g.style.display = "none"; return; }
+  function tryUnlock(){
+    var v = (document.getElementById("gate-pass").value || "").toLowerCase().replace(/\s/g, "");
+    if (v === PASS) { localStorage.setItem("mb_pass", PASS); g.style.display = "none"; }
+    else { document.getElementById("gate-err").style.display = "block"; }
+  }
+  document.getElementById("gate-go").addEventListener("click", tryUnlock);
+  document.getElementById("gate-pass").addEventListener("keydown", function(e){ if (e.key === "Enter") tryUnlock(); });
+  document.getElementById("gate-pass").focus();
+})();
+</script>
 <header>
   <div class="wrap" style="padding:0;max-width:1060px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap">
     <div>
