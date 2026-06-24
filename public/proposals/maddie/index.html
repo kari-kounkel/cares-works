@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tax Recovery Plan — Proposal for Maddie</title>
+<style>
+  :root{
+    --ink:#1b2730; --slate:#52616b; --line:#e4e9ec; --paper:#ffffff;
+    --bg:#f4f1ea; --teal:#2f7d72; --teal-d:#235c54; --gold:#c98a2b;
+    --soft:#eef3f1; --shadow:0 1px 3px rgba(27,39,48,.06),0 8px 28px rgba(27,39,48,.07);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:880px;margin:0 auto;padding:0 20px}
+  a{color:var(--teal-d)}
+  .eyebrow{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal-d);font-weight:700}
+  h1{font-size:34px;line-height:1.2;margin:.3em 0 .35em;letter-spacing:-.01em}
+  h2{font-size:25px;line-height:1.25;margin:0 0 .5em;letter-spacing:-.01em}
+  h3{font-size:18px;margin:0 0 .35em}
+  p{margin:0 0 1em}
+  .muted{color:var(--slate)}
+
+  /* header */
+  header{background:linear-gradient(160deg,#23433f,#2f7d72);color:#fff;padding:54px 0 46px}
+  header .wrap{display:block}
+  .brandrow{display:flex;align-items:center;gap:12px;margin-bottom:26px}
+  .mark{width:42px;height:42px;border-radius:11px;background:#fff;color:var(--teal-d);
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;flex:0 0 auto}
+  .brandrow b{font-size:15px;letter-spacing:.02em}
+  .brandrow span{display:block;font-size:12.5px;color:#cfe4df;font-weight:400}
+  header .eyebrow{color:#bfe0d8}
+  header h1{color:#fff}
+  header .lede{font-size:18px;color:#e7f2ef;max-width:640px;margin-bottom:0}
+  .facts{display:flex;flex-wrap:wrap;gap:10px 26px;margin-top:24px;font-size:14px;color:#dcebe7}
+  .facts b{color:#fff;font-weight:600}
+
+  /* sections */
+  section{padding:42px 0;border-bottom:1px solid var(--line)}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:16px;
+    padding:26px 26px;box-shadow:var(--shadow)}
+  .note{background:var(--soft);border-left:4px solid var(--teal);border-radius:0 12px 12px 0;
+    padding:20px 22px;margin:0 0 1em}
+  .sig{display:flex;align-items:center;gap:10px;margin-top:6px;font-style:italic;color:var(--slate)}
+  .grid{display:grid;gap:16px}
+  .grid.two{grid-template-columns:1fr 1fr}
+  .grid.three{grid-template-columns:1fr 1fr 1fr}
+  .front{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:var(--shadow)}
+  .front .ico{font-size:24px}
+  .front .tag{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--teal-d)}
+  ul.clean{list-style:none;padding:0;margin:.4em 0 0}
+  ul.clean li{padding-left:24px;position:relative;margin-bottom:.5em}
+  ul.clean li::before{content:"";position:absolute;left:0;top:.55em;width:8px;height:8px;
+    border-radius:50%;background:var(--teal)}
+  .cmp{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .cmp .col{border-radius:14px;padding:20px}
+  .cmp .now{background:#fbf3ee;border:1px solid #f0ddcf}
+  .cmp .plan{background:#eef5f2;border:1px solid #d4e8e1}
+  .cmp h3{font-size:15px;text-transform:uppercase;letter-spacing:.06em}
+  .cmp .now h3{color:#a4631f}
+  .cmp .plan h3{color:var(--teal-d)}
+
+  table{width:100%;border-collapse:collapse;font-size:15px}
+  th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--slate)}
+  td .free{color:var(--teal-d);font-weight:700}
+
+  /* packages */
+  .pkgs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:8px}
+  .pkg{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:22px;
+    box-shadow:var(--shadow);display:flex;flex-direction:column}
+  .pkg.feature{border:2px solid var(--teal)}
+  .pkg .badge{align-self:flex-start;background:var(--teal);color:#fff;font-size:11px;font-weight:700;
+    letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:999px;margin-bottom:10px}
+  .pkg .price{font-size:26px;font-weight:800;margin:.2em 0 .1em}
+  .pkg .price small{font-size:13px;font-weight:600;color:var(--slate)}
+  .pkg ul.clean{flex:1;margin-bottom:14px}
+  .btn{display:inline-block;text-align:center;background:var(--teal-d);color:#fff;text-decoration:none;
+    font-weight:600;padding:11px 16px;border-radius:10px;border:none;cursor:pointer;font-size:15px}
+  .btn.ghost{background:#fff;color:var(--teal-d);border:1px solid var(--teal)}
+  .btn:hover{background:var(--teal)}
+
+  .steps{counter-reset:s;display:grid;gap:14px;margin-top:6px}
+  .step{display:flex;gap:14px;align-items:flex-start}
+  .step .n{counter-increment:s;flex:0 0 auto;width:30px;height:30px;border-radius:50%;
+    background:var(--teal);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .step .n::before{content:counter(s)}
+
+  footer{background:var(--ink);color:#cdd6db;padding:38px 0;text-align:center;border:none}
+  footer .vals{color:var(--gold);letter-spacing:.06em;font-size:13px;margin-top:6px}
+  footer b{color:#fff}
+  .disclaim{font-size:12.5px;color:var(--slate);margin-top:14px}
+
+  @media(max-width:680px){
+    .grid.two,.grid.three,.cmp,.pkgs{grid-template-columns:1fr}
+    h1{font-size:28px}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="brandrow">
+      <div class="mark">C</div>
+      <div><b>CARES Consulting Inc</b><span>Clarity · Accountability · Repair · Expectations · Support</span></div>
+    </div>
+    <div class="eyebrow">Proposal · Prepared by CARES Consulting Inc</div>
+    <h1>Let's get your money back.</h1>
+    <p class="lede">A refund that vanished, a preparer who ghosted you, and child-support money that's still owed to you — untangled into one clear plan, plus your fiancé's return done clean.</p>
+    <div class="facts">
+      <div>Prepared for <b>Maddie</b></div>
+      <div>State <b>Minnesota</b></div>
+      <div>By <b>Kari Hoglund Kounkel</b></div>
+      <div>Valid <b>30 days</b></div>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">A quick note</div>
+    <h2>You got handed a mess. None of it was your fault — and all of it is fixable.</h2>
+    <div class="note">
+      <p>Your taxes were filed, but the refund never showed. Then the preparer disappeared and blocked your number. On top of that, child-support money from your ex's return is still sitting somewhere it shouldn't be. That's not one problem — it's three tangled together, which is exactly why it's felt impossible to chase.</p>
+      <p>So we don't chase all three at once. We take them one front at a time, in order, with a clean record at every step. Here's the whole map — what I'll do, what it costs, and how we start.</p>
+      <div class="sig">— Kari Hoglund Kounkel, CARES Consulting Inc</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">The plan</div>
+    <h2>Three fronts, taken one at a time</h2>
+    <div class="grid three" style="margin-top:18px">
+      <div class="front">
+        <div class="ico">🔎</div>
+        <div class="tag">Front 1</div>
+        <h3>Your missing refund &amp; the vanished preparer</h3>
+        <p class="muted">I get the official record of what actually happened to your refund — then I go get it back.</p>
+        <ul class="clean">
+          <li>Pull the IRS's own record of where your refund really went</li>
+          <li>File the formal action to recover it if it was misdirected or taken</li>
+          <li>File a formal misconduct report against the preparer</li>
+          <li>Escalate it as refund theft if that's what it turns out to be</li>
+        </ul>
+      </div>
+      <div class="front">
+        <div class="ico">💵</div>
+        <div class="tag">Front 2</div>
+        <h3>The $6,753 child-support money from your ex</h3>
+        <p class="muted">That money isn't gone — it's stuck in a system most people don't know how to read. I do.</p>
+        <ul class="clean">
+          <li>You got the state portion; the federal <b>$6,753</b> is still owed to you</li>
+          <li>I find exactly where it is and why it hasn't reached you</li>
+          <li>I press for a firm release date — in writing — and hold them to it</li>
+          <li>You stop guessing and finally get answers</li>
+        </ul>
+      </div>
+      <div class="front">
+        <div class="ico">🧾</div>
+        <div class="tag">Front 3</div>
+        <h3>Your fiancé's W-2 return</h3>
+        <p class="muted">The easy one. Regular W-2, federal + Minnesota — done with the same organizer everyone uses.</p>
+        <ul class="clean">
+          <li>He fills out the Keepstead™ organizer — pick <b>"W-2 / 1099 Wage Earner"</b></li>
+          <li>He gathers W-2s, ID, last year's return, dependent &amp; bank info</li>
+          <li>I prepare, review with him, and e-file both returns</li>
+          <li>Start here: <a href="https://keepstead.karikounkel.com" target="_blank" rel="noopener">keepstead.karikounkel.com&nbsp;↗</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Where things stand</div>
+    <h2>Today vs. with a plan</h2>
+    <div class="cmp" style="margin-top:18px">
+      <div class="col now">
+        <h3>Right now</h3>
+        <ul class="clean">
+          <li>A refund that was filed but never arrived</li>
+          <li>A preparer who disappeared and blocked your number</li>
+          <li>No clear record of what the IRS actually did</li>
+          <li>$6,753 in child support still unaccounted for</li>
+          <li>Your fiancé's return still waiting</li>
+        </ul>
+      </div>
+      <div class="col plan">
+        <h3>With this plan</h3>
+        <ul class="clean">
+          <li>A documented IRS record of where your refund went</li>
+          <li>A formal misconduct report filed against the preparer</li>
+          <li>An active trace working to recover your money</li>
+          <li>A dated answer from MN on the $6,753 — with a deadline</li>
+          <li>Both returns filed, clean, and on time</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Why hand it to me</div>
+    <h2>You don't have to learn any of this</h2>
+    <div class="card">
+      <p>That's the entire point of hiring me. You sign one authorization, hand me what you've got, and I take it from there — the records, the filings, the follow-up, and a clean paper trail at every step. No tabs, no hold music, no figuring out which form does what.</p>
+      <ul class="clean">
+        <li><b>I do the work.</b> Every filing and every follow-up I can make on your behalf — handled.</li>
+        <li><b>You stay in the loop, not on hold.</b> I keep you posted so you're never chasing the IRS alone.</li>
+        <li><b>And I don't vanish.</b> The last person did. I'll be the one who picks up.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Choose your option</div>
+    <h2>Simple, honest pricing</h2>
+    <p class="muted">Starting ranges so you can plan — I'll confirm a firm quote once I see what we're dealing with.</p>
+    <div class="pkgs">
+      <div class="pkg">
+        <h3>Fiancé's W-2 return</h3>
+        <div class="price">$200–$300</div>
+        <div class="muted" style="font-size:13px;margin-bottom:10px">Federal + Minnesota</div>
+        <ul class="clean">
+          <li>W-2 income, federal + MN state</li>
+          <li>Keepstead organizer included</li>
+          <li>Prepared, reviewed &amp; e-filed</li>
+        </ul>
+        <button class="btn ghost">Select →</button>
+      </div>
+      <div class="pkg feature">
+        <div class="badge">Most of the work</div>
+        <h3>Refund recovery + preparer report</h3>
+        <div class="price">$300–$600 <small>flat</small></div>
+        <div class="muted" style="font-size:13px;margin-bottom:10px">or $100–$200/hr</div>
+        <ul class="clean">
+          <li>Transcript pull &amp; diagnosis (Form 8821)</li>
+          <li>Refund trace — Form 3911</li>
+          <li>Preparer misconduct — 14157 / 14157-A</li>
+          <li>MN child-support offset follow-up</li>
+        </ul>
+        <button class="btn">Select →</button>
+      </div>
+      <div class="pkg">
+        <h3>Both — the bundle</h3>
+        <div class="price">Let's talk</div>
+        <div class="muted" style="font-size:13px;margin-bottom:10px">Recovery + his return together</div>
+        <ul class="clean">
+          <li>Everything in both columns</li>
+          <li>One point of contact for all of it</li>
+          <li>Priced as a package — a little kinder</li>
+        </ul>
+        <button class="btn ghost">Select →</button>
+      </div>
+    </div>
+    <p class="muted" style="margin-top:18px;font-size:13.5px">The IRS &amp; Minnesota forms themselves cost <span style="color:var(--teal-d);font-weight:700">$0</span>. MN child-support follow-up is usually folded into the recovery work.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">What to expect</div>
+    <h2>Your timeline</h2>
+    <p class="muted">A clear path with steady updates — so you always know what's happening and what's next.</p>
+    <div class="steps" style="margin-top:14px">
+      <div class="step"><div class="n"></div><div><b>Week 1 — We start.</b> You sign on and sign your authorization; I pull the official record and we finally see the whole picture.</div></div>
+      <div class="step"><div class="n"></div><div><b>Weeks 1–2 — We file.</b> I file the recovery action and the report against your old preparer, and your fiancé's return is prepared and e-filed.</div></div>
+      <div class="step"><div class="n"></div><div><b>Weeks 2–8 — We chase.</b> The recovery works its way through while I press Minnesota on the $6,753 and pin them to a release date.</div></div>
+      <div class="step"><div class="n"></div><div><b>Through to resolution.</b> I follow every thread to the end and keep you posted the whole way.</div></div>
+    </div>
+    <p class="muted" style="font-size:13.5px;margin-top:16px">Honest expectation: government timelines aren't instant — recovery can take several weeks, and Minnesota has its own release windows. The difference is you'll have someone working it and reporting back, instead of silence.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">So — what do you think?</div>
+    <h2>Here's the path from here</h2>
+    <div class="steps">
+      <div class="step"><div class="n"></div><div><b>Pick the option that fits.</b> Recovery work, your fiancé's return, or both.</div></div>
+      <div class="step"><div class="n"></div><div><b>Sign one form (8821)</b> so I can pull your records and see exactly what happened.</div></div>
+      <div class="step"><div class="n"></div><div><b>Send me what you've got</b> from the old preparer — texts, emails, the return, bank statements.</div></div>
+      <div class="step"><div class="n"></div><div><b>Your fiancé starts his organizer</b> at <a href="https://keepstead.karikounkel.com" target="_blank" rel="noopener">keepstead.karikounkel.com</a>.</div></div>
+    </div>
+    <div id="reserve" style="margin-top:26px;display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+      <button class="btn" id="pay-btn" style="font-size:16px;padding:13px 22px;cursor:pointer">Reserve your spot — pay $100 deposit on Stripe →</button>
+      <a class="btn ghost" href="mailto:kari@karikounkel.com?subject=Let's%20start%20%E2%80%94%20tax%20recovery">Questions first? Email me</a>
+    </div>
+    <p id="pay-note" class="muted" style="font-size:13px;margin-top:12px">Your $100 deposit reserves your spot and goes toward your total. The balance is due once the work is complete.</p>
+
+    <div style="margin-top:34px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+      <img src="kari-signature.png" alt="Kari Hoglund Kounkel" style="height:54px" onerror="this.style.display='none'"/>
+      <div>
+        <div style="font-weight:700">Kari Hoglund Kounkel</div>
+        <div class="muted" style="font-size:13.5px">CARES Consulting Inc · caresmn.com</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <img src="cares-logo.png" alt="CARES Consulting Inc" style="height:48px;margin-bottom:10px" onerror="this.style.display='none'"/>
+    <div><b>CARES Consulting Inc</b></div>
+    <div class="vals">Clarity · Accountability · Repair · Expectations · Support</div>
+    <div class="muted" style="margin-top:8px;color:#9fb0b8">Kari Hoglund Kounkel · caresmn.com</div>
+    <div class="disclaim">Kari Kounkel is an unenrolled tax preparer. This proposal is informational and is not legal advice. Valid for 30 days from presentation.</div>
+    <div class="disclaim" style="margin-top:12px;color:#8c99a0">This proposal is the proprietary intellectual property of CARES Consulting, Inc. &amp; Kari Hoglund Kounkel. © 2025–2026. All rights reserved. Unauthorized use, duplication, hosting, or distribution is strictly prohibited.</div>
+  </div>
+</footer>
+
+<!-- Ask Kari assistant — same embed used on the other /proposals pages -->
+<script src="https://chat.karikounkel.com/widget.js" defer></script>
+
+<script>
+(function(){
+  // Make the package "Select →" buttons jump to the reserve CTA.
+  Array.prototype.forEach.call(document.querySelectorAll(".pkg .btn"), function(b){
+    b.addEventListener("click", function(){
+      var r = document.getElementById("reserve");
+      if (r) r.scrollIntoView({behavior:"smooth", block:"center"});
+    });
+  });
+
+  // Stripe deposit checkout.
+  var btn = document.getElementById("pay-btn");
+  if (btn) {
+    var label = btn.textContent;
+    btn.addEventListener("click", function(){
+      btn.disabled = true; btn.textContent = "Connecting to Stripe…";
+      fetch("/api/maddie-deposit", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ origin: location.origin })
+      })
+      .then(function(r){ return r.json(); })
+      .then(function(j){
+        if (j && j.url) { window.location.href = j.url; }
+        else { alert("Couldn't start checkout: " + ((j && j.error) || "unknown")); btn.disabled=false; btn.textContent=label; }
+      })
+      .catch(function(){ alert("Network error — please try again."); btn.disabled=false; btn.textContent=label; });
+    });
+  }
+
+  // Friendly confirmation after a successful deposit.
+  if (/[?&]paid=1\b/.test(location.search)) {
+    var note = document.getElementById("pay-note");
+    if (note) {
+      note.innerHTML = "<b style='color:#235c54'>Deposit received — thank you, Maddie. ✓</b> Your spot is reserved and it goes toward your total. I'll be in touch with next steps shortly.";
+    }
+    if (btn) { btn.disabled = true; btn.textContent = "Deposit paid ✓"; }
+  }
+})();
+</script>
+
+</body>
+</html>
