@@ -7,8 +7,8 @@
 <style>
   :root{
     --ink:#1b2730; --slate:#52616b; --line:#e4e9ec; --paper:#ffffff;
-    --bg:#f4f1ea; --teal:#2f7d72; --teal-d:#235c54; --gold:#c98a2b;
-    --soft:#eef3f1; --shadow:0 1px 3px rgba(27,39,48,.06),0 8px 28px rgba(27,39,48,.07);
+    --bg:#f4f1ea; --teal:#46587a; --teal-d:#2f3e59; --gold:#e8772e; /* brand palette from CARES logo: slate-navy + orange */
+    --soft:#eef1f6; --shadow:0 1px 3px rgba(27,39,48,.06),0 8px 28px rgba(27,39,48,.07);
   }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);
@@ -16,7 +16,7 @@
     line-height:1.6;-webkit-font-smoothing:antialiased}
   .wrap{max-width:880px;margin:0 auto;padding:0 20px}
   a{color:var(--teal-d)}
-  .eyebrow{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal-d);font-weight:700}
+  .eyebrow{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);font-weight:700}
   h1{font-size:34px;line-height:1.2;margin:.3em 0 .35em;letter-spacing:-.01em}
   h2{font-size:25px;line-height:1.25;margin:0 0 .5em;letter-spacing:-.01em}
   h3{font-size:18px;margin:0 0 .35em}
@@ -24,17 +24,17 @@
   .muted{color:var(--slate)}
 
   /* header */
-  header{background:linear-gradient(160deg,#23433f,#2f7d72);color:#fff;padding:54px 0 46px}
+  header{background:linear-gradient(160deg,#2f3e59,#46587a);color:#fff;padding:54px 0 46px}
   header .wrap{display:block}
   .brandrow{display:flex;align-items:center;gap:12px;margin-bottom:26px}
   .mark{width:42px;height:42px;border-radius:11px;background:#fff;color:var(--teal-d);
     display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;flex:0 0 auto}
   .brandrow b{font-size:15px;letter-spacing:.02em}
-  .brandrow span{display:block;font-size:12.5px;color:#cfe4df;font-weight:400}
-  header .eyebrow{color:#bfe0d8}
+  .brandrow span{display:block;font-size:12.5px;color:#c4cee0;font-weight:400}
+  header .eyebrow{color:#f0b58a}
   header h1{color:#fff}
-  header .lede{font-size:18px;color:#e7f2ef;max-width:640px;margin-bottom:0}
-  .facts{display:flex;flex-wrap:wrap;gap:10px 26px;margin-top:24px;font-size:14px;color:#dcebe7}
+  header .lede{font-size:18px;color:#e9edf5;max-width:640px;margin-bottom:0}
+  .facts{display:flex;flex-wrap:wrap;gap:10px 26px;margin-top:24px;font-size:14px;color:#d7ddec}
   .facts b{color:#fff;font-weight:600}
 
   /* sections */
@@ -53,11 +53,11 @@
   ul.clean{list-style:none;padding:0;margin:.4em 0 0}
   ul.clean li{padding-left:24px;position:relative;margin-bottom:.5em}
   ul.clean li::before{content:"";position:absolute;left:0;top:.55em;width:8px;height:8px;
-    border-radius:50%;background:var(--teal)}
+    border-radius:50%;background:var(--gold)}
   .cmp{display:grid;grid-template-columns:1fr 1fr;gap:16px}
   .cmp .col{border-radius:14px;padding:20px}
   .cmp .now{background:#fbf3ee;border:1px solid #f0ddcf}
-  .cmp .plan{background:#eef5f2;border:1px solid #d4e8e1}
+  .cmp .plan{background:#eef1f6;border:1px solid #d9e0ee}
   .cmp h3{font-size:15px;text-transform:uppercase;letter-spacing:.06em}
   .cmp .now h3{color:#a4631f}
   .cmp .plan h3{color:var(--teal-d)}
@@ -71,8 +71,8 @@
   .pkgs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:8px}
   .pkg{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:22px;
     box-shadow:var(--shadow);display:flex;flex-direction:column}
-  .pkg.feature{border:2px solid var(--teal)}
-  .pkg .badge{align-self:flex-start;background:var(--teal);color:#fff;font-size:11px;font-weight:700;
+  .pkg.feature{border:2px solid var(--gold)}
+  .pkg .badge{align-self:flex-start;background:var(--gold);color:#fff;font-size:11px;font-weight:700;
     letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:999px;margin-bottom:10px}
   .pkg .price{font-size:26px;font-weight:800;margin:.2em 0 .1em}
   .pkg .price small{font-size:13px;font-weight:600;color:var(--slate)}
@@ -88,10 +88,10 @@
     background:var(--teal);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center}
   .step .n::before{content:counter(s)}
 
-  footer{background:linear-gradient(160deg,#23433f,#2f7d72);color:#e7f2ef;padding:38px 0;text-align:center;border:none}
+  footer{background:linear-gradient(160deg,#2f3e59,#46587a);color:#e9edf5;padding:38px 0;text-align:center;border:none}
   footer .vals{color:var(--gold);letter-spacing:.06em;font-size:13px;margin-top:6px}
   footer b{color:#fff}
-  .disclaim{font-size:12.5px;color:#bcd6cf;margin-top:14px}
+  .disclaim{font-size:12.5px;color:#bcc6da;margin-top:14px}
 
   @media(max-width:680px){
     .grid.two,.grid.three,.cmp,.pkgs{grid-template-columns:1fr}
@@ -322,9 +322,9 @@
     <img src="cares-logo.png" alt="CARES Consulting Inc" style="height:48px;margin-bottom:10px" onerror="this.style.display='none'"/>
     <div><b>CARES Consulting Inc</b></div>
     <div class="vals">Clarity · Accountability · Repair · Expectations · Support</div>
-    <div class="muted" style="margin-top:8px;color:#cfe4df">Kari Hoglund Kounkel · caresmn.com</div>
+    <div class="muted" style="margin-top:8px;color:#c4cee0">Kari Hoglund Kounkel · caresmn.com</div>
     <div class="disclaim">Kari Kounkel is an unenrolled tax preparer. This proposal is informational and is not legal advice. Valid for 30 days from presentation.</div>
-    <div class="disclaim" style="margin-top:12px;color:#a9c7c0">This proposal is the proprietary intellectual property of CARES Consulting, Inc. &amp; Kari Hoglund Kounkel. © 2025–2026. All rights reserved. Unauthorized use, duplication, hosting, or distribution is strictly prohibited.</div>
+    <div class="disclaim" style="margin-top:12px;color:#a9b3c7">This proposal is the proprietary intellectual property of CARES Consulting, Inc. &amp; Kari Hoglund Kounkel. © 2025–2026. All rights reserved. Unauthorized use, duplication, hosting, or distribution is strictly prohibited.</div>
   </div>
 </footer>
 
@@ -375,8 +375,8 @@
     var note = document.getElementById("pay-note");
     if (note) {
       note.innerHTML = (paid === "fiance")
-        ? "<b style='color:#235c54'>Payment received — thank you. ✓</b> Send me his info whenever you're ready and I'll complete his organizer so he can print his reports."
-        : "<b style='color:#235c54'>Retainer received — thank you, Maddie. ✓</b> Your spot is reserved; I'll bill against it at $150/hr and keep you posted at every step.";
+        ? "<b style='color:#2f3e59'>Payment received — thank you. ✓</b> Send me his info whenever you're ready and I'll complete his organizer so he can print his reports."
+        : "<b style='color:#2f3e59'>Retainer received — thank you, Maddie. ✓</b> Your spot is reserved; I'll bill against it at $150/hr and keep you posted at every step.";
     }
     if (paid !== "fiance" && btn) { btn.disabled = true; btn.textContent = "Retainer paid ✓"; }
   }
@@ -388,6 +388,7 @@
   var card = document.getElementById("upload-card");
   if (paid && card) {
     card.style.display = "block";
+    try { card.scrollIntoView({ behavior: "smooth", block: "center" }); } catch (e) {}
 
     var input  = document.getElementById("file-input");
     var upBtn  = document.getElementById("upload-btn");
