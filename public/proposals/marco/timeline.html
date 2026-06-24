@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MARCO Build · Timeline</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{ --blue:#1a7af0; --blueDeep:#0f52c9; --blueSoft:#e9f3ff; --ink:#202632; --inkSoft:#49515f; --muted:#828a98; --rule:#e4e2dd; --paper:#f5f7fb; --green:#2f8f5b; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'Inter',system-ui,sans-serif;line-height:1.5}
+  a{color:var(--blue)}
+  header{background:linear-gradient(150deg,var(--blue),var(--blueDeep));color:#fff;padding:26px 24px}
+  .wrap{max-width:760px;margin:0 auto;padding:0 24px}
+  header h1{font-family:'Fraunces',serif;font-size:26px;margin:0}
+  header p{margin:6px 0 0;font-size:14px;color:rgba(255,255,255,.85)}
+  main{padding:26px 0 80px}
+  .card{background:#fff;border:1px solid var(--rule);border-radius:14px;box-shadow:0 1px 2px rgba(28,36,34,.04),0 8px 24px rgba(28,36,34,.06);padding:18px 20px;margin-bottom:22px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .card label{font-size:11.5px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--inkSoft);display:block;margin-bottom:5px}
+  .card input{font-family:inherit;font-size:15px;padding:9px 12px;border:1.5px solid var(--rule);border-radius:9px}
+  .card .big{font-family:'Fraunces',serif;font-size:18px;color:var(--blue)}
+  .tl{position:relative;margin-left:8px;padding-left:30px;border-left:3px solid var(--blueSoft)}
+  .node{position:relative;padding:0 0 26px 6px}
+  .node:last-child{padding-bottom:0}
+  .dot{position:absolute;left:-42px;top:0;width:30px;height:30px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;font-family:'Fraunces',serif;font-weight:700;font-size:14px;box-shadow:0 0 0 4px var(--paper)}
+  .node.launch .dot{background:var(--green)}
+  .node.service .dot{background:#b07a00}
+  .date{font-size:12.5px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--blue)}
+  .node.launch .date{color:var(--green)} .node.service .date{color:#b07a00}
+  .ttl{font-family:'Fraunces',serif;font-size:18px;margin:2px 0 4px}
+  .desc{font-size:14.5px;color:var(--inkSoft);max-width:60ch}
+  .pay{display:inline-block;margin-top:6px;font-size:12px;font-weight:700;color:var(--blue);background:var(--blueSoft);border-radius:999px;padding:3px 10px}
+  .foot{font-size:12.5px;color:var(--muted);text-align:center;margin-top:26px}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap" style="padding:0;max-width:760px">
+    <h1>Your build timeline</h1>
+    <p>From kickoff to live in about four weeks — with a check-in every week so there are no surprises. <a href="./" style="color:#fff;text-decoration:underline">↩ proposal</a></p>
+  </div>
+</header>
+<main class="wrap">
+  <div class="card">
+    <div>
+      <label>Kickoff date</label>
+      <input id="start" type="date" />
+    </div>
+    <div style="flex:1;min-width:200px">
+      <div class="big" id="summary">Set the kickoff date and the milestones fill in.</div>
+    </div>
+  </div>
+  <div class="tl" id="tl"></div>
+  <div class="foot">CARES Consulting Inc · prepared for MARCO. Dates are targets; we confirm each at the weekly check-ins.</div>
+</main>
+<script>
+(function(){
+  var URL_ = "https://qcikhcnclduakriextsz.supabase.co";
+  var KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaWtoY25jbGR1YWtyaWV4dHN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NTc3NDAsImV4cCI6MjA5MTIzMzc0MH0.owUv_C0b0TYisI7v3Lpb2ZGF6TMn1Gwm7oRr26yR2eI";
+  var H = { "apikey": KEY, "Authorization": "Bearer " + KEY, "Content-Type": "application/json" };
+  var KEYITEM = "__timeline_start__";
+
+  var PHASES = [
+    { n:"1", off:0,   ttl:"Kickoff & discovery", pay:"60% deposit to begin", desc:"We sit down (about 5–8 hours) and map exactly what to build — and which JotForms to link or replace." },
+    { n:"2", off:7,   ttl:"Build · Week 1", desc:"The reviewer console takes shape: sign-in, the conflict-of-interest gate, and the split-screen review. First weekly check-in." },
+    { n:"3", off:14,  ttl:"Build · Week 2", desc:"The admin side and applicant intake come online — availability & assignment, determination letters, stipends. Check-in #2." },
+    { n:"4", off:21,  ttl:"Build · Week 3", desc:"The full pipeline wired together, plus the first-round website fixes. Check-in #3." },
+    { n:"5", off:24,  ttl:"Sandbox & test", desc:"You try the whole system with fake data in a safe copy — nothing touches real applicants yet." },
+    { n:"6", off:28,  ttl:"Launch", cls:"launch", pay:"40% balance at launch", desc:"Live on your own MARCO web address, with a walkthrough for your reviewers. Your next certification cycle runs on it." },
+    { n:"★", off:208, ttl:"Service phase begins", cls:"service", desc:"Six months after launch, the $1,200/year support phase starts — hosting, updates, and any changes, all directed by you." }
+  ];
+  function addDays(d,n){ var x=new Date(d.getTime()); x.setDate(x.getDate()+n); return x; }
+  function fmt(d){ return d.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",year:"numeric"}); }
+
+  function render(start){
+    var tl=document.getElementById("tl"); tl.innerHTML="";
+    PHASES.forEach(function(p){
+      var dt=addDays(start,p.off);
+      var node=document.createElement("div"); node.className="node "+(p.cls||"");
+      node.innerHTML="<div class='dot'>"+p.n+"</div>"+
+        "<div class='date'>"+fmt(dt)+"</div>"+
+        "<div class='ttl'>"+p.ttl+"</div>"+
+        "<div class='desc'>"+p.desc+(p.pay?" <span class='pay'>"+p.pay+"</span>":"")+"</div>";
+      tl.appendChild(node);
+    });
+    var live=addDays(start,28);
+    document.getElementById("summary").textContent="Kickoff "+fmt(start)+" → live by "+fmt(live)+".";
+  }
+  function setStart(d, save){
+    document.getElementById("start").value = d.toISOString().slice(0,10);
+    render(d);
+    if(save){ fetch(URL_+"/rest/v1/marco_scope",{method:"POST",headers:Object.assign({},H,{Prefer:"resolution=merge-duplicates,return=minimal"}),body:JSON.stringify({item:KEYITEM,status:"set",note:d.toISOString().slice(0,10),updated_at:new Date().toISOString()})}).catch(function(){}); }
+  }
+  document.getElementById("start").addEventListener("change", function(){ if(this.value){ setStart(new Date(this.value+"T00:00:00"), true); } });
+
+  // load saved kickoff date, else default to next Monday
+  fetch(URL_+"/rest/v1/marco_scope?item=eq."+KEYITEM+"&select=note",{headers:H}).then(function(r){return r.json();}).then(function(rows){
+    if(Array.isArray(rows)&&rows[0]&&rows[0].note){ setStart(new Date(rows[0].note+"T00:00:00"), false); }
+    else { var d=new Date(); d.setDate(d.getDate()+((8-d.getDay())%7||7)); setStart(d, false); }
+  }).catch(function(){ var d=new Date(); setStart(d, false); });
+})();
+</script>
+</body>
+</html>
