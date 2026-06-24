@@ -63,9 +63,12 @@
 </head>
 <body>
 <header>
-  <div class="wrap" style="padding:0;max-width:1060px">
-    <h1>MARCO Build · Workspace</h1>
-    <p>Capture what to add, what they don't like, and decisions — and upload real data as it comes in. Everything saves automatically. <a href="./" style="color:#fff;text-decoration:underline">↩ proposal</a></p>
+  <div class="wrap" style="padding:0;max-width:1060px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap">
+    <div>
+      <h1>MARCO Build · Workspace</h1>
+      <p>A shared space — anyone with this link can view and edit, and everything saves for everyone. Walk the scope list top to bottom to cover the whole proposal in order. <a href="./" style="color:#fff;text-decoration:underline">↩ proposal</a></p>
+    </div>
+    <button id="refresh" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:#fff;border-radius:9px;padding:9px 15px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap">↻ Refresh</button>
   </div>
 </header>
 
@@ -325,6 +328,8 @@
       await fetch(URL_+"/rest/v1/marco_scope", { method:"POST", headers:Object.assign({},H,{Prefer:"resolution=merge-duplicates,return=minimal"}), body:JSON.stringify({ item:item, status:scopeState[item].status, note:scopeState[item].note, updated_at:new Date().toISOString() }) });
     }catch(e){}
   }
+
+  document.getElementById("refresh").addEventListener("click", function(){ loadScope(); loadNotes(); loadFiles(); });
 
   loadNotes(); loadFiles(); loadScope();
 })();
