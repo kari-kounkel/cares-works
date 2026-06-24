@@ -96,7 +96,15 @@
       var drow=document.createElement("div"); drow.className="drow";
       var lab=document.createElement("label"); lab.textContent="Date"; drow.appendChild(lab);
       var di=document.createElement("input"); di.type="date"; di.value=dateOf(p.id);
-      di.addEventListener("change", function(){ save(p.id,{mdate:di.value}); summary(); });
+      di.addEventListener("change", function(){
+        if(!di.value) return;
+        var snap={}, idx=-1;
+        PHASES.forEach(function(x,i){ snap[x.id]=dateOf(x.id); if(x.id===p.id) idx=i; });
+        var delta=Math.round((new Date(di.value+"T00:00:00")-new Date(snap[p.id]+"T00:00:00"))/86400000);
+        save(p.id,{mdate:di.value});
+        for(var i=idx+1;i<PHASES.length;i++){ save(PHASES[i].id,{mdate:addDays(snap[PHASES[i].id],delta)}); }
+        render();
+      });
       drow.appendChild(di); card.appendChild(drow);
       // client session
       if(p.client){
