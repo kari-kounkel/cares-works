@@ -289,6 +289,24 @@
     </div>
     <p id="pay-note" class="muted" style="font-size:13px;margin-top:12px">Your $300 retainer reserves your spot and is billed against your time at $150/hr — with an update at every step, never silence.</p>
 
+    <div id="upload-card" style="display:none;margin-top:24px;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:24px;box-shadow:var(--shadow)">
+      <h3 style="margin-bottom:6px">Send me your documents — securely</h3>
+      <p class="muted" style="font-size:14px;margin-bottom:8px">Drop your files below. They upload straight to my private folder — only I can open them. Send whatever you have; we'll fill gaps as we go.</p>
+      <ul class="clean" style="font-size:14px;margin-bottom:14px">
+        <li>Photo ID (driver's license)</li>
+        <li>The tax return whose refund went missing — federal + Minnesota</li>
+        <li>Anything from the old preparer — texts, emails, invoices, their name/info</li>
+        <li>Bank statements showing the refund never arrived</li>
+        <li>Child support order + proof of the state payment you received</li>
+        <li>Any IRS or offset letters</li>
+      </ul>
+      <input id="file-input" type="file" multiple
+        accept=".pdf,.jpg,.jpeg,.png,.heic,.heif,.webp,.doc,.docx,.txt"
+        style="display:block;font-size:14px;margin-bottom:12px" />
+      <button class="btn" id="upload-btn">Upload securely →</button>
+      <div id="upload-status" class="muted" style="font-size:13.5px;margin-top:10px" aria-live="polite"></div>
+    </div>
+
     <div style="margin-top:34px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
       <img src="kari-signature.png" alt="Kari Hoglund Kounkel" style="height:54px" onerror="this.style.display='none'"/>
       <div>
@@ -312,6 +330,9 @@
 
 <!-- Ask Kari assistant — same embed used on the other /proposals pages -->
 <script src="https://chat.karikounkel.com/widget.js" defer></script>
+
+<!-- Secure document uploader (upload-only to a private Supabase bucket) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
 (function(){
@@ -358,6 +379,52 @@
         : "<b style='color:#235c54'>Retainer received — thank you, Maddie. ✓</b> Your spot is reserved; I'll bill against it at $150/hr and keep you posted at every step.";
     }
     if (paid !== "fiance" && btn) { btn.disabled = true; btn.textContent = "Retainer paid ✓"; }
+  }
+
+  // Secure document uploader — appears after payment; files go to a private,
+  // upload-only Supabase bucket (no public read/list).
+  var SB_URL = "https://qcikhcnclduakriextsz.supabase.co";
+  var SB_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaWtoY25jbGR1YWtyaWV4dHN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NTc3NDAsImV4cCI6MjA5MTIzMzc0MH0.owUv_C0b0TYisI7v3Lpb2ZGF6TMn1Gwm7oRr26yR2eI";
+  var card = document.getElementById("upload-card");
+  if (paid && card) {
+    card.style.display = "block";
+
+    var input  = document.getElementById("file-input");
+    var upBtn  = document.getElementById("upload-btn");
+    var status = document.getElementById("upload-status");
+    var sb = (window.supabase && window.supabase.createClient)
+      ? window.supabase.createClient(SB_URL, SB_ANON) : null;
+
+    function setStatus(msg){ if (status) status.textContent = msg; }
+
+    if (!sb) {
+      setStatus("Upload isn't available right now — please text your documents to 651.334.1300.");
+    } else if (upBtn) {
+      upBtn.addEventListener("click", async function(){
+        var files = input && input.files ? input.files : [];
+        if (!files.length) { setStatus("Choose your files first."); return; }
+        upBtn.disabled = true; upBtn.textContent = "Uploading…";
+        var ok = 0, fail = 0;
+        for (var i = 0; i < files.length; i++) {
+          var f = files[i];
+          var safe = f.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+          var path = "maddie/" + Date.now() + "-" + i + "-" + safe;
+          try {
+            var res = await sb.storage.from("client-uploads").upload(path, f, { upsert: false });
+            if (res && res.error) { fail++; } else { ok++; }
+          } catch (e) { fail++; }
+          setStatus("Uploaded " + ok + " of " + files.length + (fail ? (" · " + fail + " couldn't upload") : "") + "…");
+        }
+        if (ok && !fail) {
+          setStatus("All set — thank you! I've got your documents. ✓");
+          upBtn.textContent = "Uploaded ✓"; upBtn.disabled = true;
+          if (input) input.style.display = "none";
+        } else {
+          setStatus(ok + " uploaded, " + fail + " couldn't go through. Try the failed ones again, or text them to 651.334.1300.");
+          upBtn.disabled = false; upBtn.textContent = "Upload securely →";
+        }
+      });
+    }
   }
 })();
 </script>
