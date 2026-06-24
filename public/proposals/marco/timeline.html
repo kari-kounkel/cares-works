@@ -6,98 +6,122 @@
 <title>MARCO Build · Timeline</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>
-  :root{ --blue:#1a7af0; --blueDeep:#0f52c9; --blueSoft:#e9f3ff; --ink:#202632; --inkSoft:#49515f; --muted:#828a98; --rule:#e4e2dd; --paper:#f5f7fb; --green:#2f8f5b; }
+  :root{ --blue:#1a7af0; --blueDeep:#0f52c9; --blueSoft:#e9f3ff; --ink:#202632; --inkSoft:#49515f; --muted:#828a98; --rule:#e4e2dd; --paper:#f5f7fb; --green:#2f8f5b; --amber:#b07a00; }
   *{box-sizing:border-box}
   body{margin:0;background:var(--paper);color:var(--ink);font-family:'Inter',system-ui,sans-serif;line-height:1.5}
   a{color:var(--blue)}
   header{background:linear-gradient(150deg,var(--blue),var(--blueDeep));color:#fff;padding:26px 24px}
-  .wrap{max-width:760px;margin:0 auto;padding:0 24px}
+  .wrap{max-width:780px;margin:0 auto;padding:0 24px}
   header h1{font-family:'Fraunces',serif;font-size:26px;margin:0}
   header p{margin:6px 0 0;font-size:14px;color:rgba(255,255,255,.85)}
-  main{padding:26px 0 80px}
-  .card{background:#fff;border:1px solid var(--rule);border-radius:14px;box-shadow:0 1px 2px rgba(28,36,34,.04),0 8px 24px rgba(28,36,34,.06);padding:18px 20px;margin-bottom:22px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-  .card label{font-size:11.5px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--inkSoft);display:block;margin-bottom:5px}
-  .card input{font-family:inherit;font-size:15px;padding:9px 12px;border:1.5px solid var(--rule);border-radius:9px}
-  .card .big{font-family:'Fraunces',serif;font-size:18px;color:var(--blue)}
+  main{padding:24px 0 80px}
+  .bar{background:#fff;border:1px solid var(--rule);border-radius:13px;box-shadow:0 1px 2px rgba(28,36,34,.04),0 8px 24px rgba(28,36,34,.06);padding:14px 18px;margin-bottom:22px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .bar .big{font-family:'Fraunces',serif;font-size:17px;color:var(--blue);flex:1;min-width:200px}
+  .btn{cursor:pointer;font-family:inherit;font-size:13px;font-weight:700;border:1.5px solid var(--blue);background:#fff;color:var(--blue);border-radius:9px;padding:9px 14px}
   .tl{position:relative;margin-left:8px;padding-left:30px;border-left:3px solid var(--blueSoft)}
-  .node{position:relative;padding:0 0 26px 6px}
+  .node{position:relative;padding:0 0 22px 6px}
   .node:last-child{padding-bottom:0}
   .dot{position:absolute;left:-42px;top:0;width:30px;height:30px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;font-family:'Fraunces',serif;font-weight:700;font-size:14px;box-shadow:0 0 0 4px var(--paper)}
-  .node.launch .dot{background:var(--green)}
-  .node.service .dot{background:#b07a00}
-  .date{font-size:12.5px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--blue)}
-  .node.launch .date{color:var(--green)} .node.service .date{color:#b07a00}
-  .ttl{font-family:'Fraunces',serif;font-size:18px;margin:2px 0 4px}
-  .desc{font-size:14.5px;color:var(--inkSoft);max-width:60ch}
-  .pay{display:inline-block;margin-top:6px;font-size:12px;font-weight:700;color:var(--blue);background:var(--blueSoft);border-radius:999px;padding:3px 10px}
-  .foot{font-size:12.5px;color:var(--muted);text-align:center;margin-top:26px}
+  .node.launch .dot{background:var(--green)} .node.service .dot{background:var(--amber)}
+  .card{background:#fff;border:1px solid var(--rule);border-radius:12px;padding:13px 16px;box-shadow:0 1px 2px rgba(28,36,34,.04)}
+  .ttl{font-family:'Fraunces',serif;font-size:17px;margin:0 0 3px}
+  .desc{font-size:14px;color:var(--inkSoft);max-width:58ch}
+  .pay{display:inline-block;margin-left:6px;font-size:11.5px;font-weight:700;color:var(--blue);background:var(--blueSoft);border-radius:999px;padding:2px 9px;vertical-align:middle}
+  .drow{display:flex;align-items:center;gap:8px;margin:8px 0 0;flex-wrap:wrap}
+  .drow label{font-size:11px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--muted)}
+  input[type=date],input[type=text]{font-family:inherit;font-size:14px;padding:7px 10px;border:1.5px solid var(--rule);border-radius:8px;color:var(--ink)}
+  input:focus{outline:none;border-color:var(--blue)}
+  .client{margin-top:9px;background:#fff8ec;border:1px solid #f0dcb4;border-radius:9px;padding:9px 12px}
+  .client .lbl{font-size:11.5px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--amber)}
+  .client .hint{font-size:12.5px;color:var(--inkSoft);margin:1px 0 7px}
+  .client input{width:100%}
+  .saved{font-size:11px;color:var(--green);margin-left:8px;opacity:0;transition:opacity .2s}
+  .saved.show{opacity:1}
+  .foot{font-size:12.5px;color:var(--muted);text-align:center;margin-top:24px}
 </style>
 </head>
 <body>
 <header>
-  <div class="wrap" style="padding:0;max-width:760px">
+  <div class="wrap" style="padding:0;max-width:780px">
     <h1>Your build timeline</h1>
-    <p>From kickoff to live in about four weeks — with a check-in every week so there are no surprises. <a href="./" style="color:#fff;text-decoration:underline">↩ proposal</a></p>
+    <p>From kickoff to live in about four weeks. Set the kickoff date, fill the rest, and schedule the sessions where we'll need your team. <a href="./" style="color:#fff;text-decoration:underline">↩ proposal</a></p>
   </div>
 </header>
 <main class="wrap">
-  <div class="card">
-    <div>
-      <label>Kickoff date</label>
-      <input id="start" type="date" />
-    </div>
-    <div style="flex:1;min-width:200px">
-      <div class="big" id="summary">Set the kickoff date and the milestones fill in.</div>
-    </div>
+  <div class="bar">
+    <div class="big" id="summary">—</div>
+    <button class="btn" id="recalc">↻ Fill later dates from Phase 1</button>
+    <span id="saved" class="saved">saved ✓</span>
   </div>
   <div class="tl" id="tl"></div>
-  <div class="foot">CARES Consulting Inc · prepared for MARCO. Dates are targets; we confirm each at the weekly check-ins.</div>
+  <div class="foot">CARES Consulting Inc · prepared for MARCO. Every date is editable — adjust anytime and it saves for everyone.</div>
 </main>
 <script>
 (function(){
   var URL_ = "https://qcikhcnclduakriextsz.supabase.co";
   var KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaWtoY25jbGR1YWtyaWV4dHN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NTc3NDAsImV4cCI6MjA5MTIzMzc0MH0.owUv_C0b0TYisI7v3Lpb2ZGF6TMn1Gwm7oRr26yR2eI";
-  var H = { "apikey": KEY, "Authorization": "Bearer " + KEY, "Content-Type": "application/json" };
-  var KEYITEM = "__timeline_start__";
-
+  var H = { "apikey":KEY, "Authorization":"Bearer "+KEY, "Content-Type":"application/json" };
   var PHASES = [
-    { n:"1", off:0,   ttl:"Kickoff & discovery", pay:"60% deposit to begin", desc:"We sit down (about 5–8 hours) and map exactly what to build — and which JotForms to link or replace." },
-    { n:"2", off:7,   ttl:"Build · Week 1", desc:"The reviewer console takes shape: sign-in, the conflict-of-interest gate, and the split-screen review. First weekly check-in." },
-    { n:"3", off:14,  ttl:"Build · Week 2", desc:"The admin side and applicant intake come online — availability & assignment, determination letters, stipends. Check-in #2." },
-    { n:"4", off:21,  ttl:"Build · Week 3", desc:"The full pipeline wired together, plus the first-round website fixes. Check-in #3." },
-    { n:"5", off:24,  ttl:"Sandbox & test", desc:"You try the whole system with fake data in a safe copy — nothing touches real applicants yet." },
-    { n:"6", off:28,  ttl:"Launch", cls:"launch", pay:"40% balance at launch", desc:"Live on your own MARCO web address, with a walkthrough for your reviewers. Your next certification cycle runs on it." },
-    { n:"★", off:208, ttl:"Service phase begins", cls:"service", desc:"Six months after launch, the $1,200/year support phase starts — hosting, updates, and any changes, all directed by you." }
+    { id:"p1", n:"1", off:0,   ttl:"Kickoff & discovery", pay:"60% deposit", desc:"We map exactly what to build and which JotForms to link or replace.", client:true, hint:"Working session · about 5–8 hours (in person or video)" },
+    { id:"p2", n:"2", off:7,   ttl:"Build · Week 1", desc:"The reviewer console takes shape — sign-in, conflict gate, split-screen review.", client:true, hint:"Weekly check-in · about 45 minutes" },
+    { id:"p3", n:"3", off:14,  ttl:"Build · Week 2", desc:"The admin side and applicant intake come online — assignments, letters, stipends.", client:true, hint:"Weekly check-in · about 45 minutes" },
+    { id:"p4", n:"4", off:21,  ttl:"Build · Week 3", desc:"The full pipeline wired together, plus the first-round website fixes.", client:true, hint:"Weekly check-in · about 45 minutes" },
+    { id:"p5", n:"5", off:24,  ttl:"Sandbox & test", desc:"You try the whole system with fake data in a safe copy — nothing touches real applicants yet." },
+    { id:"p6", n:"6", off:28,  ttl:"Launch", cls:"launch", pay:"40% balance", desc:"Live on your own MARCO web address. Your next certification cycle runs on it.", client:true, hint:"Walkthrough for your reviewers · about 1 hour" },
+    { id:"p7", n:"★", off:208, ttl:"Service phase begins", cls:"service", desc:"Six months after launch, the $1,200/year support phase starts — hosting, updates, and changes, all directed by you." }
   ];
-  function addDays(d,n){ var x=new Date(d.getTime()); x.setDate(x.getDate()+n); return x; }
-  function fmt(d){ return d.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",year:"numeric"}); }
+  var state = {};
+  function pad(n){ return (n<10?"0":"")+n; }
+  function iso(d){ return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()); }
+  function addDays(s,n){ var d=new Date(s+"T00:00:00"); d.setDate(d.getDate()+n); return iso(d); }
+  function fmt(s){ if(!s) return "—"; return new Date(s+"T00:00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",year:"numeric"}); }
+  function nextMon(){ var d=new Date(); d.setDate(d.getDate()+((8-d.getDay())%7||7)); return iso(d); }
+  function dateOf(id){ var s=state[id]||{}; if(s.mdate) return s.mdate; var p1=(state.p1&&state.p1.mdate)||nextMon(); var ph=PHASES.filter(function(p){return p.id===id;})[0]; return addDays(p1, ph.off); }
+  function flash(){ var s=document.getElementById("saved"); s.classList.add("show"); setTimeout(function(){s.classList.remove("show");},1100); }
 
-  function render(start){
+  async function save(phase, patch){
+    state[phase]=Object.assign({}, state[phase]||{}, patch);
+    try{ await fetch(URL_+"/rest/v1/marco_timeline",{method:"POST",headers:Object.assign({},H,{Prefer:"resolution=merge-duplicates,return=minimal"}),body:JSON.stringify({phase:phase, mdate:state[phase].mdate||null, session:state[phase].session||null, updated_at:new Date().toISOString()})}); flash(); }catch(e){}
+  }
+  function summary(){ document.getElementById("summary").textContent = "Kickoff "+fmt(dateOf("p1"))+"  →  live by "+fmt(dateOf("p6")); }
+
+  function render(){
     var tl=document.getElementById("tl"); tl.innerHTML="";
     PHASES.forEach(function(p){
-      var dt=addDays(start,p.off);
       var node=document.createElement("div"); node.className="node "+(p.cls||"");
-      node.innerHTML="<div class='dot'>"+p.n+"</div>"+
-        "<div class='date'>"+fmt(dt)+"</div>"+
-        "<div class='ttl'>"+p.ttl+"</div>"+
-        "<div class='desc'>"+p.desc+(p.pay?" <span class='pay'>"+p.pay+"</span>":"")+"</div>";
-      tl.appendChild(node);
+      var dot=document.createElement("div"); dot.className="dot"; dot.textContent=p.n; node.appendChild(dot);
+      var card=document.createElement("div"); card.className="card";
+      card.innerHTML="<div class='ttl'>"+p.ttl+(p.pay?"<span class='pay'>"+p.pay+"</span>":"")+"</div><div class='desc'>"+p.desc+"</div>";
+      // editable date
+      var drow=document.createElement("div"); drow.className="drow";
+      var lab=document.createElement("label"); lab.textContent="Date"; drow.appendChild(lab);
+      var di=document.createElement("input"); di.type="date"; di.value=dateOf(p.id);
+      di.addEventListener("change", function(){ save(p.id,{mdate:di.value}); summary(); });
+      drow.appendChild(di); card.appendChild(drow);
+      // client session
+      if(p.client){
+        var cb=document.createElement("div"); cb.className="client";
+        cb.innerHTML="<div class='lbl'>⏱ Your team's time</div><div class='hint'>"+p.hint+"</div>";
+        var ci=document.createElement("input"); ci.type="text"; ci.placeholder="Schedule it — e.g. Tue Jul 15, 9am–2pm";
+        ci.value=(state[p.id]&&state[p.id].session)||"";
+        ci.addEventListener("change", function(){ save(p.id,{session:ci.value}); });
+        cb.appendChild(ci); card.appendChild(cb);
+      }
+      node.appendChild(card); tl.appendChild(node);
     });
-    var live=addDays(start,28);
-    document.getElementById("summary").textContent="Kickoff "+fmt(start)+" → live by "+fmt(live)+".";
+    summary();
   }
-  function setStart(d, save){
-    document.getElementById("start").value = d.toISOString().slice(0,10);
-    render(d);
-    if(save){ fetch(URL_+"/rest/v1/marco_scope",{method:"POST",headers:Object.assign({},H,{Prefer:"resolution=merge-duplicates,return=minimal"}),body:JSON.stringify({item:KEYITEM,status:"set",note:d.toISOString().slice(0,10),updated_at:new Date().toISOString()})}).catch(function(){}); }
-  }
-  document.getElementById("start").addEventListener("change", function(){ if(this.value){ setStart(new Date(this.value+"T00:00:00"), true); } });
 
-  // load saved kickoff date, else default to next Monday
-  fetch(URL_+"/rest/v1/marco_scope?item=eq."+KEYITEM+"&select=note",{headers:H}).then(function(r){return r.json();}).then(function(rows){
-    if(Array.isArray(rows)&&rows[0]&&rows[0].note){ setStart(new Date(rows[0].note+"T00:00:00"), false); }
-    else { var d=new Date(); d.setDate(d.getDate()+((8-d.getDay())%7||7)); setStart(d, false); }
-  }).catch(function(){ var d=new Date(); setStart(d, false); });
+  document.getElementById("recalc").addEventListener("click", function(){
+    var p1=dateOf("p1");
+    PHASES.forEach(function(p){ if(p.id!=="p1") save(p.id,{mdate:addDays(p1,p.off)}); });
+    setTimeout(render, 250);
+  });
+
+  fetch(URL_+"/rest/v1/marco_timeline?select=phase,mdate,session",{headers:H}).then(function(r){return r.json();}).then(function(rows){
+    state={}; (Array.isArray(rows)?rows:[]).forEach(function(o){ state[o.phase]={mdate:o.mdate,session:o.session}; });
+    render();
+  }).catch(function(){ render(); });
 })();
 </script>
 </body>
