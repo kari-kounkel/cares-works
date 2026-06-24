@@ -51,6 +51,14 @@
   .empty{color:var(--muted);font-size:13.5px;padding:14px 0}
   .saved{font-size:12px;color:#2f8f5b;margin-left:10px;opacity:0;transition:opacity .2s}
   .saved.show{opacity:1}
+  .sgroup{margin-bottom:16px}
+  .sgroup h3{font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--blue);margin:0 0 6px;border-bottom:1px solid var(--rule);padding-bottom:5px}
+  .sitem{display:flex;align-items:center;gap:10px;padding:6px 0}
+  .spill{flex:none;cursor:pointer;font-size:10.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;border:none;border-radius:999px;padding:4px 10px;min-width:78px;text-align:center}
+  .slabel{flex:1;font-size:14px}
+  .snote{flex:none;width:230px;font-size:12.5px;padding:6px 9px;border:1px solid var(--rule);border-radius:7px}
+  .snote:focus{outline:none;border-color:var(--blue)}
+  @media (max-width:820px){ .sitem{flex-wrap:wrap} .snote{width:100%} }
 </style>
 </head>
 <body>
@@ -62,6 +70,11 @@
 </header>
 
 <main class="wrap">
+  <div class="card">
+    <h2>Proposal scope — every deliverable <span id="scope-prog" style="font-size:13px;font-weight:600;color:var(--muted);margin-left:8px"></span></h2>
+    <p style="font-size:12.5px;color:var(--muted);margin:-6px 0 14px">Tap a status to cycle <b>Todo → Building → Done</b>. Add a note per item as you learn what they want — saves automatically.</p>
+    <div id="scope"><div class="empty">Loading…</div></div>
+  </div>
   <div class="grid">
     <!-- NOTES -->
     <div>
@@ -220,7 +233,100 @@
   async function delFile(name){ await fetch(URL_+"/storage/v1/object/"+BUCKET+"/"+encodeURIComponent(name), { method:"DELETE", headers:{ "apikey":KEY, "Authorization":"Bearer "+KEY } }); loadFiles(); }
   function fmt(b){ if(!b) return ""; if(b<1024) return b+" B"; if(b<1048576) return (b/1024).toFixed(0)+" KB"; return (b/1048576).toFixed(1)+" MB"; }
 
-  loadNotes(); loadFiles();
+  // ---- proposal scope tracker ----
+  var SCOPE = [
+    ["Reviewer console", [
+      "Conflict-of-interest recusal gate",
+      "Split-screen review (answers + statute + scoring)",
+      "Documents open in context (PDF viewer)",
+      "Written application review — per-criterion matrix",
+      "Site visit review — agenda + per-criterion reflections",
+      "Panel review — recommendation + strengths/improvements",
+      "Cohort visibility (see how others scored)",
+      "Statute & national standards built in"
+    ]],
+    ["Admin — MARCO staff", [
+      "Reviewer recruiting, vetting, interviews & hiring",
+      "Availability collection + one-screen cohort assignment",
+      "One clear notice to reviewers (replaces email chains)",
+      "Applicants & completeness tracking",
+      "Determination letter builder (pulls in reviewer comments)",
+      "Reviewer stipends auto-calculated + bill.com handoff",
+      "‘Ask’ support widget on the admin side"
+    ]],
+    ["Applicant intake", [
+      "Self-assessment + application portal (+ document uploads)",
+      "Reference survey auto-sent to references"
+    ]],
+    ["Platform & data", [
+      "Reviewer accounts + secure database (everything saved)",
+      "Recusal-aware, confidential access controls",
+      "MARCO-branded web address",
+      "Replaces every JotForm (kills the subscription)",
+      "Their colors & fonts (theming)"
+    ]],
+    ["Website — first round (with full build)", [
+      "Clearer navigation",
+      "Better events calendar (dates + registration)",
+      "Dedicated RCO certification page",
+      "Image / mobile speed optimization",
+      "Safe interface — no new URLs, no extra hosting"
+    ]],
+    ["Conferences — add-on", [
+      "Registration & payment",
+      "Nametags & materials from registration data",
+      "Speaker & presenter intake",
+      "Post-conference recap packet",
+      "Link to their conference-org tech"
+    ]],
+    ["RCO tools — separate offering", [
+      "Compliance toolkit (statutes + check-offs + reminders + evidence)",
+      "Board meeting kit (agenda + minutes + composition tracker)",
+      "Events calendar for RCOs",
+      "Social media generator",
+      "90-minute review session"
+    ]]
+  ];
+  var PILL = { todo:["Todo","#6a7180","#eef0f4"], doing:["Building","#0f52c9","#e9f3ff"], done:["Done ✓","#2f8f5b","#e4f1ea"] };
+  var scopeState = {};
+  function setPill(el,st){ var m=PILL[st]||PILL.todo; el.textContent=m[0]; el.style.color=m[1]; el.style.background=m[2]; }
+  function updateProg(){ var t=0,d=0; SCOPE.forEach(function(g){ g[1].forEach(function(i){ t++; if((scopeState[i]||{}).status==="done") d++; }); }); document.getElementById("scope-prog").textContent = d+" / "+t+" done"; }
+  async function loadScope(){
+    try{
+      var r = await fetch(URL_+"/rest/v1/marco_scope?select=item,status,note", { headers:H });
+      var rows = await r.json();
+      scopeState = {};
+      (Array.isArray(rows)?rows:[]).forEach(function(o){ scopeState[o.item] = { status:o.status, note:o.note }; });
+    }catch(e){}
+    renderScope();
+  }
+  function renderScope(){
+    var box = document.getElementById("scope"); box.innerHTML="";
+    SCOPE.forEach(function(g){
+      var grp = document.createElement("div"); grp.className="sgroup";
+      var h = document.createElement("h3"); h.textContent=g[0]; grp.appendChild(h);
+      g[1].forEach(function(item){
+        var st = (scopeState[item]||{}).status || "todo";
+        var row = document.createElement("div"); row.className="sitem";
+        var pill = document.createElement("button"); pill.className="spill"; setPill(pill, st);
+        pill.addEventListener("click", function(){ st = st==="todo"?"doing":(st==="doing"?"done":"todo"); setPill(pill, st); saveScope(item,{status:st}); updateProg(); });
+        var lab = document.createElement("div"); lab.className="slabel"; lab.textContent=item;
+        var note = document.createElement("input"); note.className="snote"; note.placeholder="note…"; note.value=(scopeState[item]||{}).note||"";
+        note.addEventListener("change", function(){ saveScope(item,{note:note.value}); });
+        row.appendChild(pill); row.appendChild(lab); row.appendChild(note); grp.appendChild(row);
+      });
+      box.appendChild(grp);
+    });
+    updateProg();
+  }
+  async function saveScope(item, patch){
+    scopeState[item] = Object.assign({status:"todo",note:""}, scopeState[item]||{}, patch);
+    try{
+      await fetch(URL_+"/rest/v1/marco_scope", { method:"POST", headers:Object.assign({},H,{Prefer:"resolution=merge-duplicates,return=minimal"}), body:JSON.stringify({ item:item, status:scopeState[item].status, note:scopeState[item].note, updated_at:new Date().toISOString() }) });
+    }catch(e){}
+  }
+
+  loadNotes(); loadFiles(); loadScope();
 })();
 </script>
 </body>
