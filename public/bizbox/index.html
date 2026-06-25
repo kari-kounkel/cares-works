@@ -180,7 +180,8 @@
         <div><label>Phone</label><input id="c_phone" placeholder="(___) ___-____"></div>
         <div><label>Email</label><input id="c_email" placeholder="optional"></div>
       </div>
-      <div style="margin-top:14px"><label>Notes</label><textarea id="c_notes" placeholder="Measurements, preferences, allergies, where they heard about you..."></textarea></div>
+      <div id="measWrap" style="margin-top:14px"><label>📏 Measurements / sizing</label><textarea id="c_meas" placeholder="Waist 32 · Inseam 30 · Hip 40 · Chest 38 · Sleeve 24 · Neck 15.5 — or whatever you measure"></textarea></div>
+      <div style="margin-top:14px"><label>Notes</label><textarea id="c_notes" placeholder="Preferences, allergies, where they heard about you..."></textarea></div>
       <div class="row" style="margin-top:14px;justify-content:flex-end">
         <button class="btn ghost sm" id="c_cancel" style="display:none" onclick="cancelClientEdit()">Cancel</button>
         <button class="btn" id="c_save" onclick="saveClient()">Add client</button>
@@ -238,6 +239,14 @@
         </div>
       </div>
       <p class="sub" style="margin:10px 0 0">MN state base is <b>6.875%</b>. Add local tax if your city/county charges it (parts of the metro run ~7.875–8.875%). <button class="linkbtn" onclick="window.open('https://www.revenue.state.mn.us/local-sales-tax-information','_blank')">Look up my rate →</button></p>
+      <hr style="border:none;border-top:1px solid var(--line);margin:18px 0">
+      <label style="margin-bottom:8px">Contact info — shows on invoices &amp; receipts</label>
+      <div class="grid g3">
+        <div><label>Phone</label><input id="s_phone" placeholder="(___) ___-____"></div>
+        <div><label>Email</label><input id="s_email" placeholder="you@yourbiz.com"></div>
+        <div><label>Address</label><input id="s_address" placeholder="optional"></div>
+      </div>
+      <div style="margin-top:14px"><label>Invoice / receipt footer note</label><input id="s_invnote" placeholder="e.g. Payment due on pickup · Thank you for supporting a local maker!"></div>
       <div class="row" style="margin-top:14px;justify-content:flex-end">
         <button class="btn" onclick="saveSettings()">Save settings</button>
       </div>
@@ -294,10 +303,11 @@ function load(){
   try{const d=JSON.parse(localStorage.getItem(KEY));if(d&&d.jobs)return migrate(d);}catch(e){}
   // first run: guess type from the file name so a copy named "...Laundry..." opens as laundry
   const guess=/laundr|wash|clean|fold/i.test(decodeURIComponent(location.pathname))?'laundry':'alterations';
-  return {settings:{businessType:guess,biz:'',rate:6.875,nextClaim:1001}, clients:[], jobs:[]};
+  return {settings:{businessType:guess,biz:'',phone:'',email:'',address:'',invoiceNote:'',rate:6.875,nextClaim:1001}, clients:[], jobs:[]};
 }
 function migrate(d){
   if(!d.settings.businessType)d.settings.businessType='alterations';
+  ['phone','email','address','invoiceNote'].forEach(k=>{if(d.settings[k]===undefined)d.settings[k]='';});
   if(!d.settings.nextClaim){let mx=1000;d.jobs.forEach(j=>{if(j.claim&&j.claim>mx)mx=j.claim;});d.settings.nextClaim=mx+1;}
   return d;
 }
@@ -330,6 +340,7 @@ function paintChrome(){
   document.getElementById('taxLabel').textContent=c.taxLabel;
   document.getElementById('taxNote').innerHTML=c.taxNote;
   document.title=c.app+(db.settings.biz?' · '+db.settings.biz:'');
+  document.getElementById('measWrap').style.display=db.settings.businessType==='laundry'?'none':'';
   renderPresets();
 }
 function applyType(t){db.settings.businessType=t;paintChrome();}
@@ -436,6 +447,7 @@ function renderJobs(){
       <td class="center"><span class="pill ${j.status}" style="cursor:pointer" title="click to advance" onclick="cycleStatus('${j.id}')">${j.status}</span></td>
       <td class="right" style="white-space:nowrap">
         <button class="btn ghost tiny" title="print claim ticket" onclick="printTicket('${j.id}')">🎫</button>
+        <button class="btn ghost tiny" title="invoice / receipt (PDF)" onclick="printInvoice('${j.id}')">🧾</button>
         <button class="btn ghost tiny" onclick="editJob('${j.id}')">edit</button>
         <button class="btn ghost tiny" onclick="delJob('${j.id}')">✕</button>
       </td></tr>`;
@@ -495,6 +507,64 @@ function printTicket(id){
   </body></html>`);
   w.document.close();
 }
+function printInvoice(id){
+  const j=db.jobs.find(j=>j.id===id);if(!j)return;
+  const c=db.clients.find(c=>c.id===j.clientId);
+  const s=db.settings, biz=s.biz||cfg().app;
+  const {p,t,total}=jobTotal(j.price,j.taxable);
+  const paid=j.status==='paid';
+  const doc=paid?'RECEIPT':'INVOICE';
+  const contact=[s.phone,s.email,s.address].filter(Boolean).map(esc).join(' &middot; ');
+  const taxRow=t>0?`<tr><td class="a" style="color:#888">MN sales tax (${j.rate||rate()}%)</td><td class="a">${money(t)}</td></tr>`:'';
+  const w=window.open('','_blank','width=720,height=900');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${doc} #${j.claim} — ${esc(biz)}</title><style>
+    @page{margin:14mm}
+    *{box-sizing:border-box}
+    body{font-family:-apple-system,Segoe UI,Arial,sans-serif;color:#1c1830;margin:0;padding:24px;max-width:720px}
+    .top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #6c4f9c;padding-bottom:14px}
+    .biz{font-size:22px;font-weight:800}
+    .contact{font-size:12px;color:#666;margin-top:4px}
+    .doc{text-align:right}
+    .doc .t{font-size:26px;font-weight:800;letter-spacing:1px;color:#6c4f9c}
+    .doc .m{font-size:13px;color:#444;margin-top:4px}
+    .billto{margin:18px 0 6px;font-size:13px}
+    .billto .l{color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.5px;font-size:11px}
+    .billto .n{font-size:16px;font-weight:700}
+    table{width:100%;border-collapse:collapse;margin-top:14px;font-size:14px}
+    th{text-align:left;background:#f3f0f9;padding:8px 10px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#555}
+    th.a,td.a{text-align:right}
+    td{padding:9px 10px;border-bottom:1px solid #eee}
+    td.d .sub{color:#888;font-size:12px}
+    tfoot td{border:none;padding:5px 10px}
+    tfoot .tot td{font-size:18px;font-weight:800;border-top:2px solid #1c1830;padding-top:10px}
+    .stamp{display:inline-block;margin-top:16px;border:3px solid ${paid?'#2e9e6b':'#c98a1e'};color:${paid?'#2e9e6b':'#c98a1e'};
+      font-weight:800;font-size:18px;letter-spacing:2px;padding:6px 18px;border-radius:8px;transform:rotate(-4deg)}
+    .note{margin-top:22px;font-size:13px;color:#555;border-top:1px solid #eee;padding-top:12px;white-space:pre-wrap}
+    .thanks{margin-top:8px;font-size:13px;color:#6c4f9c;font-weight:600}
+    @media print{.noprint{display:none}}
+  </style></head><body>
+    <div class="top">
+      <div><div class="biz">${esc(biz)}</div>${contact?`<div class="contact">${contact}</div>`:''}</div>
+      <div class="doc"><div class="t">${doc}</div><div class="m">Claim #${j.claim}<br>${fmtDate(j.date)}</div></div>
+    </div>
+    <div class="billto"><div class="l">Bill to</div><div class="n">${esc(c?c.name:'Walk-in customer')}</div>
+      ${c&&c.phone?`<div>${esc(c.phone)}</div>`:''}${c&&c.email?`<div>${esc(c.email)}</div>`:''}</div>
+    <table>
+      <thead><tr><th>Description</th><th class="a">Amount</th></tr></thead>
+      <tbody><tr><td class="d">${esc(j.desc)||'Services'}${j.items?`<div class="sub">Items: ${esc(j.items)}</div>`:''}</td><td class="a">${money(p)}</td></tr></tbody>
+      <tfoot>
+        <tr><td class="a" style="color:#888">Subtotal</td><td class="a">${money(p)}</td></tr>
+        ${taxRow}
+        <tr class="tot"><td class="a">${paid?'Paid in full':'Total due'}</td><td class="a">${money(total)}</td></tr>
+      </tfoot>
+    </table>
+    <div class="stamp">${paid?'✓ PAID':'BALANCE DUE'}</div>
+    ${s.invoiceNote?`<div class="note">${esc(s.invoiceNote)}</div>`:''}
+    <div class="thanks">Thank you for your business!</div>
+    <button class="noprint" onclick="window.print()" style="display:block;margin:22px auto;padding:10px 22px;font-size:14px;font-weight:700;background:#6c4f9c;color:#fff;border:none;border-radius:8px;cursor:pointer">🖨 Print / Save as PDF</button>
+  </body></html>`);
+  w.document.close();
+}
 
 // ---------- clients ----------
 let editingClient=null;
@@ -504,6 +574,7 @@ function saveClient(){
   const rec={id:editingClient||uid(),name,
     phone:document.getElementById('c_phone').value.trim(),
     email:document.getElementById('c_email').value.trim(),
+    meas:document.getElementById('c_meas').value.trim(),
     notes:document.getElementById('c_notes').value.trim()};
   if(editingClient){const i=db.clients.findIndex(c=>c.id===editingClient);db.clients[i]=rec;}
   else db.clients.push(rec);
@@ -514,6 +585,7 @@ function editClient(id){
   document.getElementById('c_name').value=c.name;
   document.getElementById('c_phone').value=c.phone;
   document.getElementById('c_email').value=c.email;
+  document.getElementById('c_meas').value=c.meas||'';
   document.getElementById('c_notes').value=c.notes;
   document.getElementById('c_save').textContent='Save changes';
   document.getElementById('c_cancel').style.display='';
@@ -521,7 +593,7 @@ function editClient(id){
 }
 function cancelClientEdit(){
   editingClient=null;
-  ['c_name','c_phone','c_email','c_notes'].forEach(id=>document.getElementById(id).value='');
+  ['c_name','c_phone','c_email','c_meas','c_notes'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('c_save').textContent='Add client';
   document.getElementById('c_cancel').style.display='none';
 }
@@ -543,7 +615,7 @@ function renderClients(){
       const n=db.jobs.filter(j=>j.clientId===c.id).length;
       return `<tr><td><b>${esc(c.name)}</b></td><td>${esc(c.phone)||'<span class="muted">—</span>'}</td>
       <td>${esc(c.email)||'<span class="muted">—</span>'}</td><td class="center">${n}</td>
-      <td class="muted">${esc(c.notes)||''}</td>
+      <td class="muted">${c.meas?'📏 '+esc(c.meas)+(c.notes?'<br>':''):''}${esc(c.notes)||(c.meas?'':'')}</td>
       <td class="right" style="white-space:nowrap">
         <button class="btn ghost tiny" onclick="editClient('${c.id}')">edit</button>
         <button class="btn ghost tiny" onclick="delClient('${c.id}')">✕</button></td></tr>`;
@@ -598,12 +670,20 @@ function renderTax(){
 function paintSettings(){
   document.getElementById('s_type').value=db.settings.businessType;
   document.getElementById('s_biz').value=db.settings.biz||'';
+  document.getElementById('s_phone').value=db.settings.phone||'';
+  document.getElementById('s_email').value=db.settings.email||'';
+  document.getElementById('s_address').value=db.settings.address||'';
+  document.getElementById('s_invnote').value=db.settings.invoiceNote||'';
   document.getElementById('s_rate').value=db.settings.rate;
   document.getElementById('bizName').textContent=db.settings.biz?'· '+db.settings.biz:'';
 }
 function saveSettings(){
   db.settings.businessType=document.getElementById('s_type').value;
   db.settings.biz=document.getElementById('s_biz').value.trim();
+  db.settings.phone=document.getElementById('s_phone').value.trim();
+  db.settings.email=document.getElementById('s_email').value.trim();
+  db.settings.address=document.getElementById('s_address').value.trim();
+  db.settings.invoiceNote=document.getElementById('s_invnote').value.trim();
   const r=parseFloat(document.getElementById('s_rate').value);db.settings.rate=isNaN(r)?6.875:r;
   save();paintSettings();paintChrome();updateCalc();renderJobs();alert('Saved!');
 }
