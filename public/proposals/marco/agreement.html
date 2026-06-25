@@ -129,7 +129,8 @@
 
     <button class="btn pay" id="pay" disabled>Sign &amp; pay $4,700 by card →</button>
     <button class="btn dl" id="dl">Download / print a signed copy</button>
-    <p class="fine" id="note">Sign and add your name to continue. Prefer to be invoiced? Email kari@caresmn.com and we'll send an invoice for $4,700.</p>
+    <p class="fine" id="note">Sign and add your name to continue.</p>
+    <p class="fine">Prefer to be invoiced? <a href="invoice.html">View / download invoice #2026060501</a> &nbsp;·&nbsp; or pay by check to CARES Consulting Inc.</p>
   </div>
 </main>
 <footer>
@@ -158,7 +159,7 @@
   var signer = document.getElementById("signer");
   signer.addEventListener("input", upd);
   function ready(){ return dirty && signer.value.trim().length>1; }
-  function upd(){ var ok=ready(); document.getElementById("pay").disabled=!ok; document.getElementById("note").textContent = ok ? "You'll be taken to Stripe to pay $4,700 securely." : "Sign and add your name to continue. Prefer to be invoiced? Email kari@caresmn.com for an invoice."; }
+  function upd(){ var ok=ready(); document.getElementById("pay").disabled=!ok; document.getElementById("note").textContent = ok ? "You'll be taken to Stripe to pay $4,700 securely." : "Sign and add your name to continue."; }
 
   document.getElementById("pay").addEventListener("click", function(){
     if(!ready()) return;

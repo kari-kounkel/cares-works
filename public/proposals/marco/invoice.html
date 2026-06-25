@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Invoice 2026060501 · CARES Consulting Inc</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{ --blue:#1a7af0; --blueDeep:#0f52c9; --blueSoft:#e9f3ff; --ink:#202632; --inkSoft:#49515f; --muted:#828a98; --rule:#e4e2dd; --paper:#f5f7fb; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'Inter',system-ui,sans-serif;line-height:1.5}
+  .sheet{max-width:720px;margin:24px auto;background:#fff;border:1px solid var(--rule);border-radius:14px;box-shadow:0 8px 30px rgba(28,36,34,.08);padding:38px 42px}
+  .top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;border-bottom:2px solid var(--blue);padding-bottom:20px;margin-bottom:22px;flex-wrap:wrap}
+  .brand .nm{font-family:'Fraunces',serif;font-size:24px;font-weight:700;color:var(--blue)}
+  .brand .nm span{font-size:15px;color:var(--inkSoft)}
+  .brand .tag{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:3px}
+  .inv{text-align:right}
+  .inv h1{font-family:'Fraunces',serif;font-size:26px;margin:0;color:var(--ink)}
+  .inv .no{font-size:14px;color:var(--inkSoft);margin-top:2px}
+  .meta{display:flex;gap:40px;flex-wrap:wrap;margin-bottom:24px}
+  .meta .blk{font-size:13.5px}
+  .meta label{display:block;font-size:10.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+  .ed{font-family:inherit;font-size:13.5px;color:var(--ink);border:1px solid transparent;border-radius:6px;padding:2px 5px;margin:-2px -5px;width:240px;background:transparent}
+  .ed:hover{border-color:var(--rule)} .ed:focus{outline:none;border-color:var(--blue);background:#fff}
+  .ml{display:block;margin-bottom:3px}
+  table{width:100%;border-collapse:collapse;margin-bottom:6px}
+  th{text-align:left;font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--muted);padding:8px 0;border-bottom:1.5px solid var(--rule)}
+  th.r,td.r{text-align:right}
+  td{padding:13px 0;border-bottom:1px solid #f0f1f4;font-size:14.5px;vertical-align:top}
+  td .d{font-size:12.5px;color:var(--muted);margin-top:2px}
+  .tot{display:flex;justify-content:flex-end;margin-top:14px}
+  .tot table{width:auto;min-width:260px}
+  .tot td{border:none;padding:6px 0}
+  .tot .grand td{border-top:2px solid var(--blue);padding-top:12px;font-family:'Fraunces',serif;font-size:19px;color:var(--blue);font-weight:700}
+  .pay{background:var(--blueSoft);border-radius:11px;padding:16px 18px;margin-top:26px;font-size:13.5px;color:var(--inkSoft)}
+  .pay b{color:var(--ink)}
+  .btn{display:inline-block;cursor:pointer;font-family:inherit;font-weight:700;border:none;border-radius:9px;padding:11px 18px;font-size:14px;background:var(--blue);color:#fff;margin-top:10px}
+  .note{font-size:12px;color:var(--muted);margin-top:18px;line-height:1.5;border-top:1px solid var(--rule);padding-top:14px}
+  .print{display:block;max-width:720px;margin:0 auto 30px;text-align:right}
+  .print button{cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;color:var(--blue);background:#fff;border:1.5px solid var(--blue);border-radius:9px;padding:9px 15px}
+  @media print{
+    body{background:#fff} .sheet{box-shadow:none;border:none;margin:0;max-width:none;border-radius:0}
+    .print,.btn{display:none!important} .ed{border-color:transparent!important;background:transparent!important}
+  }
+</style>
+</head>
+<body>
+<div class="print"><a href="./" style="font-size:13px;color:#1a7af0;text-decoration:none;margin-right:14px">↩ proposal</a><button onclick="window.print()">↓ Print / save as PDF</button></div>
+<div class="sheet">
+  <div class="top">
+    <div class="brand">
+      <div class="nm">CARES <span>Consulting Inc</span></div>
+      <div class="tag">Clarity · Accountability · Repair · Expectations · Support</div>
+    </div>
+    <div class="inv">
+      <h1>INVOICE</h1>
+      <div class="no"># 2026060501</div>
+    </div>
+  </div>
+
+  <div class="meta">
+    <div class="blk">
+      <label>From</label>
+      <span class="ml"><b>CARES Consulting Inc</b></span>
+      <input class="ed ml" value="" placeholder="Street address" />
+      <input class="ed ml" value="" placeholder="City, State ZIP" />
+      <span class="ml">caresmn.com · <input class="ed" style="width:200px" value="kari@caresmn.com" /></span>
+    </div>
+    <div class="blk">
+      <label>Bill to</label>
+      <input class="ed ml" value="Minnesota Alliance of Recovery Community Organizations" style="width:300px;font-weight:600" />
+      <input class="ed ml" value="" placeholder="Attn / contact" style="width:300px" />
+      <input class="ed ml" value="" placeholder="Address" style="width:300px" />
+    </div>
+  </div>
+  <div class="meta">
+    <div class="blk"><label>Invoice date</label><input class="ed" id="idate" style="width:160px" /></div>
+    <div class="blk"><label>Due</label><input class="ed" value="Upon receipt" style="width:160px" /></div>
+    <div class="blk"><label>Re</label><span style="font-size:13.5px">RCO Certification Review system</span></div>
+  </div>
+
+  <table>
+    <thead><tr><th>Description</th><th class="r">Amount</th></tr></thead>
+    <tbody>
+      <tr><td>RCO Certification Review system — build &amp; peripherals<div class="d">Reviewer console, admin side, applicant &amp; reference intake, and first-round website improvements.</div></td><td class="r">$3,500.00</td></tr>
+      <tr><td>Support &amp; hosting — one year, paid in advance<div class="d">Hosting, updates, and changes you direct, beginning at signing.</div></td><td class="r">$1,200.00</td></tr>
+    </tbody>
+  </table>
+  <div class="tot"><table>
+    <tr><td>Subtotal</td><td class="r">$4,700.00</td></tr>
+    <tr><td>Tax</td><td class="r">$0.00</td></tr>
+    <tr class="grand"><td>Total due</td><td class="r">$4,700.00</td></tr>
+  </table></div>
+
+  <div class="pay">
+    <b>How to pay.</b> Pay securely by card below, or by check payable to <b>CARES Consulting Inc</b>. Questions? <span id="payemail">kari@caresmn.com</span>.
+    <br/><button class="btn" id="paybtn">Pay $4,700 by card →</button>
+  </div>
+
+  <div class="note">This invoice is issued under, and the engagement is subject to, the mutual confidentiality and other terms of the Service Agreement between CARES Consulting Inc and MARCO. Thank you!</div>
+</div>
+<script>
+  document.getElementById("idate").value = new Date().toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"});
+  document.getElementById("paybtn").addEventListener("click", function(){
+    var b=this; b.disabled=true; b.textContent="Connecting to Stripe…";
+    fetch("/api/marco-deposit",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({package:"agreement",origin:location.origin})})
+      .then(function(r){return r.json();}).then(function(j){ if(j&&j.url){location.href=j.url;} else { alert("Couldn't start checkout: "+((j&&j.error)||"unknown")); b.disabled=false; b.textContent="Pay $4,700 by card →"; } })
+      .catch(function(){ alert("Card payment runs on the live site (tools.caresmn.com)."); b.disabled=false; b.textContent="Pay $4,700 by card →"; });
+  });
+</script>
+</body>
+</html>
