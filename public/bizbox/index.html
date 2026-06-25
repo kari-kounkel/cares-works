@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intake &amp; Claim Tracker</title>
+<style>
+  :root{
+    --ink:#2b2440; --muted:#7c7596; --line:#e7e2f0; --bg:#faf8fd;
+    --card:#ffffff; --rose:#d96a8e; --rose-dk:#b94f73; --plum:#6c4f9c;
+    --green:#2e9e6b; --green-bg:#e9f7f0; --amber:#c98a1e; --amber-bg:#fdf4e2;
+    --gray-bg:#f0eef5; --shadow:0 1px 3px rgba(43,36,64,.08),0 6px 20px rgba(43,36,64,.06);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:var(--ink);background:var(--bg);line-height:1.45;font-size:15px;-webkit-font-smoothing:antialiased}
+  header{background:linear-gradient(120deg,#6c4f9c,#d96a8e);color:#fff;padding:18px 20px 16px}
+  header .wrap{max-width:1060px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  header h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.2px;display:flex;align-items:center;gap:9px}
+  header h1 .biz{opacity:.92;font-weight:500;font-size:15px}
+  .needle{font-size:24px}
+  .tabs{max-width:1060px;margin:0 auto;display:flex;gap:4px;padding:0 20px;overflow-x:auto}
+  .tabs button{background:none;border:none;padding:12px 16px;font-size:14.5px;font-weight:600;color:var(--muted);
+    cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
+  .tabs button.active{color:var(--plum);border-bottom-color:var(--rose)}
+  .tabbar{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+  main{max-width:1060px;margin:0 auto;padding:22px 20px 60px}
+  .view{display:none}.view.active{display:block}
+  h2{font-size:18px;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px;margin-bottom:18px}
+  label{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin:0 0 4px;text-transform:uppercase;letter-spacing:.3px}
+  input,select,textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;font:inherit;color:var(--ink);background:#fff}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--plum);box-shadow:0 0 0 3px rgba(108,79,156,.12)}
+  textarea{resize:vertical;min-height:46px}
+  .grid{display:grid;gap:14px}
+  .g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr 1fr}.g4{grid-template-columns:repeat(4,1fr)}
+  @media(max-width:680px){.g2,.g3,.g4{grid-template-columns:1fr}}
+  .btn{background:var(--rose);color:#fff;border:none;padding:10px 18px;border-radius:9px;font:inherit;font-weight:700;cursor:pointer}
+  .btn:hover{background:var(--rose-dk)}
+  .btn.ghost{background:#fff;color:var(--plum);border:1px solid var(--line)}
+  .btn.ghost:hover{background:var(--gray-bg)}
+  .btn.sm{padding:6px 12px;font-size:13px;font-weight:600}
+  .btn.tiny{padding:4px 9px;font-size:12px;border-radius:7px}
+  .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 0}
+  .chip{background:var(--gray-bg);border:1px solid var(--line);border-radius:20px;padding:5px 12px;font-size:13px;cursor:pointer;font-weight:600;color:var(--plum)}
+  .chip:hover{background:#e6e0f2}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--line)}
+  td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  .pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11.5px;font-weight:700;white-space:nowrap}
+  .pill.open{background:var(--amber-bg);color:var(--amber)}
+  .pill.done{background:#eaf1fb;color:#3a6bc0}
+  .pill.paid{background:var(--green-bg);color:var(--green)}
+  .pill.tax{background:#fbeaf0;color:var(--rose-dk)}
+  .pill.exempt{background:var(--gray-bg);color:var(--muted)}
+  .claim{font-weight:800;color:var(--plum);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .stat{display:flex;flex-direction:column;gap:2px}
+  .stat .n{font-size:24px;font-weight:800;letter-spacing:-.5px}
+  .stat .l{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+  .stat.rose .n{color:var(--rose-dk)}.stat.plum .n{color:var(--plum)}.stat.green .n{color:var(--green)}
+  .muted{color:var(--muted)}
+  .right{text-align:right}.center{text-align:center}
+  .empty{text-align:center;color:var(--muted);padding:34px 10px;font-size:14px}
+  .note{background:var(--amber-bg);border:1px solid #f0dcb0;border-radius:10px;padding:11px 14px;font-size:13px;color:#7a5a14;margin:0 0 16px}
+  .note b{color:#5e4410}
+  .linkbtn{background:none;border:none;color:var(--rose-dk);font:inherit;font-weight:600;cursor:pointer;padding:0;text-decoration:underline}
+  .switch{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;font-weight:600;color:var(--ink);text-transform:none;letter-spacing:0}
+  .switch input{width:auto;margin:0}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px}
+  .toolbar .f{flex:1;min-width:140px}
+  .foot{text-align:center;color:var(--muted);font-size:12px;padding:20px}
+  dialog{border:none;border-radius:16px;box-shadow:0 10px 40px rgba(43,36,64,.3);padding:0;max-width:560px;width:92%}
+  dialog::backdrop{background:rgba(43,36,64,.35)}
+  .dlg-h{padding:16px 20px;border-bottom:1px solid var(--line);font-weight:700;font-size:16px}
+  .dlg-b{padding:18px 20px}
+  .dlg-f{padding:14px 20px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:10px;background:var(--bg);border-radius:0 0 16px 16px}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1><span class="needle" id="hdrIcon">🪡</span> <span id="hdrApp">Stitch &amp; Tally</span> <span class="biz" id="bizName"></span></h1>
+    <div class="row">
+      <button class="btn ghost sm" onclick="exportBackup()">⬇ Backup</button>
+      <button class="btn ghost sm" onclick="document.getElementById('importFile').click()">⬆ Restore</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importBackup(event)">
+    </div>
+  </div>
+</header>
+
+<div class="tabbar">
+  <div class="tabs">
+    <button class="active" data-tab="jobs">📋 <span id="tabJobs">Jobs</span></button>
+    <button data-tab="clients">👥 Clients</button>
+    <button data-tab="tax">🧾 Tax &amp; Money</button>
+    <button data-tab="settings">⚙️ Settings</button>
+  </div>
+</div>
+
+<main>
+  <!-- ===================== JOBS ===================== -->
+  <section class="view active" id="view-jobs">
+    <div class="card">
+      <h2 id="logTitle">Take in a job</h2>
+      <p class="sub" id="logSub"></p>
+      <div class="grid g3">
+        <div>
+          <label>Client</label>
+          <select id="j_client"></select>
+        </div>
+        <div>
+          <label>Date in</label>
+          <input type="date" id="j_date">
+        </div>
+        <div>
+          <label>Ready / promised by</label>
+          <input type="date" id="j_due">
+        </div>
+      </div>
+      <div class="grid g2" style="margin-top:14px">
+        <div>
+          <label id="lblItems">Items dropped off (whose stuff this is)</label>
+          <input id="j_items" placeholder="e.g. 2 pants, 1 jacket">
+        </div>
+        <div>
+          <label id="lblDesc">What's the job?</label>
+          <input id="j_desc" placeholder="e.g. Hem 2 pairs of jeans">
+        </div>
+      </div>
+      <div class="chips" id="presetChips"></div>
+      <div class="grid g3" style="margin-top:14px">
+        <div>
+          <label>Price (before tax)</label>
+          <input type="number" id="j_price" step="0.01" min="0" placeholder="0.00">
+        </div>
+        <div>
+          <label>Status</label>
+          <select id="j_status">
+            <option value="open" id="optOpen">Open — in progress</option>
+            <option value="done">Done — ready / pickup</option>
+            <option value="paid">Paid &amp; picked up</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:flex-end">
+          <label class="switch" style="margin-bottom:9px"><input type="checkbox" id="j_taxable" checked> <span id="taxLabel">Charge MN sales tax</span></label>
+        </div>
+      </div>
+      <div class="row" style="margin-top:16px;justify-content:space-between">
+        <div class="muted" id="j_calc" style="font-size:14px">Total: <b>$0.00</b></div>
+        <div class="row">
+          <button class="btn ghost sm" id="j_cancel" style="display:none" onclick="cancelEdit()">Cancel</button>
+          <button class="btn" id="j_save" onclick="saveJob()">＋ Add &amp; get claim #</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="toolbar">
+        <div class="f"><label>Search</label><input id="f_search" placeholder="claim #, client, items, job" oninput="renderJobs()"></div>
+        <div class="f"><label>Status</label><select id="f_status" onchange="renderJobs()">
+          <option value="">All</option><option value="open">Open</option><option value="done">Done</option><option value="paid">Paid</option>
+        </select></div>
+        <div class="f"><label>Month</label><input type="month" id="f_month" onchange="renderJobs()"></div>
+        <button class="btn ghost sm" onclick="clearFilters()">Clear</button>
+      </div>
+      <div id="jobsTable"></div>
+    </div>
+  </section>
+
+  <!-- ===================== CLIENTS ===================== -->
+  <section class="view" id="view-clients">
+    <div class="card">
+      <h2>Add a client</h2>
+      <p class="sub">Keep names, numbers and notes in one place.</p>
+      <div class="grid g3">
+        <div><label>Name</label><input id="c_name" placeholder="First &amp; last"></div>
+        <div><label>Phone</label><input id="c_phone" placeholder="(___) ___-____"></div>
+        <div><label>Email</label><input id="c_email" placeholder="optional"></div>
+      </div>
+      <div style="margin-top:14px"><label>Notes</label><textarea id="c_notes" placeholder="Measurements, preferences, allergies, where they heard about you..."></textarea></div>
+      <div class="row" style="margin-top:14px;justify-content:flex-end">
+        <button class="btn ghost sm" id="c_cancel" style="display:none" onclick="cancelClientEdit()">Cancel</button>
+        <button class="btn" id="c_save" onclick="saveClient()">Add client</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="toolbar"><div class="f"><label>Search clients</label><input id="cf_search" placeholder="name or phone" oninput="renderClients()"></div></div>
+      <div id="clientsTable"></div>
+    </div>
+  </section>
+
+  <!-- ===================== TAX & MONEY ===================== -->
+  <section class="view" id="view-tax">
+    <div class="note" id="taxNote"></div>
+    <div class="card">
+      <div class="row" style="justify-content:space-between;margin-bottom:6px">
+        <h2 style="margin:0">Tax report</h2>
+        <select id="tax_period" onchange="renderTax()" style="width:auto">
+          <option value="month">This month</option>
+          <option value="quarter">This quarter</option>
+          <option value="year">This year</option>
+          <option value="all">All time</option>
+        </select>
+      </div>
+      <p class="sub" id="tax_range"></p>
+      <div class="grid g4" id="taxStats"></div>
+    </div>
+    <div class="card">
+      <div class="row" style="justify-content:space-between;margin-bottom:10px">
+        <h2 style="margin:0">Sales tax owed by month</h2>
+        <button class="btn ghost sm" onclick="exportCsv()">⬇ Export jobs (CSV)</button>
+      </div>
+      <p class="sub">This is the tax you've collected and owe to the state. File &amp; pay through MN Revenue (sales tax).</p>
+      <div id="taxByMonth"></div>
+    </div>
+  </section>
+
+  <!-- ===================== SETTINGS ===================== -->
+  <section class="view" id="view-settings">
+    <div class="card">
+      <h2>Your business</h2>
+      <p class="sub">These show up in the header, on claim tickets, and on exports.</p>
+      <div class="grid g3">
+        <div>
+          <label>Business type</label>
+          <select id="s_type" onchange="applyType(this.value)">
+            <option value="alterations">Alterations / Mending / Tailoring</option>
+            <option value="laundry">Laundry / Dry Cleaning</option>
+          </select>
+        </div>
+        <div><label>Business name</label><input id="s_biz" placeholder="e.g. Mended by Mary"></div>
+        <div>
+          <label>Sales tax rate (%)</label>
+          <input type="number" id="s_rate" step="0.001" min="0" placeholder="6.875">
+        </div>
+      </div>
+      <p class="sub" style="margin:10px 0 0">MN state base is <b>6.875%</b>. Add local tax if your city/county charges it (parts of the metro run ~7.875–8.875%). <button class="linkbtn" onclick="window.open('https://www.revenue.state.mn.us/local-sales-tax-information','_blank')">Look up my rate →</button></p>
+      <div class="row" style="margin-top:14px;justify-content:flex-end">
+        <button class="btn" onclick="saveSettings()">Save settings</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Your data</h2>
+      <p class="sub">Everything lives in this one file on your computer — nothing is sent anywhere. Back up regularly so you never lose it.</p>
+      <div class="row">
+        <button class="btn ghost sm" onclick="exportBackup()">⬇ Download backup</button>
+        <button class="btn ghost sm" onclick="document.getElementById('importFile').click()">⬆ Restore from backup</button>
+        <button class="btn ghost sm" onclick="loadSample()">✨ Load sample data</button>
+        <button class="btn ghost sm" style="color:var(--rose-dk)" onclick="wipeAll()">🗑 Erase everything</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="foot">A Kari Kounkel / CARES tool · your data stays on your computer</div>
+</main>
+
+<dialog id="dlg">
+  <div class="dlg-h" id="dlg_h"></div>
+  <div class="dlg-b" id="dlg_b"></div>
+  <div class="dlg-f"><button class="btn ghost sm" onclick="dlg.close()">Cancel</button><button class="btn sm" id="dlg_ok"></button></div>
+</dialog>
+
+<script>
+// ---------- business-type config ----------
+const TYPES={
+  alterations:{
+    app:'Stitch & Tally', icon:'🪡', tabJobs:'Jobs', logTitle:'Take in a job',
+    logSub:'Every job is taxable by default — that\'s the rule for alterations, mending & repairs in MN. Flip it off only for sewing a brand-new garment from scratch.',
+    itemsLabel:'Garments dropped off (whose stuff this is)', itemsPh:'e.g. 2 dress pants, 1 jacket',
+    descLabel:'What\'s the job?', descPh:'e.g. Hem 2 pairs of jeans',
+    taxLabel:'Charge MN sales tax', taxExempt:'sewing a brand-new garment',
+    presets:['Hem pants','Hem dress/skirt','Take in / let out','Replace zipper','Repair seam','Patch / mend','Shorten sleeves','Replace button(s)'],
+    taxNote:'<b>Minnesota sales tax — alterations:</b> Alterations, mending, patching and repairs are <b>taxable</b> when billed as their own charge. Sewing a <b>brand-new</b> garment from scratch is <b>not</b> taxable — flip the tax toggle off for those. State rate 6.875%; some cities add local tax (set yours in Settings). <span class="muted">Not legal/tax advice; confirm your local rate with MN Revenue.</span>'
+  },
+  laundry:{
+    app:'Wash & Track', icon:'🧺', tabJobs:'Orders', logTitle:'Take in an order',
+    logSub:'Drop-off, wash-and-fold, dry cleaning and pressing are taxable by default in MN. Flip the tax off only for self-service / coin-op machine use.',
+    itemsLabel:'Items dropped off (whose stuff this is)', itemsPh:'e.g. 3 shirts, 1 comforter, 2 bags',
+    descLabel:'Service', descPh:'e.g. Wash & fold, 12 lbs',
+    taxLabel:'Charge MN sales tax', taxExempt:'self-service / coin-op',
+    presets:['Wash & fold','Dry clean','Press / iron','Comforter / bedding','Delicates','Stain treatment','Alterations','Self-service (no tax)'],
+    taxNote:'<b>Minnesota sales tax — laundry:</b> Drop-off, wash-and-fold, dry cleaning and pressing are <b>taxable</b>. <b>Self-service coin-op</b> machine use is <b>not</b> taxable — flip the tax toggle off for those. State rate 6.875%; some cities add local tax (set yours in Settings). <span class="muted">Not legal/tax advice; confirm your local rate with MN Revenue.</span>'
+  }
+};
+function cfg(){return TYPES[db.settings.businessType]||TYPES.alterations;}
+
+// ---------- storage ----------
+const KEY='intakeClaim_v2';
+let db = load();
+function load(){
+  try{const d=JSON.parse(localStorage.getItem(KEY));if(d&&d.jobs)return migrate(d);}catch(e){}
+  // first run: guess type from the file name so a copy named "...Laundry..." opens as laundry
+  const guess=/laundr|wash|clean|fold/i.test(decodeURIComponent(location.pathname))?'laundry':'alterations';
+  return {settings:{businessType:guess,biz:'',rate:6.875,nextClaim:1001}, clients:[], jobs:[]};
+}
+function migrate(d){
+  if(!d.settings.businessType)d.settings.businessType='alterations';
+  if(!d.settings.nextClaim){let mx=1000;d.jobs.forEach(j=>{if(j.claim&&j.claim>mx)mx=j.claim;});d.settings.nextClaim=mx+1;}
+  return d;
+}
+function save(){localStorage.setItem(KEY,JSON.stringify(db));}
+function uid(){return Date.now().toString(36)+Math.floor(Math.random()*1e5).toString(36);}
+const money=n=>'$'+(Number(n)||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const rate=()=>Number(db.settings.rate)||0;
+
+// ---------- tabs ----------
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  document.getElementById('view-'+b.dataset.tab).classList.add('active');
+  if(b.dataset.tab==='tax')renderTax();
+});
+
+// ---------- type / chrome ----------
+function paintChrome(){
+  const c=cfg();
+  document.getElementById('hdrApp').textContent=c.app;
+  document.getElementById('hdrIcon').textContent=c.icon;
+  document.getElementById('tabJobs').textContent=c.tabJobs;
+  document.getElementById('logTitle').textContent=c.logTitle;
+  document.getElementById('logSub').textContent=c.logSub;
+  document.getElementById('lblItems').textContent=c.itemsLabel;
+  document.getElementById('j_items').placeholder=c.itemsPh;
+  document.getElementById('lblDesc').textContent=c.descLabel;
+  document.getElementById('j_desc').placeholder=c.descPh;
+  document.getElementById('taxLabel').textContent=c.taxLabel;
+  document.getElementById('taxNote').innerHTML=c.taxNote;
+  document.title=c.app+(db.settings.biz?' · '+db.settings.biz:'');
+  renderPresets();
+}
+function applyType(t){db.settings.businessType=t;paintChrome();}
+
+// ---------- jobs ----------
+let editingJob=null;
+function clientName(id){const c=db.clients.find(c=>c.id===id);return c?c.name:'';}
+function fillClientSelect(){
+  const s=document.getElementById('j_client');const cur=s.value;
+  s.innerHTML='<option value="">— walk-in / no client —</option>'+
+    db.clients.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')+
+    '<option value="__new__">＋ Add a new client…</option>';
+  s.value=cur;
+}
+document.getElementById('j_client').onchange=function(){if(this.value==='__new__'){this.value='';openQuickClient();}};
+function renderPresets(){
+  document.getElementById('presetChips').innerHTML=cfg().presets.map(p=>`<span class="chip" onclick="addPreset(this)">${esc(p)}</span>`).join('');
+}
+function addPreset(el){const i=document.getElementById('j_desc');const p=el.textContent;i.value=i.value?i.value+', '+p:p;
+  if(/self-service|no tax/i.test(p))document.getElementById('j_taxable').checked=false;updateCalc();i.focus();}
+function jobTotal(price,taxable){const p=Number(price)||0;const t=taxable?p*rate()/100:0;return {p,t,total:p+t};}
+function updateCalc(){
+  const {p,t,total}=jobTotal(document.getElementById('j_price').value,document.getElementById('j_taxable').checked);
+  document.getElementById('j_calc').innerHTML= t>0
+    ? `Subtotal ${money(p)} · tax ${money(t)} · <b>Total ${money(total)}</b>`
+    : `<b>Total ${money(total)}</b> <span class="muted">(no tax)</span>`;
+}
+['j_price','j_taxable'].forEach(id=>document.getElementById(id).addEventListener('input',updateCalc));
+function saveJob(){
+  const price=document.getElementById('j_price').value;
+  const desc=document.getElementById('j_desc').value.trim();
+  const items=document.getElementById('j_items').value.trim();
+  if(!desc&&!price&&!items){alert('Add at least items, a description, or a price.');return;}
+  let claim;
+  if(editingJob){claim=db.jobs.find(j=>j.id===editingJob).claim;}
+  else{claim=db.settings.nextClaim++;}
+  const rec={
+    id:editingJob||uid(), claim,
+    clientId:document.getElementById('j_client').value||'',
+    date:document.getElementById('j_date').value||today(),
+    due:document.getElementById('j_due').value||'',
+    items, desc, price:Number(price)||0,
+    taxable:document.getElementById('j_taxable').checked,
+    status:document.getElementById('j_status').value, rate:rate()
+  };
+  if(editingJob){const i=db.jobs.findIndex(j=>j.id===editingJob);db.jobs[i]=rec;}
+  else db.jobs.unshift(rec);
+  save();
+  const wasNew=!editingJob;cancelEdit();renderJobs();
+  if(wasNew&&confirm('Claim #'+claim+' created. Print the claim ticket now?'))printTicket(rec.id);
+}
+function editJob(id){
+  const j=db.jobs.find(j=>j.id===id);if(!j)return;editingJob=id;
+  document.getElementById('j_client').value=j.clientId;
+  document.getElementById('j_date').value=j.date;
+  document.getElementById('j_due').value=j.due||'';
+  document.getElementById('j_items').value=j.items||'';
+  document.getElementById('j_desc').value=j.desc;
+  document.getElementById('j_price').value=j.price;
+  document.getElementById('j_taxable').checked=j.taxable;
+  document.getElementById('j_status').value=j.status;
+  document.getElementById('j_save').textContent='Save changes';
+  document.getElementById('j_cancel').style.display='';
+  updateCalc();window.scrollTo({top:0,behavior:'smooth'});
+}
+function cancelEdit(){
+  editingJob=null;
+  ['j_items','j_desc','j_price','j_due'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('j_taxable').checked=true;
+  document.getElementById('j_status').value='open';
+  document.getElementById('j_date').value=today();
+  document.getElementById('j_save').textContent='＋ Add & get claim #';
+  document.getElementById('j_cancel').style.display='none';
+  updateCalc();
+}
+function cycleStatus(id){const j=db.jobs.find(j=>j.id===id);const o=['open','done','paid'];j.status=o[(o.indexOf(j.status)+1)%3];save();renderJobs();}
+function delJob(id){if(confirm('Delete this job?')){db.jobs=db.jobs.filter(j=>j.id!==id);save();renderJobs();}}
+function clearFilters(){['f_search','f_status','f_month'].forEach(id=>document.getElementById(id).value='');renderJobs();}
+function renderJobs(){
+  fillClientSelect();
+  const q=document.getElementById('f_search').value.toLowerCase();
+  const fs=document.getElementById('f_status').value;
+  const fm=document.getElementById('f_month').value;
+  let rows=db.jobs.filter(j=>{
+    if(fs&&j.status!==fs)return false;
+    if(fm&&!j.date.startsWith(fm))return false;
+    if(q){const hay=('#'+j.claim+' '+j.desc+' '+(j.items||'')+' '+clientName(j.clientId)).toLowerCase();if(!hay.includes(q))return false;}
+    return true;
+  });
+  const el=document.getElementById('jobsTable');
+  if(!rows.length){el.innerHTML='<div class="empty">Nothing here yet. Take in your first one above. ✨</div>';return;}
+  let subtotal=0,tax=0;
+  const body=rows.map(j=>{
+    const {p,t,total}=jobTotal(j.price,j.taxable);subtotal+=p;tax+=t;
+    const due=j.due?`<div class="muted" style="font-size:12px">ready ${fmtDate(j.due)}</div>`:'';
+    return `<tr>
+      <td><span class="claim">#${j.claim}</span><div class="muted" style="font-size:12px">${fmtDate(j.date)}</div></td>
+      <td>${esc(clientName(j.clientId))||'<span class="muted">walk-in</span>'}</td>
+      <td>${esc(j.items)||'<span class="muted">—</span>'}</td>
+      <td>${esc(j.desc)||'<span class="muted">—</span>'}${due}</td>
+      <td class="right">${money(p)}</td>
+      <td class="center">${j.taxable?'<span class="pill tax">tax</span>':'<span class="pill exempt">exempt</span>'}</td>
+      <td class="right">${money(total)}</td>
+      <td class="center"><span class="pill ${j.status}" style="cursor:pointer" title="click to advance" onclick="cycleStatus('${j.id}')">${j.status}</span></td>
+      <td class="right" style="white-space:nowrap">
+        <button class="btn ghost tiny" title="print claim ticket" onclick="printTicket('${j.id}')">🎫</button>
+        <button class="btn ghost tiny" onclick="editJob('${j.id}')">edit</button>
+        <button class="btn ghost tiny" onclick="delJob('${j.id}')">✕</button>
+      </td></tr>`;
+  }).join('');
+  el.innerHTML=`<table>
+    <thead><tr><th>Claim</th><th>Client</th><th>Items</th><th>Job</th><th class="right">Price</th><th class="center">Tax?</th><th class="right">Total</th><th class="center">Status</th><th></th></tr></thead>
+    <tbody>${body}</tbody>
+    <tfoot><tr style="font-weight:700"><td colspan="4" style="border-top:2px solid var(--line)">${rows.length} item(s)</td>
+      <td class="right" style="border-top:2px solid var(--line)">${money(subtotal)}</td>
+      <td style="border-top:2px solid var(--line)"></td>
+      <td class="right" style="border-top:2px solid var(--line)">${money(subtotal+tax)}</td>
+      <td colspan="2" style="border-top:2px solid var(--line)"></td></tr></tfoot></table>`;
+}
+
+// ---------- claim ticket ----------
+function printTicket(id){
+  const j=db.jobs.find(j=>j.id===id);if(!j)return;
+  const c=db.clients.find(c=>c.id===j.clientId);
+  const biz=db.settings.biz||cfg().app;
+  const phone=c&&c.phone?c.phone:'';
+  const half=(role)=>`
+    <div class="tk">
+      <div class="tk-top">
+        <div class="biz">${esc(biz)}</div>
+        <div class="num">#${j.claim}</div>
+      </div>
+      <div class="who">${esc(c?c.name:'Walk-in customer')}${phone?' · '+esc(phone):''}</div>
+      <table>
+        <tr><td class="k">Items</td><td>${esc(j.items)||'—'}</td></tr>
+        <tr><td class="k">Service</td><td>${esc(j.desc)||'—'}</td></tr>
+        <tr><td class="k">Dropped off</td><td>${fmtDate(j.date)}</td></tr>
+        <tr><td class="k">Ready by</td><td>${j.due?fmtDate(j.due):'—'}</td></tr>
+        ${role==='customer'?`<tr><td class="k">Total</td><td>${money(jobTotal(j.price,j.taxable).total)}</td></tr>`:''}
+      </table>
+      <div class="role">${role==='customer'?'CUSTOMER COPY — keep this to pick up':'SHOP TAG — attach to the items'}</div>
+    </div>`;
+  const w=window.open('','_blank','width=420,height=640');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Claim #${j.claim}</title><style>
+    @page{margin:10mm}
+    body{font-family:-apple-system,Segoe UI,Arial,sans-serif;color:#000;margin:0;padding:8px}
+    .tk{border:1.5px dashed #555;border-radius:8px;padding:12px 14px;margin-bottom:10px}
+    .tk-top{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #ccc;padding-bottom:6px}
+    .biz{font-weight:700;font-size:15px}
+    .num{font-size:30px;font-weight:800;letter-spacing:-1px}
+    .who{font-weight:600;margin:8px 0 6px;font-size:14px}
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    td{padding:3px 0;vertical-align:top}
+    td.k{color:#666;width:90px;font-weight:600}
+    .role{margin-top:8px;font-size:10px;letter-spacing:.5px;color:#888;text-align:center;font-weight:700}
+    .scissors{text-align:center;color:#aaa;font-size:11px;margin:2px 0 10px}
+    @media print{.noprint{display:none}}
+  </style></head><body>
+    ${half('customer')}
+    <div class="scissors">✂ — — — — — — — — — — — — — — — — — —</div>
+    ${half('shop')}
+    <button class="noprint" onclick="window.print()" style="display:block;margin:12px auto;padding:9px 20px;font-size:14px;font-weight:700;background:#6c4f9c;color:#fff;border:none;border-radius:8px;cursor:pointer">🖨 Print</button>
+  </body></html>`);
+  w.document.close();
+}
+
+// ---------- clients ----------
+let editingClient=null;
+function saveClient(){
+  const name=document.getElementById('c_name').value.trim();
+  if(!name){alert('Give the client a name.');return;}
+  const rec={id:editingClient||uid(),name,
+    phone:document.getElementById('c_phone').value.trim(),
+    email:document.getElementById('c_email').value.trim(),
+    notes:document.getElementById('c_notes').value.trim()};
+  if(editingClient){const i=db.clients.findIndex(c=>c.id===editingClient);db.clients[i]=rec;}
+  else db.clients.push(rec);
+  save();cancelClientEdit();renderClients();fillClientSelect();
+}
+function editClient(id){
+  const c=db.clients.find(c=>c.id===id);editingClient=id;
+  document.getElementById('c_name').value=c.name;
+  document.getElementById('c_phone').value=c.phone;
+  document.getElementById('c_email').value=c.email;
+  document.getElementById('c_notes').value=c.notes;
+  document.getElementById('c_save').textContent='Save changes';
+  document.getElementById('c_cancel').style.display='';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function cancelClientEdit(){
+  editingClient=null;
+  ['c_name','c_phone','c_email','c_notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('c_save').textContent='Add client';
+  document.getElementById('c_cancel').style.display='none';
+}
+function delClient(id){
+  const jobs=db.jobs.filter(j=>j.clientId===id).length;
+  if(confirm(`Delete this client?${jobs?` Their ${jobs} job(s) will be kept but show as walk-in.`:''}`)){
+    db.clients=db.clients.filter(c=>c.id!==id);
+    db.jobs.forEach(j=>{if(j.clientId===id)j.clientId='';});
+    save();renderClients();fillClientSelect();
+  }
+}
+function renderClients(){
+  const q=document.getElementById('cf_search').value.toLowerCase();
+  let rows=db.clients.filter(c=>!q||(c.name+' '+c.phone).toLowerCase().includes(q)).sort((a,b)=>a.name.localeCompare(b.name));
+  const el=document.getElementById('clientsTable');
+  if(!rows.length){el.innerHTML='<div class="empty">No clients yet. Add your first one above. 👥</div>';return;}
+  el.innerHTML=`<table><thead><tr><th>Name</th><th>Phone</th><th>Email</th><th class="center">Jobs</th><th>Notes</th><th></th></tr></thead><tbody>`+
+    rows.map(c=>{
+      const n=db.jobs.filter(j=>j.clientId===c.id).length;
+      return `<tr><td><b>${esc(c.name)}</b></td><td>${esc(c.phone)||'<span class="muted">—</span>'}</td>
+      <td>${esc(c.email)||'<span class="muted">—</span>'}</td><td class="center">${n}</td>
+      <td class="muted">${esc(c.notes)||''}</td>
+      <td class="right" style="white-space:nowrap">
+        <button class="btn ghost tiny" onclick="editClient('${c.id}')">edit</button>
+        <button class="btn ghost tiny" onclick="delClient('${c.id}')">✕</button></td></tr>`;
+    }).join('')+'</tbody></table>';
+}
+function openQuickClient(){
+  document.getElementById('dlg_h').textContent='Quick add client';
+  document.getElementById('dlg_b').innerHTML=`<label>Name</label><input id="qc_name" placeholder="First & last">
+    <div class="grid g2" style="margin-top:12px"><div><label>Phone</label><input id="qc_phone"></div><div><label>Email</label><input id="qc_email"></div></div>`;
+  const ok=document.getElementById('dlg_ok');ok.textContent='Add';
+  ok.onclick=()=>{
+    const name=document.getElementById('qc_name').value.trim();if(!name){alert('Name?');return;}
+    const rec={id:uid(),name,phone:document.getElementById('qc_phone').value.trim(),email:document.getElementById('qc_email').value.trim(),notes:''};
+    db.clients.push(rec);save();fillClientSelect();document.getElementById('j_client').value=rec.id;dlg.close();
+  };
+  dlg.showModal();setTimeout(()=>document.getElementById('qc_name').focus(),50);
+}
+
+// ---------- tax & money ----------
+function periodRange(p){
+  const d=new Date();const y=d.getFullYear();
+  if(p==='month')return [new Date(y,d.getMonth(),1),new Date(y,d.getMonth()+1,0)];
+  if(p==='quarter'){const q=Math.floor(d.getMonth()/3);return [new Date(y,q*3,1),new Date(y,q*3+3,0)];}
+  if(p==='year')return [new Date(y,0,1),new Date(y,11,31)];
+  return [new Date(2000,0,1),new Date(2100,0,1)];
+}
+function renderTax(){
+  const p=document.getElementById('tax_period').value;const [a,b]=periodRange(p);
+  document.getElementById('tax_range').textContent=p==='all'?'Everything you\'ve logged':`${fmtDate(iso(a))} – ${fmtDate(iso(b))}`;
+  const inRange=db.jobs.filter(j=>{const t=new Date(j.date+'T12:00');return t>=a&&t<=b;});
+  let gross=0,tax=0,paid=0,unpaid=0;
+  inRange.forEach(j=>{const {p:pr,t,total}=jobTotal(j.price,j.taxable);gross+=pr;tax+=t;
+    if(j.status==='paid')paid+=total;else unpaid+=total;});
+  document.getElementById('taxStats').innerHTML=`
+    <div class="card stat plum" style="margin:0"><span class="n">${money(gross)}</span><span class="l">Sales (pre-tax)</span></div>
+    <div class="card stat rose" style="margin:0"><span class="n">${money(tax)}</span><span class="l">Sales tax collected</span></div>
+    <div class="card stat green" style="margin:0"><span class="n">${money(paid)}</span><span class="l">Collected (paid)</span></div>
+    <div class="card stat" style="margin:0"><span class="n">${money(unpaid)}</span><span class="l">Still owed to you</span></div>`;
+  const map={};
+  db.jobs.forEach(j=>{const m=j.date.slice(0,7);if(!map[m])map[m]={gross:0,taxable:0,tax:0};
+    const {p:pr,t}=jobTotal(j.price,j.taxable);map[m].gross+=pr;if(j.taxable)map[m].taxable+=pr;map[m].tax+=t;});
+  const months=Object.keys(map).sort().reverse();
+  const el=document.getElementById('taxByMonth');
+  if(!months.length){el.innerHTML='<div class="empty">No jobs logged yet.</div>';return;}
+  el.innerHTML=`<table><thead><tr><th>Month</th><th class="right">Total sales</th><th class="right">Taxable sales</th><th class="right">Sales tax owed</th></tr></thead><tbody>`+
+    months.map(m=>`<tr><td><b>${monthName(m)}</b></td><td class="right">${money(map[m].gross)}</td>
+      <td class="right">${money(map[m].taxable)}</td><td class="right"><b style="color:var(--rose-dk)">${money(map[m].tax)}</b></td></tr>`).join('')+
+    '</tbody></table>';
+}
+
+// ---------- settings ----------
+function paintSettings(){
+  document.getElementById('s_type').value=db.settings.businessType;
+  document.getElementById('s_biz').value=db.settings.biz||'';
+  document.getElementById('s_rate').value=db.settings.rate;
+  document.getElementById('bizName').textContent=db.settings.biz?'· '+db.settings.biz:'';
+}
+function saveSettings(){
+  db.settings.businessType=document.getElementById('s_type').value;
+  db.settings.biz=document.getElementById('s_biz').value.trim();
+  const r=parseFloat(document.getElementById('s_rate').value);db.settings.rate=isNaN(r)?6.875:r;
+  save();paintSettings();paintChrome();updateCalc();renderJobs();alert('Saved!');
+}
+
+// ---------- backup / restore / csv ----------
+function fname(ext){return (db.settings.biz||cfg().app).replace(/[^a-z0-9]+/gi,'-').toLowerCase()+'-'+today()+'.'+ext;}
+function exportBackup(){dl(new Blob([JSON.stringify(db,null,2)],{type:'application/json'}),fname('json'));}
+function importBackup(e){
+  const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.jobs)throw 0;
+    if(confirm('Replace all current data with this backup?')){db=migrate(d);save();boot();alert('Restored!');}}
+    catch{alert('That doesn\'t look like a backup file from this tool.');}};
+  r.readAsText(f);e.target.value='';
+}
+function exportCsv(){
+  const head=['Claim','Date','ReadyBy','Client','Items','Service','Price','Taxable','Tax','Total','Status'];
+  const lines=[head.join(',')].concat(db.jobs.slice().sort((a,b)=>a.claim-b.claim).map(j=>{
+    const {p,t,total}=jobTotal(j.price,j.taxable);
+    return [j.claim,j.date,j.due||'',clientName(j.clientId),j.items||'',j.desc,p.toFixed(2),j.taxable?'Yes':'No',t.toFixed(2),total.toFixed(2),j.status]
+      .map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',');
+  }));
+  dl(new Blob([lines.join('\n')],{type:'text/csv'}),fname('csv'));
+}
+function wipeAll(){if(confirm('Erase ALL clients and jobs? This cannot be undone. (Download a backup first!)')){
+  db={settings:db.settings,clients:[],jobs:[]};db.settings.nextClaim=1001;save();boot();}}
+function loadSample(){
+  if(db.jobs.length&&!confirm('Add sample clients & jobs to your current data?'))return;
+  const laundry=db.settings.businessType==='laundry';
+  const c1=uid(),c2=uid(),c3=uid();
+  db.clients.push(
+    {id:c1,name:'Linda Carlson',phone:'(763) 555-0142',email:'linda@example.com',notes:laundry?'No fragrance — allergy':'Prefers pickup Fridays'},
+    {id:c2,name:'James Okafor',phone:'(612) 555-0199',email:'',notes:laundry?'Hang dress shirts':'Tall — long inseam'},
+    {id:c3,name:'Priya Nair',phone:'',email:'priya@example.com',notes:laundry?'Weekly standing order':'Wedding party, 4 dresses'});
+  const d=new Date();const ago=(n)=>{const x=new Date(d);x.setDate(x.getDate()-n);return x.toISOString().slice(0,10);};
+  const soon=(n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x.toISOString().slice(0,10);};
+  let n=db.settings.nextClaim;
+  const J=laundry?[
+    {clientId:c1,items:'3 shirts, 2 pants',desc:'Dry clean & press',price:24,taxable:true,status:'paid',off:2},
+    {clientId:c2,items:'1 comforter',desc:'Comforter / bedding',price:30,taxable:true,status:'done',off:1},
+    {clientId:c3,items:'2 bags wash',desc:'Wash & fold, 18 lbs',price:27,taxable:true,status:'open',off:0,due:1},
+    {clientId:c1,items:'self-service',desc:'Self-service machines',price:9,taxable:false,status:'paid',off:6}
+  ]:[
+    {clientId:c1,items:'2 dress pants',desc:'Hem 2 pairs of dress pants',price:30,taxable:true,status:'paid',off:2},
+    {clientId:c2,items:'1 jacket',desc:'Replace jacket zipper',price:28,taxable:true,status:'done',off:1},
+    {clientId:c3,items:'4 bridesmaid dresses',desc:'Take in 4 dresses',price:160,taxable:true,status:'open',off:0,due:5},
+    {clientId:c1,items:'fabric (customer\'s)',desc:'Sew custom curtains (new item)',price:90,taxable:false,status:'paid',off:20}
+  ];
+  J.forEach(x=>db.jobs.unshift({id:uid(),claim:n++,clientId:x.clientId,date:ago(x.off),due:x.due?soon(x.due):'',
+    items:x.items,desc:x.desc,price:x.price,taxable:x.taxable,status:x.status,rate:rate()}));
+  db.settings.nextClaim=n;save();boot();
+  alert('Sample data loaded — poke around, then "Erase everything" in Settings when you\'re ready.');
+}
+
+// ---------- helpers ----------
+function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function today(){return new Date().toISOString().slice(0,10);}
+function iso(d){return d.toISOString().slice(0,10);}
+function fmtDate(s){if(!s)return'';const[y,m,d]=s.split('-');return `${+m}/${+d}/${y.slice(2)}`;}
+function monthName(m){const[y,mo]=m.split('-');return new Date(y,mo-1,1).toLocaleString('en-US',{month:'long',year:'numeric'});}
+function dl(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();URL.revokeObjectURL(a.href);}
+
+// ---------- boot ----------
+function boot(){
+  paintSettings();paintChrome();fillClientSelect();
+  document.getElementById('j_date').value=today();
+  updateCalc();renderJobs();renderClients();renderTax();
+}
+boot();
+</script>
+</body>
+</html>
