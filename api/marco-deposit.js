@@ -8,6 +8,8 @@ const DEPOSITS = {
   cert:     { name: "MARCO RCO Tool — certification deposit (60%)",       amount: 120000 },
   reviewer: { name: "MARCO RCO Tool — reviewer onboarding deposit (60%)", amount: 72000 },
   conf:     { name: "MARCO RCO Tool — conferences deposit (60%)",         amount: 72000 },
+  agreement:{ name: "MARCO RCO Tool — build + first-year support (paid in full)", amount: 470000 },
+  module:   { name: "MARCO RCO Tool — additional module",                 amount: 120000 },
 };
 
 export default async function handler(req, res) {
