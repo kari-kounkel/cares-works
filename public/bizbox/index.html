@@ -180,6 +180,11 @@
         <div><label>Phone</label><input id="c_phone" placeholder="(___) ___-____"></div>
         <div><label>Email</label><input id="c_email" placeholder="optional"></div>
       </div>
+      <div class="grid g2" style="margin-top:14px">
+        <div><label>📦 Pickup address</label><textarea id="c_pickup" placeholder="Where you collect their items (optional)" oninput="if(document.getElementById('c_sameaddr').checked)document.getElementById('c_delivery').value=this.value"></textarea></div>
+        <div><label>🚚 Delivery address</label><textarea id="c_delivery" placeholder="Where you drop them back (optional)"></textarea>
+          <label class="switch" style="margin-top:8px"><input type="checkbox" id="c_sameaddr" onchange="toggleSameAddr()"> Same as pickup</label></div>
+      </div>
       <div id="measWrap" style="margin-top:14px"><label>📏 Measurements / sizing</label><textarea id="c_meas" placeholder="Waist 32 · Inseam 30 · Hip 40 · Chest 38 · Sleeve 24 · Neck 15.5 — or whatever you measure"></textarea></div>
       <div style="margin-top:14px"><label>Notes</label><textarea id="c_notes" placeholder="Preferences, allergies, where they heard about you..."></textarea></div>
       <div class="row" style="margin-top:14px;justify-content:flex-end">
@@ -480,6 +485,7 @@ function printTicket(id){
         <tr><td class="k">Service</td><td>${esc(j.desc)||'—'}</td></tr>
         <tr><td class="k">Dropped off</td><td>${fmtDate(j.date)}</td></tr>
         <tr><td class="k">Ready by</td><td>${j.due?fmtDate(j.due):'—'}</td></tr>
+        ${c&&c.delivery?`<tr><td class="k">Deliver to</td><td>${esc(c.delivery)}</td></tr>`:''}
         ${role==='customer'?`<tr><td class="k">Total</td><td>${money(jobTotal(j.price,j.taxable).total)}</td></tr>`:''}
       </table>
       <div class="role">${role==='customer'?'CUSTOMER COPY — keep this to pick up':'SHOP TAG — attach to the items'}</div>
@@ -548,7 +554,8 @@ function printInvoice(id){
       <div class="doc"><div class="t">${doc}</div><div class="m">Claim #${j.claim}<br>${fmtDate(j.date)}</div></div>
     </div>
     <div class="billto"><div class="l">Bill to</div><div class="n">${esc(c?c.name:'Walk-in customer')}</div>
-      ${c&&c.phone?`<div>${esc(c.phone)}</div>`:''}${c&&c.email?`<div>${esc(c.email)}</div>`:''}</div>
+      ${c&&c.phone?`<div>${esc(c.phone)}</div>`:''}${c&&c.email?`<div>${esc(c.email)}</div>`:''}
+      ${c&&c.delivery?`<div style="margin-top:4px;color:#666">🚚 Deliver to: ${esc(c.delivery)}</div>`:''}</div>
     <table>
       <thead><tr><th>Description</th><th class="a">Amount</th></tr></thead>
       <tbody><tr><td class="d">${esc(j.desc)||'Services'}${j.items?`<div class="sub">Items: ${esc(j.items)}</div>`:''}</td><td class="a">${money(p)}</td></tr></tbody>
@@ -574,6 +581,8 @@ function saveClient(){
   const rec={id:editingClient||uid(),name,
     phone:document.getElementById('c_phone').value.trim(),
     email:document.getElementById('c_email').value.trim(),
+    pickup:document.getElementById('c_pickup').value.trim(),
+    delivery:document.getElementById('c_delivery').value.trim(),
     meas:document.getElementById('c_meas').value.trim(),
     notes:document.getElementById('c_notes').value.trim()};
   if(editingClient){const i=db.clients.findIndex(c=>c.id===editingClient);db.clients[i]=rec;}
@@ -585,6 +594,10 @@ function editClient(id){
   document.getElementById('c_name').value=c.name;
   document.getElementById('c_phone').value=c.phone;
   document.getElementById('c_email').value=c.email;
+  document.getElementById('c_pickup').value=c.pickup||'';
+  document.getElementById('c_delivery').value=c.delivery||'';
+  document.getElementById('c_sameaddr').checked=!!(c.pickup&&c.pickup===c.delivery);
+  toggleSameAddr();
   document.getElementById('c_meas').value=c.meas||'';
   document.getElementById('c_notes').value=c.notes;
   document.getElementById('c_save').textContent='Save changes';
@@ -593,9 +606,15 @@ function editClient(id){
 }
 function cancelClientEdit(){
   editingClient=null;
-  ['c_name','c_phone','c_email','c_meas','c_notes'].forEach(id=>document.getElementById(id).value='');
+  ['c_name','c_phone','c_email','c_pickup','c_delivery','c_meas','c_notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('c_sameaddr').checked=false;toggleSameAddr();
   document.getElementById('c_save').textContent='Add client';
   document.getElementById('c_cancel').style.display='none';
+}
+function toggleSameAddr(){
+  const same=document.getElementById('c_sameaddr').checked;const del=document.getElementById('c_delivery');
+  if(same){del.value=document.getElementById('c_pickup').value;del.disabled=true;del.style.opacity=.5;}
+  else{del.disabled=false;del.style.opacity=1;}
 }
 function delClient(id){
   const jobs=db.jobs.filter(j=>j.clientId===id).length;
@@ -615,7 +634,7 @@ function renderClients(){
       const n=db.jobs.filter(j=>j.clientId===c.id).length;
       return `<tr><td><b>${esc(c.name)}</b></td><td>${esc(c.phone)||'<span class="muted">—</span>'}</td>
       <td>${esc(c.email)||'<span class="muted">—</span>'}</td><td class="center">${n}</td>
-      <td class="muted">${c.meas?'📏 '+esc(c.meas)+(c.notes?'<br>':''):''}${esc(c.notes)||(c.meas?'':'')}</td>
+      <td class="muted">${[c.meas?'📏 '+esc(c.meas):'',c.delivery?'🚚 '+esc(c.delivery):'',esc(c.notes||'')].filter(Boolean).join('<br>')}</td>
       <td class="right" style="white-space:nowrap">
         <button class="btn ghost tiny" onclick="editClient('${c.id}')">edit</button>
         <button class="btn ghost tiny" onclick="delClient('${c.id}')">✕</button></td></tr>`;
