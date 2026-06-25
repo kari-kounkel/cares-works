@@ -86,7 +86,7 @@
     <div class="prow"><span>Support &amp; hosting — one year, starting at signing</span><b>$1,200</b></div>
     <div class="prow total"><span>Total due now</span><b>$4,700</b></div>
   </div>
-  <p class="cl">The total is paid in full at signing (by card or invoice). <b>This pricing is locked</b> for the term of this Agreement.</p>
+  <p class="cl">The total is paid in full at signing, by <b>check payable to CARES Consulting Inc</b> (an itemized invoice is provided). <b>This pricing is locked</b> for the term of this Agreement.</p>
   <ul class="cl">
     <li><b>Additional modules</b> beyond the scope above are <b>$1,200 per module</b> (flat).</li>
     <li><b>Smaller changes or work</b> outside the scope are billed at <b>$120 per hour.</b></li>
@@ -136,10 +136,9 @@
     <label>MARCO signer — name &amp; title</label>
     <input id="signer" placeholder="Name, title" />
 
-    <button class="btn pay" id="pay" disabled>Sign &amp; pay $4,700 by card →</button>
-    <button class="btn dl" id="dl">Download / print a signed copy</button>
+    <button class="btn pay" id="dl" disabled>Sign, then download / print your copy →</button>
     <p class="fine" id="note">Sign and add your name to continue.</p>
-    <p class="fine">Prefer to be invoiced? <a href="invoice.html">View / download invoice #2026060501</a> &nbsp;·&nbsp; or pay by check to CARES Consulting Inc.</p>
+    <p class="fine">Then mail a <b>check payable to CARES Consulting Inc</b> for $4,700. Need a formal bill? <a href="invoice.html">View / download invoice #2026060501</a>.</p>
   </div>
 </main>
 <footer>
@@ -168,17 +167,9 @@
   var signer = document.getElementById("signer");
   signer.addEventListener("input", upd);
   function ready(){ return dirty && signer.value.trim().length>1; }
-  function upd(){ var ok=ready(); document.getElementById("pay").disabled=!ok; document.getElementById("note").textContent = ok ? "You'll be taken to Stripe to pay $4,700 securely." : "Sign and add your name to continue."; }
+  function upd(){ var ok=ready(); document.getElementById("dl").disabled=!ok; document.getElementById("note").textContent = ok ? "Download or print your signed copy, then mail a check for $4,700." : "Sign and add your name to continue."; }
 
-  document.getElementById("pay").addEventListener("click", function(){
-    if(!ready()) return;
-    var b=this; b.disabled=true; b.textContent="Connecting to Stripe…";
-    fetch("/api/marco-deposit",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({package:"agreement",origin:location.origin})})
-      .then(function(r){return r.json();})
-      .then(function(j){ if(j&&j.url){ location.href=j.url; } else { alert("Couldn't start checkout: "+((j&&j.error)||"unknown")); b.disabled=false; b.textContent="Sign & pay $4,700 by card →"; } })
-      .catch(function(){ alert("Payment runs on the live site (tools.caresmn.com), not a local preview."); b.disabled=false; b.textContent="Sign & pay $4,700 by card →"; });
-  });
-  document.getElementById("dl").addEventListener("click", function(){ window.print(); });
+  document.getElementById("dl").addEventListener("click", function(){ if(!ready()) return; window.print(); });
 })();
 </script>
 </body>
