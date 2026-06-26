@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Steward · Budget Board for Churches &amp; Nonprofits</title>
+
+<!-- Google Analytics 4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-WHKMKCD1SD"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-WHKMKCD1SD');
+</script>
+<!-- End Google Analytics 4 -->
+
+<style>
+  :root{
+    --ink:#2b2440; --muted:#7c7596; --line:#e7e2f0; --bg:#faf8fd;
+    --card:#ffffff; --rose:#d96a8e; --rose-dk:#b94f73; --plum:#6c4f9c;
+    --green:#2e9e6b; --green-bg:#e9f7f0; --amber:#c98a1e; --amber-bg:#fdf4e2;
+    --red:#c0392b; --red-bg:#fbeaea; --blue:#3a6bc0; --blue-bg:#eaf1fb;
+    --gray-bg:#f0eef5; --shadow:0 1px 3px rgba(43,36,64,.08),0 6px 20px rgba(43,36,64,.06);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:var(--ink);background:var(--bg);line-height:1.45;font-size:15px;-webkit-font-smoothing:antialiased}
+  header{background:linear-gradient(120deg,#6c4f9c,#d96a8e);color:#fff;padding:18px 20px 16px}
+  header .wrap{max-width:1080px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  header h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.2px;display:flex;align-items:center;gap:9px}
+  header h1 .org{opacity:.92;font-weight:500;font-size:15px}
+  header .yr{font-size:13px;opacity:.9;font-weight:600}
+  .icon{font-size:24px}
+  .tabbar{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+  .tabs{max-width:1080px;margin:0 auto;display:flex;gap:4px;padding:0 20px;overflow-x:auto}
+  .tabs button{background:none;border:none;padding:12px 16px;font-size:14.5px;font-weight:600;color:var(--muted);
+    cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
+  .tabs button.active{color:var(--plum);border-bottom-color:var(--rose)}
+  main{max-width:1080px;margin:0 auto;padding:22px 20px 60px}
+  .view{display:none}.view.active{display:block}
+  h2{font-size:18px;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px;margin-bottom:18px}
+  .card h3{margin:0 0 14px;font-size:15px}
+  label{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin:0 0 4px;text-transform:uppercase;letter-spacing:.3px}
+  input,select,textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;font:inherit;color:var(--ink);background:#fff}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--plum);box-shadow:0 0 0 3px rgba(108,79,156,.12)}
+  textarea{resize:vertical;min-height:46px}
+  .grid{display:grid;gap:14px}
+  .g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr 1fr}.g4{grid-template-columns:repeat(4,1fr)}
+  @media(max-width:680px){.g2,.g3,.g4{grid-template-columns:1fr}}
+  .btn{background:var(--rose);color:#fff;border:none;padding:10px 18px;border-radius:9px;font:inherit;font-weight:700;cursor:pointer}
+  .btn:hover{background:var(--rose-dk)}
+  .btn.ghost{background:#fff;color:var(--plum);border:1px solid var(--line)}
+  .btn.ghost:hover{background:var(--gray-bg)}
+  .btn.sm{padding:6px 12px;font-size:13px;font-weight:600}
+  .btn.tiny{padding:4px 9px;font-size:12px;border-radius:7px}
+  .btn.danger{background:#fff;color:var(--red);border:1px solid #ecc7c3}
+  .btn.danger:hover{background:var(--red-bg)}
+  .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 0}
+  .chip{background:var(--gray-bg);border:1px solid var(--line);border-radius:20px;padding:5px 12px;font-size:13px;cursor:pointer;font-weight:600;color:var(--plum)}
+  .chip:hover{background:#e6e0f2}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--line)}
+  td{padding:10px;border-bottom:1px solid var(--line);vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  .num{font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+  .pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11.5px;font-weight:700;white-space:nowrap}
+  .pill.income{background:var(--green-bg);color:var(--green)}
+  .pill.expense{background:var(--rose);color:#fff;background:#fbeaf0;color:var(--rose-dk)}
+  .pill.restricted{background:var(--blue-bg);color:var(--blue)}
+  .pill.unrestricted{background:var(--gray-bg);color:var(--muted)}
+  .pill.ok{background:var(--green-bg);color:var(--green)}
+  .pill.warn{background:var(--amber-bg);color:var(--amber)}
+  .pill.over{background:var(--red-bg);color:var(--red)}
+  .stat{display:flex;flex-direction:column;gap:2px}
+  .stat .n{font-size:25px;font-weight:800;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
+  .stat .l{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+  .stat .s{font-size:12px;color:var(--muted)}
+  .stat.green .n{color:var(--green)}.stat.rose .n{color:var(--rose-dk)}.stat.plum .n{color:var(--plum)}
+  .stat.red .n{color:var(--red)}.stat.blue .n{color:var(--blue)}
+  .muted{color:var(--muted)}
+  .right{text-align:right}.center{text-align:center}
+  .empty{text-align:center;color:var(--muted);padding:34px 10px;font-size:14px}
+  .bar{position:relative;height:9px;border-radius:6px;background:var(--gray-bg);overflow:hidden;margin-top:6px}
+  .bar > span{position:absolute;left:0;top:0;bottom:0;border-radius:6px;background:var(--plum)}
+  .bar.green > span{background:var(--green)} .bar.amber > span{background:var(--amber)} .bar.red > span{background:var(--red)}
+  .progwrap{min-width:120px}
+  .note{background:var(--amber-bg);border:1px solid #f0dcb0;border-radius:10px;padding:11px 14px;font-size:13px;color:#7a5a14;margin:0 0 16px}
+  .note b{color:#5e4410}
+  .info{background:var(--blue-bg);border:1px solid #cfe0f6;border-radius:10px;padding:11px 14px;font-size:13px;color:#274d8c;margin:0 0 16px}
+  .linkbtn{background:none;border:none;color:var(--rose-dk);font:inherit;font-weight:600;cursor:pointer;padding:0;text-decoration:underline}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px}
+  .toolbar .f{flex:1;min-width:130px}
+  .foot{text-align:center;color:var(--muted);font-size:12px;padding:24px 20px}
+  .foot a{color:var(--rose-dk)}
+  dialog{border:none;border-radius:16px;box-shadow:0 10px 40px rgba(43,36,64,.3);padding:0;max-width:560px;width:92%}
+  dialog::backdrop{background:rgba(43,36,64,.35)}
+  .dlg-h{padding:16px 20px;border-bottom:1px solid var(--line);font-weight:700;font-size:16px}
+  .dlg-b{padding:18px 20px}
+  .dlg-f{padding:14px 20px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:10px;background:var(--bg);border-radius:0 0 16px 16px}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+  .seg button{background:#fff;border:none;padding:8px 14px;font:inherit;font-weight:600;color:var(--muted);cursor:pointer}
+  .seg button.on{background:var(--plum);color:#fff}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-top:4px}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:middle}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1><span class="icon" id="hdrIcon">⛪</span> Steward <span class="org" id="hdrOrg"></span></h1>
+    <div class="row">
+      <span class="yr" id="hdrYr"></span>
+      <button class="btn ghost sm" onclick="exportBackup()">⬇ Backup</button>
+      <button class="btn ghost sm" onclick="document.getElementById('importFile').click()">⬆ Restore</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importBackup(event)">
+    </div>
+  </div>
+</header>
+
+<div class="tabbar">
+  <div class="tabs">
+    <button class="active" data-view="overview" onclick="go('overview')">📊 Overview</button>
+    <button data-view="budget" onclick="go('budget')">🎯 Budget vs Actual</button>
+    <button data-view="funds" onclick="go('funds')">🗂️ Funds</button>
+    <button data-view="txns" onclick="go('txns')">🧾 Transactions</button>
+    <button data-view="settings" onclick="go('settings')">⚙️ Settings</button>
+  </div>
+</div>
+
+<main>
+  <!-- ===================== OVERVIEW ===================== -->
+  <section id="v_overview" class="view active">
+    <h2>The board at a glance</h2>
+    <p class="sub" id="ovSub">Where the money came from, where it went, and how the budget is tracking.</p>
+
+    <div class="grid g4" id="ovStats"></div>
+
+    <div class="card">
+      <h3>Budget pacing <span class="muted" style="font-weight:400;font-size:12px" id="ovPace"></span></h3>
+      <div id="ovBudgetBars"></div>
+    </div>
+
+    <div class="grid g2">
+      <div class="card">
+        <h3>Fund balances</h3>
+        <div id="ovFunds"></div>
+      </div>
+      <div class="card">
+        <h3>Needs attention</h3>
+        <div id="ovAlerts"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== BUDGET VS ACTUAL ===================== -->
+  <section id="v_budget" class="view">
+    <h2>Budget vs Actual</h2>
+    <p class="sub">Set an annual budget per line, then watch actual spending and giving track against it through the year.</p>
+
+    <div class="toolbar">
+      <div class="seg" id="budKind">
+        <button class="on" onclick="setBudKind('expense')">Expenses</button>
+        <button onclick="setBudKind('income')">Income</button>
+      </div>
+      <div style="flex:1"></div>
+      <button class="btn sm" onclick="openCat()">+ Add line</button>
+    </div>
+
+    <div class="card" style="padding:0;overflow:hidden">
+      <table>
+        <thead>
+          <tr>
+            <th>Line item</th><th>Fund</th><th class="num">Annual budget</th>
+            <th class="num">Actual YTD</th><th class="num">Remaining</th>
+            <th class="progwrap">Pacing</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="budRows"></tbody>
+        <tfoot id="budFoot"></tfoot>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===================== FUNDS ===================== -->
+  <section id="v_funds" class="view">
+    <h2>Funds</h2>
+    <p class="sub">Fund accounting keeps restricted gifts (building, missions, benevolence) separate from the general operating budget — so designated money is only spent for its purpose.</p>
+
+    <div class="toolbar">
+      <div style="flex:1"></div>
+      <button class="btn sm" onclick="openFund()">+ Add fund</button>
+    </div>
+
+    <div class="card" style="padding:0;overflow:hidden">
+      <table>
+        <thead>
+          <tr><th>Fund</th><th>Type</th><th class="num">Opening</th><th class="num">Income</th>
+          <th class="num">Spent</th><th class="num">Balance</th><th></th></tr>
+        </thead>
+        <tbody id="fundRows"></tbody>
+        <tfoot id="fundFoot"></tfoot>
+      </table>
+    </div>
+    <p class="sub" style="margin-top:14px"><b>Restricted</b> funds can only be spent on their stated purpose. <b>Unrestricted</b> (your General Fund) covers everyday operations and is what most of the annual budget runs through.</p>
+  </section>
+
+  <!-- ===================== TRANSACTIONS ===================== -->
+  <section id="v_txns" class="view">
+    <h2>Transactions</h2>
+    <p class="sub">Record giving and expenses. Each one lands in a fund and a budget line.</p>
+
+    <div class="card">
+      <h3 id="txnFormTitle">Record a transaction</h3>
+      <input type="hidden" id="t_id">
+      <div class="grid g4">
+        <div>
+          <label>Type</label>
+          <select id="t_type" onchange="txnTypeChanged()">
+            <option value="income">Income / Giving</option>
+            <option value="expense">Expense</option>
+          </select>
+        </div>
+        <div><label>Date</label><input type="date" id="t_date"></div>
+        <div><label>Amount</label><input type="number" id="t_amount" min="0" step="0.01" placeholder="0.00"></div>
+        <div><label>Fund</label><select id="t_fund"></select></div>
+      </div>
+      <div class="grid g2" style="margin-top:14px">
+        <div><label id="t_catLabel">Budget line</label><select id="t_cat"></select></div>
+        <div><label id="t_payeeLabel">Source / Payee</label><input id="t_payee" placeholder="e.g. Sunday offering, Acme Utilities"></div>
+      </div>
+      <div style="margin-top:14px"><label>Memo (optional)</label><input id="t_memo" placeholder="Reference, check #, designation…"></div>
+      <div class="row" style="margin-top:16px">
+        <button class="btn" onclick="saveTxn()" id="t_saveBtn">Add transaction</button>
+        <button class="btn ghost sm" onclick="resetTxnForm()" id="t_cancelBtn" style="display:none">Cancel</button>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="f"><label>Filter</label>
+        <select id="txnFilterType" onchange="renderTxns()">
+          <option value="">All types</option><option value="income">Income only</option><option value="expense">Expenses only</option>
+        </select>
+      </div>
+      <div class="f"><label>Fund</label><select id="txnFilterFund" onchange="renderTxns()"></select></div>
+      <div class="f"><label>Search</label><input id="txnSearch" placeholder="payee / memo" oninput="renderTxns()"></div>
+      <button class="btn ghost sm" onclick="exportCsv()">⬇ Export CSV</button>
+    </div>
+
+    <div class="card" style="padding:0;overflow:hidden">
+      <table>
+        <thead>
+          <tr><th>Date</th><th>Type</th><th>Line</th><th>Fund</th><th>Source / Payee</th><th class="num">Amount</th><th></th></tr>
+        </thead>
+        <tbody id="txnRows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===================== SETTINGS ===================== -->
+  <section id="v_settings" class="view">
+    <h2>Settings</h2>
+    <p class="sub">Organization details and your data.</p>
+
+    <div class="card">
+      <h3>Organization</h3>
+      <div class="grid g3">
+        <div><label>Organization name</label><input id="s_org" placeholder="Grace Community Church"></div>
+        <div>
+          <label>Type</label>
+          <select id="s_type">
+            <option value="church">Church / Ministry</option>
+            <option value="nonprofit">Nonprofit</option>
+          </select>
+        </div>
+        <div>
+          <label>Fiscal year starts</label>
+          <select id="s_fy">
+            <option value="1">January</option><option value="2">February</option><option value="3">March</option>
+            <option value="4">April</option><option value="5">May</option><option value="6">June</option>
+            <option value="7">July</option><option value="8">August</option><option value="9">September</option>
+            <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid g2" style="margin-top:14px">
+        <div><label>Viewing fiscal year</label><select id="s_year" onchange="changeYear()"></select></div>
+        <div style="display:flex;align-items:flex-end"><button class="btn sm" onclick="saveSettings()">Save organization</button></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Your data</h3>
+      <p class="sub" style="margin-bottom:14px">Everything stays in this browser on this computer — nothing is uploaded. Use Backup regularly, and to move to another device.</p>
+      <div class="row">
+        <button class="btn ghost sm" onclick="exportBackup()">⬇ Download backup (.json)</button>
+        <button class="btn ghost sm" onclick="document.getElementById('importFile').click()">⬆ Restore from backup</button>
+        <button class="btn ghost sm" onclick="exportCsv()">⬇ Export transactions (.csv)</button>
+        <button class="btn ghost sm" onclick="loadSample()">✨ Load sample data</button>
+        <button class="btn danger sm" onclick="wipeAll()">🗑 Erase everything</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="foot">
+  Steward — a Kari Kounkel / CARES tool · your data stays on your computer ·
+  <a href="https://tools.caresmn.com">tools.caresmn.com</a>
+</div>
+
+<!-- ===================== CATEGORY DIALOG ===================== -->
+<dialog id="catDlg">
+  <form method="dialog">
+    <div class="dlg-h" id="catDlgTitle">Add budget line</div>
+    <div class="dlg-b">
+      <input type="hidden" id="c_id">
+      <div class="grid g2">
+        <div><label>Name</label><input id="c_name" placeholder="Utilities"></div>
+        <div><label>Kind</label>
+          <select id="c_kind"><option value="expense">Expense</option><option value="income">Income</option></select>
+        </div>
+      </div>
+      <div class="grid g2" style="margin-top:14px">
+        <div><label>Annual budget</label><input type="number" id="c_budget" min="0" step="1" placeholder="0"></div>
+        <div><label>Default fund</label><select id="c_fund"></select></div>
+      </div>
+    </div>
+    <div class="dlg-f">
+      <button class="btn danger sm" id="c_delBtn" value="delete" formnovalue onclick="deleteCat(event)">Delete</button>
+      <button class="btn ghost" value="cancel">Cancel</button>
+      <button class="btn" value="save" onclick="saveCat(event)">Save line</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- ===================== FUND DIALOG ===================== -->
+<dialog id="fundDlg">
+  <form method="dialog">
+    <div class="dlg-h" id="fundDlgTitle">Add fund</div>
+    <div class="dlg-b">
+      <input type="hidden" id="f_id">
+      <div class="grid g2">
+        <div><label>Fund name</label><input id="f_name" placeholder="Building Fund"></div>
+        <div><label>Type</label>
+          <select id="f_type"><option value="unrestricted">Unrestricted</option><option value="restricted">Restricted</option></select>
+        </div>
+      </div>
+      <div style="margin-top:14px"><label>Opening balance</label><input type="number" id="f_opening" step="0.01" placeholder="0.00"></div>
+      <p class="sub" style="margin:12px 0 0">Restricted funds can only be spent on their purpose. Mark the General / operating fund as <b>Unrestricted</b>.</p>
+    </div>
+    <div class="dlg-f">
+      <button class="btn danger sm" id="f_delBtn" value="delete" onclick="deleteFund(event)">Delete</button>
+      <button class="btn ghost" value="cancel">Cancel</button>
+      <button class="btn" value="save" onclick="saveFund(event)">Save fund</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+/* ============================================================
+   Steward — Budget Board for Churches & Nonprofits
+   Single-file, localStorage only. No data leaves this browser.
+   ============================================================ */
+const KEY='steward.v1';
+let db, budKind='expense';
+
+function blank(){
+  return {
+    settings:{ org:'', type:'church', fyStartMonth:1, viewYear:fiscalYearOf(today()) },
+    funds:[], cats:[], txns:[]
+  };
+}
+function load(){
+  try{ db=JSON.parse(localStorage.getItem(KEY))||blank(); }
+  catch{ db=blank(); }
+  if(!db.settings) db.settings=blank().settings;
+  if(db.settings.viewYear==null) db.settings.viewYear=fiscalYearOf(today());
+}
+function save(){ localStorage.setItem(KEY,JSON.stringify(db)); }
+function uid(){ return Math.random().toString(36).slice(2,10); }
+
+/* ---------- dates & fiscal year ---------- */
+function today(){ return new Date().toISOString().slice(0,10); }
+function fiscalYearOf(iso){
+  // returns the starting calendar year of the fiscal year that contains `iso`
+  const m=db?db.settings.fyStartMonth:1;
+  const [y,mo]=iso.split('-').map(Number);
+  return mo>=m ? y : y-1;
+}
+function fyRange(startYear){
+  const m=db.settings.fyStartMonth;
+  const start=new Date(startYear,m-1,1);
+  const end=new Date(startYear+1,m-1,1); end.setDate(end.getDate()-1);
+  return {start:iso(start),end:iso(end)};
+}
+function iso(d){ return d.toISOString().slice(0,10); }
+function inViewYear(t){
+  const {start,end}=fyRange(db.settings.viewYear);
+  return t.date>=start && t.date<=end;
+}
+function fyLabel(y){
+  const m=db.settings.fyStartMonth;
+  if(m===1) return 'FY '+y;
+  const mn=new Date(2000,m-1,1).toLocaleString('en-US',{month:'short'});
+  return `FY ${y}–${String(y+1).slice(2)} (${mn})`;
+}
+function fyElapsedFraction(){
+  const {start,end}=fyRange(db.settings.viewYear);
+  const s=new Date(start), e=new Date(end), n=new Date(today());
+  if(n<=s) return 0; if(n>=e) return 1;
+  return (n-s)/(e-s);
+}
+
+/* ---------- money ---------- */
+function money(n){
+  const v=Math.round((+n||0)*100)/100;
+  return (v<0?'-':'')+'$'+Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function money0(n){
+  const v=Math.round(+n||0);
+  return (v<0?'-':'')+'$'+Math.abs(v).toLocaleString('en-US');
+}
+function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function fmtDate(s){ if(!s)return''; const[y,m,d]=s.split('-'); return `${+m}/${+d}/${y.slice(2)}`; }
+
+/* ---------- lookups ---------- */
+function fund(id){ return db.funds.find(f=>f.id===id); }
+function cat(id){ return db.cats.find(c=>c.id===id); }
+function fundName(id){ const f=fund(id); return f?f.name:'—'; }
+function catName(id){ const c=cat(id); return c?c.name:'—'; }
+
+/* aggregate helpers (within view year) ---------- */
+function catActual(catId){
+  return db.txns.filter(t=>inViewYear(t)&&t.catId===catId).reduce((s,t)=>s+(+t.amount||0),0);
+}
+function fundAgg(fundId){
+  let inc=0,exp=0;
+  db.txns.filter(t=>inViewYear(t)&&t.fundId===fundId).forEach(t=>{
+    if(t.type==='income') inc+=(+t.amount||0); else exp+=(+t.amount||0);
+  });
+  const f=fund(fundId);
+  return {inc,exp,opening:+f.opening||0,balance:(+f.opening||0)+inc-exp};
+}
+function totals(){
+  let inc=0,exp=0;
+  db.txns.filter(inViewYear).forEach(t=>{ if(t.type==='income') inc+=(+t.amount||0); else exp+=(+t.amount||0); });
+  return {inc,exp,net:inc-exp};
+}
+function budgetTotals(kind){
+  let bud=0,act=0;
+  db.cats.filter(c=>c.kind===kind).forEach(c=>{ bud+=(+c.budget||0); act+=catActual(c.id); });
+  return {bud,act};
+}
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+function go(view){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('v_'+view).classList.add('active');
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('active',b.dataset.view===view));
+  window.scrollTo(0,0);
+  if(view==='overview') renderOverview();
+  if(view==='budget') renderBudget();
+  if(view==='funds') renderFunds();
+  if(view==='txns') renderTxns();
+  if(view==='settings') paintSettings();
+}
+
+/* ============================================================
+   OVERVIEW
+   ============================================================ */
+function renderOverview(){
+  const t=totals();
+  const exp=budgetTotals('expense'), incB=budgetTotals('income');
+  const expPct = exp.bud? Math.round(exp.act/exp.bud*100):0;
+  const incPct = incB.bud? Math.round(incB.act/incB.bud*100):0;
+
+  document.getElementById('ovStats').innerHTML=[
+    stat('green','Income YTD',money0(t.inc), incB.bud?`${incPct}% of $${Math.round(incB.bud).toLocaleString()} goal`:'no goal set'),
+    stat('rose','Expenses YTD',money0(t.exp), exp.bud?`${expPct}% of $${Math.round(exp.bud).toLocaleString()} budget`:'no budget set'),
+    stat(t.net>=0?'plum':'red','Net so far',money0(t.net), t.net>=0?'surplus':'deficit'),
+    stat('blue','Total fund balances',money0(db.funds.reduce((s,f)=>s+fundAgg(f.id).balance,0)),`${db.funds.length} fund${db.funds.length===1?'':'s'}`)
+  ].join('');
+
+  // pacing
+  const frac=fyElapsedFraction();
+  document.getElementById('ovPace').textContent = `· ${Math.round(frac*100)}% of the fiscal year has elapsed`;
+
+  const exps=db.cats.filter(c=>c.kind==='expense'&&(+c.budget>0||catActual(c.id)>0))
+    .map(c=>({c,act:catActual(c.id)})).sort((a,b)=>b.act-a.act).slice(0,8);
+  if(!exps.length){
+    document.getElementById('ovBudgetBars').innerHTML='<div class="empty">No budget lines yet. Add some on the Budget tab, or load sample data in Settings.</div>';
+  } else {
+    document.getElementById('ovBudgetBars').innerHTML =
+      `<div class="legend"><span><i style="background:var(--plum)"></i>Actual spent</span><span><i style="background:var(--line)"></i>Annual budget</span><span class="muted">Marker = expected pace today</span></div>`
+      + exps.map(({c,act})=>{
+        const bud=+c.budget||0;
+        const pct=bud? act/bud*100 : (act>0?100:0);
+        const cls = bud&&act>bud? 'red' : (bud&&act>bud*Math.max(frac,0.0001)*1.1?'amber':'green');
+        const marker = bud? Math.min(frac*100,100):0;
+        return `<div style="margin:12px 0">
+          <div class="row" style="justify-content:space-between;gap:8px">
+            <b style="font-weight:600">${esc(c.name)}</b>
+            <span class="num muted">${money0(act)}${bud?` / ${money0(bud)}`:''}</span>
+          </div>
+          <div class="bar ${cls}" style="height:11px">
+            <span style="width:${Math.min(pct,100)}%"></span>
+            ${bud?`<span style="left:${marker}%;width:2px;background:#2b2440;opacity:.45;border-radius:0"></span>`:''}
+          </div>
+        </div>`;
+      }).join('');
+  }
+
+  // funds
+  if(!db.funds.length){
+    document.getElementById('ovFunds').innerHTML='<div class="empty">No funds yet.</div>';
+  } else {
+    document.getElementById('ovFunds').innerHTML = db.funds.map(f=>{
+      const a=fundAgg(f.id);
+      return `<div class="row" style="justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line)">
+        <span>${esc(f.name)} <span class="pill ${f.type}">${f.type}</span></span>
+        <b class="num ${a.balance<0?'':''}" style="${a.balance<0?'color:var(--red)':''}">${money0(a.balance)}</b>
+      </div>`;
+    }).join('');
+  }
+
+  // alerts
+  const alerts=[];
+  db.cats.filter(c=>c.kind==='expense').forEach(c=>{
+    const bud=+c.budget||0, act=catActual(c.id);
+    if(bud>0 && act>bud) alerts.push(`<div class="row" style="gap:8px;padding:6px 0"><span class="pill over">over</span> <b>${esc(c.name)}</b> is ${money0(act-bud)} over its ${money0(bud)} budget.</div>`);
+    else if(bud>0 && frac>0 && act>bud*frac*1.15) alerts.push(`<div class="row" style="gap:8px;padding:6px 0"><span class="pill warn">pace</span> <b>${esc(c.name)}</b> is spending faster than budget pace.</div>`);
+  });
+  db.funds.forEach(f=>{ const a=fundAgg(f.id); if(a.balance<0) alerts.push(`<div class="row" style="gap:8px;padding:6px 0"><span class="pill over">negative</span> <b>${esc(f.name)}</b> fund is overdrawn (${money0(a.balance)}).</div>`); });
+  if(incB.bud && fyElapsedFraction()>0.5 && incB.act < incB.bud*fyElapsedFraction()*0.85)
+    alerts.push(`<div class="row" style="gap:8px;padding:6px 0"><span class="pill warn">giving</span> Income is running behind the giving goal for this point in the year.</div>`);
+  document.getElementById('ovAlerts').innerHTML = alerts.length? alerts.join('') :
+    '<div class="empty" style="padding:18px">✓ Nothing over budget. Everything is pacing fine.</div>';
+}
+function stat(cls,label,n,s){
+  return `<div class="card" style="margin:0"><div class="stat ${cls}"><span class="l">${label}</span><span class="n">${n}</span><span class="s">${s||''}</span></div></div>`;
+}
+
+/* ============================================================
+   BUDGET VS ACTUAL
+   ============================================================ */
+function setBudKind(k){ budKind=k;
+  document.querySelectorAll('#budKind button').forEach((b,i)=>b.classList.toggle('on',(i===0)===(k==='expense')));
+  renderBudget();
+}
+function renderBudget(){
+  const rows=db.cats.filter(c=>c.kind===budKind);
+  const tb=document.getElementById('budRows');
+  const frac=fyElapsedFraction();
+  if(!rows.length){
+    tb.innerHTML=`<tr><td colspan="7"><div class="empty">No ${budKind} lines yet. Click “+ Add line”.</div></td></tr>`;
+    document.getElementById('budFoot').innerHTML=''; return;
+  }
+  tb.innerHTML=rows.map(c=>{
+    const bud=+c.budget||0, act=catActual(c.id), rem=bud-act;
+    const pct = bud? act/bud*100 : (act>0?100:0);
+    let cls='green', pill='', plabel='';
+    if(budKind==='expense'){
+      if(bud&&act>bud){cls='red';plabel='over';}
+      else if(bud&&frac&&act>bud*frac*1.1){cls='amber';plabel='ahead';}
+      else {cls='green';plabel='on track';}
+    } else {
+      if(bud&&act>=bud){cls='green';plabel='met';}
+      else if(bud&&frac&&act<bud*frac*0.85){cls='amber';plabel='behind';}
+      else {cls='green';plabel='on track';}
+    }
+    pill=`<span class="pill ${cls==='red'?'over':cls==='amber'?'warn':'ok'}">${plabel}</span>`;
+    return `<tr>
+      <td><b style="font-weight:600">${esc(c.name)}</b></td>
+      <td>${c.fundId?esc(fundName(c.fundId)):'<span class="muted">—</span>'}</td>
+      <td class="num">${bud?money0(bud):'<span class="muted">—</span>'}</td>
+      <td class="num">${money0(act)}</td>
+      <td class="num" style="${budKind==='expense'&&rem<0?'color:var(--red)':''}">${bud?money0(rem):'<span class="muted">—</span>'}</td>
+      <td class="progwrap"><div class="row" style="gap:8px;justify-content:space-between"><span class="muted" style="font-size:12px">${bud?Math.round(pct)+'%':''}</span>${pill}</div>
+        <div class="bar ${cls}"><span style="width:${Math.min(pct,100)}%"></span></div></td>
+      <td class="right"><button class="btn ghost tiny" onclick="openCat('${c.id}')">Edit</button></td>
+    </tr>`;
+  }).join('');
+  const tot=budgetTotals(budKind);
+  document.getElementById('budFoot').innerHTML=`<tr style="font-weight:800">
+    <td>Total ${budKind}</td><td></td>
+    <td class="num">${money0(tot.bud)}</td><td class="num">${money0(tot.act)}</td>
+    <td class="num">${money0(tot.bud-tot.act)}</td><td></td><td></td></tr>`;
+}
+
+/* ---------- category dialog ---------- */
+function openCat(id){
+  const dlg=document.getElementById('catDlg');
+  fillFundSelect(document.getElementById('c_fund'),true);
+  if(id){
+    const c=cat(id);
+    document.getElementById('catDlgTitle').textContent='Edit budget line';
+    document.getElementById('c_id').value=c.id;
+    document.getElementById('c_name').value=c.name;
+    document.getElementById('c_kind').value=c.kind;
+    document.getElementById('c_budget').value=c.budget||'';
+    document.getElementById('c_fund').value=c.fundId||'';
+    document.getElementById('c_delBtn').style.display='';
+  } else {
+    document.getElementById('catDlgTitle').textContent='Add budget line';
+    document.getElementById('c_id').value='';
+    document.getElementById('c_name').value='';
+    document.getElementById('c_kind').value=budKind;
+    document.getElementById('c_budget').value='';
+    document.getElementById('c_fund').value='';
+    document.getElementById('c_delBtn').style.display='none';
+  }
+  dlg.showModal();
+}
+function saveCat(e){
+  const name=document.getElementById('c_name').value.trim();
+  if(!name){ e.preventDefault(); alert('Give the line a name.'); return; }
+  const id=document.getElementById('c_id').value;
+  const obj={ name, kind:document.getElementById('c_kind').value,
+    budget:+document.getElementById('c_budget').value||0,
+    fundId:document.getElementById('c_fund').value||'' };
+  if(id){ Object.assign(cat(id),obj); } else { db.cats.push({id:uid(),...obj}); }
+  save(); renderBudget();
+}
+function deleteCat(e){
+  const id=document.getElementById('c_id').value;
+  const used=db.txns.some(t=>t.catId===id);
+  if(used && !confirm('This line has transactions assigned. Delete the line anyway? (Transactions stay but lose their line label.)')){ e.preventDefault(); return; }
+  db.cats=db.cats.filter(c=>c.id!==id); save(); renderBudget();
+}
+
+/* ============================================================
+   FUNDS
+   ============================================================ */
+function renderFunds(){
+  const tb=document.getElementById('fundRows');
+  if(!db.funds.length){
+    tb.innerHTML='<tr><td colspan="7"><div class="empty">No funds yet. Click “+ Add fund”.</div></td></tr>';
+    document.getElementById('fundFoot').innerHTML=''; return;
+  }
+  let tOpen=0,tInc=0,tExp=0,tBal=0;
+  tb.innerHTML=db.funds.map(f=>{
+    const a=fundAgg(f.id); tOpen+=a.opening;tInc+=a.inc;tExp+=a.exp;tBal+=a.balance;
+    return `<tr>
+      <td><b style="font-weight:600">${esc(f.name)}</b></td>
+      <td><span class="pill ${f.type}">${f.type}</span></td>
+      <td class="num">${money0(a.opening)}</td>
+      <td class="num" style="color:var(--green)">${money0(a.inc)}</td>
+      <td class="num" style="color:var(--rose-dk)">${money0(a.exp)}</td>
+      <td class="num"><b style="${a.balance<0?'color:var(--red)':''}">${money0(a.balance)}</b></td>
+      <td class="right"><button class="btn ghost tiny" onclick="openFund('${f.id}')">Edit</button></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('fundFoot').innerHTML=`<tr style="font-weight:800">
+    <td>Total</td><td></td><td class="num">${money0(tOpen)}</td>
+    <td class="num">${money0(tInc)}</td><td class="num">${money0(tExp)}</td>
+    <td class="num">${money0(tBal)}</td><td></td></tr>`;
+}
+function openFund(id){
+  const dlg=document.getElementById('fundDlg');
+  if(id){
+    const f=fund(id);
+    document.getElementById('fundDlgTitle').textContent='Edit fund';
+    document.getElementById('f_id').value=f.id;
+    document.getElementById('f_name').value=f.name;
+    document.getElementById('f_type').value=f.type;
+    document.getElementById('f_opening').value=f.opening||'';
+    document.getElementById('f_delBtn').style.display='';
+  } else {
+    document.getElementById('fundDlgTitle').textContent='Add fund';
+    document.getElementById('f_id').value='';
+    document.getElementById('f_name').value='';
+    document.getElementById('f_type').value=db.funds.length?'restricted':'unrestricted';
+    document.getElementById('f_opening').value='';
+    document.getElementById('f_delBtn').style.display='none';
+  }
+  dlg.showModal();
+}
+function saveFund(e){
+  const name=document.getElementById('f_name').value.trim();
+  if(!name){ e.preventDefault(); alert('Give the fund a name.'); return; }
+  const id=document.getElementById('f_id').value;
+  const obj={ name, type:document.getElementById('f_type').value, opening:+document.getElementById('f_opening').value||0 };
+  if(id){ Object.assign(fund(id),obj); } else { db.funds.push({id:uid(),...obj}); }
+  save(); renderFunds(); refreshFundSelects();
+}
+function deleteFund(e){
+  const id=document.getElementById('f_id').value;
+  if(db.txns.some(t=>t.fundId===id)){ e.preventDefault(); alert('This fund has transactions. Reassign or delete them first.'); return; }
+  db.funds=db.funds.filter(f=>f.id!==id); save(); renderFunds(); refreshFundSelects();
+}
+
+/* ============================================================
+   TRANSACTIONS
+   ============================================================ */
+function txnTypeChanged(){
+  const t=document.getElementById('t_type').value;
+  document.getElementById('t_catLabel').textContent = t==='income'?'Income line':'Expense line';
+  document.getElementById('t_payeeLabel').textContent = t==='income'?'Source / Giver':'Payee';
+  fillCatSelect(document.getElementById('t_cat'),t);
+}
+function saveTxn(){
+  const amt=+document.getElementById('t_amount').value;
+  if(!amt||amt<=0){ alert('Enter an amount.'); return; }
+  if(!db.funds.length){ alert('Add a fund first (Funds tab).'); return; }
+  const obj={
+    type:document.getElementById('t_type').value,
+    date:document.getElementById('t_date').value||today(),
+    amount:Math.round(amt*100)/100,
+    fundId:document.getElementById('t_fund').value,
+    catId:document.getElementById('t_cat').value||'',
+    payee:document.getElementById('t_payee').value.trim(),
+    memo:document.getElementById('t_memo').value.trim()
+  };
+  const id=document.getElementById('t_id').value;
+  if(id){ Object.assign(db.txns.find(t=>t.id===id),obj); } else { db.txns.unshift({id:uid(),...obj}); }
+  save(); resetTxnForm(); renderTxns();
+  // jump the view year to match the entry so it shows up
+  const fy=fiscalYearOf(obj.date);
+  if(fy!==db.settings.viewYear){ db.settings.viewYear=fy; save(); buildYearSelect(); paintChrome(); }
+}
+function editTxn(id){
+  const t=db.txns.find(x=>x.id===id);
+  document.getElementById('t_id').value=t.id;
+  document.getElementById('t_type').value=t.type; txnTypeChanged();
+  document.getElementById('t_date').value=t.date;
+  document.getElementById('t_amount').value=t.amount;
+  document.getElementById('t_fund').value=t.fundId;
+  document.getElementById('t_cat').value=t.catId||'';
+  document.getElementById('t_payee').value=t.payee||'';
+  document.getElementById('t_memo').value=t.memo||'';
+  document.getElementById('txnFormTitle').textContent='Edit transaction';
+  document.getElementById('t_saveBtn').textContent='Save changes';
+  document.getElementById('t_cancelBtn').style.display='';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function resetTxnForm(){
+  document.getElementById('t_id').value='';
+  document.getElementById('t_amount').value='';
+  document.getElementById('t_payee').value='';
+  document.getElementById('t_memo').value='';
+  document.getElementById('t_date').value=today();
+  document.getElementById('txnFormTitle').textContent='Record a transaction';
+  document.getElementById('t_saveBtn').textContent='Add transaction';
+  document.getElementById('t_cancelBtn').style.display='none';
+}
+function delTxn(id){
+  if(!confirm('Delete this transaction?'))return;
+  db.txns=db.txns.filter(t=>t.id!==id); save(); renderTxns();
+}
+function renderTxns(){
+  const ftype=document.getElementById('txnFilterType').value;
+  const ffund=document.getElementById('txnFilterFund').value;
+  const q=document.getElementById('txnSearch').value.trim().toLowerCase();
+  let rows=db.txns.filter(inViewYear);
+  if(ftype) rows=rows.filter(t=>t.type===ftype);
+  if(ffund) rows=rows.filter(t=>t.fundId===ffund);
+  if(q) rows=rows.filter(t=>((t.payee||'')+' '+(t.memo||'')).toLowerCase().includes(q));
+  rows.sort((a,b)=> a.date<b.date?1:a.date>b.date?-1:0);
+  const tb=document.getElementById('txnRows');
+  if(!rows.length){ tb.innerHTML='<tr><td colspan="7"><div class="empty">No transactions in this view. Record one above, or load sample data in Settings.</div></td></tr>'; return; }
+  tb.innerHTML=rows.map(t=>`<tr>
+    <td class="num" style="text-align:left">${fmtDate(t.date)}</td>
+    <td><span class="pill ${t.type}">${t.type==='income'?'income':'expense'}</span></td>
+    <td>${t.catId?esc(catName(t.catId)):'<span class="muted">—</span>'}</td>
+    <td>${esc(fundName(t.fundId))}</td>
+    <td>${esc(t.payee||'')||'<span class="muted">—</span>'}${t.memo?`<div class="muted" style="font-size:12px">${esc(t.memo)}</div>`:''}</td>
+    <td class="num" style="${t.type==='income'?'color:var(--green)':'color:var(--rose-dk)'}">${t.type==='income'?'+':'−'}${money(t.amount)}</td>
+    <td class="right"><button class="btn ghost tiny" onclick="editTxn('${t.id}')">Edit</button> <button class="btn danger tiny" onclick="delTxn('${t.id}')">✕</button></td>
+  </tr>`).join('');
+}
+
+/* ============================================================
+   SELECTS / CHROME
+   ============================================================ */
+function fillFundSelect(sel,allowBlank){
+  sel.innerHTML=(allowBlank?'<option value="">— none —</option>':'')+
+    db.funds.map(f=>`<option value="${f.id}">${esc(f.name)}</option>`).join('');
+}
+function fillCatSelect(sel,kind){
+  const cats=db.cats.filter(c=>c.kind===kind);
+  sel.innerHTML='<option value="">— unassigned —</option>'+cats.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
+}
+function refreshFundSelects(){
+  fillFundSelect(document.getElementById('t_fund'),false);
+  const ff=document.getElementById('txnFilterFund');
+  const cur=ff.value;
+  ff.innerHTML='<option value="">All funds</option>'+db.funds.map(f=>`<option value="${f.id}">${esc(f.name)}</option>`).join('');
+  ff.value=cur;
+}
+function buildYearSelect(){
+  const sel=document.getElementById('s_year'); if(!sel)return;
+  const years=new Set([fiscalYearOf(today()), db.settings.viewYear]);
+  db.txns.forEach(t=>years.add(fiscalYearOf(t.date)));
+  const arr=[...years].sort((a,b)=>b-a);
+  sel.innerHTML=arr.map(y=>`<option value="${y}">${fyLabel(y)}</option>`).join('');
+  sel.value=db.settings.viewYear;
+}
+function changeYear(){ db.settings.viewYear=+document.getElementById('s_year').value; save(); paintChrome(); }
+function paintChrome(){
+  document.getElementById('hdrOrg').textContent = db.settings.org? '· '+db.settings.org : '';
+  document.getElementById('hdrIcon').textContent = db.settings.type==='nonprofit'?'🤝':'⛪';
+  document.getElementById('hdrYr').textContent = fyLabel(db.settings.viewYear);
+  document.title = (db.settings.org? db.settings.org+' · ':'')+'Steward · Budget Board';
+  // re-render active view
+  const active=document.querySelector('.view.active'); if(active) go(active.id.replace('v_',''));
+}
+function paintSettings(){
+  document.getElementById('s_org').value=db.settings.org||'';
+  document.getElementById('s_type').value=db.settings.type||'church';
+  document.getElementById('s_fy').value=db.settings.fyStartMonth||1;
+  buildYearSelect();
+}
+function saveSettings(){
+  db.settings.org=document.getElementById('s_org').value.trim();
+  db.settings.type=document.getElementById('s_type').value;
+  db.settings.fyStartMonth=+document.getElementById('s_fy').value;
+  save(); buildYearSelect(); paintChrome();
+}
+
+/* ============================================================
+   BACKUP / RESTORE / CSV / SAMPLE / WIPE
+   ============================================================ */
+function dl(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();URL.revokeObjectURL(a.href);}
+function fname(ext){const o=(db.settings.org||'steward').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');return `${o||'steward'}-${today()}.${ext}`;}
+function exportBackup(){ dl(new Blob([JSON.stringify(db,null,2)],{type:'application/json'}), fname('json')); }
+function importBackup(e){
+  const f=e.target.files[0]; if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{ try{
+    const d=JSON.parse(r.result);
+    if(!d.settings||!Array.isArray(d.funds)||!Array.isArray(d.txns)) throw 0;
+    if(!confirm('Replace ALL current data with this backup?'))return;
+    db=d; if(db.settings.viewYear==null) db.settings.viewYear=fiscalYearOf(today());
+    save(); boot();
+  }catch{ alert("That doesn't look like a Steward backup file."); } };
+  r.readAsText(f); e.target.value='';
+}
+function exportCsv(){
+  const head=['Date','Type','Line','Fund','FundType','Source/Payee','Memo','Amount'];
+  const rows=db.txns.filter(inViewYear).slice().sort((a,b)=>a.date<b.date?-1:1).map(t=>{
+    const f=fund(t.fundId);
+    return [t.date,t.type,catName(t.catId),fundName(t.fundId),f?f.type:'',t.payee||'',t.memo||'',(t.type==='expense'?'-':'')+(+t.amount||0).toFixed(2)];
+  });
+  const csv=[head].concat(rows).map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  dl(new Blob([csv],{type:'text/csv'}), fname('csv'));
+}
+function wipeAll(){
+  if(confirm('Erase ALL funds, budget lines, and transactions? This cannot be undone.\n\n(Download a backup first!)')){
+    db=blank(); save(); boot();
+  }
+}
+function loadSample(){
+  if((db.funds.length||db.txns.length) && !confirm('Load sample data on top of what you have?'))return;
+  const np = db.settings.type==='nonprofit';
+  db.settings.org = db.settings.org || (np?'Riverside Community Aid (sample)':'Grace Community Church (sample)');
+  db.settings.type = db.settings.type || 'church';
+  db.settings.fyStartMonth = db.settings.fyStartMonth || 1;
+
+  // funds
+  const fGen=uid(),fBld=uid(),fMis=uid(),fBen=uid();
+  db.funds.push(
+    {id:fGen,name:np?'Operating Fund':'General Fund',type:'unrestricted',opening:np?18500:24000},
+    {id:fBld,name:np?'Capital Fund':'Building Fund',type:'restricted',opening:np?42000:61000},
+    {id:fMis,name:np?'Program Fund':'Missions Fund',type:'restricted',opening:np?9500:8200},
+    {id:fBen,name:np?'Client Assistance Fund':'Benevolence Fund',type:'restricted',opening:np?3100:4500}
+  );
+
+  // categories (annual budgets)
+  const C=(name,kind,budget,fundId)=>{const id=uid();db.cats.push({id,name,kind,budget,fundId});return id;};
+  let inc={}, exp={};
+  if(np){
+    inc.don=C('Individual Donations','income',180000,fGen);
+    inc.grant=C('Grants','income',95000,fGen);
+    inc.events=C('Fundraising Events','income',38000,fGen);
+    inc.prog=C('Program Revenue','income',22000,fGen);
+    inc.cap=C('Capital Campaign','income',50000,fBld);
+    exp.sal=C('Salaries & Wages','expense',165000,fGen);
+    exp.ben=C('Payroll Taxes & Benefits','expense',41000,fGen);
+    exp.prog=C('Program Costs','expense',64000,fMis);
+    exp.occ=C('Occupancy / Rent','expense',36000,fGen);
+    exp.util=C('Utilities','expense',9600,fGen);
+    exp.office=C('Office & Admin','expense',14000,fGen);
+    exp.ins=C('Insurance','expense',7200,fGen);
+    exp.fund=C('Fundraising Costs','expense',12000,fGen);
+    exp.assist=C('Client Assistance','expense',20000,fBen);
+  } else {
+    inc.tithe=C('Tithes & Offerings','income',312000,fGen);
+    inc.bld=C('Building Fund Gifts','income',40000,fBld);
+    inc.mis=C('Missions Giving','income',24000,fMis);
+    inc.ben=C('Benevolence Gifts','income',10000,fBen);
+    inc.other=C('Other Income','income',6000,fGen);
+    exp.sal=C('Pastoral Salaries','expense',158000,fGen);
+    exp.ben=C('Payroll Taxes & Benefits','expense',38000,fGen);
+    exp.fac=C('Facilities & Mortgage','expense',54000,fGen);
+    exp.util=C('Utilities','expense',16800,fGen);
+    exp.wor=C('Worship & Music','expense',9000,fGen);
+    exp.yc=C('Youth & Children','expense',14000,fGen);
+    exp.mis=C('Missions & Outreach','expense',24000,fMis);
+    exp.benx=C('Benevolence','expense',12000,fBen);
+    exp.office=C('Office & Admin','expense',11000,fGen);
+    exp.ins=C('Insurance','expense',8400,fGen);
+  }
+
+  // transactions across the current fiscal year, up to "today"
+  const {start}=fyRange(db.settings.viewYear);
+  const monthsElapsed=Math.max(1,Math.round(fyElapsedFraction()*12));
+  const sY=+start.slice(0,4), sM=+start.slice(5,7);
+  const dateAt=(monthOffset,day)=>{ const d=new Date(sY,sM-1+monthOffset,day); return iso(d); };
+  const T=(type,date,amount,fundId,catId,payee,memo)=>db.txns.push({id:uid(),type,date,amount,fundId,catId,payee,memo:memo||''});
+
+  for(let m=0;m<monthsElapsed;m++){
+    if(np){
+      T('income',dateAt(m,5),  14500+((m*523)%2200), fGen, inc.don,'Monthly donors','Recurring gifts');
+      if(m%3===1) T('income',dateAt(m,12),31000, fGen, inc.grant,'Bremer Foundation','Q grant tranche');
+      if(m%4===2) T('income',dateAt(m,18),9200, fGen, inc.events,'Spring Gala','Ticket + auction');
+      T('income',dateAt(m,22),1700, fGen, inc.prog,'Workshop fees','');
+      if(m%2===0) T('income',dateAt(m,9),4200, fBld, inc.cap,'Capital pledges','Restricted — building');
+      T('expense',dateAt(m,1),13750, fGen, exp.sal,'Payroll','Semi-monthly');
+      T('expense',dateAt(m,3),3400, fGen, exp.ben,'Benefits & taxes','');
+      T('expense',dateAt(m,7),5300+((m*311)%1400), fMis, exp.prog,'Program supplies','Restricted — program');
+      T('expense',dateAt(m,2),3000, fGen, exp.occ,'Landlord LLC','Rent');
+      T('expense',dateAt(m,15),780+((m*97)%240), fGen, exp.util,'Xcel / Water','');
+      T('expense',dateAt(m,17),1150, fGen, exp.office,'Office & software','');
+      if(m%2===1) T('expense',dateAt(m,20),1800, fBen, exp.assist,'Client grants','Restricted — assistance');
+    } else {
+      T('income',dateAt(m,7),  24800+((m*640)%4800), fGen, inc.tithe,'Sunday offerings','Weekly total');
+      T('income',dateAt(m,14), 17500+((m*410)%3600), fGen, inc.tithe,'Online giving','');
+      if(m%2===0) T('income',dateAt(m,10),3400, fBld, inc.bld,'Building pledges','Restricted — building');
+      T('income',dateAt(m,21),2000, fMis, inc.mis,'Missions Sunday','Restricted — missions');
+      if(m%3===0) T('income',dateAt(m,24),900, fBen, inc.ben,'Benevolence gifts','Restricted');
+      T('expense',dateAt(m,1),13166, fGen, exp.sal,'Pastoral payroll','');
+      T('expense',dateAt(m,3),3170, fGen, exp.ben,'Taxes & benefits','');
+      T('expense',dateAt(m,5),4500, fGen, exp.fac,'Mortgage & upkeep','');
+      T('expense',dateAt(m,15),1400+((m*88)%420), fGen, exp.util,'Utilities','Gas/Electric/Water');
+      T('expense',dateAt(m,12),750, fGen, exp.wor,'Worship & music','');
+      T('expense',dateAt(m,18),1150, fGen, exp.yc,'Youth & children','');
+      if(m%2===1) T('expense',dateAt(m,20),2000, fMis, exp.mis,'Missionary support','Restricted — missions');
+      if(m%3===2) T('expense',dateAt(m,22),1000, fBen, exp.benx,'Family assistance','Restricted');
+      T('expense',dateAt(m,25),900, fGen, exp.office,'Office & admin','');
+    }
+  }
+  save(); boot();
+  alert('Sample data loaded — poke around all five tabs. When you’re ready, use “Erase everything” in Settings.');
+}
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+function boot(){
+  load();
+  paintSettings();
+  refreshFundSelects();
+  fillFundSelect(document.getElementById('t_fund'),false);
+  document.getElementById('t_date').value=today();
+  document.getElementById('s_type').onchange=function(){ document.getElementById('hdrIcon').textContent=this.value==='nonprofit'?'🤝':'⛪'; };
+  txnTypeChanged();
+  paintChrome();
+  go('overview');
+}
+boot();
+</script>
+
+<!-- Ask Kari widget (Lite support mode) -->
+<script>window.AskKariConfig={mode:"support",site:"Steward"};</script>
+<script src="https://chat.karikounkel.com/widget.js?v=2" defer></script>
+</body>
+</html>
