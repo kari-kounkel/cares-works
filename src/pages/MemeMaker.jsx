@@ -21,15 +21,33 @@ const FONTS = "https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;
 const THEME_BOX = [87, 243, 906, 906]; // [x, y, w, h] shared content window
 const THEMES = [
   { key: "none", name: "No frame — square card", src: null },
-  { key: "america250", name: "America 250", src: "/themes/america250.png" },
-  // { key: "july4", name: "Fourth of July", src: "/themes/july4.png" },
-  // { key: "memorial", name: "Memorial Day", src: "/themes/memorial.png" },
-  // { key: "veterans", name: "Veterans Day", src: "/themes/veterans.png" },
-  // { key: "flagday", name: "Flag Day", src: "/themes/flagday.png" },
+  // box: [x, y, w, h] of THIS theme's content window (from Canva's Position panel).
+  // Each frame can place its window wherever it wants — give me the 4 numbers per theme.
+  { key: "america250", name: "America 250", src: "/themes/america250.png", box: [87, 243, 906, 906] },
+  { key: "july4", name: "Fourth of July", src: "/themes/july4.png", box: [87, 243, 906, 906] },
+  { key: "memorial", name: "Memorial Day", src: "/themes/memorial.png", box: [87, 243, 906, 906] },
+  { key: "veterans", name: "Veterans Day", src: "/themes/veterans.png", box: [87, 243, 906, 906] },
+  { key: "flagday", name: "Flag Day", src: "/themes/flagday.png", box: [87, 243, 906, 906] },
+  { key: "laborday", name: "Labor Day", src: "/themes/laborday.png", box: [87, 243, 906, 906] },
+  { key: "christmas", name: "Christmas", src: "/themes/christmas.png", box: [87, 243, 906, 906] },
+  { key: "mothersday", name: "Mother's Day", src: "/themes/mothersday.png", box: [87, 243, 906, 906] },
+  { key: "stpatricks", name: "St. Patrick's Day", src: "/themes/stpatricks.png", box: [87, 243, 906, 906] },
+  { key: "thanksgiving", name: "Thanksgiving", src: "/themes/thanksgiving.png", box: [87, 243, 906, 906] },
+  { key: "birthday", name: "Birthday", src: "/themes/birthday.png", box: [87, 243, 906, 906] },
 ];
 
 // Card canvas palette (the meme itself — vintage Americana)
 const CARD = { navy: "#1F3A5F", red: "#9B3A2E", gold: "#B07D2B", cream: "#F3E8C8", parch: "#FBF6E9", ink: "#2B2B2B", sideFill: "#EFE3C4" };
+
+// Per-theme insert palette — matched to each frame. Falls back to america250.
+const THEME_STYLES = {
+  america250: CARD, july4: CARD, memorial: CARD, veterans: CARD, flagday: CARD, laborday: CARD,
+  christmas:  { navy: "#2E4A36", red: "#9B2D2D", gold: "#B0883C", cream: "#EFE6D2", parch: "#F7F0E2", ink: "#3A322A", sideFill: "#ECE0C6" },
+  mothersday: { navy: "#A9536B", red: "#C77E92", gold: "#C49A6C", cream: "#F6E7E4", parch: "#FBF2F0", ink: "#5E4A52", sideFill: "#F0DCDD" },
+  stpatricks: { navy: "#1F4D2E", red: "#2E6B3E", gold: "#BFA046", cream: "#E9E7D3", parch: "#F4F1E3", ink: "#33402F", sideFill: "#E3E7CF" },
+  thanksgiving: { navy: "#8A4A22", red: "#B5532A", gold: "#C0902E", cream: "#F2E7CF", parch: "#F7F0E0", ink: "#3E2F22", sideFill: "#EFE3C6" },
+  birthday: { navy: "#A35A60", red: "#C98A92", gold: "#C99A6A", cream: "#F6E7DC", parch: "#FBF4EC", ink: "#5E4A4A", sideFill: "#F3E3D9" },
+};
 
 // ---- Kari's preloaded 13 Series ----
 const SERIES_13 = [
@@ -139,7 +157,8 @@ export default function MemeMaker({ session }) {
   function paraLines(ctx, paras, maxW, font) { let all = []; for (const p of paras) { wrap(ctx, p, maxW, font).forEach(l => all.push(l)); all.push("__GAP__"); } all.pop(); return all; }
 
   // paints the square 1080x1080 card onto any context
-  const paintCard = (ctx, onReady) => {
+  const paintCard = (ctx, onReady, themeKey) => {
+    const CARD = THEME_STYLES[themeKey] || THEME_STYLES.america250;
     const W = 1080, H = 1080, accent = biz.accent || CARD.gold;
     ctx.clearRect(0, 0, W, H);
 
@@ -256,7 +275,7 @@ export default function MemeMaker({ session }) {
     const box = (themeObj && themeObj.box) || THEME_BOX;
     // render the square card to an offscreen buffer
     const off = document.createElement("canvas"); off.width = 1080; off.height = 1080;
-    paintCard(off.getContext("2d"), onReady);
+    paintCard(off.getContext("2d"), onReady, theme);
     if (frame) {
       // composite: full 1080x1350 frame, card dropped into the content window
       if (visible.width !== 1080 || visible.height !== 1350) { visible.width = 1080; visible.height = 1350; }
