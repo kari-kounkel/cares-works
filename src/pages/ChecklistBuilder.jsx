@@ -261,9 +261,10 @@ export default function ChecklistBuilder({ session }) {
         });
         setAllChecklists(cloudMap);
         if (Object.keys(cloudMap).length > 0) {
-          const firstId = Object.keys(cloudMap)[0];
-          setCurrentId(firstId);
-          setChecklist(cloudMap[firstId]);
+          const wanted = new URLSearchParams(window.location.search).get("open");
+          const pickId = (wanted && cloudMap[wanted]) ? wanted : Object.keys(cloudMap)[0];
+          setCurrentId(pickId);
+          setChecklist(cloudMap[pickId]);
         } else {
           // No cloud checklists yet — start with FlowSuite audit as a fresh starter
           setCurrentId("NEW");

@@ -56,10 +56,10 @@ export async function fetchAllSavedWork(session) {
     supabase.from("kari_tool_data").select("tool_key,updated_at"),
   ]);
   const out = [];
-  (orgs.data || []).forEach(o => out.push({ id: "ledger-" + o.id, tool_title: "CARES Ledger", tool_icon: "📒", name: o.name, updated_at: o.updated_at, href: "/tools/ledger" }));
-  (checks.data || []).forEach(c => out.push({ id: "check-" + c.id, tool_title: "Checklist", tool_icon: "🛠️", name: c.name, updated_at: c.updated_at, href: "/tools/checklist-builder" }));
+  (orgs.data || []).forEach(o => out.push({ id: "ledger-" + o.id, tool_title: "CARES Ledger", tool_icon: "📒", name: o.name, updated_at: o.updated_at, href: "/tools/ledger?org=" + o.id }));
+  (checks.data || []).forEach(c => out.push({ id: "check-" + c.id, tool_title: "Checklist", tool_icon: "🛠️", name: c.name, updated_at: c.updated_at, href: "/tools/checklist-builder?open=" + c.id }));
   (boards.data || []).forEach(b => out.push({ id: "steward-" + b.id, tool_title: "Steward", tool_icon: "📊", name: b.name, updated_at: b.updated_at, href: "/steward?board=" + b.id }));
-  (assess.data || []).forEach(a => out.push({ id: "qbo-" + a.id, tool_title: "QBO Discovery", tool_icon: "📋", name: a.client_name, updated_at: a.created_at, href: "/tools/qbo-discovery" }));
+  (assess.data || []).forEach(a => out.push({ id: "qbo-" + a.id, tool_title: "QBO Discovery", tool_icon: "📋", name: a.client_name, updated_at: a.created_at, href: "/tools/qbo-discovery?load=" + a.id }));
   const lastWorked = {};
   (kdata.data || []).forEach(d => { lastWorked[String(d.tool_key || "").replace(/_/g, "-")] = d.updated_at; });
   (cockpits.data || []).forEach(c => {

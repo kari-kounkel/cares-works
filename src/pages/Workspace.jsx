@@ -151,18 +151,15 @@ export default function Workspace({ session }) {
                 );
               })}
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 14 }}>
-              {toolWork.filter(w => !toolFilter || w.tool_title === toolFilter).map(w => (
+            <div style={{ background: "#fff", border: "1px solid " + S.rule, borderRadius: 12, overflow: "hidden" }}>
+              {toolWork.filter(w => !toolFilter || w.tool_title === toolFilter).map((w, i) => (
                 <button key={w.id} onClick={() => { const h = w.href; if (h && h.startsWith("/steward")) { window.location.href = h; } else if (h) { navigate(h); } else { navigate("/tools/" + w.tool_slug); } }}
-                  style={{ textAlign: "left", background: "#fff", border: "1px solid " + S.rule, borderRadius: 12, padding: "16px 18px", cursor: "pointer", fontFamily: "'Figtree', sans-serif", display: "flex", flexDirection: "column", gap: 6 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-                    <span style={{ fontSize: 20 }}>{w.tool_icon || "🗂️"}</span>
-                    <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase", color: S.muted }}>{w.tool_title || "Tool"}</span>
-                  </div>
-                  <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 16, color: S.slate, lineHeight: 1.25 }}>{w.name || "Untitled"}</div>
-                  <div style={{ fontSize: 11.5, color: S.muted, fontFamily: "'DM Mono', monospace" }}>
-                    {w.updated_at ? new Date(w.updated_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : ""} · Reopen →
-                  </div>
+                  style={{ width: "100%", textAlign: "left", display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", background: "#fff", border: "none", borderTop: i ? "1px solid " + S.cream : "none", cursor: "pointer", fontFamily: "'Figtree', sans-serif" }}>
+                  <span style={{ fontSize: 19, flexShrink: 0 }}>{w.tool_icon || "🗂️"}</span>
+                  <span style={{ flex: 1, minWidth: 0, fontWeight: 700, fontSize: 15, color: S.slate, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{w.name || "Untitled"}</span>
+                  <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9.5, letterSpacing: "0.1em", textTransform: "uppercase", color: S.muted, flexShrink: 0 }}>{w.tool_title || "Tool"}</span>
+                  <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: S.muted, width: 56, textAlign: "right", flexShrink: 0 }}>{w.updated_at ? new Date(w.updated_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : ""}</span>
+                  <span style={{ color: S.orange, fontWeight: 700, flexShrink: 0 }}>→</span>
                 </button>
               ))}
             </div>

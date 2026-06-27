@@ -224,7 +224,9 @@ export default function Ledger({ session }) {
         existing = created ? [created] : [];
       }
       setOrgs(existing);
-      setOrgId(existing[0]?.id || null);
+      const wantedOrg = new URLSearchParams(window.location.search).get("org");
+      const pickOrg = (wantedOrg && existing.find(o => o.id === wantedOrg)) ? wantedOrg : (existing[0]?.id || null);
+      setOrgId(pickOrg);
       setLoading(false);
     })();
     return () => { cancelled = true; };

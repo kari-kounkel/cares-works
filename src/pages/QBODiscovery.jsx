@@ -341,6 +341,18 @@ export default function QBODiscovery() {
     }
   };
 
+  // Deep-link: ?load=<id> opens that saved assessment straight away (one-click from My Work).
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get("load");
+    if (!id || !userEmail) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase.from("client_assessments").select("client_name, data").eq("id", id).eq("user_email", userEmail).single();
+      if (!cancelled && data && data.data) { setForm({ ...INITIAL_FORM, ...data.data }); showToast("✓ Loaded " + data.client_name, "success"); }
+    })();
+    return () => { cancelled = true; };
+  }, [userEmail]);
+
   const handleLoadAssessment = (row) => {
     if (saveStatus === "saving" && !window.confirm("You have unsaved local changes. Load this assessment and discard them?")) {
       return;
