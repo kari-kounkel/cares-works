@@ -8,7 +8,7 @@ import { supabase } from "./supabaseClient";
 // instead of piling up duplicates. ref_id is the tool's own record id
 // (e.g. a saved checklist id); pass "" for tools that have a single workspace.
 
-export async function logToolSession({ email, slug, title, icon, refId = "", name }) {
+export async function logToolSession({ email, slug, title, icon, refId = "", name, href }) {
   if (!email || !slug) return;
   try {
     await supabase.from("tool_sessions").upsert(
@@ -19,6 +19,7 @@ export async function logToolSession({ email, slug, title, icon, refId = "", nam
         tool_icon: icon || null,
         ref_id: refId || "",
         name: name || null,
+        href: href || null,
         updated_at: new Date().toISOString(),
       },
       { onConflict: "user_email,tool_slug,ref_id" }

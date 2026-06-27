@@ -98,6 +98,11 @@
   .toolbar .f{flex:1;min-width:130px}
   .foot{text-align:center;color:var(--muted);font-size:12px;padding:24px 20px}
   .foot a{color:var(--rose-dk)}
+  .vaultbar{max-width:1100px;margin:0 auto;display:none;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 20px;font-size:13px;color:var(--muted);border-bottom:1px solid var(--line);background:#fff}
+  .vaultbar select{width:auto;min-width:170px;padding:6px 9px;font-size:13px}
+  .vcloud{font-weight:800;color:var(--plum)}
+  .vlink{color:var(--rose-dk);font-weight:700;text-decoration:none}
+  .vlink:hover{text-decoration:underline}
   dialog{border:none;border-radius:16px;box-shadow:0 10px 40px rgba(43,36,64,.3);padding:0;max-width:560px;width:92%}
   dialog::backdrop{background:rgba(43,36,64,.35)}
   .dlg-h{padding:16px 20px;border-bottom:1px solid var(--line);font-weight:700;font-size:16px}
@@ -132,6 +137,8 @@
     </div>
   </div>
 </header>
+
+<div class="vaultbar" id="vaultBar"></div>
 
 <div class="tabbar">
   <div class="tabs">
@@ -1066,6 +1073,92 @@ function boot(){
   go('overview');
 }
 boot();
+
+/* ============================================================
+   CLOUD / MEMBERSHIP LAYER
+   Free = local (above). Member = signed in → saves to the CARES
+   Works vault (cloud), shows on the dashboard. Same-origin: a
+   Supabase client here picks up the logged-in session automatically.
+   ============================================================ */
+const SUPA_URL='https://qcikhcnclduakriextsz.supabase.co';
+const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaWtoY25jbGR1YWtyaWV4dHN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NTc3NDAsImV4cCI6MjA5MTIzMzc0MH0.owUv_C0b0TYisI7v3Lpb2ZGF6TMn1Gwm7oRr26yR2eI';
+let supa=null, cloudEmail=null, currentBoardId=null, boards=[];
+
+async function initCloud(){
+  try{
+    const mod=await import('https://esm.sh/@supabase/supabase-js@2');
+    supa=mod.createClient(SUPA_URL,SUPA_KEY);
+    const { data:{ session } }=await supa.auth.getSession();
+    cloudEmail = session && session.user ? session.user.email : null;
+  }catch(e){ cloudEmail=null; }
+  renderVaultBar();
+  if(cloudEmail){
+    await refreshBoards();
+    const wanted=new URLSearchParams(location.search).get('board');
+    if(wanted) loadBoard(wanted);
+  }
+}
+function renderVaultBar(){
+  const bar=document.getElementById('vaultBar');
+  bar.style.display='flex';
+  if(!cloudEmail){
+    bar.innerHTML='<span>💾 Saving to this browser only.</span> <a class="vlink" href="/login">Sign in</a> <span>to save to your CARES&nbsp;Works vault and see it on your dashboard.</span>';
+    return;
+  }
+  bar.innerHTML='<span class="vcloud">☁ Vault</span>'+
+    '<select id="boardPick" onchange="loadBoard(this.value)"></select>'+
+    '<button class="btn ghost sm" onclick="saveToVault()">Save to vault</button>'+
+    '<button class="btn ghost sm" onclick="newBoard()">+ New board</button>'+
+    '<span id="vaultMsg" style="color:var(--green);font-weight:600"></span>'+
+    '<span style="margin-left:auto;font-size:12px">'+esc(cloudEmail)+'</span>';
+  fillBoardPick();
+}
+function fillBoardPick(){
+  const sel=document.getElementById('boardPick'); if(!sel)return;
+  sel.innerHTML='<option value="">— your saved boards —</option>'+
+    boards.map(b=>`<option value="${b.id}" ${b.id===currentBoardId?'selected':''}>${esc(b.name||'Untitled board')}</option>`).join('');
+}
+async function refreshBoards(){
+  if(!supa||!cloudEmail)return;
+  const { data }=await supa.from('steward_boards').select('id,name,updated_at').eq('user_email',cloudEmail).order('updated_at',{ascending:false});
+  boards=data||[]; fillBoardPick();
+}
+async function saveToVault(){
+  if(!supa||!cloudEmail)return;
+  const name=db.settings.org||'Untitled board';
+  const row={ user_email:cloudEmail, name, data:db, updated_at:new Date().toISOString() };
+  if(currentBoardId){
+    await supa.from('steward_boards').update(row).eq('id',currentBoardId).eq('user_email',cloudEmail);
+  } else {
+    const { data }=await supa.from('steward_boards').insert(row).select('id').single();
+    currentBoardId = data ? data.id : null;
+  }
+  if(currentBoardId){
+    await supa.from('tool_sessions').upsert({ user_email:cloudEmail, tool_slug:'steward',
+      tool_title:'Steward — Budget Board', tool_icon:'📊', ref_id:currentBoardId, name,
+      href:'/steward?board='+currentBoardId, updated_at:new Date().toISOString() },
+      { onConflict:'user_email,tool_slug,ref_id' });
+  }
+  vaultMsg('Saved to your vault ✓');
+  await refreshBoards();
+}
+async function loadBoard(id){
+  if(!supa||!cloudEmail||!id)return;
+  const { data }=await supa.from('steward_boards').select('*').eq('id',id).eq('user_email',cloudEmail).single();
+  if(data&&data.data){
+    db=data.data; currentBoardId=id;
+    if(db.settings.viewYear==null) db.settings.viewYear=fiscalYearOf(today());
+    save(); boot(); renderVaultBar();
+    vaultMsg('Loaded “'+(data.name||'board')+'”');
+  }
+}
+function newBoard(){
+  if(!confirm('Start a new blank board? Save your current one to the vault first if you want to keep it.'))return;
+  currentBoardId=null; db=blank(); save(); boot(); renderVaultBar();
+}
+function vaultMsg(m){ const el=document.getElementById('vaultMsg'); if(el){ el.textContent=m; setTimeout(()=>{ if(el) el.textContent=''; },2000);} }
+
+initCloud();
 </script>
 
 <!-- Ask Kari widget (Lite support mode) -->

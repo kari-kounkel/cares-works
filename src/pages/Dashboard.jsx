@@ -323,7 +323,7 @@ export default function Dashboard({ session }) {
                 <p style={{ color: S.muted, fontSize: 13.5, margin: "0 0 16px" }}>Your most recent work, ready to reopen.</p>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 14 }}>
                   {recentSessions.map(s => (
-                    <button key={s.id} onClick={() => navigate("/tools/" + s.tool_slug)}
+                    <button key={s.id} onClick={() => { if (s.href) { window.location.href = s.href; } else { navigate("/tools/" + s.tool_slug); } }}
                       style={{ textAlign: "left", background: "#fff", border: "1px solid " + S.rule, borderRadius: 12, padding: "16px 18px", cursor: "pointer", fontFamily: "'Figtree', sans-serif", display: "flex", flexDirection: "column", gap: 6 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
                         <span style={{ fontSize: 20 }}>{s.tool_icon || "🗂️"}</span>
