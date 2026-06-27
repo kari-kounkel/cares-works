@@ -14,7 +14,6 @@ import FractionalCFOScope from "./pages/FractionalCFOScope";
 import QBODiscovery from "./pages/QBODiscovery";
 import VendorDecoder from "./pages/VendorDecoder";
 import ChecklistBuilder from "./pages/ChecklistBuilder";
-// Batch wired in — Money, People, Client Work, Leadership tools
 import NetProfitRatios from "./pages/NetProfitRatios";
 import QuickbooksTriage from "./pages/QuickbooksTriage";
 import PricingMetrics from "./pages/PricingMetrics";
@@ -32,6 +31,7 @@ import BusynessAudit from "./pages/BusynessAudit";
 import AchForm from "./pages/AchForm";
 import PayrollCalculator from "./pages/PayrollCalculator";
 import Ledger from "./pages/Ledger";
+import MemeMaker from "./pages/MemeMaker";
 import KariCockpits from "./pages/KariCockpits";
 import KariOneList from "./pages/KariOneList";
 import KariCockpitFrame from "./pages/KariCockpitFrame";
@@ -43,7 +43,6 @@ export function navigate(path) {
 }
 
 const COURT_SLUGS = ["prologue","chapter-1","chapter-2","chapter-3","chapter-4","chapter-5","chapter-6","chapter-7","chapter-8","chapter-9","chapter-10","chapter-11","chapter-12","chapter-13","epilogue"];
-// Tools still showing "Coming Soon" placeholder — remove from this array as each one ships
 const MEMBER_SLUGS = ["founders-series-1"];
 
 export default function App() {
@@ -51,7 +50,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [isPasswordReset, setIsPasswordReset] = useState(false);
   const [path, setPath] = useState(window.location.pathname);
-  const [memberStatus, setMemberStatus] = useState(null); // null = checking, "member" = subscriber, "none" = no membership
+  const [memberStatus, setMemberStatus] = useState(null);
 
   useEffect(() => {
     if (window.location.hash.includes("type=recovery")) setIsPasswordReset(true);
@@ -62,7 +61,6 @@ export default function App() {
     return () => { subscription.unsubscribe(); window.removeEventListener("popstate", onPop); };
   }, []);
 
-  // Check member status whenever session changes — used to redirect subscribers from landing page to dashboard
   useEffect(() => {
     if (!session?.user?.email) { setMemberStatus(null); return; }
     let cancelled = false;
@@ -95,7 +93,6 @@ export default function App() {
     return <Dashboard session={session} />;
   }
 
-  // Kari's private cockpit hub
   if (path === "/kari") {
     if (!session) { navigate("/login"); return null; }
     return <KariCockpits session={session} />;
@@ -124,7 +121,6 @@ export default function App() {
     if (COURT_SLUGS.includes(slug)) return <CourtChapter slug={slug} />;
   }
 
-  // Existing tool routes
   if (path === "/tools/payroll-checklist") return <PayrollChecklist session={session} />;
   if (path === "/tools/client-visit-summary") return <ClientVisitSummary />;
   if (path === "/tools/communication-templates") return <CommunicationTemplates />;
@@ -135,30 +131,23 @@ export default function App() {
   if (path === "/tools/qbo-discovery") return <QBODiscovery />;
   if (path === "/tools/vendor-decoder") return <VendorDecoder />;
   if (path === "/tools/checklist-builder") return <ChecklistBuilder session={session} />;
-
-  // Batch wired in — Money
   if (path === "/tools/net-profit-ratios") return <NetProfitRatios session={session} />;
   if (path === "/tools/quickbooks-triage") return <QuickbooksTriage session={session} />;
   if (path === "/tools/pricing-metrics") return <PricingMetrics session={session} />;
   if (path === "/tools/finding-a-cpa") return <FindingACPA session={session} />;
   if (path === "/tools/chart-of-accounts") return <ChartOfAccounts session={session} />;
   if (path === "/tools/iif-import") return <IIFImport session={session} />;
-
-  // Batch wired in — People
   if (path === "/tools/new-hire-30-days") return <NewHire30Days session={session} />;
   if (path === "/tools/separation-script") return <SeparationScript session={session} />;
-
-  // Batch wired in — Client Work
   if (path === "/tools/buying-time-scripts") return <BuyingTimeScripts session={session} />;
   if (path === "/tools/post-meeting-debrief") return <PostMeetingDebrief session={session} />;
-
-  // Batch wired in — Leadership
   if (path === "/tools/advisory-team") return <AdvisoryTeam session={session} />;
   if (path === "/tools/inhouse-vs-contract") return <InHouseVsContract session={session} />;
   if (path === "/tools/meeting-planning") return <MeetingPlanning session={session} />;
   if (path === "/tools/busyness-audit") return <BusynessAudit session={session} />;
   if (path === "/tools/ach-form") return <AchForm />;
   if (path === "/tools/payroll-calculator") return <PayrollCalculator session={session} />;
+  if (path === "/tools/america-250-meme-maker") return <MemeMaker session={session} />;
   if (path === "/tools/ledger") {
     if (!session) { navigate("/login"); return null; }
     return <Ledger session={session} />;
@@ -182,14 +171,11 @@ export default function App() {
     }
   }
 
-  // Landing fallback — auto-redirect subscribers to /dashboard.
-  // Escape hatch: ?public=1 lets subscribers preview/share the public landing page.
   const params = new URLSearchParams(window.location.search);
   const isPublicView = params.get("public") === "1";
 
   if (session && !isPublicView) {
     if (memberStatus === null) {
-      // Brief loader while we check the members table — prevents flash of landing before redirect
       return (
         <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#faf8f4", fontFamily: "'Figtree', sans-serif", color: "#a07060", fontSize: 15 }}>Loading...</div>
       );
