@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { supabase } from "../supabaseClient";
 import { navigate } from "../App";
 import Workspace from "./Workspace";
-import { fetchRecentSessions } from "../toolSessions";
+import { fetchAllSavedWork } from "../toolSessions";
 
 const MOBILE_DASH = `
   @media (max-width: 640px) {
@@ -120,7 +120,7 @@ export default function Dashboard({ session }) {
     };
     fetchWhatsNew();
 
-    fetchRecentSessions(session.user.email, 4).then(setRecentSessions);
+    fetchAllSavedWork(session).then(d => setRecentSessions(d.slice(0, 4)));
     // Widget is loaded once at the page level via index.html — no per-component injection.
   }, [session]);
 
@@ -313,7 +313,7 @@ export default function Dashboard({ session }) {
                 <p style={{ color: S.muted, fontSize: 13.5, margin: "0 0 16px" }}>Your most recent work, ready to reopen — no hunting through tools.</p>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 14 }}>
                   {recentSessions.map(s => (
-                    <button key={s.id} onClick={() => { if (s.href) { window.location.href = s.href; } else { navigate("/tools/" + s.tool_slug); } }}
+                    <button key={s.id} onClick={() => { const h = s.href; if (h && h.startsWith("/tools/")) { navigate(h); } else if (h) { window.location.href = h; } else { navigate("/tools/" + s.tool_slug); } }}
                       style={{ textAlign: "left", background: "#fff", border: "1px solid " + S.rule, borderRadius: 12, padding: "16px 18px", cursor: "pointer", fontFamily: "'Figtree', sans-serif", display: "flex", flexDirection: "column", gap: 6 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
                         <span style={{ fontSize: 20 }}>{s.tool_icon || "🗂️"}</span>

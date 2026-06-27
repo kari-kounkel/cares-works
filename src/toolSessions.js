@@ -39,3 +39,25 @@ export async function fetchRecentSessions(email, limit = 4) {
     .limit(limit);
   return data || [];
 }
+
+// The real "what have I saved" — reads each tool's actual table (the source of
+// truth), so existing work shows up immediately without any forward-logging or
+// backfill. RLS scopes every query to the signed-in user. Add a tool's table
+// here when it gains per-user cloud saves.
+export async function fetchAllSavedWork(session) {
+  const email = session?.user?.email;
+  if (!email) return [];
+  const [orgs, checks, boards, assess] = await Promise.all([
+    supabase.from("ledger_orgs").select("id,name,updated_at").order("updated_at", { ascending: false }),
+    supabase.from("user_checklists").select("id,name,updated_at").eq("user_email", email).order("updated_at", { ascending: false }),
+    supabase.from("steward_boards").select("id,name,updated_at").eq("user_email", email).order("updated_at", { ascending: false }),
+    supabase.from("client_assessments").select("id,client_name,created_at").eq("user_email", email).order("created_at", { ascending: false }),
+  ]);
+  const out = [];
+  (orgs.data || []).forEach(o => out.push({ id: "ledger-" + o.id, tool_title: "CARES Ledger", tool_icon: "📒", name: o.name, updated_at: o.updated_at, href: "/tools/ledger" }));
+  (checks.data || []).forEach(c => out.push({ id: "check-" + c.id, tool_title: "Checklist", tool_icon: "🛠️", name: c.name, updated_at: c.updated_at, href: "/tools/checklist-builder" }));
+  (boards.data || []).forEach(b => out.push({ id: "steward-" + b.id, tool_title: "Steward", tool_icon: "📊", name: b.name, updated_at: b.updated_at, href: "/steward?board=" + b.id }));
+  (assess.data || []).forEach(a => out.push({ id: "qbo-" + a.id, tool_title: "QBO Discovery", tool_icon: "📋", name: a.client_name, updated_at: a.created_at, href: "/tools/qbo-discovery" }));
+  out.sort((x, y) => String(y.updated_at || "").localeCompare(String(x.updated_at || "")));
+  return out;
+}
