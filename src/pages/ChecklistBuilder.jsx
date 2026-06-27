@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { navigate } from "../App";
 import { supabase } from "../supabaseClient";
+import { logToolSession } from "../toolSessions";
 
 const S = {
   slate: "#3d4560",
@@ -372,6 +373,7 @@ export default function ChecklistBuilder({ session }) {
         const next = { ...allChecklists, [newId]: updated };
         setAllChecklists(next);
         setCurrentId(newId);
+        logToolSession({ email: userEmail, slug: "checklist-builder", title: "Build Your Own Checklist", icon: "🛠️", refId: newId, name: updated.name });
         showToast("Saved to cloud.", "success");
       } else {
         const { error } = await supabase
@@ -385,6 +387,7 @@ export default function ChecklistBuilder({ session }) {
         }
         const next = { ...allChecklists, [currentId]: updated };
         setAllChecklists(next);
+        logToolSession({ email: userEmail, slug: "checklist-builder", title: "Build Your Own Checklist", icon: "🛠️", refId: currentId, name: updated.name });
         showToast("Saved to cloud.", "success");
       }
     } else {

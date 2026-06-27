@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { supabase } from "../supabaseClient";
 import { navigate } from "../App";
 import Workspace from "./Workspace";
+import { fetchRecentSessions } from "../toolSessions";
 
 const MOBILE_DASH = `
   @media (max-width: 640px) {
@@ -64,6 +65,7 @@ export default function Dashboard({ session }) {
   const [openDebriefSlug, setOpenDebriefSlug] = useState(null);
   const [debriefCategory, setDebriefCategory] = useState("All");
   const [whatsNew, setWhatsNew] = useState(null);
+  const [recentSessions, setRecentSessions] = useState([]);
 
   // Onboarding modals + collapsible Library helper
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
@@ -117,6 +119,8 @@ export default function Dashboard({ session }) {
       setWhatsNew(data || null);
     };
     fetchWhatsNew();
+
+    fetchRecentSessions(session.user.email, 4).then(setRecentSessions);
     // Widget is loaded once at the page level via index.html — no per-component injection.
   }, [session]);
 
@@ -152,6 +156,7 @@ export default function Dashboard({ session }) {
       slug: t.slug,
       href: t.href || undefined,
       desc: t.description,
+      why: t.why_use || undefined,
       tag: t.tag || undefined,
       tier: t.tier || "member",
       category: t.category,
@@ -310,6 +315,29 @@ export default function Dashboard({ session }) {
                 </div>
               ))}
             </div>
+
+            {/* PICK UP WHERE YOU LEFT OFF — recent saved work across tools */}
+            {recentSessions.length > 0 && (
+              <div style={{ marginBottom: 32 }}>
+                <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: S.slate, margin: "0 0 4px" }}>Pick up where you left off</h2>
+                <p style={{ color: S.muted, fontSize: 13.5, margin: "0 0 16px" }}>Your most recent work, ready to reopen.</p>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 14 }}>
+                  {recentSessions.map(s => (
+                    <button key={s.id} onClick={() => navigate("/tools/" + s.tool_slug)}
+                      style={{ textAlign: "left", background: "#fff", border: "1px solid " + S.rule, borderRadius: 12, padding: "16px 18px", cursor: "pointer", fontFamily: "'Figtree', sans-serif", display: "flex", flexDirection: "column", gap: 6 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+                        <span style={{ fontSize: 20 }}>{s.tool_icon || "🗂️"}</span>
+                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase", color: S.muted }}>{s.tool_title || "Tool"}</span>
+                      </div>
+                      <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 16, color: S.slate, lineHeight: 1.25 }}>{s.name || "Untitled work"}</div>
+                      <div style={{ fontSize: 11.5, color: S.muted, fontFamily: "'DM Mono', monospace" }}>
+                        Edited {s.updated_at ? new Date(s.updated_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : ""} · Reopen →
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* WHAT'S NEW THIS WEEK */}
             {whatsNew && (
@@ -498,6 +526,12 @@ export default function Dashboard({ session }) {
                         </div>
                         <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 30, lineHeight: 1.2, color: S.slate }}>{t.title}</div>
                         <div style={{ fontSize: 16, color: S.muted, lineHeight: 1.6, flex: 1 }}>{t.desc}</div>
+                        {t.why && (
+                          <div style={{ borderTop: "1px solid " + S.cream, paddingTop: 14 }}>
+                            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9.5, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: S.orange, marginBottom: 5 }}>💡 Why you'd use this</div>
+                            <div style={{ fontSize: 15, color: S.slate, lineHeight: 1.55 }}>{t.why}</div>
+                          </div>
+                        )}
                         {t.href ? (
                           <a href={t.href} target="_blank" rel="noopener noreferrer"
                             style={{ alignSelf: "flex-start", padding: "12px 24px", background: S.grad, border: "none", borderRadius: 8, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'Figtree', sans-serif", textDecoration: "none" }}>
@@ -541,6 +575,12 @@ export default function Dashboard({ session }) {
                       </div>
                       <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, lineHeight: 1.3, color: S.slate }}>{t.title}</div>
                       <div style={{ fontSize: 13, color: S.muted, lineHeight: 1.55, flex: 1 }}>{t.desc}</div>
+                      {t.why && (
+                        <div style={{ borderTop: "1px solid " + S.cream, paddingTop: 11 }}>
+                          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: S.orange, marginBottom: 4 }}>💡 Why you'd use this</div>
+                          <div style={{ fontSize: 12.5, color: S.slate, lineHeight: 1.5 }}>{t.why}</div>
+                        </div>
+                      )}
                       {t.href ? (
                         <a href={t.href} target="_blank" rel="noopener noreferrer"
                           style={{ marginTop: 8, padding: "10px 16px", background: S.grad, border: "none", borderRadius: 8, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'Figtree', sans-serif", textAlign: "left", textDecoration: "none", display: "block" }}>
