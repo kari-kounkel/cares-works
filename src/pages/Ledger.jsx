@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { supabase } from "../supabaseClient";
 import { navigate } from "../App";
+import { logToolSession } from "../toolSessions";
 
 const S = {
   paper: "#faf8f4",
@@ -253,6 +254,13 @@ export default function Ledger({ session }) {
   }, [orgId]);
 
   useEffect(() => { reload(); }, [reload]);
+
+  // Surface the open org on the dashboard's "Pick up where you left off".
+  useEffect(() => {
+    if (orgId && org?.name && userEmail) {
+      logToolSession({ email: userEmail, slug: "ledger", title: "CARES Ledger", icon: "📒", refId: orgId, name: org.name });
+    }
+  }, [orgId, org?.name, userEmail]);
 
   // Totals
   const totals = useMemo(() => {
