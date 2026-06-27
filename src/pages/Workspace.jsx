@@ -153,7 +153,7 @@ export default function Workspace({ session }) {
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 14 }}>
               {toolWork.filter(w => !toolFilter || w.tool_title === toolFilter).map(w => (
-                <button key={w.id} onClick={() => { const h = w.href; if (h && h.startsWith("/tools/")) { navigate(h); } else if (h) { window.location.href = h; } else { navigate("/tools/" + w.tool_slug); } }}
+                <button key={w.id} onClick={() => { const h = w.href; if (h && h.startsWith("/steward")) { window.location.href = h; } else if (h) { navigate(h); } else { navigate("/tools/" + w.tool_slug); } }}
                   style={{ textAlign: "left", background: "#fff", border: "1px solid " + S.rule, borderRadius: 12, padding: "16px 18px", cursor: "pointer", fontFamily: "'Figtree', sans-serif", display: "flex", flexDirection: "column", gap: 6 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
                     <span style={{ fontSize: 20 }}>{w.tool_icon || "🗂️"}</span>
