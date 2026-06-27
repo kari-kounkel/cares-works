@@ -178,6 +178,15 @@ export default function Dashboard({ session }) {
     });
   }, [allTools, searchQuery, selectedCats, tierFilter, newOnly]);
 
+  // "What's New — New Tool" pulls from the real tool record (single source) when given a slug.
+  const newToolCard = useMemo(() => {
+    const r = whatsNew?.new_tool;
+    if (!r) return null;
+    const t = r.slug ? allTools.find(x => x.slug === r.slug) : null;
+    if (!t) return r;
+    return { icon: t.icon, title: t.title, desc: t.why || t.desc, button: "Open " + t.title.split("—")[0].trim(), link: t.href || ("/tools/" + t.slug) };
+  }, [whatsNew, allTools]);
+
   const toggleCat = (cat) => {
     setSelectedCats(prev => prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]);
   };
@@ -352,7 +361,7 @@ export default function Dashboard({ session }) {
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 14 }}>
                   {[
-                    { tag: "NEW TOOL", icon: "🛠️", data: whatsNew.new_tool, accent: S.orange },
+                    { tag: "NEW TOOL", icon: (newToolCard && newToolCard.icon) || "🛠️", data: newToolCard, accent: S.orange },
                     { tag: "NEW DEBRIEF", icon: "☕", data: whatsNew.new_debrief, accent: S.slate },
                     { tag: "FEATURED FIX", icon: "🎯", data: whatsNew.featured_fix, accent: S.gold },
                   ].map(block => block.data && (

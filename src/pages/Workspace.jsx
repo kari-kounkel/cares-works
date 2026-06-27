@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../supabaseClient";
+import { navigate } from "../App";
+import { fetchRecentSessions } from "../toolSessions";
 
 const S = {
   slate: "#3d4560", orange: "#e8773a", orangeDark: "#c95f22", orangeLight: "#fdf0e8",
@@ -36,6 +38,9 @@ export default function Workspace({ session }) {
   const [loading, setLoading] = useState(true);
   const [entriesLoading, setEntriesLoading] = useState(false);
 
+  const [toolWork, setToolWork] = useState([]);
+  const [toolFilter, setToolFilter] = useState("");
+
   const [showAddClient, setShowAddClient] = useState(false);
   const [newClient, setNewClient] = useState({ name: "", company: "" });
   const [showAddEntry, setShowAddEntry] = useState(false);
@@ -54,6 +59,7 @@ export default function Workspace({ session }) {
   }, []);
 
   useEffect(() => { fetchClients(); }, [fetchClients]);
+  useEffect(() => { if (email) fetchRecentSessions(email, 100).then(setToolWork); }, [email]);
 
   const fetchEntries = useCallback(async (clientId) => {
     setEntriesLoading(true);
@@ -122,6 +128,46 @@ export default function Workspace({ session }) {
       <div style={{ marginBottom: 24 }}>
         <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, color: S.slate, marginBottom: 6 }}>My Work</h1>
         <p style={{ color: S.muted, fontSize: 15 }}>Keep a running record for each client — what you did, and where to pick up next time.</p>
+      </div>
+
+      {/* YOUR SAVED WORK — pulled from the shared tool index (tool_sessions), by tool + date */}
+      <div style={{ marginBottom: 34 }}>
+        <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: S.slate, marginBottom: 4 }}>Your saved work</h2>
+        <p style={{ color: S.muted, fontSize: 14, marginBottom: 16 }}>Everything you've saved across the tools — newest first.</p>
+        {toolWork.length === 0 ? (
+          <div style={{ background: S.cream, border: "1px dashed " + S.rule, borderRadius: 10, padding: "24px 20px", textAlign: "center", color: S.muted, fontSize: 14 }}>
+            Nothing here yet. When you save inside a tool — a Steward board, a Ledger org, a checklist — it shows up here automatically.
+          </div>
+        ) : (
+          <>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
+              {["", ...Array.from(new Set(toolWork.map(w => w.tool_title).filter(Boolean)))].map(tt => {
+                const active = toolFilter === tt;
+                return (
+                  <button key={tt || "all"} onClick={() => setToolFilter(tt)}
+                    style={{ padding: "6px 14px", borderRadius: 100, border: "1.5px solid " + (active ? S.orange : S.rule), background: active ? S.orange : "#fff", color: active ? "#fff" : S.muted, fontSize: 12, fontWeight: active ? 700 : 500, cursor: "pointer", fontFamily: "'Figtree', sans-serif" }}>
+                    {tt || "All tools"}
+                  </button>
+                );
+              })}
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 14 }}>
+              {toolWork.filter(w => !toolFilter || w.tool_title === toolFilter).map(w => (
+                <button key={w.id} onClick={() => { if (w.href) { window.location.href = w.href; } else { navigate("/tools/" + w.tool_slug); } }}
+                  style={{ textAlign: "left", background: "#fff", border: "1px solid " + S.rule, borderRadius: 12, padding: "16px 18px", cursor: "pointer", fontFamily: "'Figtree', sans-serif", display: "flex", flexDirection: "column", gap: 6 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+                    <span style={{ fontSize: 20 }}>{w.tool_icon || "🗂️"}</span>
+                    <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase", color: S.muted }}>{w.tool_title || "Tool"}</span>
+                  </div>
+                  <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 16, color: S.slate, lineHeight: 1.25 }}>{w.name || "Untitled"}</div>
+                  <div style={{ fontSize: 11.5, color: S.muted, fontFamily: "'DM Mono', monospace" }}>
+                    {w.updated_at ? new Date(w.updated_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : ""} · Reopen →
+                  </div>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
       <div className="ws-cols" style={{ display: "flex", gap: 24, alignItems: "flex-start" }}>

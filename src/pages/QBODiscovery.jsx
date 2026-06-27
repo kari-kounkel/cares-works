@@ -1,6 +1,7 @@
 import { navigate } from "../App";
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../supabaseClient";
+import { logToolSession } from "../toolSessions";
 
 const S = {
   slate: "#3d4560", orange: "#e8773a", orangeLight: "#fdf0e8",
@@ -305,6 +306,7 @@ export default function QBODiscovery() {
         data: form,
       });
       if (error) throw error;
+      logToolSession({ email: userEmail, slug: "qbo-discovery", title: "QBO Discovery Assessment", icon: "📋", refId: form.client_name.trim().toLowerCase(), name: form.client_name.trim() });
       showToast("✓ Saved to your vault", "success");
     } catch (e) {
       console.error("Vault save error:", e);
