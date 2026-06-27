@@ -15,6 +15,19 @@ const ANNUAL_URL = "https://buy.stripe.com/14A5kD4B981AgTxcuM18c09";
 const KARI_EMAIL = "kari@karikounkel.com";
 const FONTS = "https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&display=swap";
 
+// Occasion frames. Keep every frame 1080x1350 with the content window at THEME_BOX
+// so they're interchangeable. To add one: design the frame, drop it in
+// public/themes/<key>.png, and add a line here.
+const THEME_BOX = [87, 243, 906, 906]; // [x, y, w, h] shared content window
+const THEMES = [
+  { key: "none", name: "No frame — square card", src: null },
+  { key: "america250", name: "America 250", src: "/themes/america250.png" },
+  // { key: "july4", name: "Fourth of July", src: "/themes/july4.png" },
+  // { key: "memorial", name: "Memorial Day", src: "/themes/memorial.png" },
+  // { key: "veterans", name: "Veterans Day", src: "/themes/veterans.png" },
+  // { key: "flagday", name: "Flag Day", src: "/themes/flagday.png" },
+];
+
 // Card canvas palette (the meme itself — vintage Americana)
 const CARD = { navy: "#1F3A5F", red: "#9B3A2E", gold: "#B07D2B", cream: "#F3E8C8", parch: "#FBF6E9", ink: "#2B2B2B", sideFill: "#EFE3C4" };
 
@@ -72,7 +85,8 @@ export default function MemeMaker({ session }) {
   const [contentMode, setContentMode] = useState("text"); // "text" = overlay copy · "frame" = wrap a finished design
   const [biz, setBiz] = useState({ name: isKari ? "Kari Kounkel · The 13 Series" : "", website: isKari ? "karikounkel.com/history" : "", accent: CARD.gold, logo: "" });
   const [postImgs, setPostImgs] = useState({}); // idx -> dataURL
-  const [frameImg, setFrameImg] = useState(""); // optional 1080x1350 frame; content drops into its 906x906 window
+  const [frameImg, setFrameImg] = useState(""); // optional custom 1080x1350 frame (overrides theme)
+  const [theme, setTheme] = useState(isKari ? "america250" : "none"); // built-in occasion frame
   const [projName, setProjName] = useState("My America 250 Series");
   const [projId, setProjId] = useState(null); // current saved-project id — reused so Save updates in place
   const [saved, setSaved] = useState([]); // [{id,name}]
@@ -236,21 +250,24 @@ export default function MemeMaker({ session }) {
   const draw = useCallback(() => {
     const visible = canvasRef.current; if (!visible) return;
     const onReady = () => setTick(t => t + 1);
-    const frame = getImg(frameImg, onReady);
+    const themeObj = THEMES.find(t => t.key === theme);
+    const frameSrc = frameImg || (themeObj && themeObj.src) || "";
+    const frame = getImg(frameSrc, onReady);
+    const box = (themeObj && themeObj.box) || THEME_BOX;
     // render the square card to an offscreen buffer
     const off = document.createElement("canvas"); off.width = 1080; off.height = 1080;
     paintCard(off.getContext("2d"), onReady);
     if (frame) {
-      // composite: your full 1080x1350 frame, card dropped into the 906x906 window at (87,243)
+      // composite: full 1080x1350 frame, card dropped into the content window
       if (visible.width !== 1080 || visible.height !== 1350) { visible.width = 1080; visible.height = 1350; }
       const v = visible.getContext("2d"); v.clearRect(0, 0, 1080, 1350);
       v.drawImage(frame, 0, 0, 1080, 1350);
-      v.drawImage(off, 87, 243, 906, 906);
+      v.drawImage(off, box[0], box[1], box[2], box[3]);
     } else {
       if (visible.width !== 1080 || visible.height !== 1080) { visible.width = 1080; visible.height = 1080; }
       const v = visible.getContext("2d"); v.clearRect(0, 0, 1080, 1080); v.drawImage(off, 0, 0);
     }
-  }, [posts, idx, layout, contentMode, biz, postImgs, frameImg, current, tick]);
+  }, [posts, idx, layout, contentMode, biz, postImgs, frameImg, theme, current, tick]);
 
   useEffect(() => { draw(); }, [draw]);
   useEffect(() => { if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => setTick(t => t + 1)); }, []);
@@ -262,7 +279,7 @@ export default function MemeMaker({ session }) {
   const onFrame = e => { const f = e.target.files[0]; if (f) readFile(f, d => setFrameImg(d)); };
 
   // ---------- save / load ----------
-  const projectData = () => ({ name: projName, posts, biz, layout, postImgs, frameImg });
+  const projectData = () => ({ name: projName, posts, biz, layout, postImgs, frameImg, theme });
   const handleSave = async () => {
     const data = projectData();
     const id = projId || ("mp_" + Date.now());
@@ -284,7 +301,7 @@ export default function MemeMaker({ session }) {
     let data = null;
     if (isCloud) { try { const { data: row } = await supabase.from("meme_projects").select("data").eq("id", id).maybeSingle(); data = row?.data; } catch (_) {} }
     else { try { data = JSON.parse(localStorage.getItem(LS_KEY) || "{}")[id]; } catch (_) {} }
-    if (data) { setPosts(data.posts || posts); setBiz(data.biz || biz); setLayout(data.layout || "full"); setPostImgs(data.postImgs || {}); setFrameImg(data.frameImg || ""); setProjName(data.name || projName); setProjId(id); setIdx(0); setStatus("Loaded “" + (data.name || "project") + ".”"); }
+    if (data) { setPosts(data.posts || posts); setBiz(data.biz || biz); setLayout(data.layout || "full"); setPostImgs(data.postImgs || {}); setFrameImg(data.frameImg || ""); setTheme(data.theme || "none"); setProjName(data.name || projName); setProjId(id); setIdx(0); setStatus("Loaded “" + (data.name || "project") + ".”"); }
   };
 
   const download = () => {
@@ -336,6 +353,11 @@ export default function MemeMaker({ session }) {
       <div style={{ display: "flex", gap: 24, padding: 24, alignItems: "flex-start", flexWrap: "wrap" }}>
         {/* controls */}
         <div style={{ flex: "1 1 360px", minWidth: 320, maxWidth: 480, background: "#fff", border: "1px solid " + S.rule, borderRadius: 14, padding: 20 }}>
+          <label style={lbl}>Theme (occasion frame)</label>
+          <select value={theme} onChange={e => setTheme(e.target.value)} style={inp}>
+            {THEMES.map(t => <option key={t.key} value={t.key}>{t.name}</option>)}
+          </select>
+
           <label style={lbl}>Mode</label>
           <div style={{ display: "flex", gap: 6 }}>
             {[["text", "Add text"], ["frame", "Frame only"]].map(([m, label]) => <button key={m} onClick={() => setContentMode(m)} style={{ flex: 1, border: "1.5px solid " + (contentMode === m ? S.orange : S.rule), background: contentMode === m ? S.orangeLight : "#fff", color: contentMode === m ? S.orangeDark : S.slate, borderRadius: 8, padding: 9, fontSize: 12.5, fontWeight: 700, cursor: "pointer" }}>{label}</button>)}
