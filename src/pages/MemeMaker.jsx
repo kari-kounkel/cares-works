@@ -164,7 +164,7 @@ export default function MemeMaker({ session }) {
     starRow(ctx, W / 2, 140, 7, 26, 7, CARD.red);
 
     let cursorY = 176;
-    const footerY = H - 96;
+    const footerY = H - 132;
 
     if (layout === "window") {
       const vY = cursorY, vH = 430, vX = inX, vW = inW;
@@ -199,8 +199,24 @@ export default function MemeMaker({ session }) {
       const measure = sz => { const ls = paraLines(ctx, bodyParas, inW, "400 " + sz + "px Figtree, sans-serif"); let h = 0; for (const l of ls) h += (l === "__GAP__" ? sz * 0.5 : sz * 1.3); return { h, ls }; };
       let m = measure(bSize);
       while (bSize >= 14 && y + m.h > bottomLimit) { bSize -= 1; m = measure(bSize); }
-      ctx.fillStyle = CARD.ink; ctx.font = "400 " + bSize + "px Figtree, sans-serif"; ctx.textAlign = "center";
-      for (const l of m.ls) { if (l === "__GAP__") { y += bSize * 0.5; continue; } ctx.fillText(l, W / 2, y + bSize * 0.85); y += bSize * 1.3; }
+      ctx.fillStyle = CARD.ink; ctx.font = "400 " + bSize + "px Figtree, sans-serif"; ctx.textAlign = "left";
+      for (let i = 0; i < m.ls.length; i++) {
+        const l = m.ls[i];
+        if (l === "__GAP__") { y += bSize * 0.5; continue; }
+        const lastOfPara = (i === m.ls.length - 1) || (m.ls[i + 1] === "__GAP__");
+        const words = l.split(" ");
+        const lineW = ctx.measureText(l).width;
+        if (lastOfPara || words.length < 2 || lineW < inW * 0.5) {
+          // last line of a paragraph (or a too-short line) → left-aligned, no ugly stretched gaps
+          ctx.fillText(l, inX, y + bSize * 0.85);
+        } else {
+          const wordsW = words.reduce((s, w) => s + ctx.measureText(w).width, 0);
+          const gap = (inW - wordsW) / (words.length - 1);
+          let x = inX;
+          for (const w of words) { ctx.fillText(w, x, y + bSize * 0.85); x += ctx.measureText(w).width + gap; }
+        }
+        y += bSize * 1.3;
+      }
     }
 
     // sidebar box
@@ -212,9 +228,9 @@ export default function MemeMaker({ session }) {
     // footer: business name / website (accent) + CARES credit
     ctx.textAlign = "center";
     const fLine = [biz.name, biz.website].filter(Boolean).join("   ·   ");
-    if (fLine) { ctx.fillStyle = layout === "full" && img ? "#5b4a2e" : CARD.navy; ctx.font = "600 19px Figtree, sans-serif"; ctx.fillText(fLine, W / 2, footerY + 14); }
-    ctx.fillStyle = "#9a8c6c"; ctx.font = "400 14px 'DM Mono', monospace";
-    ctx.fillText("Made with CARES MN Tools · tools.caresmn.com", W / 2, footerY + 38);
+    if (fLine) { ctx.fillStyle = layout === "full" && img ? "#5b4a2e" : CARD.navy; ctx.font = "600 19px Figtree, sans-serif"; ctx.fillText(fLine, W / 2, footerY + 30); }
+    ctx.fillStyle = "#9a8c6c"; ctx.font = "400 13px 'DM Mono', monospace";
+    ctx.fillText("Made with CARES MN Tools · tools.caresmn.com", W / 2, footerY + 56);
   }, [posts, idx, layout, contentMode, biz, postImgs, current, tick]);
 
   useEffect(() => { draw(); }, [draw]);
