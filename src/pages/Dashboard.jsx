@@ -19,6 +19,8 @@ const MOBILE_DASH = `
     .dash-membership-block { padding: 28px 20px !important; }
     .dash-filter-bar { flex-direction: column !important; align-items: stretch !important; }
     .dash-filter-search { width: 100% !important; }
+    .dash-featured-row > button { width: 34px !important; font-size: 20px !important; }
+    .dash-featured-row > div { padding: 26px 22px !important; }
   }
 `;
 
@@ -73,6 +75,8 @@ export default function Dashboard({ session }) {
   const [selectedCats, setSelectedCats] = useState([]); // empty = all
   const [tierFilter, setTierFilter] = useState("all"); // all | free | member
   const [newOnly, setNewOnly] = useState(false);
+  const [viewMode, setViewMode] = useState(() => { try { return localStorage.getItem("cw_view") || "featured"; } catch (e) { return "featured"; } });
+  const [featIdx, setFeatIdx] = useState(0);
 
   useEffect(() => {
     const fetchMember = async () => {
@@ -181,6 +185,22 @@ export default function Dashboard({ session }) {
   };
 
   const hasActiveFilters = searchQuery || selectedCats.length > 0 || tierFilter !== "all" || newOnly;
+
+  const changeView = (m) => { setViewMode(m); try { localStorage.setItem("cw_view", m); } catch (e) {} };
+
+  // Reset the featured spotlight to the first match whenever the filtered set changes
+  useEffect(() => { setFeatIdx(0); }, [searchQuery, selectedCats, tierFilter, newOnly]);
+
+  // Arrow-key navigation for the featured spotlight
+  useEffect(() => {
+    if (viewMode !== "featured" || activeTab !== "tools") return;
+    const onKey = (e) => {
+      if (e.key === "ArrowRight") setFeatIdx(i => i + 1);
+      else if (e.key === "ArrowLeft") setFeatIdx(i => i - 1);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [viewMode, activeTab]);
 
   if (!loading && !member) {
     return (
@@ -427,7 +447,21 @@ export default function Dashboard({ session }) {
               </div>
             </div>
 
-            {/* TOOLS GRID */}
+            {/* VIEW TOGGLE — Featured (one at a time) vs Grid (the wall) */}
+            {!toolsLoading && filteredTools.length > 0 && (
+              <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 16 }}>
+                <div style={{ display: "flex", gap: 4, background: "#fff", border: "1px solid " + S.rule, borderRadius: 100, padding: 3 }}>
+                  {[{ k: "featured", l: "✨ Featured" }, { k: "grid", l: "▦ Grid" }].map(o => (
+                    <button key={o.k} onClick={() => changeView(o.k)}
+                      style={{ padding: "6px 16px", borderRadius: 100, border: "none", background: viewMode === o.k ? S.slate : "transparent", color: viewMode === o.k ? "#fff" : S.muted, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                      {o.l}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* TOOLS — featured spotlight or full grid */}
             {toolsLoading ? (
               <div style={{ background: S.cream, border: "1px dashed " + S.rule, borderRadius: 12, padding: "48px 24px", textAlign: "center", color: S.muted, fontFamily: "'DM Mono', monospace", fontSize: 13, letterSpacing: "0.06em" }}>
                 Loading your tool library…
@@ -442,6 +476,58 @@ export default function Dashboard({ session }) {
                   Clear filters
                 </button>
               </div>
+            ) : viewMode === "featured" ? (
+              (() => {
+                const n = filteredTools.length;
+                const idx = ((featIdx % n) + n) % n;
+                const t = filteredTools[idx];
+                const buttonText = t.href ? "Open tool →" : "Get this tool →";
+                const arrowStyle = { flexShrink: 0, width: 46, alignSelf: "stretch", border: "1px solid " + S.rule, background: "#fff", borderRadius: 12, color: S.slate, fontSize: 26, cursor: "pointer", fontFamily: "'Figtree', sans-serif" };
+                return (
+                  <div>
+                    <div className="dash-featured-row" style={{ display: "flex", alignItems: "stretch", gap: 12 }}>
+                      <button onClick={() => setFeatIdx(i => i - 1)} aria-label="Previous tool" style={arrowStyle}>‹</button>
+                      <div style={{ flex: 1, background: "#fff", border: "1px solid " + S.rule, borderRadius: 16, padding: "38px 42px", display: "flex", flexDirection: "column", gap: 16, minHeight: 300, position: "relative", boxShadow: "0 6px 24px rgba(61,69,96,0.06)" }}>
+                        {t.tag && <div style={{ position: "absolute", top: 18, right: 18, background: t.tag === "FREE" ? S.green : S.orange, color: "#fff", fontFamily: "'DM Mono', monospace", fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", padding: "4px 10px", borderRadius: 100 }}>{t.tag}</div>}
+                        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                          <div style={{ width: 64, height: 64, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32, background: S.orangeLight, flexShrink: 0 }}>{t.icon}</div>
+                          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: S.muted }}>{CAT_LABELS[t.category]}</div>
+                            <div style={{ alignSelf: "flex-start", fontFamily: "'DM Mono', monospace", fontSize: 9, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: t.tier === "free" ? S.green : S.orange, background: t.tier === "free" ? "#eef6ee" : S.orangeLight, padding: "3px 9px", borderRadius: 100 }}>{t.tier === "free" ? "Free" : "Member"}</div>
+                          </div>
+                        </div>
+                        <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 30, lineHeight: 1.2, color: S.slate }}>{t.title}</div>
+                        <div style={{ fontSize: 16, color: S.muted, lineHeight: 1.6, flex: 1 }}>{t.desc}</div>
+                        {t.href ? (
+                          <a href={t.href} target="_blank" rel="noopener noreferrer"
+                            style={{ alignSelf: "flex-start", padding: "12px 24px", background: S.grad, border: "none", borderRadius: 8, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'Figtree', sans-serif", textDecoration: "none" }}>
+                            {buttonText}
+                          </a>
+                        ) : (
+                          <button onClick={() => navigate("/tools/" + t.slug)}
+                            style={{ alignSelf: "flex-start", padding: "12px 24px", background: S.grad, border: "none", borderRadius: 8, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'Figtree', sans-serif" }}>
+                            {buttonText}
+                          </button>
+                        )}
+                      </div>
+                      <button onClick={() => setFeatIdx(i => i + 1)} aria-label="Next tool" style={arrowStyle}>›</button>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, marginTop: 18 }}>
+                      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: S.muted, letterSpacing: "0.1em" }}>
+                        {idx + 1} <span style={{ opacity: 0.5 }}>/ {n}</span> · use ← → or the arrows
+                      </div>
+                      {n <= 14 && (
+                        <div style={{ display: "flex", gap: 7, flexWrap: "wrap", justifyContent: "center" }}>
+                          {filteredTools.map((_, i) => (
+                            <button key={i} onClick={() => setFeatIdx(i)} aria-label={"Go to tool " + (i + 1)}
+                              style={{ width: i === idx ? 22 : 8, height: 8, borderRadius: 100, border: "none", background: i === idx ? S.orange : S.rule, cursor: "pointer", padding: 0, transition: "all 0.15s" }} />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()
             ) : (
               <div className="dash-tools-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 20 }}>
                 {filteredTools.map(t => {
