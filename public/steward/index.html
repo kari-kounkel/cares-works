@@ -27,17 +27,17 @@
   body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     color:var(--ink);background:var(--bg);line-height:1.45;font-size:15px;-webkit-font-smoothing:antialiased}
   header{background:linear-gradient(120deg,#6c4f9c,#d96a8e);color:#fff;padding:18px 20px 16px}
-  header .wrap{max-width:1080px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  header .wrap{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
   header h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.2px;display:flex;align-items:center;gap:9px}
   header h1 .org{opacity:.92;font-weight:500;font-size:15px}
   header .yr{font-size:13px;opacity:.9;font-weight:600}
   .icon{font-size:24px}
   .tabbar{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
-  .tabs{max-width:1080px;margin:0 auto;display:flex;gap:4px;padding:0 20px;overflow-x:auto}
-  .tabs button{background:none;border:none;padding:12px 16px;font-size:14.5px;font-weight:600;color:var(--muted);
+  .tabs{max-width:1100px;margin:0 auto;display:flex;gap:4px;padding:0 20px;overflow-x:auto}
+  .tabs button{background:none;border:none;padding:12px 15px;font-size:14.5px;font-weight:600;color:var(--muted);
     cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
   .tabs button.active{color:var(--plum);border-bottom-color:var(--rose)}
-  main{max-width:1080px;margin:0 auto;padding:22px 20px 60px}
+  main{max-width:1100px;margin:0 auto;padding:22px 20px 60px}
   .view{display:none}.view.active{display:block}
   h2{font-size:18px;margin:0 0 4px}
   .sub{color:var(--muted);font-size:13px;margin:0 0 18px}
@@ -49,19 +49,18 @@
   textarea{resize:vertical;min-height:46px}
   .grid{display:grid;gap:14px}
   .g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr 1fr}.g4{grid-template-columns:repeat(4,1fr)}
-  @media(max-width:680px){.g2,.g3,.g4{grid-template-columns:1fr}}
+  @media(max-width:720px){.g2,.g3,.g4{grid-template-columns:1fr}}
   .btn{background:var(--rose);color:#fff;border:none;padding:10px 18px;border-radius:9px;font:inherit;font-weight:700;cursor:pointer}
   .btn:hover{background:var(--rose-dk)}
   .btn.ghost{background:#fff;color:var(--plum);border:1px solid var(--line)}
   .btn.ghost:hover{background:var(--gray-bg)}
+  .btn.plum{background:var(--plum)}.btn.plum:hover{background:#583f86}
   .btn.sm{padding:6px 12px;font-size:13px;font-weight:600}
   .btn.tiny{padding:4px 9px;font-size:12px;border-radius:7px}
   .btn.danger{background:#fff;color:var(--red);border:1px solid #ecc7c3}
   .btn.danger:hover{background:var(--red-bg)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
   .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-  .chips{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 0}
-  .chip{background:var(--gray-bg);border:1px solid var(--line);border-radius:20px;padding:5px 12px;font-size:13px;cursor:pointer;font-weight:600;color:var(--plum)}
-  .chip:hover{background:#e6e0f2}
   table{width:100%;border-collapse:collapse;font-size:14px}
   th{text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--line)}
   td{padding:10px;border-bottom:1px solid var(--line);vertical-align:middle}
@@ -69,12 +68,13 @@
   .num{font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
   .pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11.5px;font-weight:700;white-space:nowrap}
   .pill.income{background:var(--green-bg);color:var(--green)}
-  .pill.expense{background:var(--rose);color:#fff;background:#fbeaf0;color:var(--rose-dk)}
+  .pill.expense{background:#fbeaf0;color:var(--rose-dk)}
   .pill.restricted{background:var(--blue-bg);color:var(--blue)}
-  .pill.unrestricted{background:var(--gray-bg);color:var(--muted)}
+  .pill.operating{background:var(--gray-bg);color:var(--muted)}
   .pill.ok{background:var(--green-bg);color:var(--green)}
   .pill.warn{background:var(--amber-bg);color:var(--amber)}
   .pill.over{background:var(--red-bg);color:var(--red)}
+  .pill.qbo{background:#e7f0ff;color:#2563a8}
   .stat{display:flex;flex-direction:column;gap:2px}
   .stat .n{font-size:25px;font-weight:800;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
   .stat .l{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.3px}
@@ -84,13 +84,15 @@
   .muted{color:var(--muted)}
   .right{text-align:right}.center{text-align:center}
   .empty{text-align:center;color:var(--muted);padding:34px 10px;font-size:14px}
-  .bar{position:relative;height:9px;border-radius:6px;background:var(--gray-bg);overflow:hidden;margin-top:6px}
+  .bar{position:relative;height:10px;border-radius:6px;background:var(--gray-bg);overflow:hidden;margin-top:6px}
   .bar > span{position:absolute;left:0;top:0;bottom:0;border-radius:6px;background:var(--plum)}
   .bar.green > span{background:var(--green)} .bar.amber > span{background:var(--amber)} .bar.red > span{background:var(--red)}
-  .progwrap{min-width:120px}
+  .progwrap{min-width:130px}
   .note{background:var(--amber-bg);border:1px solid #f0dcb0;border-radius:10px;padding:11px 14px;font-size:13px;color:#7a5a14;margin:0 0 16px}
   .note b{color:#5e4410}
-  .info{background:var(--blue-bg);border:1px solid #cfe0f6;border-radius:10px;padding:11px 14px;font-size:13px;color:#274d8c;margin:0 0 16px}
+  .info{background:var(--blue-bg);border:1px solid #cfe0f6;border-radius:10px;padding:12px 14px;font-size:13.5px;color:#274d8c;margin:0 0 16px;line-height:1.5}
+  .info b{color:#1c3f78}
+  .ok-box{background:var(--green-bg);border:1px solid #bfe6d2;border-radius:10px;padding:11px 14px;font-size:13px;color:#1f6e4b;margin:0 0 16px}
   .linkbtn{background:none;border:none;color:var(--rose-dk);font:inherit;font-weight:600;cursor:pointer;padding:0;text-decoration:underline}
   .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px}
   .toolbar .f{flex:1;min-width:130px}
@@ -106,6 +108,16 @@
   .seg button.on{background:var(--plum);color:#fff}
   .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-top:4px}
   .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:middle}
+  .drill td{background:var(--bg);font-size:13px;padding:6px 10px 6px 28px;border-bottom:1px solid var(--line)}
+  .teamname{font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px}
+  .teamname .tri{font-size:10px;color:var(--muted);transition:transform .15s}
+  .teamname.open .tri{transform:rotate(90deg)}
+  .step{display:flex;gap:10px;align-items:flex-start;margin:0 0 6px}
+  .step .n{flex:0 0 22px;height:22px;border-radius:50%;background:var(--plum);color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:1px}
+  .dropzone{border:2px dashed var(--line);border-radius:12px;padding:26px;text-align:center;color:var(--muted);background:#fff;cursor:pointer;transition:.15s}
+  .dropzone:hover,.dropzone.drag{border-color:var(--plum);background:#f7f4fc;color:var(--plum)}
+  .mapsel{padding:6px 8px;font-size:13px}
+  .mapnum{width:120px;padding:6px 8px;font-size:13px;text-align:right}
 </style>
 </head>
 <body>
@@ -124,9 +136,10 @@
 <div class="tabbar">
   <div class="tabs">
     <button class="active" data-view="overview" onclick="go('overview')">📊 Overview</button>
-    <button data-view="budget" onclick="go('budget')">🎯 Budget vs Actual</button>
-    <button data-view="funds" onclick="go('funds')">🗂️ Funds</button>
+    <button data-view="teams" onclick="go('teams')">👥 Teams &amp; Allocations</button>
+    <button data-view="revenue" onclick="go('revenue')">💵 Revenue</button>
     <button data-view="txns" onclick="go('txns')">🧾 Transactions</button>
+    <button data-view="import" onclick="go('import')">📥 Import from QBO</button>
     <button data-view="settings" onclick="go('settings')">⚙️ Settings</button>
   </div>
 </div>
@@ -135,19 +148,19 @@
   <!-- ===================== OVERVIEW ===================== -->
   <section id="v_overview" class="view active">
     <h2>The board at a glance</h2>
-    <p class="sub" id="ovSub">Where the money came from, where it went, and how the budget is tracking.</p>
+    <p class="sub">Money in, what each team has to spend, and what's left — in plain English. No accounting required.</p>
 
     <div class="grid g4" id="ovStats"></div>
 
     <div class="card">
-      <h3>Budget pacing <span class="muted" style="font-weight:400;font-size:12px" id="ovPace"></span></h3>
-      <div id="ovBudgetBars"></div>
+      <h3>What each team has left to spend</h3>
+      <div id="ovTeamBars"></div>
     </div>
 
     <div class="grid g2">
       <div class="card">
-        <h3>Fund balances</h3>
-        <div id="ovFunds"></div>
+        <h3>Where the money came from</h3>
+        <div id="ovRevenue"></div>
       </div>
       <div class="card">
         <h3>Needs attention</h3>
@@ -156,62 +169,58 @@
     </div>
   </section>
 
-  <!-- ===================== BUDGET VS ACTUAL ===================== -->
-  <section id="v_budget" class="view">
-    <h2>Budget vs Actual</h2>
-    <p class="sub">Set an annual budget per line, then watch actual spending and giving track against it through the year.</p>
+  <!-- ===================== TEAMS ===================== -->
+  <section id="v_teams" class="view">
+    <h2>Teams &amp; Allocations</h2>
+    <p class="sub">Each team gets money <b>set aside</b> by leadership. Steward subtracts what's been <b>spent</b> and shows what's <b>left</b> — so you never have to add up accounts by hand again. Click a team to see the detail behind its number.</p>
 
     <div class="toolbar">
-      <div class="seg" id="budKind">
-        <button class="on" onclick="setBudKind('expense')">Expenses</button>
-        <button onclick="setBudKind('income')">Income</button>
-      </div>
       <div style="flex:1"></div>
-      <button class="btn sm" onclick="openCat()">+ Add line</button>
+      <button class="btn ghost sm" onclick="go('import')">📥 Pull spending from QBO</button>
+      <button class="btn sm" onclick="openTeam()">+ Add team</button>
     </div>
 
     <div class="card" style="padding:0;overflow:hidden">
       <table>
         <thead>
           <tr>
-            <th>Line item</th><th>Fund</th><th class="num">Annual budget</th>
-            <th class="num">Actual YTD</th><th class="num">Remaining</th>
-            <th class="progwrap">Pacing</th><th></th>
+            <th>Team</th><th>Type</th><th class="num">Set aside</th>
+            <th class="num">Spent</th><th class="num">Left to spend</th>
+            <th class="progwrap">Used</th><th></th>
           </tr>
         </thead>
-        <tbody id="budRows"></tbody>
-        <tfoot id="budFoot"></tfoot>
+        <tbody id="teamRows"></tbody>
+        <tfoot id="teamFoot"></tfoot>
       </table>
     </div>
+    <p class="sub" style="margin-top:14px"><b>Operating</b> teams get a yearly amount set aside (Left = Set aside − Spent).
+    <b>Restricted</b> teams (like a Building Fund) are separate pots that carry over and only grow from designated gifts (Left = Opening + Gifts − Spent). Mark the type when you add a team — most teams are Operating.</p>
   </section>
 
-  <!-- ===================== FUNDS ===================== -->
-  <section id="v_funds" class="view">
-    <h2>Funds</h2>
-    <p class="sub">Fund accounting keeps restricted gifts (building, missions, benevolence) separate from the general operating budget — so designated money is only spent for its purpose.</p>
+  <!-- ===================== REVENUE ===================== -->
+  <section id="v_revenue" class="view">
+    <h2>Revenue — money coming in</h2>
+    <p class="sub">Giving, grants, and other income for the year, against your goal. This is tracked separately from team budgets.</p>
 
-    <div class="toolbar">
-      <div style="flex:1"></div>
-      <button class="btn sm" onclick="openFund()">+ Add fund</button>
-    </div>
+    <div class="grid g3" id="revStats"></div>
 
-    <div class="card" style="padding:0;overflow:hidden">
-      <table>
-        <thead>
-          <tr><th>Fund</th><th>Type</th><th class="num">Opening</th><th class="num">Income</th>
-          <th class="num">Spent</th><th class="num">Balance</th><th></th></tr>
-        </thead>
-        <tbody id="fundRows"></tbody>
-        <tfoot id="fundFoot"></tfoot>
-      </table>
+    <div class="card">
+      <h3>By source</h3>
+      <div id="revBySource"></div>
     </div>
-    <p class="sub" style="margin-top:14px"><b>Restricted</b> funds can only be spent on their stated purpose. <b>Unrestricted</b> (your General Fund) covers everyday operations and is what most of the annual budget runs through.</p>
+    <div class="card">
+      <label>Annual revenue goal (optional)</label>
+      <div class="row">
+        <input type="number" id="revGoal" style="max-width:220px" placeholder="0" oninput="saveRevGoal()">
+        <span class="muted" id="revGoalMsg"></span>
+      </div>
+    </div>
   </section>
 
   <!-- ===================== TRANSACTIONS ===================== -->
   <section id="v_txns" class="view">
     <h2>Transactions</h2>
-    <p class="sub">Record giving and expenses. Each one lands in a fund and a budget line.</p>
+    <p class="sub">Record giving and spending by hand, or let the QBO import fill these in for you. Each one lands with a team.</p>
 
     <div class="card">
       <h3 id="txnFormTitle">Record a transaction</h3>
@@ -226,10 +235,10 @@
         </div>
         <div><label>Date</label><input type="date" id="t_date"></div>
         <div><label>Amount</label><input type="number" id="t_amount" min="0" step="0.01" placeholder="0.00"></div>
-        <div><label>Fund</label><select id="t_fund"></select></div>
+        <div><label>Team</label><select id="t_team"></select></div>
       </div>
       <div class="grid g2" style="margin-top:14px">
-        <div><label id="t_catLabel">Budget line</label><select id="t_cat"></select></div>
+        <div><label id="t_acctLabel">Account / Category</label><input id="t_acct" placeholder="e.g. Supplies, Tithes, Travel"></div>
         <div><label id="t_payeeLabel">Source / Payee</label><input id="t_payee" placeholder="e.g. Sunday offering, Acme Utilities"></div>
       </div>
       <div style="margin-top:14px"><label>Memo (optional)</label><input id="t_memo" placeholder="Reference, check #, designation…"></div>
@@ -245,18 +254,72 @@
           <option value="">All types</option><option value="income">Income only</option><option value="expense">Expenses only</option>
         </select>
       </div>
-      <div class="f"><label>Fund</label><select id="txnFilterFund" onchange="renderTxns()"></select></div>
-      <div class="f"><label>Search</label><input id="txnSearch" placeholder="payee / memo" oninput="renderTxns()"></div>
+      <div class="f"><label>Team</label><select id="txnFilterTeam" onchange="renderTxns()"></select></div>
+      <div class="f"><label>Source</label>
+        <select id="txnFilterSrc" onchange="renderTxns()">
+          <option value="">All sources</option><option value="manual">Entered by hand</option><option value="qbo-import">From QBO import</option>
+        </select>
+      </div>
+      <div class="f"><label>Search</label><input id="txnSearch" placeholder="account / payee" oninput="renderTxns()"></div>
       <button class="btn ghost sm" onclick="exportCsv()">⬇ Export CSV</button>
     </div>
 
     <div class="card" style="padding:0;overflow:hidden">
       <table>
         <thead>
-          <tr><th>Date</th><th>Type</th><th>Line</th><th>Fund</th><th>Source / Payee</th><th class="num">Amount</th><th></th></tr>
+          <tr><th>Date</th><th>Type</th><th>Account</th><th>Team</th><th>Source / Payee</th><th class="num">Amount</th><th></th></tr>
         </thead>
         <tbody id="txnRows"></tbody>
       </table>
+    </div>
+  </section>
+
+  <!-- ===================== IMPORT ===================== -->
+  <section id="v_import" class="view">
+    <h2>Import spending from QuickBooks</h2>
+    <p class="sub">Pull each team's spending straight from a QBO report — so you never select accounts one-by-one again.</p>
+
+    <div class="info">
+      <b>In QuickBooks Online:</b> go to <b>Reports → Profit and Loss by Class</b> (or by Tag / Location), set your date range,
+      then <b>Export</b> (Excel or CSV) — or just open it, select all, and copy. Bring that here. Steward reads the totals for
+      each class and turns them into your teams. <b>Nothing is uploaded — it's read right here in your browser.</b>
+    </div>
+
+    <div class="card">
+      <h3>1 · Bring in the report</h3>
+      <div class="dropzone" id="dropzone" onclick="document.getElementById('qboFile').click()">
+        <div style="font-size:30px">📄</div>
+        <div><b>Drop your QBO export here</b> — or click to choose a file</div>
+        <div class="muted" style="font-size:12.5px;margin-top:4px">Accepts .xlsx, .csv — Profit &amp; Loss by Class</div>
+      </div>
+      <input type="file" id="qboFile" accept=".xlsx,.xls,.csv" style="display:none" onchange="qboFilePicked(event)">
+      <div style="margin:14px 0 6px;text-align:center;color:var(--muted);font-size:12.5px">— or paste it (copy the report from Excel / Google Sheets and paste below) —</div>
+      <textarea id="qboPaste" rows="5" placeholder="Paste the copied report rows here…"></textarea>
+      <div class="row" style="margin-top:12px">
+        <button class="btn plum" onclick="parsePasted()">Read pasted report</button>
+        <span class="muted" id="parseMsg"></span>
+      </div>
+    </div>
+
+    <div class="card" id="mapCard" style="display:none">
+      <h3>2 · Match each QBO class to a team, and set what leadership budgeted</h3>
+      <p class="sub" style="margin-top:-8px">We read the <b>spending</b> from QBO. You tell us the <b>set aside</b> amount — that's the part QBO doesn't know. Left to spend = Set aside − Spent.</p>
+      <div class="row" style="margin-bottom:12px">
+        <div><label>Treat this import as of</label><input type="date" id="importDate" style="max-width:200px"></div>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>QBO class</th><th class="num">Spent (from QBO)</th><th class="num">Income (from QBO)</th><th>→ Team in Steward</th><th class="num">Set aside</th></tr></thead>
+          <tbody id="mapRows"></tbody>
+          <tfoot id="mapFoot"></tfoot>
+        </table>
+      </div>
+      <div class="note" id="importWarn" style="display:none"></div>
+      <div class="row" style="margin-top:16px">
+        <button class="btn" onclick="applyImport()">Apply to my teams</button>
+        <button class="btn ghost sm" onclick="cancelImport()">Cancel</button>
+        <span class="muted" style="font-size:12.5px">Re-importing replaces the previous QBO numbers. Anything you typed by hand stays put.</span>
+      </div>
     </div>
   </section>
 
@@ -311,83 +374,76 @@
   <a href="https://tools.caresmn.com">tools.caresmn.com</a>
 </div>
 
-<!-- ===================== CATEGORY DIALOG ===================== -->
-<dialog id="catDlg">
+<!-- ===================== TEAM DIALOG ===================== -->
+<dialog id="teamDlg">
   <form method="dialog">
-    <div class="dlg-h" id="catDlgTitle">Add budget line</div>
+    <div class="dlg-h" id="teamDlgTitle">Add team</div>
     <div class="dlg-b">
-      <input type="hidden" id="c_id">
+      <input type="hidden" id="tm_id">
       <div class="grid g2">
-        <div><label>Name</label><input id="c_name" placeholder="Utilities"></div>
-        <div><label>Kind</label>
-          <select id="c_kind"><option value="expense">Expense</option><option value="income">Income</option></select>
+        <div><label>Team name</label><input id="tm_name" placeholder="Youth Ministry"></div>
+        <div><label>Type</label>
+          <select id="tm_type" onchange="teamTypeHint()"><option value="operating">Operating</option><option value="restricted">Restricted</option></select>
         </div>
       </div>
       <div class="grid g2" style="margin-top:14px">
-        <div><label>Annual budget</label><input type="number" id="c_budget" min="0" step="1" placeholder="0"></div>
-        <div><label>Default fund</label><select id="c_fund"></select></div>
+        <div><label id="tm_allocLabel">Set aside (annual)</label><input type="number" id="tm_alloc" min="0" step="1" placeholder="0"></div>
+        <div id="tm_openWrap" style="display:none"><label>Opening balance (carryover)</label><input type="number" id="tm_open" step="0.01" placeholder="0.00"></div>
       </div>
+      <div style="margin-top:14px"><label>Team lead (optional)</label><input id="tm_lead" placeholder="Name shown on reports"></div>
+      <p class="sub" id="tm_hint" style="margin:12px 0 0"></p>
     </div>
     <div class="dlg-f">
-      <button class="btn danger sm" id="c_delBtn" value="delete" formnovalue onclick="deleteCat(event)">Delete</button>
+      <button class="btn danger sm" id="tm_delBtn" value="delete" onclick="deleteTeam(event)">Delete</button>
       <button class="btn ghost" value="cancel">Cancel</button>
-      <button class="btn" value="save" onclick="saveCat(event)">Save line</button>
-    </div>
-  </form>
-</dialog>
-
-<!-- ===================== FUND DIALOG ===================== -->
-<dialog id="fundDlg">
-  <form method="dialog">
-    <div class="dlg-h" id="fundDlgTitle">Add fund</div>
-    <div class="dlg-b">
-      <input type="hidden" id="f_id">
-      <div class="grid g2">
-        <div><label>Fund name</label><input id="f_name" placeholder="Building Fund"></div>
-        <div><label>Type</label>
-          <select id="f_type"><option value="unrestricted">Unrestricted</option><option value="restricted">Restricted</option></select>
-        </div>
-      </div>
-      <div style="margin-top:14px"><label>Opening balance</label><input type="number" id="f_opening" step="0.01" placeholder="0.00"></div>
-      <p class="sub" style="margin:12px 0 0">Restricted funds can only be spent on their purpose. Mark the General / operating fund as <b>Unrestricted</b>.</p>
-    </div>
-    <div class="dlg-f">
-      <button class="btn danger sm" id="f_delBtn" value="delete" onclick="deleteFund(event)">Delete</button>
-      <button class="btn ghost" value="cancel">Cancel</button>
-      <button class="btn" value="save" onclick="saveFund(event)">Save fund</button>
+      <button class="btn" value="save" onclick="saveTeam(event)">Save team</button>
     </div>
   </form>
 </dialog>
 
 <script>
 /* ============================================================
-   Steward — Budget Board for Churches & Nonprofits
+   Steward — Budget Board for Churches & Nonprofits  (v2: teams + QBO import)
    Single-file, localStorage only. No data leaves this browser.
    ============================================================ */
-const KEY='steward.v1';
-let db, budKind='expense';
+const KEY='steward.v2';
+let db, parsed=null;
 
 function blank(){
   return {
-    settings:{ org:'', type:'church', fyStartMonth:1, viewYear:fiscalYearOf(today()) },
-    funds:[], cats:[], txns:[]
+    settings:{ org:'', type:'church', fyStartMonth:1, viewYear:fiscalYearOf(today()), revGoal:0 },
+    teams:[], txns:[]
   };
 }
 function load(){
-  try{ db=JSON.parse(localStorage.getItem(KEY))||blank(); }
-  catch{ db=blank(); }
+  try{ db=JSON.parse(localStorage.getItem(KEY)); }catch{ db=null; }
+  if(!db) db=migrateV1()||blank();
   if(!db.settings) db.settings=blank().settings;
   if(db.settings.viewYear==null) db.settings.viewYear=fiscalYearOf(today());
+  if(!Array.isArray(db.teams)) db.teams=[];
+  if(!Array.isArray(db.txns)) db.txns=[];
+}
+function migrateV1(){
+  // bring forward an earlier funds-based save if present
+  let old; try{ old=JSON.parse(localStorage.getItem('steward.v1')); }catch{ return null; }
+  if(!old||!Array.isArray(old.funds)) return null;
+  const idmap={};
+  const teams=old.funds.map(f=>{ const id=uid(); idmap[f.id]=id;
+    return {id,name:f.name,type:f.type==='restricted'?'restricted':'operating',alloc:0,opening:+f.opening||0,lead:''}; });
+  // fold category budgets into team allocations (best-effort)
+  (old.cats||[]).forEach(c=>{ if(c.fundId&&idmap[c.fundId]&&c.kind==='expense'){ const t=teams.find(t=>t.id===idmap[c.fundId]); if(t) t.alloc+=(+c.budget||0); } });
+  const txns=(old.txns||[]).map(t=>({id:uid(),type:t.type,date:t.date,amount:+t.amount||0,
+    teamId:idmap[t.fundId]||'',account:t.catId?(old.cats.find(c=>c.id===t.catId)||{}).name||'':'',payee:t.payee||'',memo:t.memo||'',source:'manual'}));
+  return {settings:{org:old.settings.org||'',type:old.settings.type||'church',fyStartMonth:old.settings.fyStartMonth||1,viewYear:old.settings.viewYear||fiscalYearOf(today()),revGoal:0},teams,txns};
 }
 function save(){ localStorage.setItem(KEY,JSON.stringify(db)); }
 function uid(){ return Math.random().toString(36).slice(2,10); }
 
 /* ---------- dates & fiscal year ---------- */
 function today(){ return new Date().toISOString().slice(0,10); }
-function fiscalYearOf(iso){
-  // returns the starting calendar year of the fiscal year that contains `iso`
+function fiscalYearOf(isoStr){
   const m=db?db.settings.fyStartMonth:1;
-  const [y,mo]=iso.split('-').map(Number);
+  const [y,mo]=isoStr.split('-').map(Number);
   return mo>=m ? y : y-1;
 }
 function fyRange(startYear){
@@ -397,10 +453,7 @@ function fyRange(startYear){
   return {start:iso(start),end:iso(end)};
 }
 function iso(d){ return d.toISOString().slice(0,10); }
-function inViewYear(t){
-  const {start,end}=fyRange(db.settings.viewYear);
-  return t.date>=start && t.date<=end;
-}
+function inViewYear(t){ const {start,end}=fyRange(db.settings.viewYear); return t.date>=start && t.date<=end; }
 function fyLabel(y){
   const m=db.settings.fyStartMonth;
   if(m===1) return 'FY '+y;
@@ -410,50 +463,25 @@ function fyLabel(y){
 function fyElapsedFraction(){
   const {start,end}=fyRange(db.settings.viewYear);
   const s=new Date(start), e=new Date(end), n=new Date(today());
-  if(n<=s) return 0; if(n>=e) return 1;
-  return (n-s)/(e-s);
+  if(n<=s) return 0; if(n>=e) return 1; return (n-s)/(e-s);
 }
 
-/* ---------- money ---------- */
-function money(n){
-  const v=Math.round((+n||0)*100)/100;
-  return (v<0?'-':'')+'$'+Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-}
-function money0(n){
-  const v=Math.round(+n||0);
-  return (v<0?'-':'')+'$'+Math.abs(v).toLocaleString('en-US');
-}
+/* ---------- money & text ---------- */
+function money(n){ const v=Math.round((+n||0)*100)/100; return (v<0?'-':'')+'$'+Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function money0(n){ const v=Math.round(+n||0); return (v<0?'-':'')+'$'+Math.abs(v).toLocaleString('en-US'); }
 function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function fmtDate(s){ if(!s)return''; const[y,m,d]=s.split('-'); return `${+m}/${+d}/${y.slice(2)}`; }
 
-/* ---------- lookups ---------- */
-function fund(id){ return db.funds.find(f=>f.id===id); }
-function cat(id){ return db.cats.find(c=>c.id===id); }
-function fundName(id){ const f=fund(id); return f?f.name:'—'; }
-function catName(id){ const c=cat(id); return c?c.name:'—'; }
-
-/* aggregate helpers (within view year) ---------- */
-function catActual(catId){
-  return db.txns.filter(t=>inViewYear(t)&&t.catId===catId).reduce((s,t)=>s+(+t.amount||0),0);
-}
-function fundAgg(fundId){
-  let inc=0,exp=0;
-  db.txns.filter(t=>inViewYear(t)&&t.fundId===fundId).forEach(t=>{
-    if(t.type==='income') inc+=(+t.amount||0); else exp+=(+t.amount||0);
-  });
-  const f=fund(fundId);
-  return {inc,exp,opening:+f.opening||0,balance:(+f.opening||0)+inc-exp};
-}
-function totals(){
-  let inc=0,exp=0;
-  db.txns.filter(inViewYear).forEach(t=>{ if(t.type==='income') inc+=(+t.amount||0); else exp+=(+t.amount||0); });
-  return {inc,exp,net:inc-exp};
-}
-function budgetTotals(kind){
-  let bud=0,act=0;
-  db.cats.filter(c=>c.kind===kind).forEach(c=>{ bud+=(+c.budget||0); act+=catActual(c.id); });
-  return {bud,act};
-}
+/* ---------- lookups & aggregates ---------- */
+function team(id){ return db.teams.find(t=>t.id===id); }
+function teamName(id){ const t=team(id); return t?t.name:'—'; }
+function teamSpent(id){ return db.txns.filter(t=>inViewYear(t)&&t.teamId===id&&t.type==='expense').reduce((s,t)=>s+(+t.amount||0),0); }
+function teamIncome(id){ return db.txns.filter(t=>inViewYear(t)&&t.teamId===id&&t.type==='income').reduce((s,t)=>s+(+t.amount||0),0); }
+function teamPot(t){ return t.type==='restricted' ? (+t.opening||0)+teamIncome(t.id) : (+t.alloc||0); }
+function teamLeft(t){ return teamPot(t)-teamSpent(t.id); }
+function totalRevenue(){ return db.txns.filter(t=>inViewYear(t)&&t.type==='income').reduce((s,t)=>s+(+t.amount||0),0); }
+function totalSpent(){ return db.txns.filter(t=>inViewYear(t)&&t.type==='expense').reduce((s,t)=>s+(+t.amount||0),0); }
+function totalSetAside(){ return db.teams.reduce((s,t)=>s+teamPot(t),0); }
 
 /* ============================================================
    NAVIGATION
@@ -464,262 +492,215 @@ function go(view){
   document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('active',b.dataset.view===view));
   window.scrollTo(0,0);
   if(view==='overview') renderOverview();
-  if(view==='budget') renderBudget();
-  if(view==='funds') renderFunds();
+  if(view==='teams') renderTeams();
+  if(view==='revenue') renderRevenue();
   if(view==='txns') renderTxns();
-  if(view==='settings') paintSettings();
+  if(view==='import') prepImport();
 }
 
 /* ============================================================
    OVERVIEW
    ============================================================ */
 function renderOverview(){
-  const t=totals();
-  const exp=budgetTotals('expense'), incB=budgetTotals('income');
-  const expPct = exp.bud? Math.round(exp.act/exp.bud*100):0;
-  const incPct = incB.bud? Math.round(incB.act/incB.bud*100):0;
-
+  const rev=totalRevenue(), set=totalSetAside(), sp=totalSpent(), left=set-sp;
   document.getElementById('ovStats').innerHTML=[
-    stat('green','Income YTD',money0(t.inc), incB.bud?`${incPct}% of $${Math.round(incB.bud).toLocaleString()} goal`:'no goal set'),
-    stat('rose','Expenses YTD',money0(t.exp), exp.bud?`${expPct}% of $${Math.round(exp.bud).toLocaleString()} budget`:'no budget set'),
-    stat(t.net>=0?'plum':'red','Net so far',money0(t.net), t.net>=0?'surplus':'deficit'),
-    stat('blue','Total fund balances',money0(db.funds.reduce((s,f)=>s+fundAgg(f.id).balance,0)),`${db.funds.length} fund${db.funds.length===1?'':'s'}`)
+    stat('green','Money in (YTD)',money0(rev), db.settings.revGoal?`${Math.round(rev/db.settings.revGoal*100)}% of $${(+db.settings.revGoal).toLocaleString()} goal`:'income this year'),
+    stat('plum','Set aside (all teams)',money0(set),`${db.teams.length} team${db.teams.length===1?'':'s'}`),
+    stat('rose','Spent (YTD)',money0(sp), set?`${Math.round(sp/set*100)}% of set aside`:'expenses this year'),
+    stat(left>=0?'blue':'red','Left to spend',money0(left), left>=0?'across all teams':'over budget')
   ].join('');
 
-  // pacing
   const frac=fyElapsedFraction();
-  document.getElementById('ovPace').textContent = `· ${Math.round(frac*100)}% of the fiscal year has elapsed`;
-
-  const exps=db.cats.filter(c=>c.kind==='expense'&&(+c.budget>0||catActual(c.id)>0))
-    .map(c=>({c,act:catActual(c.id)})).sort((a,b)=>b.act-a.act).slice(0,8);
-  if(!exps.length){
-    document.getElementById('ovBudgetBars').innerHTML='<div class="empty">No budget lines yet. Add some on the Budget tab, or load sample data in Settings.</div>';
+  const teams=db.teams.slice().sort((a,b)=>teamPot(b)-teamPot(a));
+  if(!teams.length){
+    document.getElementById('ovTeamBars').innerHTML='<div class="empty">No teams yet. Add them on the Teams tab, import from QBO, or load sample data in Settings.</div>';
   } else {
-    document.getElementById('ovBudgetBars').innerHTML =
-      `<div class="legend"><span><i style="background:var(--plum)"></i>Actual spent</span><span><i style="background:var(--line)"></i>Annual budget</span><span class="muted">Marker = expected pace today</span></div>`
-      + exps.map(({c,act})=>{
-        const bud=+c.budget||0;
-        const pct=bud? act/bud*100 : (act>0?100:0);
-        const cls = bud&&act>bud? 'red' : (bud&&act>bud*Math.max(frac,0.0001)*1.1?'amber':'green');
-        const marker = bud? Math.min(frac*100,100):0;
-        return `<div style="margin:12px 0">
+    document.getElementById('ovTeamBars').innerHTML =
+      `<div class="legend"><span><i style="background:var(--green)"></i>plenty left</span><span><i style="background:var(--amber)"></i>spending fast</span><span><i style="background:var(--red)"></i>over</span><span class="muted">marker = today's pace</span></div>`
+      + teams.map(t=>{
+        const pot=teamPot(t), sp=teamSpent(t.id), pct=pot? sp/pot*100 : (sp>0?100:0);
+        const cls = pot&&sp>pot?'red':(pot&&frac&&sp>pot*frac*1.1?'amber':'green');
+        const marker=pot?Math.min(frac*100,100):0;
+        return `<div style="margin:13px 0">
           <div class="row" style="justify-content:space-between;gap:8px">
-            <b style="font-weight:600">${esc(c.name)}</b>
-            <span class="num muted">${money0(act)}${bud?` / ${money0(bud)}`:''}</span>
+            <b style="font-weight:600">${esc(t.name)}</b>
+            <span class="num"><b style="${teamLeft(t)<0?'color:var(--red)':'color:var(--green)'}">${money0(teamLeft(t))} left</b> <span class="muted">· ${money0(sp)} of ${money0(pot)}</span></span>
           </div>
-          <div class="bar ${cls}" style="height:11px">
-            <span style="width:${Math.min(pct,100)}%"></span>
-            ${bud?`<span style="left:${marker}%;width:2px;background:#2b2440;opacity:.45;border-radius:0"></span>`:''}
-          </div>
+          <div class="bar ${cls}" style="height:12px"><span style="width:${Math.min(pct,100)}%"></span>
+            ${pot?`<span style="left:${marker}%;width:2px;background:#2b2440;opacity:.45;border-radius:0"></span>`:''}</div>
         </div>`;
       }).join('');
   }
 
-  // funds
-  if(!db.funds.length){
-    document.getElementById('ovFunds').innerHTML='<div class="empty">No funds yet.</div>';
-  } else {
-    document.getElementById('ovFunds').innerHTML = db.funds.map(f=>{
-      const a=fundAgg(f.id);
-      return `<div class="row" style="justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line)">
-        <span>${esc(f.name)} <span class="pill ${f.type}">${f.type}</span></span>
-        <b class="num ${a.balance<0?'':''}" style="${a.balance<0?'color:var(--red)':''}">${money0(a.balance)}</b>
-      </div>`;
-    }).join('');
+  // revenue by source
+  const inc=db.txns.filter(t=>inViewYear(t)&&t.type==='income');
+  if(!inc.length){ document.getElementById('ovRevenue').innerHTML='<div class="empty">No income recorded yet.</div>'; }
+  else {
+    const by={}; inc.forEach(t=>{ const k=t.account||'Other'; by[k]=(by[k]||0)+(+t.amount||0); });
+    const rows=Object.entries(by).sort((a,b)=>b[1]-a[1]);
+    const max=rows[0][1]||1;
+    document.getElementById('ovRevenue').innerHTML=rows.map(([k,v])=>`
+      <div style="margin:9px 0">
+        <div class="row" style="justify-content:space-between"><span>${esc(k)}</span><b class="num">${money0(v)}</b></div>
+        <div class="bar green"><span style="width:${v/max*100}%"></span></div>
+      </div>`).join('');
   }
 
   // alerts
   const alerts=[];
-  db.cats.filter(c=>c.kind==='expense').forEach(c=>{
-    const bud=+c.budget||0, act=catActual(c.id);
-    if(bud>0 && act>bud) alerts.push(`<div class="row" style="gap:8px;padding:6px 0"><span class="pill over">over</span> <b>${esc(c.name)}</b> is ${money0(act-bud)} over its ${money0(bud)} budget.</div>`);
-    else if(bud>0 && frac>0 && act>bud*frac*1.15) alerts.push(`<div class="row" style="gap:8px;padding:6px 0"><span class="pill warn">pace</span> <b>${esc(c.name)}</b> is spending faster than budget pace.</div>`);
+  db.teams.forEach(t=>{ const pot=teamPot(t), sp=teamSpent(t.id), left=teamLeft(t);
+    if(pot>0&&sp>pot) alerts.push(`<div class="row" style="gap:8px;padding:6px 0"><span class="pill over">over</span> <b>${esc(t.name)}</b> is ${money0(sp-pot)} over — ${money0(left)} left.</div>`);
+    else if(pot>0&&frac>0&&sp>pot*frac*1.15) alerts.push(`<div class="row" style="gap:8px;padding:6px 0"><span class="pill warn">pace</span> <b>${esc(t.name)}</b> is spending faster than its budget pace.</div>`);
+    if(t.type==='operating'&&pot===0&&sp>0) alerts.push(`<div class="row" style="gap:8px;padding:6px 0"><span class="pill warn">set aside?</span> <b>${esc(t.name)}</b> has spending but no amount set aside yet.</div>`);
   });
-  db.funds.forEach(f=>{ const a=fundAgg(f.id); if(a.balance<0) alerts.push(`<div class="row" style="gap:8px;padding:6px 0"><span class="pill over">negative</span> <b>${esc(f.name)}</b> fund is overdrawn (${money0(a.balance)}).</div>`); });
-  if(incB.bud && fyElapsedFraction()>0.5 && incB.act < incB.bud*fyElapsedFraction()*0.85)
-    alerts.push(`<div class="row" style="gap:8px;padding:6px 0"><span class="pill warn">giving</span> Income is running behind the giving goal for this point in the year.</div>`);
+  if(db.settings.revGoal&&frac>0.5&&rev<db.settings.revGoal*frac*0.85)
+    alerts.push(`<div class="row" style="gap:8px;padding:6px 0"><span class="pill warn">giving</span> Income is running behind the goal for this point in the year.</div>`);
   document.getElementById('ovAlerts').innerHTML = alerts.length? alerts.join('') :
-    '<div class="empty" style="padding:18px">✓ Nothing over budget. Everything is pacing fine.</div>';
+    '<div class="empty" style="padding:18px">✓ Every team is within budget. Nothing needs attention.</div>';
 }
 function stat(cls,label,n,s){
   return `<div class="card" style="margin:0"><div class="stat ${cls}"><span class="l">${label}</span><span class="n">${n}</span><span class="s">${s||''}</span></div></div>`;
 }
 
 /* ============================================================
-   BUDGET VS ACTUAL
+   TEAMS
    ============================================================ */
-function setBudKind(k){ budKind=k;
-  document.querySelectorAll('#budKind button').forEach((b,i)=>b.classList.toggle('on',(i===0)===(k==='expense')));
-  renderBudget();
-}
-function renderBudget(){
-  const rows=db.cats.filter(c=>c.kind===budKind);
-  const tb=document.getElementById('budRows');
+let openTeamId=null;
+function renderTeams(){
+  const tb=document.getElementById('teamRows');
+  if(!db.teams.length){
+    tb.innerHTML='<tr><td colspan="7"><div class="empty">No teams yet. Click “+ Add team”, or pull them in from QBO.</div></td></tr>';
+    document.getElementById('teamFoot').innerHTML=''; return;
+  }
   const frac=fyElapsedFraction();
-  if(!rows.length){
-    tb.innerHTML=`<tr><td colspan="7"><div class="empty">No ${budKind} lines yet. Click “+ Add line”.</div></td></tr>`;
-    document.getElementById('budFoot').innerHTML=''; return;
-  }
-  tb.innerHTML=rows.map(c=>{
-    const bud=+c.budget||0, act=catActual(c.id), rem=bud-act;
-    const pct = bud? act/bud*100 : (act>0?100:0);
-    let cls='green', pill='', plabel='';
-    if(budKind==='expense'){
-      if(bud&&act>bud){cls='red';plabel='over';}
-      else if(bud&&frac&&act>bud*frac*1.1){cls='amber';plabel='ahead';}
-      else {cls='green';plabel='on track';}
-    } else {
-      if(bud&&act>=bud){cls='green';plabel='met';}
-      else if(bud&&frac&&act<bud*frac*0.85){cls='amber';plabel='behind';}
-      else {cls='green';plabel='on track';}
-    }
-    pill=`<span class="pill ${cls==='red'?'over':cls==='amber'?'warn':'ok'}">${plabel}</span>`;
-    return `<tr>
-      <td><b style="font-weight:600">${esc(c.name)}</b></td>
-      <td>${c.fundId?esc(fundName(c.fundId)):'<span class="muted">—</span>'}</td>
-      <td class="num">${bud?money0(bud):'<span class="muted">—</span>'}</td>
-      <td class="num">${money0(act)}</td>
-      <td class="num" style="${budKind==='expense'&&rem<0?'color:var(--red)':''}">${bud?money0(rem):'<span class="muted">—</span>'}</td>
-      <td class="progwrap"><div class="row" style="gap:8px;justify-content:space-between"><span class="muted" style="font-size:12px">${bud?Math.round(pct)+'%':''}</span>${pill}</div>
-        <div class="bar ${cls}"><span style="width:${Math.min(pct,100)}%"></span></div></td>
-      <td class="right"><button class="btn ghost tiny" onclick="openCat('${c.id}')">Edit</button></td>
+  let tSet=0,tSp=0,tLeft=0;
+  tb.innerHTML=db.teams.map(t=>{
+    const pot=teamPot(t), sp=teamSpent(t.id), left=teamLeft(t), pct=pot? sp/pot*100:(sp>0?100:0);
+    tSet+=pot;tSp+=sp;tLeft+=left;
+    const cls=pot&&sp>pot?'red':(pot&&frac&&sp>pot*frac*1.1?'amber':'green');
+    let rows=`<tr>
+      <td><span class="teamname ${openTeamId===t.id?'open':''}" onclick="toggleTeam('${t.id}')"><span class="tri">▶</span>${esc(t.name)}${t.lead?`<span class="muted" style="font-weight:400">· ${esc(t.lead)}</span>`:''}</span></td>
+      <td><span class="pill ${t.type}">${t.type}</span></td>
+      <td class="num">${money0(pot)}</td>
+      <td class="num">${money0(sp)}</td>
+      <td class="num"><b style="${left<0?'color:var(--red)':'color:var(--green)'}">${money0(left)}</b></td>
+      <td class="progwrap"><div class="muted" style="font-size:12px">${pot?Math.round(pct)+'% used':''}</div><div class="bar ${cls}"><span style="width:${Math.min(pct,100)}%"></span></div></td>
+      <td class="right"><button class="btn ghost tiny" onclick="openTeam('${t.id}')">Edit</button></td>
     </tr>`;
+    if(openTeamId===t.id) rows+=teamDrill(t);
+    return rows;
   }).join('');
-  const tot=budgetTotals(budKind);
-  document.getElementById('budFoot').innerHTML=`<tr style="font-weight:800">
-    <td>Total ${budKind}</td><td></td>
-    <td class="num">${money0(tot.bud)}</td><td class="num">${money0(tot.act)}</td>
-    <td class="num">${money0(tot.bud-tot.act)}</td><td></td><td></td></tr>`;
+  document.getElementById('teamFoot').innerHTML=`<tr style="font-weight:800">
+    <td>All teams</td><td></td><td class="num">${money0(tSet)}</td><td class="num">${money0(tSp)}</td>
+    <td class="num" style="${tLeft<0?'color:var(--red)':'color:var(--green)'}">${money0(tLeft)}</td><td></td><td></td></tr>`;
 }
-
-/* ---------- category dialog ---------- */
-function openCat(id){
-  const dlg=document.getElementById('catDlg');
-  fillFundSelect(document.getElementById('c_fund'),true);
-  if(id){
-    const c=cat(id);
-    document.getElementById('catDlgTitle').textContent='Edit budget line';
-    document.getElementById('c_id').value=c.id;
-    document.getElementById('c_name').value=c.name;
-    document.getElementById('c_kind').value=c.kind;
-    document.getElementById('c_budget').value=c.budget||'';
-    document.getElementById('c_fund').value=c.fundId||'';
-    document.getElementById('c_delBtn').style.display='';
+function toggleTeam(id){ openTeamId = openTeamId===id?null:id; renderTeams(); }
+function teamDrill(t){
+  const exp=db.txns.filter(x=>inViewYear(x)&&x.teamId===t.id&&x.type==='expense');
+  if(!exp.length) return `<tr class="drill"><td colspan="7"><span class="muted">No spending recorded for this team yet.</span></td></tr>`;
+  const by={}; exp.forEach(x=>{ const k=x.account||'(no account)'; by[k]=(by[k]||0)+(+x.amount||0); });
+  const rows=Object.entries(by).sort((a,b)=>b[1]-a[1])
+    .map(([k,v])=>`<tr class="drill"><td colspan="4">${esc(k)}</td><td class="num">${money0(v)}</td><td colspan="2"></td></tr>`).join('');
+  return `<tr class="drill"><td colspan="7" style="padding:0"><table style="margin:0"><tbody>
+    <tr class="drill"><td colspan="4" class="muted" style="text-transform:uppercase;font-size:11px;letter-spacing:.3px">Spending by account</td><td colspan="3"></td></tr>
+    ${rows}</tbody></table></td></tr>`;
+}
+function teamTypeHint(){
+  const r=document.getElementById('tm_type').value==='restricted';
+  document.getElementById('tm_openWrap').style.display=r?'':'none';
+  document.getElementById('tm_allocLabel').textContent=r?'Set aside (optional)':'Set aside (annual)';
+  document.getElementById('tm_hint').innerHTML = r
+    ? 'Restricted: a separate pot (e.g. Building Fund). Left = Opening + designated gifts − spent.'
+    : 'Operating: a yearly amount leadership budgets. Left = Set aside − spent.';
+}
+function openTeam(id){
+  const dlg=document.getElementById('teamDlg');
+  if(typeof id==='string'){
+    const t=team(id);
+    document.getElementById('teamDlgTitle').textContent='Edit team';
+    document.getElementById('tm_id').value=t.id;
+    document.getElementById('tm_name').value=t.name;
+    document.getElementById('tm_type').value=t.type;
+    document.getElementById('tm_alloc').value=t.alloc||'';
+    document.getElementById('tm_open').value=t.opening||'';
+    document.getElementById('tm_lead').value=t.lead||'';
+    document.getElementById('tm_delBtn').style.display='';
   } else {
-    document.getElementById('catDlgTitle').textContent='Add budget line';
-    document.getElementById('c_id').value='';
-    document.getElementById('c_name').value='';
-    document.getElementById('c_kind').value=budKind;
-    document.getElementById('c_budget').value='';
-    document.getElementById('c_fund').value='';
-    document.getElementById('c_delBtn').style.display='none';
+    document.getElementById('teamDlgTitle').textContent='Add team';
+    document.getElementById('tm_id').value='';
+    document.getElementById('tm_name').value='';
+    document.getElementById('tm_type').value='operating';
+    document.getElementById('tm_alloc').value='';
+    document.getElementById('tm_open').value='';
+    document.getElementById('tm_lead').value='';
+    document.getElementById('tm_delBtn').style.display='none';
   }
-  dlg.showModal();
+  teamTypeHint(); dlg.showModal();
 }
-function saveCat(e){
-  const name=document.getElementById('c_name').value.trim();
-  if(!name){ e.preventDefault(); alert('Give the line a name.'); return; }
-  const id=document.getElementById('c_id').value;
-  const obj={ name, kind:document.getElementById('c_kind').value,
-    budget:+document.getElementById('c_budget').value||0,
-    fundId:document.getElementById('c_fund').value||'' };
-  if(id){ Object.assign(cat(id),obj); } else { db.cats.push({id:uid(),...obj}); }
-  save(); renderBudget();
+function saveTeam(e){
+  const name=document.getElementById('tm_name').value.trim();
+  if(!name){ e.preventDefault(); alert('Give the team a name.'); return; }
+  const id=document.getElementById('tm_id').value;
+  const obj={ name, type:document.getElementById('tm_type').value,
+    alloc:+document.getElementById('tm_alloc').value||0,
+    opening:+document.getElementById('tm_open').value||0,
+    lead:document.getElementById('tm_lead').value.trim() };
+  if(id){ Object.assign(team(id),obj); } else { db.teams.push({id:uid(),...obj}); }
+  save(); renderTeams(); refreshTeamSelects();
 }
-function deleteCat(e){
-  const id=document.getElementById('c_id').value;
-  const used=db.txns.some(t=>t.catId===id);
-  if(used && !confirm('This line has transactions assigned. Delete the line anyway? (Transactions stay but lose their line label.)')){ e.preventDefault(); return; }
-  db.cats=db.cats.filter(c=>c.id!==id); save(); renderBudget();
+function deleteTeam(e){
+  const id=document.getElementById('tm_id').value;
+  if(db.txns.some(t=>t.teamId===id)){ e.preventDefault(); alert('This team has transactions. Reassign or delete them first (Transactions tab).'); return; }
+  db.teams=db.teams.filter(t=>t.id!==id); save(); renderTeams(); refreshTeamSelects();
 }
 
 /* ============================================================
-   FUNDS
+   REVENUE
    ============================================================ */
-function renderFunds(){
-  const tb=document.getElementById('fundRows');
-  if(!db.funds.length){
-    tb.innerHTML='<tr><td colspan="7"><div class="empty">No funds yet. Click “+ Add fund”.</div></td></tr>';
-    document.getElementById('fundFoot').innerHTML=''; return;
-  }
-  let tOpen=0,tInc=0,tExp=0,tBal=0;
-  tb.innerHTML=db.funds.map(f=>{
-    const a=fundAgg(f.id); tOpen+=a.opening;tInc+=a.inc;tExp+=a.exp;tBal+=a.balance;
-    return `<tr>
-      <td><b style="font-weight:600">${esc(f.name)}</b></td>
-      <td><span class="pill ${f.type}">${f.type}</span></td>
-      <td class="num">${money0(a.opening)}</td>
-      <td class="num" style="color:var(--green)">${money0(a.inc)}</td>
-      <td class="num" style="color:var(--rose-dk)">${money0(a.exp)}</td>
-      <td class="num"><b style="${a.balance<0?'color:var(--red)':''}">${money0(a.balance)}</b></td>
-      <td class="right"><button class="btn ghost tiny" onclick="openFund('${f.id}')">Edit</button></td>
-    </tr>`;
-  }).join('');
-  document.getElementById('fundFoot').innerHTML=`<tr style="font-weight:800">
-    <td>Total</td><td></td><td class="num">${money0(tOpen)}</td>
-    <td class="num">${money0(tInc)}</td><td class="num">${money0(tExp)}</td>
-    <td class="num">${money0(tBal)}</td><td></td></tr>`;
+function renderRevenue(){
+  const rev=totalRevenue(), goal=+db.settings.revGoal||0;
+  const restricted=db.teams.filter(t=>t.type==='restricted').reduce((s,t)=>s+teamIncome(t.id),0);
+  document.getElementById('revStats').innerHTML=[
+    stat('green','Money in (YTD)',money0(rev), goal?`${Math.round(rev/goal*100)}% of goal`:''),
+    stat('plum','Annual goal',goal?money0(goal):'—', goal?money0(goal-rev)+' to go':'set one below'),
+    stat('blue','Designated (restricted)',money0(restricted),'gifts tied to a fund')
+  ].join('');
+  document.getElementById('revGoal').value=goal||'';
+  const inc=db.txns.filter(t=>inViewYear(t)&&t.type==='income');
+  if(!inc.length){ document.getElementById('revBySource').innerHTML='<div class="empty">No income recorded yet. Add it on the Transactions tab, or import from QBO.</div>'; return; }
+  const by={}; inc.forEach(t=>{ const k=t.account||'Other'; by[k]=(by[k]||0)+(+t.amount||0); });
+  const rows=Object.entries(by).sort((a,b)=>b[1]-a[1]); const max=rows[0][1]||1;
+  document.getElementById('revBySource').innerHTML=`<table><tbody>`+rows.map(([k,v])=>`
+    <tr><td style="width:38%">${esc(k)}</td><td><div class="bar green" style="margin:0"><span style="width:${v/max*100}%"></span></div></td>
+    <td class="num" style="width:120px"><b>${money0(v)}</b></td></tr>`).join('')+`</tbody></table>`;
 }
-function openFund(id){
-  const dlg=document.getElementById('fundDlg');
-  if(id){
-    const f=fund(id);
-    document.getElementById('fundDlgTitle').textContent='Edit fund';
-    document.getElementById('f_id').value=f.id;
-    document.getElementById('f_name').value=f.name;
-    document.getElementById('f_type').value=f.type;
-    document.getElementById('f_opening').value=f.opening||'';
-    document.getElementById('f_delBtn').style.display='';
-  } else {
-    document.getElementById('fundDlgTitle').textContent='Add fund';
-    document.getElementById('f_id').value='';
-    document.getElementById('f_name').value='';
-    document.getElementById('f_type').value=db.funds.length?'restricted':'unrestricted';
-    document.getElementById('f_opening').value='';
-    document.getElementById('f_delBtn').style.display='none';
-  }
-  dlg.showModal();
-}
-function saveFund(e){
-  const name=document.getElementById('f_name').value.trim();
-  if(!name){ e.preventDefault(); alert('Give the fund a name.'); return; }
-  const id=document.getElementById('f_id').value;
-  const obj={ name, type:document.getElementById('f_type').value, opening:+document.getElementById('f_opening').value||0 };
-  if(id){ Object.assign(fund(id),obj); } else { db.funds.push({id:uid(),...obj}); }
-  save(); renderFunds(); refreshFundSelects();
-}
-function deleteFund(e){
-  const id=document.getElementById('f_id').value;
-  if(db.txns.some(t=>t.fundId===id)){ e.preventDefault(); alert('This fund has transactions. Reassign or delete them first.'); return; }
-  db.funds=db.funds.filter(f=>f.id!==id); save(); renderFunds(); refreshFundSelects();
-}
+function saveRevGoal(){ db.settings.revGoal=+document.getElementById('revGoal').value||0; save(); document.getElementById('revGoalMsg').textContent='Saved'; setTimeout(()=>document.getElementById('revGoalMsg').textContent='',1200); }
 
 /* ============================================================
    TRANSACTIONS
    ============================================================ */
 function txnTypeChanged(){
   const t=document.getElementById('t_type').value;
-  document.getElementById('t_catLabel').textContent = t==='income'?'Income line':'Expense line';
-  document.getElementById('t_payeeLabel').textContent = t==='income'?'Source / Giver':'Payee';
-  fillCatSelect(document.getElementById('t_cat'),t);
+  document.getElementById('t_acctLabel').textContent = t==='income'?'Income source / account':'Account / Category';
+  document.getElementById('t_payeeLabel').textContent = t==='income'?'Giver (optional)':'Payee';
 }
 function saveTxn(){
   const amt=+document.getElementById('t_amount').value;
   if(!amt||amt<=0){ alert('Enter an amount.'); return; }
-  if(!db.funds.length){ alert('Add a fund first (Funds tab).'); return; }
+  if(!db.teams.length){ alert('Add a team first (Teams tab).'); return; }
   const obj={
     type:document.getElementById('t_type').value,
     date:document.getElementById('t_date').value||today(),
     amount:Math.round(amt*100)/100,
-    fundId:document.getElementById('t_fund').value,
-    catId:document.getElementById('t_cat').value||'',
+    teamId:document.getElementById('t_team').value,
+    account:document.getElementById('t_acct').value.trim(),
     payee:document.getElementById('t_payee').value.trim(),
-    memo:document.getElementById('t_memo').value.trim()
+    memo:document.getElementById('t_memo').value.trim(),
+    source:'manual'
   };
   const id=document.getElementById('t_id').value;
   if(id){ Object.assign(db.txns.find(t=>t.id===id),obj); } else { db.txns.unshift({id:uid(),...obj}); }
   save(); resetTxnForm(); renderTxns();
-  // jump the view year to match the entry so it shows up
   const fy=fiscalYearOf(obj.date);
   if(fy!==db.settings.viewYear){ db.settings.viewYear=fy; save(); buildYearSelect(); paintChrome(); }
 }
@@ -729,8 +710,8 @@ function editTxn(id){
   document.getElementById('t_type').value=t.type; txnTypeChanged();
   document.getElementById('t_date').value=t.date;
   document.getElementById('t_amount').value=t.amount;
-  document.getElementById('t_fund').value=t.fundId;
-  document.getElementById('t_cat').value=t.catId||'';
+  document.getElementById('t_team').value=t.teamId;
+  document.getElementById('t_acct').value=t.account||'';
   document.getElementById('t_payee').value=t.payee||'';
   document.getElementById('t_memo').value=t.memo||'';
   document.getElementById('txnFormTitle').textContent='Edit transaction';
@@ -739,35 +720,31 @@ function editTxn(id){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function resetTxnForm(){
-  document.getElementById('t_id').value='';
-  document.getElementById('t_amount').value='';
-  document.getElementById('t_payee').value='';
-  document.getElementById('t_memo').value='';
+  ['t_id','t_amount','t_acct','t_payee','t_memo'].forEach(i=>document.getElementById(i).value='');
   document.getElementById('t_date').value=today();
   document.getElementById('txnFormTitle').textContent='Record a transaction';
   document.getElementById('t_saveBtn').textContent='Add transaction';
   document.getElementById('t_cancelBtn').style.display='none';
 }
-function delTxn(id){
-  if(!confirm('Delete this transaction?'))return;
-  db.txns=db.txns.filter(t=>t.id!==id); save(); renderTxns();
-}
+function delTxn(id){ if(!confirm('Delete this transaction?'))return; db.txns=db.txns.filter(t=>t.id!==id); save(); renderTxns(); }
 function renderTxns(){
   const ftype=document.getElementById('txnFilterType').value;
-  const ffund=document.getElementById('txnFilterFund').value;
+  const fteam=document.getElementById('txnFilterTeam').value;
+  const fsrc=document.getElementById('txnFilterSrc').value;
   const q=document.getElementById('txnSearch').value.trim().toLowerCase();
   let rows=db.txns.filter(inViewYear);
   if(ftype) rows=rows.filter(t=>t.type===ftype);
-  if(ffund) rows=rows.filter(t=>t.fundId===ffund);
-  if(q) rows=rows.filter(t=>((t.payee||'')+' '+(t.memo||'')).toLowerCase().includes(q));
+  if(fteam) rows=rows.filter(t=>t.teamId===fteam);
+  if(fsrc) rows=rows.filter(t=>(t.source||'manual')===fsrc);
+  if(q) rows=rows.filter(t=>((t.account||'')+' '+(t.payee||'')+' '+(t.memo||'')).toLowerCase().includes(q));
   rows.sort((a,b)=> a.date<b.date?1:a.date>b.date?-1:0);
   const tb=document.getElementById('txnRows');
-  if(!rows.length){ tb.innerHTML='<tr><td colspan="7"><div class="empty">No transactions in this view. Record one above, or load sample data in Settings.</div></td></tr>'; return; }
+  if(!rows.length){ tb.innerHTML='<tr><td colspan="7"><div class="empty">No transactions in this view. Record one above, import from QBO, or load sample data in Settings.</div></td></tr>'; return; }
   tb.innerHTML=rows.map(t=>`<tr>
     <td class="num" style="text-align:left">${fmtDate(t.date)}</td>
-    <td><span class="pill ${t.type}">${t.type==='income'?'income':'expense'}</span></td>
-    <td>${t.catId?esc(catName(t.catId)):'<span class="muted">—</span>'}</td>
-    <td>${esc(fundName(t.fundId))}</td>
+    <td><span class="pill ${t.type}">${t.type}</span>${(t.source==='qbo-import')?' <span class="pill qbo">QBO</span>':''}</td>
+    <td>${esc(t.account||'')||'<span class="muted">—</span>'}</td>
+    <td>${esc(teamName(t.teamId))}</td>
     <td>${esc(t.payee||'')||'<span class="muted">—</span>'}${t.memo?`<div class="muted" style="font-size:12px">${esc(t.memo)}</div>`:''}</td>
     <td class="num" style="${t.type==='income'?'color:var(--green)':'color:var(--rose-dk)'}">${t.type==='income'?'+':'−'}${money(t.amount)}</td>
     <td class="right"><button class="btn ghost tiny" onclick="editTxn('${t.id}')">Edit</button> <button class="btn danger tiny" onclick="delTxn('${t.id}')">✕</button></td>
@@ -775,29 +752,187 @@ function renderTxns(){
 }
 
 /* ============================================================
-   SELECTS / CHROME
+   IMPORT FROM QBO  (Profit & Loss by Class)
    ============================================================ */
-function fillFundSelect(sel,allowBlank){
+function prepImport(){ if(!document.getElementById('importDate').value) document.getElementById('importDate').value=today(); }
+
+function num(s){ if(s==null)return 0; s=String(s).trim(); if(!s||s==='-')return 0;
+  const neg=/^\(.*\)$/.test(s); s=s.replace(/[()$,\s]/g,'').replace(/[^0-9.\-]/g,''); const v=parseFloat(s);
+  if(isNaN(v))return 0; return neg?-Math.abs(v):v; }
+function parseLine(line,delim){
+  if(delim==='\t') return line.split('\t');
+  const out=[]; let cur='',q=false;
+  for(let i=0;i<line.length;i++){ const c=line[i];
+    if(q){ if(c==='"'){ if(line[i+1]==='"'){cur+='"';i++;} else q=false; } else cur+=c; }
+    else { if(c==='"') q=true; else if(c===','){out.push(cur);cur='';} else cur+=c; } }
+  out.push(cur); return out;
+}
+function toGrid(text){
+  text=text.replace(/\r/g,'');
+  const delim=text.indexOf('\t')>=0 ? '\t' : ',';
+  return text.split('\n').filter(l=>l.length||delim==='\t').map(l=>parseLine(l,delim).map(c=>c.trim()));
+}
+/* parse a QBO "Profit and Loss by Class" grid → {classes:[{name,income,expense,accts:{income:[],expense:[]}}], warnings:[]} */
+function parsePnL(grid){
+  const warnings=[];
+  // find header row: the row whose cells (after col0) contain a cell === "Total" (case-insens), with >=1 other text cell
+  let hdr=-1;
+  for(let r=0;r<grid.length;r++){
+    const row=grid[r]; const hasTotal=row.slice(1).some(c=>/^total$/i.test(c));
+    const textCells=row.slice(1).filter(c=>c&&!/^total$/i.test(c)&&isNaN(num(c))&&num(c)===0&&!/^[\d.,()$\- ]+$/.test(c)).length;
+    if(hasTotal&&textCells>=1){ hdr=r; break; }
+  }
+  if(hdr<0){
+    // fallback: row right before the first "Income"/"Revenue" section header
+    for(let r=0;r<grid.length;r++){ if(/^(income|revenue)$/i.test((grid[r][0]||'').trim())){ hdr=r-1; break; } }
+  }
+  if(hdr<0){ warnings.push('Could not find the class header row. Make sure this is a "Profit and Loss by Class" report.'); return {classes:[],warnings}; }
+
+  const head=grid[hdr];
+  const cols=[]; // {idx,name}
+  head.forEach((name,idx)=>{ if(idx===0) return; const nm=(name||'').trim();
+    if(!nm) return; if(/^total$/i.test(nm)) return; cols.push({idx,name:nm}); });
+  if(!cols.length){ warnings.push('No class columns were found in the report header.'); return {classes:[],warnings}; }
+
+  const classes=cols.map(c=>({name:c.name,idx:c.idx,income:0,expense:0,accts:{income:[],expense:[]}}));
+  let section=null;
+  for(let r=hdr+1;r<grid.length;r++){
+    const row=grid[r]; const label=(row[0]||'').trim();
+    if(!label && row.every(c=>!c||!c.trim())) continue;
+    if(/^(income|revenue)$/i.test(label)){ section='income'; continue; }
+    if(/^(expenses?|cost of goods sold|operating expenses?)$/i.test(label)){ section='expense'; continue; }
+    if(/^(total|net |gross |net$)/i.test(label)){ continue; } // summary rows
+    if(!section) continue;
+    // detail account row — apply each class column
+    let any=false;
+    classes.forEach(cl=>{ const v=num(row[cl.idx]); if(v){ any=true; cl[section]+=v; cl.accts[section].push({name:label,amt:v}); } });
+    if(!any && /total/i.test(label)) {/* ignore */}
+  }
+  // drop classes with nothing
+  const live=classes.filter(c=>c.income||c.expense);
+  if(!live.length) warnings.push('No income or expense amounts were found under the class columns.');
+  return {classes:live,warnings};
+}
+
+function showParsed(p){
+  parsed=p;
+  const card=document.getElementById('mapCard');
+  if(!p.classes.length){
+    card.style.display='none';
+    document.getElementById('parseMsg').innerHTML=`<span style="color:var(--red)">⚠ ${esc(p.warnings[0]||'Nothing readable found.')}</span>`;
+    return;
+  }
+  document.getElementById('parseMsg').innerHTML=`<span style="color:var(--green)">✓ Found ${p.classes.length} class${p.classes.length===1?'':'es'}.</span>`;
+  const tb=document.getElementById('mapRows');
+  tb.innerHTML=p.classes.map((c,i)=>{
+    const match=db.teams.find(t=>t.name.toLowerCase()===c.name.toLowerCase());
+    const opts=`<option value="__new__">➕ Create “${esc(c.name)}”</option>`+
+      db.teams.map(t=>`<option value="${t.id}" ${match&&match.id===t.id?'selected':''}>${esc(t.name)}</option>`).join('');
+    const presetAlloc = match? (match.type==='restricted'?'':match.alloc||'') : '';
+    return `<tr>
+      <td><b style="font-weight:600">${esc(c.name)}</b></td>
+      <td class="num" style="color:var(--rose-dk)">${money0(c.expense)}</td>
+      <td class="num" style="color:var(--green)">${c.income?money0(c.income):'<span class="muted">—</span>'}</td>
+      <td><select class="mapsel" id="map_${i}">${opts}</select></td>
+      <td class="num"><input type="number" class="mapnum" id="set_${i}" placeholder="0" value="${presetAlloc}"></td>
+    </tr>`;
+  }).join('');
+  const tSp=p.classes.reduce((s,c)=>s+c.expense,0), tIn=p.classes.reduce((s,c)=>s+c.income,0);
+  document.getElementById('mapFoot').innerHTML=`<tr style="font-weight:800"><td>Totals</td>
+    <td class="num">${money0(tSp)}</td><td class="num">${money0(tIn)}</td><td></td><td></td></tr>`;
+  const w=document.getElementById('importWarn');
+  if(p.warnings.length){ w.style.display=''; w.innerHTML=p.warnings.map(esc).join('<br>'); } else w.style.display='none';
+  card.style.display='';
+  card.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function parsePasted(){
+  const txt=document.getElementById('qboPaste').value;
+  if(!txt.trim()){ document.getElementById('parseMsg').textContent='Paste the report first.'; return; }
+  showParsed(parsePnL(toGrid(txt)));
+}
+function qboFilePicked(e){
+  const f=e.target.files[0]; if(!f)return;
+  const ext=f.name.toLowerCase().split('.').pop();
+  document.getElementById('dropzone').classList.remove('drag');
+  if(ext==='csv'){ const r=new FileReader(); r.onload=()=>showParsed(parsePnL(toGrid(r.result))); r.readAsText(f); }
+  else { readXlsx(f); }
+  e.target.value='';
+}
+function readXlsx(f){
+  document.getElementById('parseMsg').textContent='Reading spreadsheet…';
+  loadXlsxLib(()=>{
+    const r=new FileReader();
+    r.onload=()=>{ try{
+      const wb=XLSX.read(new Uint8Array(r.result),{type:'array'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const grid=XLSX.utils.sheet_to_json(ws,{header:1,raw:false,defval:''}).map(row=>row.map(c=>String(c==null?'':c).trim()));
+      showParsed(parsePnL(grid));
+    }catch(err){ document.getElementById('parseMsg').innerHTML='<span style="color:var(--red)">⚠ Could not read that spreadsheet. Try exporting as CSV, or open it and paste the rows below.</span>'; } };
+    r.readAsArrayBuffer(f);
+  }, ()=>{ document.getElementById('parseMsg').innerHTML='<span style="color:var(--red)">⚠ Spreadsheet reader needs internet. Save the file as CSV, or open it and paste the rows below.</span>'; });
+}
+function loadXlsxLib(ok,fail){
+  if(window.XLSX) return ok();
+  const s=document.createElement('script');
+  s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+  s.onload=ok; s.onerror=fail; document.head.appendChild(s);
+}
+function applyImport(){
+  if(!parsed||!parsed.classes.length) return;
+  const when=document.getElementById('importDate').value||today();
+  // wipe previous QBO import
+  db.txns=db.txns.filter(t=>t.source!=='qbo-import');
+  let made=0;
+  parsed.classes.forEach((c,i)=>{
+    const sel=document.getElementById('map_'+i).value;
+    const setv=+document.getElementById('set_'+i).value||0;
+    let tid;
+    if(sel==='__new__'){ tid=uid(); db.teams.push({id:tid,name:c.name,type:'operating',alloc:setv,opening:0,lead:''}); }
+    else { tid=sel; const tm=team(tid); if(tm && tm.type==='operating' && setv) tm.alloc=setv; }
+    c.accts.expense.forEach(a=>{ db.txns.push({id:uid(),type:'expense',date:when,amount:a.amt,teamId:tid,account:a.name,payee:'',memo:'QBO import',source:'qbo-import'}); made++; });
+    c.accts.income.forEach(a=>{ db.txns.push({id:uid(),type:'income',date:when,amount:a.amt,teamId:tid,account:a.name,payee:'',memo:'QBO import',source:'qbo-import'}); made++; });
+  });
+  db.settings.viewYear=fiscalYearOf(when);
+  save(); parsed=null;
+  document.getElementById('mapCard').style.display='none';
+  document.getElementById('qboPaste').value='';
+  document.getElementById('parseMsg').textContent='';
+  buildYearSelect(); refreshTeamSelects(); paintChrome();
+  go('teams');
+  alert(`Imported ${made} line${made===1?'':'s'} from QuickBooks. Each team now shows what's left to spend.`);
+}
+function cancelImport(){ parsed=null; document.getElementById('mapCard').style.display='none'; document.getElementById('parseMsg').textContent=''; }
+// drag & drop
+window.addEventListener('DOMContentLoaded',()=>{
+  const dz=document.getElementById('dropzone'); if(!dz)return;
+  ['dragenter','dragover'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add('drag');}));
+  ['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove('drag');}));
+  dz.addEventListener('drop',e=>{ const f=e.dataTransfer.files[0]; if(!f)return;
+    const ext=f.name.toLowerCase().split('.').pop();
+    if(ext==='csv'){ const r=new FileReader(); r.onload=()=>showParsed(parsePnL(toGrid(r.result))); r.readAsText(f); }
+    else readXlsx(f); });
+});
+
+/* ============================================================
+   SELECTS / CHROME / SETTINGS
+   ============================================================ */
+function fillTeamSelect(sel,allowBlank){
   sel.innerHTML=(allowBlank?'<option value="">— none —</option>':'')+
-    db.funds.map(f=>`<option value="${f.id}">${esc(f.name)}</option>`).join('');
+    db.teams.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join('');
 }
-function fillCatSelect(sel,kind){
-  const cats=db.cats.filter(c=>c.kind===kind);
-  sel.innerHTML='<option value="">— unassigned —</option>'+cats.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
-}
-function refreshFundSelects(){
-  fillFundSelect(document.getElementById('t_fund'),false);
-  const ff=document.getElementById('txnFilterFund');
-  const cur=ff.value;
-  ff.innerHTML='<option value="">All funds</option>'+db.funds.map(f=>`<option value="${f.id}">${esc(f.name)}</option>`).join('');
+function refreshTeamSelects(){
+  fillTeamSelect(document.getElementById('t_team'),false);
+  const ff=document.getElementById('txnFilterTeam'); const cur=ff.value;
+  ff.innerHTML='<option value="">All teams</option>'+db.teams.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join('');
   ff.value=cur;
 }
 function buildYearSelect(){
   const sel=document.getElementById('s_year'); if(!sel)return;
   const years=new Set([fiscalYearOf(today()), db.settings.viewYear]);
   db.txns.forEach(t=>years.add(fiscalYearOf(t.date)));
-  const arr=[...years].sort((a,b)=>b-a);
-  sel.innerHTML=arr.map(y=>`<option value="${y}">${fyLabel(y)}</option>`).join('');
+  [...years].sort((a,b)=>b-a);
+  sel.innerHTML=[...years].sort((a,b)=>b-a).map(y=>`<option value="${y}">${fyLabel(y)}</option>`).join('');
   sel.value=db.settings.viewYear;
 }
 function changeYear(){ db.settings.viewYear=+document.getElementById('s_year').value; save(); paintChrome(); }
@@ -806,7 +941,6 @@ function paintChrome(){
   document.getElementById('hdrIcon').textContent = db.settings.type==='nonprofit'?'🤝':'⛪';
   document.getElementById('hdrYr').textContent = fyLabel(db.settings.viewYear);
   document.title = (db.settings.org? db.settings.org+' · ':'')+'Steward · Budget Board';
-  // re-render active view
   const active=document.querySelector('.view.active'); if(active) go(active.id.replace('v_',''));
 }
 function paintSettings(){
@@ -833,7 +967,7 @@ function importBackup(e){
   const r=new FileReader();
   r.onload=()=>{ try{
     const d=JSON.parse(r.result);
-    if(!d.settings||!Array.isArray(d.funds)||!Array.isArray(d.txns)) throw 0;
+    if(!d.settings||!Array.isArray(d.teams)||!Array.isArray(d.txns)) throw 0;
     if(!confirm('Replace ALL current data with this backup?'))return;
     db=d; if(db.settings.viewYear==null) db.settings.viewYear=fiscalYearOf(today());
     save(); boot();
@@ -841,111 +975,80 @@ function importBackup(e){
   r.readAsText(f); e.target.value='';
 }
 function exportCsv(){
-  const head=['Date','Type','Line','Fund','FundType','Source/Payee','Memo','Amount'];
+  const head=['Date','Type','Account','Team','TeamType','Source/Payee','Memo','Origin','Amount'];
   const rows=db.txns.filter(inViewYear).slice().sort((a,b)=>a.date<b.date?-1:1).map(t=>{
-    const f=fund(t.fundId);
-    return [t.date,t.type,catName(t.catId),fundName(t.fundId),f?f.type:'',t.payee||'',t.memo||'',(t.type==='expense'?'-':'')+(+t.amount||0).toFixed(2)];
+    const tm=team(t.teamId);
+    return [t.date,t.type,t.account||'',teamName(t.teamId),tm?tm.type:'',t.payee||'',t.memo||'',t.source||'manual',(t.type==='expense'?'-':'')+(+t.amount||0).toFixed(2)];
   });
   const csv=[head].concat(rows).map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
   dl(new Blob([csv],{type:'text/csv'}), fname('csv'));
 }
-function wipeAll(){
-  if(confirm('Erase ALL funds, budget lines, and transactions? This cannot be undone.\n\n(Download a backup first!)')){
-    db=blank(); save(); boot();
-  }
-}
+function wipeAll(){ if(confirm('Erase ALL teams and transactions? This cannot be undone.\n\n(Download a backup first!)')){ db=blank(); save(); boot(); } }
+
 function loadSample(){
-  if((db.funds.length||db.txns.length) && !confirm('Load sample data on top of what you have?'))return;
+  if((db.teams.length||db.txns.length) && !confirm('Load sample data on top of what you have?'))return;
   const np = db.settings.type==='nonprofit';
   db.settings.org = db.settings.org || (np?'Riverside Community Aid (sample)':'Grace Community Church (sample)');
-  db.settings.type = db.settings.type || 'church';
   db.settings.fyStartMonth = db.settings.fyStartMonth || 1;
+  db.settings.revGoal = np?340000:360000;
 
-  // funds
-  const fGen=uid(),fBld=uid(),fMis=uid(),fBen=uid();
-  db.funds.push(
-    {id:fGen,name:np?'Operating Fund':'General Fund',type:'unrestricted',opening:np?18500:24000},
-    {id:fBld,name:np?'Capital Fund':'Building Fund',type:'restricted',opening:np?42000:61000},
-    {id:fMis,name:np?'Program Fund':'Missions Fund',type:'restricted',opening:np?9500:8200},
-    {id:fBen,name:np?'Client Assistance Fund':'Benevolence Fund',type:'restricted',opening:np?3100:4500}
-  );
-
-  // categories (annual budgets)
-  const C=(name,kind,budget,fundId)=>{const id=uid();db.cats.push({id,name,kind,budget,fundId});return id;};
-  let inc={}, exp={};
+  const T=(name,type,alloc,opening,lead)=>{const id=uid();db.teams.push({id,name,type,alloc:alloc||0,opening:opening||0,lead:lead||''});return id;};
+  let teams={};
   if(np){
-    inc.don=C('Individual Donations','income',180000,fGen);
-    inc.grant=C('Grants','income',95000,fGen);
-    inc.events=C('Fundraising Events','income',38000,fGen);
-    inc.prog=C('Program Revenue','income',22000,fGen);
-    inc.cap=C('Capital Campaign','income',50000,fBld);
-    exp.sal=C('Salaries & Wages','expense',165000,fGen);
-    exp.ben=C('Payroll Taxes & Benefits','expense',41000,fGen);
-    exp.prog=C('Program Costs','expense',64000,fMis);
-    exp.occ=C('Occupancy / Rent','expense',36000,fGen);
-    exp.util=C('Utilities','expense',9600,fGen);
-    exp.office=C('Office & Admin','expense',14000,fGen);
-    exp.ins=C('Insurance','expense',7200,fGen);
-    exp.fund=C('Fundraising Costs','expense',12000,fGen);
-    exp.assist=C('Client Assistance','expense',20000,fBen);
+    teams.prog=T('Programs','operating',120000,0,'D. Alvarez');
+    teams.outreach=T('Community Outreach','operating',46000,0,'J. Webb');
+    teams.fund=T('Development & Events','operating',28000,0,'M. Lind');
+    teams.admin=T('Admin & Operations','operating',64000,0,'');
+    teams.fac=T('Facilities','operating',31000,0,'');
+    teams.cap=T('Capital Fund','restricted',0,42000,'Board');
+    teams.client=T('Client Assistance Fund','restricted',0,9500,'Case Mgmt');
   } else {
-    inc.tithe=C('Tithes & Offerings','income',312000,fGen);
-    inc.bld=C('Building Fund Gifts','income',40000,fBld);
-    inc.mis=C('Missions Giving','income',24000,fMis);
-    inc.ben=C('Benevolence Gifts','income',10000,fBen);
-    inc.other=C('Other Income','income',6000,fGen);
-    exp.sal=C('Pastoral Salaries','expense',158000,fGen);
-    exp.ben=C('Payroll Taxes & Benefits','expense',38000,fGen);
-    exp.fac=C('Facilities & Mortgage','expense',54000,fGen);
-    exp.util=C('Utilities','expense',16800,fGen);
-    exp.wor=C('Worship & Music','expense',9000,fGen);
-    exp.yc=C('Youth & Children','expense',14000,fGen);
-    exp.mis=C('Missions & Outreach','expense',24000,fMis);
-    exp.benx=C('Benevolence','expense',12000,fBen);
-    exp.office=C('Office & Admin','expense',11000,fGen);
-    exp.ins=C('Insurance','expense',8400,fGen);
+    teams.youth=T('Youth Ministry','operating',18000,0,'P. Nguyen');
+    teams.kids=T("Children's Ministry",'operating',15000,0,'S. Carter');
+    teams.worship=T('Worship & Music','operating',22000,0,'K. Boyd');
+    teams.outreach=T('Missions & Outreach','operating',30000,0,'R. Diaz');
+    teams.fac=T('Facilities','operating',58000,0,'');
+    teams.admin=T('Office & Admin','operating',26000,0,'');
+    teams.bld=T('Building Fund','restricted',0,61000,'Trustees');
+    teams.ben=T('Benevolence Fund','restricted',0,4500,'Care Team');
   }
-
-  // transactions across the current fiscal year, up to "today"
   const {start}=fyRange(db.settings.viewYear);
-  const monthsElapsed=Math.max(1,Math.round(fyElapsedFraction()*12));
   const sY=+start.slice(0,4), sM=+start.slice(5,7);
-  const dateAt=(monthOffset,day)=>{ const d=new Date(sY,sM-1+monthOffset,day); return iso(d); };
-  const T=(type,date,amount,fundId,catId,payee,memo)=>db.txns.push({id:uid(),type,date,amount,fundId,catId,payee,memo:memo||''});
+  const months=Math.max(1,Math.round(fyElapsedFraction()*12));
+  const at=(m,d)=>iso(new Date(sY,sM-1+m,d));
+  const X=(type,m,d,amt,teamId,account,payee)=>db.txns.push({id:uid(),type,date:at(m,d),amount:amt,teamId,account,payee:payee||'',memo:'',source:'manual'});
 
-  for(let m=0;m<monthsElapsed;m++){
+  for(let m=0;m<months;m++){
     if(np){
-      T('income',dateAt(m,5),  14500+((m*523)%2200), fGen, inc.don,'Monthly donors','Recurring gifts');
-      if(m%3===1) T('income',dateAt(m,12),31000, fGen, inc.grant,'Bremer Foundation','Q grant tranche');
-      if(m%4===2) T('income',dateAt(m,18),9200, fGen, inc.events,'Spring Gala','Ticket + auction');
-      T('income',dateAt(m,22),1700, fGen, inc.prog,'Workshop fees','');
-      if(m%2===0) T('income',dateAt(m,9),4200, fBld, inc.cap,'Capital pledges','Restricted — building');
-      T('expense',dateAt(m,1),13750, fGen, exp.sal,'Payroll','Semi-monthly');
-      T('expense',dateAt(m,3),3400, fGen, exp.ben,'Benefits & taxes','');
-      T('expense',dateAt(m,7),5300+((m*311)%1400), fMis, exp.prog,'Program supplies','Restricted — program');
-      T('expense',dateAt(m,2),3000, fGen, exp.occ,'Landlord LLC','Rent');
-      T('expense',dateAt(m,15),780+((m*97)%240), fGen, exp.util,'Xcel / Water','');
-      T('expense',dateAt(m,17),1150, fGen, exp.office,'Office & software','');
-      if(m%2===1) T('expense',dateAt(m,20),1800, fBen, exp.assist,'Client grants','Restricted — assistance');
+      X('income',m,5,18000+((m*640)%4200),teams.admin,'Individual Donations','Monthly donors');
+      if(m%3===1) X('income',m,12,31000,teams.admin,'Grants','Foundation tranche');
+      if(m%4===2) X('income',m,18,9200,teams.fund,'Events','Spring gala');
+      if(m%2===0) X('income',m,9,4200,teams.cap,'Capital Gifts','Restricted — capital');
+      X('expense',m,3,8400,teams.prog,'Program Supplies','');
+      X('expense',m,7,3100+((m*120)%900),teams.outreach,'Outreach','');
+      X('expense',m,2,2100,teams.fund,'Event Costs','');
+      X('expense',m,1,4600,teams.admin,'Salaries','Payroll');
+      X('expense',m,15,2300,teams.fac,'Occupancy & Utilities','');
+      if(m%2===1) X('expense',m,20,1800,teams.client,'Client Grants','Restricted — assistance');
     } else {
-      T('income',dateAt(m,7),  24800+((m*640)%4800), fGen, inc.tithe,'Sunday offerings','Weekly total');
-      T('income',dateAt(m,14), 17500+((m*410)%3600), fGen, inc.tithe,'Online giving','');
-      if(m%2===0) T('income',dateAt(m,10),3400, fBld, inc.bld,'Building pledges','Restricted — building');
-      T('income',dateAt(m,21),2000, fMis, inc.mis,'Missions Sunday','Restricted — missions');
-      if(m%3===0) T('income',dateAt(m,24),900, fBen, inc.ben,'Benevolence gifts','Restricted');
-      T('expense',dateAt(m,1),13166, fGen, exp.sal,'Pastoral payroll','');
-      T('expense',dateAt(m,3),3170, fGen, exp.ben,'Taxes & benefits','');
-      T('expense',dateAt(m,5),4500, fGen, exp.fac,'Mortgage & upkeep','');
-      T('expense',dateAt(m,15),1400+((m*88)%420), fGen, exp.util,'Utilities','Gas/Electric/Water');
-      T('expense',dateAt(m,12),750, fGen, exp.wor,'Worship & music','');
-      T('expense',dateAt(m,18),1150, fGen, exp.yc,'Youth & children','');
-      if(m%2===1) T('expense',dateAt(m,20),2000, fMis, exp.mis,'Missionary support','Restricted — missions');
-      if(m%3===2) T('expense',dateAt(m,22),1000, fBen, exp.benx,'Family assistance','Restricted');
-      T('expense',dateAt(m,25),900, fGen, exp.office,'Office & admin','');
+      X('income',m,7,26000+((m*700)%5200),teams.admin,'Tithes & Offerings','Sunday offering');
+      X('income',m,14,17500+((m*410)%3600),teams.admin,'Online Giving','');
+      if(m%2===0) X('income',m,10,3400,teams.bld,'Building Gifts','Restricted — building');
+      X('income',m,21,2000,teams.outreach,'Missions Giving','Designated');
+      if(m%3===0) X('income',m,24,900,teams.ben,'Benevolence Gifts','Restricted');
+      X('expense',m,12,1300+((m*70)%500),teams.youth,'Youth Events','');
+      X('expense',m,13,1050,teams.kids,'Curriculum & Supplies','');
+      X('expense',m,11,1600,teams.worship,'Music & Equipment','');
+      X('expense',m,18,2400,teams.outreach,'Missionary Support','');
+      X('expense',m,5,4600,teams.fac,'Mortgage & Upkeep','');
+      X('expense',m,15,1400+((m*88)%420),teams.fac,'Utilities','');
+      X('expense',m,25,1900,teams.admin,'Office & Payroll','');
+      if(m%2===1) X('expense',m,20,800,teams.outreach,'Local Outreach','');
+      if(m%3===2) X('expense',m,22,700,teams.ben,'Family Assistance','Restricted');
     }
   }
   save(); boot();
-  alert('Sample data loaded — poke around all five tabs. When you’re ready, use “Erase everything” in Settings.');
+  alert('Sample data loaded — open Teams to see "Left to spend" per team, then try the QBO import. Use "Erase everything" in Settings when ready.');
 }
 
 /* ============================================================
@@ -954,8 +1057,8 @@ function loadSample(){
 function boot(){
   load();
   paintSettings();
-  refreshFundSelects();
-  fillFundSelect(document.getElementById('t_fund'),false);
+  refreshTeamSelects();
+  fillTeamSelect(document.getElementById('t_team'),false);
   document.getElementById('t_date').value=today();
   document.getElementById('s_type').onchange=function(){ document.getElementById('hdrIcon').textContent=this.value==='nonprofit'?'🤝':'⛪'; };
   txnTypeChanged();
