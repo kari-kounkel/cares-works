@@ -72,6 +72,7 @@ export default function MemeMaker({ session }) {
   const [contentMode, setContentMode] = useState("text"); // "text" = overlay copy · "frame" = wrap a finished design
   const [biz, setBiz] = useState({ name: isKari ? "Kari Kounkel · The 13 Series" : "", website: isKari ? "karikounkel.com/history" : "", accent: CARD.gold, logo: "" });
   const [postImgs, setPostImgs] = useState({}); // idx -> dataURL
+  const [frameImg, setFrameImg] = useState(""); // optional 1080x1350 frame; content drops into its 906x906 window
   const [projName, setProjName] = useState("My America 250 Series");
   const [projId, setProjId] = useState(null); // current saved-project id — reused so Save updates in place
   const [saved, setSaved] = useState([]); // [{id,name}]
@@ -123,11 +124,9 @@ export default function MemeMaker({ session }) {
   function wrap(ctx, text, maxW, font) { ctx.font = font; const words = String(text).split(/\s+/); const lines = []; let cur = ""; for (const w of words) { const t = cur ? cur + " " + w : w; if (ctx.measureText(t).width > maxW && cur) { lines.push(cur); cur = w; } else cur = t; } if (cur) lines.push(cur); return lines; }
   function paraLines(ctx, paras, maxW, font) { let all = []; for (const p of paras) { wrap(ctx, p, maxW, font).forEach(l => all.push(l)); all.push("__GAP__"); } all.pop(); return all; }
 
-  const draw = useCallback(() => {
-    const cv = canvasRef.current; if (!cv) return;
-    const ctx = cv.getContext("2d");
-    const W = 1080, H = 1350, accent = biz.accent || CARD.gold;
-    const onReady = () => setTick(t => t + 1);
+  // paints the square 1080x1080 card onto any context
+  const paintCard = (ctx, onReady) => {
+    const W = 1080, H = 1080, accent = biz.accent || CARD.gold;
     ctx.clearRect(0, 0, W, H);
 
     const img = getImg(postImgs[idx], onReady);
@@ -168,13 +167,13 @@ export default function MemeMaker({ session }) {
     const footerY = H - 132;
 
     if (layout === "window") {
-      const vY = cursorY, vH = 600, vX = inX, vW = inW;
+      const vY = cursorY, vH = 430, vX = inX, vW = inW;
       if (img) { ctx.save(); roundRect(ctx, vX, vY, vW, vH, 14); ctx.clip(); drawCover(ctx, img, vX, vY, vW, vH); ctx.restore(); ctx.strokeStyle = CARD.navy; ctx.lineWidth = 3; roundRect(ctx, vX, vY, vW, vH, 14); ctx.stroke(); }
       else { ctx.fillStyle = "#EDE2C2"; roundRect(ctx, vX, vY, vW, vH, 14); ctx.fill(); ctx.strokeStyle = accent; ctx.lineWidth = 2; ctx.setLineDash([8, 7]); roundRect(ctx, vX, vY, vW, vH, 14); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle = "#9a8a63"; ctx.font = "700 20px 'DM Mono', monospace"; ctx.fillText("DROP THIS CARD'S VISUAL HERE", W / 2, vY + vH / 2 - 6); ctx.font = "italic 19px 'DM Serif Display', serif"; ctx.fillStyle = "#7d6f4d"; wrap(ctx, current.vis, vW - 80, "italic 19px 'DM Serif Display', serif").slice(0, 2).forEach((l, i) => ctx.fillText(l, W / 2, vY + vH / 2 + 24 + i * 26)); }
       cursorY = vY + vH + 34;
     } else if (img) {
       // full: parchment panel for text
-      const pT = 740; ctx.fillStyle = "rgba(251,246,233,0.93)"; roundRect(ctx, inX - 8, pT, inW + 16, footerY - pT + 30, 16); ctx.fill(); ctx.strokeStyle = accent; ctx.lineWidth = 2; roundRect(ctx, inX - 8, pT, inW + 16, footerY - pT + 30, 16); ctx.stroke(); cursorY = pT + 34;
+      const pT = 560; ctx.fillStyle = "rgba(251,246,233,0.93)"; roundRect(ctx, inX - 8, pT, inW + 16, footerY - pT + 30, 16); ctx.fill(); ctx.strokeStyle = accent; ctx.lineWidth = 2; roundRect(ctx, inX - 8, pT, inW + 16, footerY - pT + 30, 16); ctx.stroke(); cursorY = pT + 34;
     } else {
       ctx.fillStyle = "#9a8a63"; ctx.font = "italic 20px 'DM Serif Display', serif";
       ctx.fillText("(Add this card's image — suggested: " + (current.vis || "your visual") + ")", W / 2, 250);
@@ -232,7 +231,26 @@ export default function MemeMaker({ session }) {
     if (fLine) { ctx.fillStyle = layout === "full" && img ? "#5b4a2e" : CARD.navy; ctx.font = "600 19px Figtree, sans-serif"; ctx.fillText(fLine, W / 2, footerY + 30); }
     ctx.fillStyle = "#9a8c6c"; ctx.font = "400 13px 'DM Mono', monospace";
     ctx.fillText("Made with CARES MN Tools · tools.caresmn.com", W / 2, footerY + 56);
-  }, [posts, idx, layout, contentMode, biz, postImgs, current, tick]);
+  };
+
+  const draw = useCallback(() => {
+    const visible = canvasRef.current; if (!visible) return;
+    const onReady = () => setTick(t => t + 1);
+    const frame = getImg(frameImg, onReady);
+    // render the square card to an offscreen buffer
+    const off = document.createElement("canvas"); off.width = 1080; off.height = 1080;
+    paintCard(off.getContext("2d"), onReady);
+    if (frame) {
+      // composite: your full 1080x1350 frame, card dropped into the 906x906 window at (87,243)
+      if (visible.width !== 1080 || visible.height !== 1350) { visible.width = 1080; visible.height = 1350; }
+      const v = visible.getContext("2d"); v.clearRect(0, 0, 1080, 1350);
+      v.drawImage(frame, 0, 0, 1080, 1350);
+      v.drawImage(off, 87, 243, 906, 906);
+    } else {
+      if (visible.width !== 1080 || visible.height !== 1080) { visible.width = 1080; visible.height = 1080; }
+      const v = visible.getContext("2d"); v.clearRect(0, 0, 1080, 1080); v.drawImage(off, 0, 0);
+    }
+  }, [posts, idx, layout, contentMode, biz, postImgs, frameImg, current, tick]);
 
   useEffect(() => { draw(); }, [draw]);
   useEffect(() => { if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => setTick(t => t + 1)); }, []);
@@ -241,9 +259,10 @@ export default function MemeMaker({ session }) {
   const readFile = (file, cb) => { const r = new FileReader(); r.onload = () => cb(r.result); r.readAsDataURL(file); };
   const onPostImg = e => { const f = e.target.files[0]; if (f) readFile(f, d => setPostImgs(m => ({ ...m, [idx]: d }))); };
   const onLogo = e => { const f = e.target.files[0]; if (f) readFile(f, d => setBiz(b => ({ ...b, logo: d }))); };
+  const onFrame = e => { const f = e.target.files[0]; if (f) readFile(f, d => setFrameImg(d)); };
 
   // ---------- save / load ----------
-  const projectData = () => ({ name: projName, posts, biz, layout, postImgs });
+  const projectData = () => ({ name: projName, posts, biz, layout, postImgs, frameImg });
   const handleSave = async () => {
     const data = projectData();
     const id = projId || ("mp_" + Date.now());
@@ -265,7 +284,7 @@ export default function MemeMaker({ session }) {
     let data = null;
     if (isCloud) { try { const { data: row } = await supabase.from("meme_projects").select("data").eq("id", id).maybeSingle(); data = row?.data; } catch (_) {} }
     else { try { data = JSON.parse(localStorage.getItem(LS_KEY) || "{}")[id]; } catch (_) {} }
-    if (data) { setPosts(data.posts || posts); setBiz(data.biz || biz); setLayout(data.layout || "full"); setPostImgs(data.postImgs || {}); setProjName(data.name || projName); setProjId(id); setIdx(0); setStatus("Loaded “" + (data.name || "project") + ".”"); }
+    if (data) { setPosts(data.posts || posts); setBiz(data.biz || biz); setLayout(data.layout || "full"); setPostImgs(data.postImgs || {}); setFrameImg(data.frameImg || ""); setProjName(data.name || projName); setProjId(id); setIdx(0); setStatus("Loaded “" + (data.name || "project") + ".”"); }
   };
 
   const download = () => {
@@ -359,11 +378,16 @@ export default function MemeMaker({ session }) {
             <span style={{ fontSize: 13, color: S.slate, marginLeft: 8 }}>Logo</span>
             <input type="file" accept="image/*" onChange={onLogo} style={{ fontSize: 12 }} />
           </div>
+
+          <label style={lbl}>Your frame (optional)</label>
+          <div style={{ fontSize: 11, color: S.muted, marginBottom: 6 }}>Upload your 1080×1350 Americana frame (with the 906×906 window). Each card drops into the window and exports as a finished post — no Canva step.</div>
+          <input type="file" accept="image/*" onChange={onFrame} style={{ fontSize: 12 }} />
+          {frameImg && <button onClick={() => setFrameImg("")} style={{ marginLeft: 8, fontSize: 12, border: "1px solid " + S.rule, background: "#fff", borderRadius: 6, padding: "4px 8px", cursor: "pointer" }}>Remove frame</button>}
         </div>
 
         {/* stage */}
         <div style={{ flex: "1 1 520px", minWidth: 320, display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
-          <canvas ref={canvasRef} width={1080} height={1350} style={{ width: "100%", maxWidth: 460, height: "auto", borderRadius: 14, boxShadow: "0 6px 22px rgba(0,0,0,0.18)", background: CARD.parch }} />
+          <canvas ref={canvasRef} width={1080} height={1080} style={{ width: "100%", maxWidth: 540, height: "auto", borderRadius: 14, boxShadow: "0 6px 22px rgba(0,0,0,0.18)", background: CARD.parch }} />
           <div style={{ display: "flex", gap: 10, width: "100%", maxWidth: 540 }}>
             <button onClick={() => setIdx(i => (i - 1 + posts.length) % posts.length)} style={{ flex: 1, border: "1.5px solid " + S.rule, background: "#fff", color: S.slate, borderRadius: 10, padding: 9, fontWeight: 600, cursor: "pointer" }}>‹ Prev</button>
             <button onClick={() => setIdx(i => (i + 1) % posts.length)} style={{ flex: 1, border: "1.5px solid " + S.rule, background: "#fff", color: S.slate, borderRadius: 10, padding: 9, fontWeight: 600, cursor: "pointer" }}>Next ›</button>
