@@ -73,6 +73,7 @@ export default function MemeMaker({ session }) {
   const [biz, setBiz] = useState({ name: isKari ? "Kari Kounkel · The 13 Series" : "", website: isKari ? "karikounkel.com/history" : "", accent: CARD.gold, logo: "" });
   const [postImgs, setPostImgs] = useState({}); // idx -> dataURL
   const [projName, setProjName] = useState("My America 250 Series");
+  const [projId, setProjId] = useState(null); // current saved-project id — reused so Save updates in place
   const [saved, setSaved] = useState([]); // [{id,name}]
   const [status, setStatus] = useState("");
   const [tick, setTick] = useState(0); // force redraw on async image load
@@ -125,7 +126,7 @@ export default function MemeMaker({ session }) {
   const draw = useCallback(() => {
     const cv = canvasRef.current; if (!cv) return;
     const ctx = cv.getContext("2d");
-    const W = 1080, H = 1080, accent = biz.accent || CARD.gold;
+    const W = 1080, H = 1350, accent = biz.accent || CARD.gold;
     const onReady = () => setTick(t => t + 1);
     ctx.clearRect(0, 0, W, H);
 
@@ -167,13 +168,13 @@ export default function MemeMaker({ session }) {
     const footerY = H - 132;
 
     if (layout === "window") {
-      const vY = cursorY, vH = 430, vX = inX, vW = inW;
+      const vY = cursorY, vH = 600, vX = inX, vW = inW;
       if (img) { ctx.save(); roundRect(ctx, vX, vY, vW, vH, 14); ctx.clip(); drawCover(ctx, img, vX, vY, vW, vH); ctx.restore(); ctx.strokeStyle = CARD.navy; ctx.lineWidth = 3; roundRect(ctx, vX, vY, vW, vH, 14); ctx.stroke(); }
       else { ctx.fillStyle = "#EDE2C2"; roundRect(ctx, vX, vY, vW, vH, 14); ctx.fill(); ctx.strokeStyle = accent; ctx.lineWidth = 2; ctx.setLineDash([8, 7]); roundRect(ctx, vX, vY, vW, vH, 14); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle = "#9a8a63"; ctx.font = "700 20px 'DM Mono', monospace"; ctx.fillText("DROP THIS CARD'S VISUAL HERE", W / 2, vY + vH / 2 - 6); ctx.font = "italic 19px 'DM Serif Display', serif"; ctx.fillStyle = "#7d6f4d"; wrap(ctx, current.vis, vW - 80, "italic 19px 'DM Serif Display', serif").slice(0, 2).forEach((l, i) => ctx.fillText(l, W / 2, vY + vH / 2 + 24 + i * 26)); }
       cursorY = vY + vH + 34;
     } else if (img) {
       // full: parchment panel for text
-      const pT = 560; ctx.fillStyle = "rgba(251,246,233,0.93)"; roundRect(ctx, inX - 8, pT, inW + 16, footerY - pT + 30, 16); ctx.fill(); ctx.strokeStyle = accent; ctx.lineWidth = 2; roundRect(ctx, inX - 8, pT, inW + 16, footerY - pT + 30, 16); ctx.stroke(); cursorY = pT + 34;
+      const pT = 740; ctx.fillStyle = "rgba(251,246,233,0.93)"; roundRect(ctx, inX - 8, pT, inW + 16, footerY - pT + 30, 16); ctx.fill(); ctx.strokeStyle = accent; ctx.lineWidth = 2; roundRect(ctx, inX - 8, pT, inW + 16, footerY - pT + 30, 16); ctx.stroke(); cursorY = pT + 34;
     } else {
       ctx.fillStyle = "#9a8a63"; ctx.font = "italic 20px 'DM Serif Display', serif";
       ctx.fillText("(Add this card's image — suggested: " + (current.vis || "your visual") + ")", W / 2, 250);
@@ -245,24 +246,26 @@ export default function MemeMaker({ session }) {
   const projectData = () => ({ name: projName, posts, biz, layout, postImgs });
   const handleSave = async () => {
     const data = projectData();
+    const id = projId || ("mp_" + Date.now());
     if (isCloud) {
       try {
-        const id = "mp_" + Date.now();
         await supabase.from("meme_projects").upsert({ id, user_email: userEmail, name: projName, data, updated_at: new Date().toISOString() });
         logToolSession({ email: userEmail, slug: "america-250-meme-maker", title: "America 250 Meme Maker", icon: "🇺🇸", refId: id, name: projName, href: "/tools/america-250-meme-maker" });
-        setStatus("Saved to your CARES Works vault.");
+        setProjId(id);
+        setStatus(projId ? "Updated your saved set." : "Saved to your CARES Works vault.");
         refreshSaved();
-      } catch (e) { setStatus("Cloud save unavailable — saved to this browser instead."); browserSave(data); }
-    } else { browserSave(data); setStatus("Saved to this browser. Become a member to save to your vault across devices."); }
+      } catch (e) { setStatus("Cloud save unavailable — saved to this browser instead."); browserSave(data, id); }
+    } else { browserSave(data, id); setStatus(projId ? "Updated (browser save)." : "Saved to this browser. Become a member to save to your vault across devices."); }
   };
-  const browserSave = (data) => {
-    try { const all = JSON.parse(localStorage.getItem(LS_KEY) || "{}"); const id = "mp_" + Date.now(); all[id] = data; localStorage.setItem(LS_KEY, JSON.stringify(all)); refreshSaved(); } catch (_) {}
+  const browserSave = (data, id) => {
+    try { const all = JSON.parse(localStorage.getItem(LS_KEY) || "{}"); all[id] = data; localStorage.setItem(LS_KEY, JSON.stringify(all)); setProjId(id); refreshSaved(); } catch (_) {}
   };
+  const newProject = () => { setProjId(null); setPosts(isKari ? SERIES_13.map(p => ({ ...p })) : blankThirteen()); setPostImgs({}); setProjName("My America 250 Series"); setIdx(0); setStatus("Started a fresh set."); };
   const loadProject = async (id) => {
     let data = null;
     if (isCloud) { try { const { data: row } = await supabase.from("meme_projects").select("data").eq("id", id).maybeSingle(); data = row?.data; } catch (_) {} }
     else { try { data = JSON.parse(localStorage.getItem(LS_KEY) || "{}")[id]; } catch (_) {} }
-    if (data) { setPosts(data.posts || posts); setBiz(data.biz || biz); setLayout(data.layout || "full"); setPostImgs(data.postImgs || {}); setProjName(data.name || projName); setIdx(0); setStatus("Loaded “" + (data.name || "project") + ".”"); }
+    if (data) { setPosts(data.posts || posts); setBiz(data.biz || biz); setLayout(data.layout || "full"); setPostImgs(data.postImgs || {}); setProjName(data.name || projName); setProjId(id); setIdx(0); setStatus("Loaded “" + (data.name || "project") + ".”"); }
   };
 
   const download = () => {
@@ -360,7 +363,7 @@ export default function MemeMaker({ session }) {
 
         {/* stage */}
         <div style={{ flex: "1 1 520px", minWidth: 320, display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
-          <canvas ref={canvasRef} width={1080} height={1080} style={{ width: "100%", maxWidth: 540, height: "auto", borderRadius: 14, boxShadow: "0 6px 22px rgba(0,0,0,0.18)", background: CARD.parch }} />
+          <canvas ref={canvasRef} width={1080} height={1350} style={{ width: "100%", maxWidth: 460, height: "auto", borderRadius: 14, boxShadow: "0 6px 22px rgba(0,0,0,0.18)", background: CARD.parch }} />
           <div style={{ display: "flex", gap: 10, width: "100%", maxWidth: 540 }}>
             <button onClick={() => setIdx(i => (i - 1 + posts.length) % posts.length)} style={{ flex: 1, border: "1.5px solid " + S.rule, background: "#fff", color: S.slate, borderRadius: 10, padding: 9, fontWeight: 600, cursor: "pointer" }}>‹ Prev</button>
             <button onClick={() => setIdx(i => (i + 1) % posts.length)} style={{ flex: 1, border: "1.5px solid " + S.rule, background: "#fff", color: S.slate, borderRadius: 10, padding: 9, fontWeight: 600, cursor: "pointer" }}>Next ›</button>
@@ -371,7 +374,8 @@ export default function MemeMaker({ session }) {
           <div style={{ width: "100%", maxWidth: 540, background: "#fff", border: "1px solid " + S.rule, borderRadius: 12, padding: 14, display: "flex", flexDirection: "column", gap: 8 }}>
             <div style={{ display: "flex", gap: 8 }}>
               <input style={{ ...inp, flex: 1 }} value={projName} onChange={e => setProjName(e.target.value)} placeholder="Project name" />
-              <button onClick={handleSave} style={{ background: S.slate, color: "#fff", border: "none", borderRadius: 8, padding: "0 16px", fontWeight: 700, cursor: "pointer" }}>💾 Save</button>
+              <button onClick={handleSave} style={{ background: S.slate, color: "#fff", border: "none", borderRadius: 8, padding: "0 16px", fontWeight: 700, cursor: "pointer" }}>{projId ? "💾 Update" : "💾 Save"}</button>
+              <button onClick={newProject} style={{ background: "#fff", color: S.slate, border: "1.5px solid " + S.rule, borderRadius: 8, padding: "0 14px", fontWeight: 700, cursor: "pointer" }}>+ New</button>
             </div>
             {saved.length > 0 && (
               <select onChange={e => e.target.value && loadProject(e.target.value)} value="" style={inp}>
