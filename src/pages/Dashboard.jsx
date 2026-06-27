@@ -297,6 +297,29 @@ export default function Dashboard({ session }) {
               </div>
             </div>
 
+            {/* PICK UP WHERE YOU LEFT OFF — your work, first thing, before any tool browsing */}
+            {recentSessions.length > 0 && (
+              <div style={{ marginBottom: 32 }}>
+                <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: S.slate, margin: "0 0 4px" }}>Pick up where you left off</h2>
+                <p style={{ color: S.muted, fontSize: 13.5, margin: "0 0 16px" }}>Your most recent work, ready to reopen — no hunting through tools.</p>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 14 }}>
+                  {recentSessions.map(s => (
+                    <button key={s.id} onClick={() => { if (s.href) { window.location.href = s.href; } else { navigate("/tools/" + s.tool_slug); } }}
+                      style={{ textAlign: "left", background: "#fff", border: "1px solid " + S.rule, borderRadius: 12, padding: "16px 18px", cursor: "pointer", fontFamily: "'Figtree', sans-serif", display: "flex", flexDirection: "column", gap: 6 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+                        <span style={{ fontSize: 20 }}>{s.tool_icon || "🗂️"}</span>
+                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase", color: S.muted }}>{s.tool_title || "Tool"}</span>
+                      </div>
+                      <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 16, color: S.slate, lineHeight: 1.25 }}>{s.name || "Untitled work"}</div>
+                      <div style={{ fontSize: 11.5, color: S.muted, fontFamily: "'DM Mono', monospace" }}>
+                        Edited {s.updated_at ? new Date(s.updated_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : ""} · Reopen →
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* START HERE STRIP */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 14, marginBottom: 32 }}>
               {[
@@ -315,29 +338,6 @@ export default function Dashboard({ session }) {
                 </div>
               ))}
             </div>
-
-            {/* PICK UP WHERE YOU LEFT OFF — recent saved work across tools */}
-            {recentSessions.length > 0 && (
-              <div style={{ marginBottom: 32 }}>
-                <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: S.slate, margin: "0 0 4px" }}>Pick up where you left off</h2>
-                <p style={{ color: S.muted, fontSize: 13.5, margin: "0 0 16px" }}>Your most recent work, ready to reopen.</p>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 14 }}>
-                  {recentSessions.map(s => (
-                    <button key={s.id} onClick={() => { if (s.href) { window.location.href = s.href; } else { navigate("/tools/" + s.tool_slug); } }}
-                      style={{ textAlign: "left", background: "#fff", border: "1px solid " + S.rule, borderRadius: 12, padding: "16px 18px", cursor: "pointer", fontFamily: "'Figtree', sans-serif", display: "flex", flexDirection: "column", gap: 6 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-                        <span style={{ fontSize: 20 }}>{s.tool_icon || "🗂️"}</span>
-                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase", color: S.muted }}>{s.tool_title || "Tool"}</span>
-                      </div>
-                      <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 16, color: S.slate, lineHeight: 1.25 }}>{s.name || "Untitled work"}</div>
-                      <div style={{ fontSize: 11.5, color: S.muted, fontFamily: "'DM Mono', monospace" }}>
-                        Edited {s.updated_at ? new Date(s.updated_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : ""} · Reopen →
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
 
             {/* WHAT'S NEW THIS WEEK */}
             {whatsNew && (
