@@ -191,6 +191,11 @@ export default function MemeMaker({ session }) {
     // MINIMAL: clean text-only insert for framed themes — transparent, no border/stars/placeholder/footer
     if (minimal) {
       const inX = 104, inW = W - 208, top = 134, areaBot = H - 96;
+      // soft readable panel behind the text (no hard border/chrome) so words don't sit on busy art
+      ctx.save();
+      ctx.globalAlpha = 0.93; ctx.fillStyle = CARD.parch; roundRect(ctx, 40, 40, W - 80, H - 80, 26); ctx.fill();
+      ctx.globalAlpha = 0.35; ctx.strokeStyle = accent; ctx.lineWidth = 2; roundRect(ctx, 40, 40, W - 80, H - 80, 26); ctx.stroke();
+      ctx.restore();
       ctx.textAlign = "center";
       if (current.num && current.num.trim()) { ctx.fillStyle = accent; ctx.font = "700 23px 'DM Mono', monospace"; try { ctx.letterSpacing = "3px"; } catch (e) {} ctx.fillText(current.num.toUpperCase(), W / 2, top); try { ctx.letterSpacing = "0px"; } catch (e) {} }
       let hSize = 52, hLines = [""]; const hasHead = !!(current.head && current.head.trim());

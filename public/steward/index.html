@@ -143,7 +143,7 @@
 <div class="tabbar">
   <div class="tabs">
     <button class="active" data-view="overview" onclick="go('overview')">📊 Overview</button>
-    <button data-view="teams" onclick="go('teams')">👥 Teams &amp; Allocations</button>
+    <button data-view="teams" onclick="go('teams')">👥 Budgets &amp; Funds</button>
     <button data-view="accounts" onclick="go('accounts')">🧮 Accounts</button>
     <button data-view="revenue" onclick="go('revenue')">💵 Revenue</button>
     <button data-view="txns" onclick="go('txns')">🧾 Transactions</button>
@@ -156,12 +156,12 @@
   <!-- ===================== OVERVIEW ===================== -->
   <section id="v_overview" class="view active">
     <h2>The board at a glance</h2>
-    <p class="sub">Money in, what each team has to spend, and what's left — in plain English. No accounting required.</p>
+    <p class="sub">Money in, what each budget and fund has to spend, and what's left — in plain English. No accounting required.</p>
 
     <div class="grid g4" id="ovStats"></div>
 
     <div class="card">
-      <h3>What each team has left to spend</h3>
+      <h3>What each budget &amp; fund has left to spend</h3>
       <div id="ovTeamBars"></div>
     </div>
 
@@ -179,20 +179,20 @@
 
   <!-- ===================== TEAMS ===================== -->
   <section id="v_teams" class="view">
-    <h2>Teams &amp; Allocations</h2>
-    <p class="sub">Each team gets money <b>set aside</b> by leadership. Steward subtracts what's been <b>spent</b> and shows what's <b>left</b> — so you never have to add up accounts by hand again. Click a team to see the detail behind its number.</p>
+    <h2>Budgets &amp; Funds</h2>
+    <p class="sub">Each budget or fund gets money <b>set aside</b> by leadership. Steward subtracts what's been <b>spent</b> and shows what's <b>left</b> — so you never have to add up accounts by hand again. Click one to see the detail behind its number.</p>
 
     <div class="toolbar">
       <div class="f" style="flex:1"><label>Filter by account (music, kids, 5190…)</label><input id="acctSearch" placeholder="account number or name" oninput="setAcctQuery(this.value)"></div>
       <button class="btn ghost sm" onclick="go('import')">📥 Import budget / QBO</button>
-      <button class="btn sm" onclick="openTeam()">+ Add team</button>
+      <button class="btn sm" onclick="openTeam()">+ Add budget / fund</button>
     </div>
 
     <div class="card" style="padding:0;overflow:hidden">
       <table>
         <thead>
           <tr>
-            <th>Team</th><th>Type</th><th class="num">Set aside</th>
+            <th>Budget / Fund</th><th>Type</th><th class="num">Set aside</th>
             <th class="num">Spent</th><th class="num">Left to spend</th>
             <th class="progwrap">Used</th><th></th>
           </tr>
@@ -201,14 +201,14 @@
         <tfoot id="teamFoot"></tfoot>
       </table>
     </div>
-    <p class="sub" style="margin-top:14px"><b>Operating</b> teams get a yearly amount set aside (Left = Set aside − Spent).
-    <b>Restricted</b> teams (like a Building Fund) are separate pots that carry over and only grow from designated gifts (Left = Opening + Gifts − Spent). Mark the type when you add a team — most teams are Operating.</p>
+    <p class="sub" style="margin-top:14px">A <b>Budget</b> (operating) gets a yearly amount set aside (Left = Set aside − Spent).
+    A <b>Fund</b> (restricted, like a Building Fund) is a separate pot that carries over and grows from designated gifts (Left = Opening + Gifts − Spent). Most are Budgets; mark a Fund only for restricted money like a Building Fund.</p>
   </section>
 
   <!-- ===================== REVENUE ===================== -->
   <section id="v_revenue" class="view">
     <h2>Revenue — money coming in</h2>
-    <p class="sub">Giving, grants, and other income for the year, against your goal. This is tracked separately from team budgets.</p>
+    <p class="sub">Giving, grants, and other income for the year, against your goal. This is tracked separately from budgets and funds.</p>
 
     <div class="grid g3" id="revStats"></div>
 
@@ -228,7 +228,7 @@
   <!-- ===================== TRANSACTIONS ===================== -->
   <section id="v_txns" class="view">
     <h2>Transactions</h2>
-    <p class="sub">Record giving and spending by hand, or let the QBO import fill these in for you. Each one lands with a team.</p>
+    <p class="sub">Record giving and spending by hand, or let the QBO import fill these in for you. Each one lands in a budget or fund.</p>
 
     <div class="card">
       <h3 id="txnFormTitle">Record a transaction</h3>
@@ -243,7 +243,7 @@
         </div>
         <div><label>Date</label><input type="date" id="t_date"></div>
         <div><label>Amount</label><input type="number" id="t_amount" min="0" step="0.01" placeholder="0.00"></div>
-        <div><label>Team</label><select id="t_team"></select></div>
+        <div><label>Budget / Fund</label><select id="t_team"></select></div>
       </div>
       <div class="grid g2" style="margin-top:14px">
         <div><label id="t_acctLabel">Account / Category</label><input id="t_acct" placeholder="e.g. Supplies, Tithes, Travel"></div>
@@ -262,7 +262,7 @@
           <option value="">All types</option><option value="income">Income only</option><option value="expense">Expenses only</option>
         </select>
       </div>
-      <div class="f"><label>Team</label><select id="txnFilterTeam" onchange="renderTxns()"></select></div>
+      <div class="f"><label>Budget / Fund</label><select id="txnFilterTeam" onchange="renderTxns()"></select></div>
       <div class="f"><label>Source</label>
         <select id="txnFilterSrc" onchange="renderTxns()">
           <option value="">All sources</option><option value="manual">Entered by hand</option><option value="qbo-import">From QBO import</option>
@@ -275,7 +275,7 @@
     <div class="card" style="padding:0;overflow:hidden">
       <table>
         <thead>
-          <tr><th>Date</th><th>Type</th><th>Account</th><th>Team</th><th>Source / Payee</th><th class="num">Amount</th><th></th></tr>
+          <tr><th>Date</th><th>Type</th><th>Account</th><th>Budget / Fund</th><th>Source / Payee</th><th class="num">Amount</th><th></th></tr>
         </thead>
         <tbody id="txnRows"></tbody>
       </table>
@@ -289,7 +289,7 @@
 
     <div class="card">
       <h3>Option A · Pull in your budget</h3>
-      <p class="sub" style="margin-top:-6px">Drop your budget spreadsheet — one ministry/department per tab (like River of Life's “Proposed Fiscal 2027 Budget”). Steward reads each tab into a team, with every account line and what's set aside.</p>
+      <p class="sub" style="margin-top:-6px">Drop your budget spreadsheet — one ministry/department per tab (like River of Life's “Proposed Fiscal 2027 Budget”). Steward reads each tab into a budget, with every account line and what's set aside.</p>
       <div class="dropzone" id="budDrop" onclick="document.getElementById('budFile').click()">
         <div style="font-size:30px">📊</div>
         <div><b>Drop your budget spreadsheet (.xlsx)</b> — or click to choose</div>
@@ -323,21 +323,21 @@
     </div>
 
     <div class="card" id="mapCard" style="display:none">
-      <h3>2 · Match each QBO class to a team, and set what leadership budgeted</h3>
+      <h3>2 · Match each QBO class to a budget or fund, and set what's budgeted</h3>
       <p class="sub" style="margin-top:-8px">We read the <b>spending</b> from QBO. You tell us the <b>set aside</b> amount — that's the part QBO doesn't know. Left to spend = Set aside − Spent.</p>
       <div class="row" style="margin-bottom:12px">
         <div><label>Treat this import as of</label><input type="date" id="importDate" style="max-width:200px"></div>
       </div>
       <div style="overflow-x:auto">
         <table>
-          <thead><tr><th>QBO class</th><th class="num">Spent (from QBO)</th><th class="num">Income (from QBO)</th><th>→ Team in Steward</th><th class="num">Set aside</th></tr></thead>
+          <thead><tr><th>QBO class</th><th class="num">Spent (from QBO)</th><th class="num">Income (from QBO)</th><th>→ Budget / Fund in Steward</th><th class="num">Set aside</th></tr></thead>
           <tbody id="mapRows"></tbody>
           <tfoot id="mapFoot"></tfoot>
         </table>
       </div>
       <div class="note" id="importWarn" style="display:none"></div>
       <div class="row" style="margin-top:16px">
-        <button class="btn" onclick="applyImport()">Apply to my teams</button>
+        <button class="btn" onclick="applyImport()">Apply to my budgets &amp; funds</button>
         <button class="btn ghost sm" onclick="cancelImport()">Cancel</button>
         <span class="muted" style="font-size:12.5px">Re-importing replaces the previous QBO numbers. Anything you typed by hand stays put.</span>
       </div>
@@ -415,13 +415,13 @@
 <!-- ===================== TEAM DIALOG ===================== -->
 <dialog id="teamDlg">
   <form method="dialog">
-    <div class="dlg-h" id="teamDlgTitle">Add team</div>
+    <div class="dlg-h" id="teamDlgTitle">Add budget or fund</div>
     <div class="dlg-b">
       <input type="hidden" id="tm_id">
       <div class="grid g2">
-        <div><label>Team name</label><input id="tm_name" placeholder="Youth Ministry"></div>
+        <div><label>Name</label><input id="tm_name" placeholder="Youth Ministry"></div>
         <div><label>Type</label>
-          <select id="tm_type" onchange="teamTypeHint()"><option value="operating">Operating</option><option value="restricted">Restricted</option></select>
+          <select id="tm_type" onchange="teamTypeHint()"><option value="operating">Budget (operating)</option><option value="restricted">Fund (restricted)</option></select>
         </div>
       </div>
       <div class="grid g2" style="margin-top:14px">
@@ -434,7 +434,7 @@
     <div class="dlg-f">
       <button class="btn danger sm" id="tm_delBtn" value="delete" onclick="deleteTeam(event)">Delete</button>
       <button class="btn ghost" value="cancel">Cancel</button>
-      <button class="btn" value="save" onclick="saveTeam(event)">Save team</button>
+      <button class="btn" value="save" onclick="saveTeam(event)">Save</button>
     </div>
   </form>
 </dialog>
@@ -544,15 +544,15 @@ function renderOverview(){
   const rev=totalRevenue(), set=totalSetAside(), sp=totalSpent(), left=set-sp;
   document.getElementById('ovStats').innerHTML=[
     stat('green','Money in (YTD)',money0(rev), db.settings.revGoal?`${Math.round(rev/db.settings.revGoal*100)}% of $${(+db.settings.revGoal).toLocaleString()} goal`:'income this year'),
-    stat('plum','Set aside (all teams)',money0(set),`${db.teams.length} team${db.teams.length===1?'':'s'}`),
+    stat('plum','Set aside (all)',money0(set),`${db.teams.length} budgets &amp; funds`),
     stat('rose','Spent (YTD)',money0(sp), set?`${Math.round(sp/set*100)}% of set aside`:'expenses this year'),
-    stat(left>=0?'blue':'red','Left to spend',money0(left), left>=0?'across all teams':'over budget')
+    stat(left>=0?'blue':'red','Left to spend',money0(left), left>=0?'across all budgets and funds':'over budget')
   ].join('');
 
   const frac=fyElapsedFraction();
   const teams=db.teams.slice().sort((a,b)=>teamPot(b)-teamPot(a));
   if(!teams.length){
-    document.getElementById('ovTeamBars').innerHTML='<div class="empty">No teams yet. Add them on the Teams tab, import from QBO, or load sample data in Settings.</div>';
+    document.getElementById('ovTeamBars').innerHTML='<div class="empty">No budgets or funds yet. Add them on the Budgets &amp; Funds tab, import a budget or QBO, or load sample data in Settings.</div>';
   } else {
     document.getElementById('ovTeamBars').innerHTML =
       `<div class="legend"><span><i style="background:var(--green)"></i>plenty left</span><span><i style="background:var(--amber)"></i>spending fast</span><span><i style="background:var(--red)"></i>over</span><span class="muted">marker = today's pace</span></div>`
@@ -595,7 +595,7 @@ function renderOverview(){
   if(db.settings.revGoal&&frac>0.5&&rev<db.settings.revGoal*frac*0.85)
     alerts.push(`<div class="row" style="gap:8px;padding:6px 0"><span class="pill warn">giving</span> Income is running behind the goal for this point in the year.</div>`);
   document.getElementById('ovAlerts').innerHTML = alerts.length? alerts.join('') :
-    '<div class="empty" style="padding:18px">✓ Every team is within budget. Nothing needs attention.</div>';
+    '<div class="empty" style="padding:18px">✓ Everything is within budget. Nothing needs attention.</div>';
 }
 function stat(cls,label,n,s){
   return `<div class="card" style="margin:0"><div class="stat ${cls}"><span class="l">${label}</span><span class="n">${n}</span><span class="s">${s||''}</span></div></div>`;
@@ -609,7 +609,7 @@ function setAcctQuery(v){ acctQuery=(v||'').trim(); renderTeams(); }
 function renderTeams(){
   const tb=document.getElementById('teamRows');
   if(!db.teams.length){
-    tb.innerHTML='<tr><td colspan="7"><div class="empty">No teams yet. Click “+ Add team”, or import your budget / QBO.</div></td></tr>';
+    tb.innerHTML='<tr><td colspan="7"><div class="empty">Nothing here yet. Click “+ Add budget / fund”, or import your budget / QBO.</div></td></tr>';
     document.getElementById('teamFoot').innerHTML=''; return;
   }
   const frac=fyElapsedFraction();
@@ -627,7 +627,7 @@ function renderTeams(){
       const open = openTeamId===t.id || !!q;
       let rows=`<tr>
         <td><span class="teamname ${open?'open':''}" onclick="toggleTeam('${t.id}')"><span class="tri">▶</span>${esc(t.name)}${t.lead?`<span class="muted" style="font-weight:400">· ${esc(t.lead)}</span>`:''}</span></td>
-        <td><span class="pill ${t.type}">${t.type}</span></td>
+        <td><span class="pill ${t.type}">${t.type==='restricted'?'fund':'budget'}</span></td>
         <td class="num">${money0(pot)}</td>
         <td class="num">${money0(sp)}</td>
         <td class="num"><b style="${left<0?'color:var(--red)':'color:var(--green)'}">${money0(left)}</b></td>
@@ -639,7 +639,7 @@ function renderTeams(){
     }).join('');
   }
   document.getElementById('teamFoot').innerHTML=`<tr style="font-weight:800">
-    <td>All teams</td><td></td><td class="num">${money0(tSet)}</td><td class="num">${money0(tSp)}</td>
+    <td>All budgets &amp; funds</td><td></td><td class="num">${money0(tSet)}</td><td class="num">${money0(tSp)}</td>
     <td class="num" style="${tLeft<0?'color:var(--red)':'color:var(--green)'}">${money0(tLeft)}</td><td></td><td></td></tr>`;
 }
 function toggleTeam(id){ openTeamId = openTeamId===id?null:id; renderTeams(); }
@@ -660,7 +660,7 @@ function teamDrill(t){
   }
   // Otherwise fall back to spending-by-account from imported/entered transactions.
   const exp=Object.entries(spentBy);
-  if(!exp.length) return `<tr class="drill"><td colspan="7"><span class="muted">No accounts or spending yet for this team.</span></td></tr>`;
+  if(!exp.length) return `<tr class="drill"><td colspan="7"><span class="muted">No accounts or spending yet here.</span></td></tr>`;
   const rows=exp.sort((a,b)=>b[1]-a[1])
     .map(([k,v])=>`<tr class="drill"><td colspan="4">${esc(k)}</td><td class="num">${money0(v)}</td><td colspan="2"></td></tr>`).join('');
   return `<tr class="drill"><td colspan="7" style="padding:0"><table style="margin:0"><tbody>
@@ -718,14 +718,14 @@ function teamTypeHint(){
   document.getElementById('tm_openWrap').style.display=r?'':'none';
   document.getElementById('tm_allocLabel').textContent=r?'Set aside (optional)':'Set aside (annual)';
   document.getElementById('tm_hint').innerHTML = r
-    ? 'Restricted: a separate pot (e.g. Building Fund). Left = Opening + designated gifts − spent.'
-    : 'Operating: a yearly amount leadership budgets. Left = Set aside − spent.';
+    ? 'Fund (restricted): a separate pot (e.g. Building Fund). Left = Opening + designated gifts − spent.'
+    : 'Budget (operating): a yearly amount leadership sets aside. Left = Set aside − spent.';
 }
 function openTeam(id){
   const dlg=document.getElementById('teamDlg');
   if(typeof id==='string'){
     const t=team(id);
-    document.getElementById('teamDlgTitle').textContent='Edit team';
+    document.getElementById('teamDlgTitle').textContent='Edit budget or fund';
     document.getElementById('tm_id').value=t.id;
     document.getElementById('tm_name').value=t.name;
     document.getElementById('tm_type').value=t.type;
@@ -734,7 +734,7 @@ function openTeam(id){
     document.getElementById('tm_lead').value=t.lead||'';
     document.getElementById('tm_delBtn').style.display='';
   } else {
-    document.getElementById('teamDlgTitle').textContent='Add team';
+    document.getElementById('teamDlgTitle').textContent='Add budget or fund';
     document.getElementById('tm_id').value='';
     document.getElementById('tm_name').value='';
     document.getElementById('tm_type').value='operating';
@@ -747,7 +747,7 @@ function openTeam(id){
 }
 function saveTeam(e){
   const name=document.getElementById('tm_name').value.trim();
-  if(!name){ e.preventDefault(); alert('Give the team a name.'); return; }
+  if(!name){ e.preventDefault(); alert('Give it a name.'); return; }
   const id=document.getElementById('tm_id').value;
   const obj={ name, type:document.getElementById('tm_type').value,
     alloc:+document.getElementById('tm_alloc').value||0,
@@ -795,7 +795,7 @@ function txnTypeChanged(){
 function saveTxn(){
   const amt=+document.getElementById('t_amount').value;
   if(!amt||amt<=0){ alert('Enter an amount.'); return; }
-  if(!db.teams.length){ alert('Add a team first (Teams tab).'); return; }
+  if(!db.teams.length){ alert('Add a budget or fund first.'); return; }
   const obj={
     type:document.getElementById('t_type').value,
     date:document.getElementById('t_date').value||today(),
@@ -1020,12 +1020,12 @@ function showBudget(teams){
   document.getElementById('budMsg').innerHTML=`<span style="color:var(--green)">✓ ${teams.length} ministries · ${nlines} account lines · ${money0(grand)} set aside.</span>`;
   el.style.display='';
   el.innerHTML=`<div class="card" style="margin:0;padding:0;overflow:hidden"><table>
-    <thead><tr><th>Ministry → team</th><th class="num">Accounts</th><th class="num">Set aside</th><th class="num">Prior year</th></tr></thead>
+    <thead><tr><th>Ministry → budget</th><th class="num">Accounts</th><th class="num">Set aside</th><th class="num">Prior year</th></tr></thead>
     <tbody>${teams.map(t=>`<tr><td><b style="font-weight:600">${esc(t.name)}</b></td><td class="num">${t.lines.length}</td><td class="num">${money0(t.alloc)}</td><td class="num muted">${money0(t.lines.reduce((s,l)=>s+l.prior,0))}</td></tr>`).join('')}</tbody>
     <tfoot><tr style="font-weight:800"><td>All</td><td class="num">${nlines}</td><td class="num">${money0(grand)}</td><td></td></tr></tfoot>
     </table></div>
-    <div class="row" style="margin-top:12px"><button class="btn" onclick="applyBudget()">Apply budget to my teams</button>
-    <span class="muted" style="font-size:12.5px">Creates/updates a team per ministry with its set-aside + account lines. Re-importing refreshes them; your spending stays.</span></div>`;
+    <div class="row" style="margin-top:12px"><button class="btn" onclick="applyBudget()">Apply budget</button>
+    <span class="muted" style="font-size:12.5px">Creates/updates a budget per ministry with its set-aside + account lines. Re-importing refreshes them; your spending stays.</span></div>`;
 }
 function applyBudget(){
   if(!budParsed||!budParsed.length)return;
@@ -1086,7 +1086,7 @@ function fillTeamSelect(sel,allowBlank){
 function refreshTeamSelects(){
   fillTeamSelect(document.getElementById('t_team'),false);
   const ff=document.getElementById('txnFilterTeam'); const cur=ff.value;
-  ff.innerHTML='<option value="">All teams</option>'+db.teams.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join('');
+  ff.innerHTML='<option value="">All budgets and funds</option>'+db.teams.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join('');
   ff.value=cur;
 }
 function buildYearSelect(){
