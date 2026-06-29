@@ -347,19 +347,19 @@
   <!-- ===================== SETTINGS ===================== -->
   <!-- ===================== ACCOUNTS (mapping) ===================== -->
   <section id="v_accounts" class="view">
-    <h2>Accounts — which account reports where</h2>
-    <p class="sub">Every account and the team it rolls up to. Change the <b>Reports to</b> dropdown to move an account to a different team — its <b>set aside</b> and its <b>spending</b> move with it. (For example, move “Background Checks” into Safety &amp; Security.)</p>
+    <h2>Accounts</h2>
+    <p class="sub">Every account, the team it belongs to, what's set aside, and what's been spent. Use the search to filter by account number or name (music, kids, 5190…).</p>
     <div class="toolbar">
-      <div class="f" style="flex:1"><label>Find an account</label><input id="acctMapSearch" placeholder="number or name (music, kids, 5190…)" oninput="renderAccounts()"></div>
+      <div class="f" style="flex:1"><label>Filter accounts</label><input id="acctMapSearch" placeholder="number or name (music, kids, 5190…)" oninput="renderAccounts()"></div>
     </div>
     <div class="card" style="padding:0;overflow:hidden">
       <table>
-        <thead><tr><th>Account</th><th>Reports to</th><th class="num">Set aside</th><th class="num">Spent</th></tr></thead>
+        <thead><tr><th>Account</th><th>Team</th><th class="num">Set aside</th><th class="num">Spent</th></tr></thead>
         <tbody id="acctRows"></tbody>
         <tfoot id="acctFoot"></tfoot>
       </table>
     </div>
-    <p class="sub" style="margin-top:14px">Accounts come from your imported budget (Import → Option A) and your QuickBooks spending (Option B). Reassigning one here re-rolls both at once.</p>
+    <p class="sub" style="margin-top:14px">Accounts come from your imported budget (Import → Option A) and your QuickBooks spending (Option B).</p>
   </section>
 
   <section id="v_settings" class="view">
@@ -691,12 +691,11 @@ function renderAccounts(){
   if(q) rows=rows.filter(a=>String(a.acct).toLowerCase().includes(q)||a.name.toLowerCase().includes(q));
   acctMapRows=rows;
   if(!rows.length){ tb.innerHTML='<tr><td colspan="4"><div class="empty">No accounts match.</div></td></tr>'; document.getElementById('acctFoot').innerHTML=''; return; }
-  const opts=(tid)=>db.teams.map(t=>`<option value="${t.id}" ${t.id===tid?'selected':''}>${esc(t.name)}</option>`).join('');
   let tB=0,tS=0;
-  tb.innerHTML=rows.map((a,i)=>{ tB+=a.budget; tS+=a.spent;
+  tb.innerHTML=rows.map(a=>{ tB+=a.budget; tS+=a.spent;
     return `<tr>
       <td>${a.acct?`<span class="muted" style="font-family:monospace">${esc(a.acct)}</span> `:''}${esc(a.name)}${a.fromBudget?'':' <span class="pill qbo" style="font-size:10px">QBO only</span>'}</td>
-      <td><select class="mapsel" onchange="reassignByRow(${i},this.value)">${opts(a.teamId)}</select></td>
+      <td>${esc(teamName(a.teamId))}</td>
       <td class="num">${a.budget?money0(a.budget):''}</td>
       <td class="num">${a.spent?money0(a.spent):''}</td>
     </tr>`; }).join('');
