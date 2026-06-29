@@ -144,9 +144,10 @@
   <div class="tabs">
     <button class="active" data-view="overview" onclick="go('overview')">📊 Overview</button>
     <button data-view="teams" onclick="go('teams')">👥 Teams &amp; Allocations</button>
+    <button data-view="accounts" onclick="go('accounts')">🧮 Accounts</button>
     <button data-view="revenue" onclick="go('revenue')">💵 Revenue</button>
     <button data-view="txns" onclick="go('txns')">🧾 Transactions</button>
-    <button data-view="import" onclick="go('import')">📥 Import from QBO</button>
+    <button data-view="import" onclick="go('import')">📥 Import</button>
     <button data-view="settings" onclick="go('settings')">⚙️ Settings</button>
   </div>
 </div>
@@ -344,6 +345,23 @@
   </section>
 
   <!-- ===================== SETTINGS ===================== -->
+  <!-- ===================== ACCOUNTS (mapping) ===================== -->
+  <section id="v_accounts" class="view">
+    <h2>Accounts — which account reports where</h2>
+    <p class="sub">Every account and the team it rolls up to. Change the <b>Reports to</b> dropdown to move an account to a different team — its <b>set aside</b> and its <b>spending</b> move with it. (For example, move “Background Checks” into Safety &amp; Security.)</p>
+    <div class="toolbar">
+      <div class="f" style="flex:1"><label>Find an account</label><input id="acctMapSearch" placeholder="number or name (music, kids, 5190…)" oninput="renderAccounts()"></div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table>
+        <thead><tr><th>Account</th><th>Reports to</th><th class="num">Set aside</th><th class="num">Spent</th></tr></thead>
+        <tbody id="acctRows"></tbody>
+        <tfoot id="acctFoot"></tfoot>
+      </table>
+    </div>
+    <p class="sub" style="margin-top:14px">Accounts come from your imported budget (Import → Option A) and your QuickBooks spending (Option B). Reassigning one here re-rolls both at once.</p>
+  </section>
+
   <section id="v_settings" class="view">
     <h2>Settings</h2>
     <p class="sub">Organization details and your data.</p>
@@ -515,6 +533,7 @@ function go(view){
   if(view==='teams') renderTeams();
   if(view==='revenue') renderRevenue();
   if(view==='txns') renderTxns();
+  if(view==='accounts') renderAccounts();
   if(view==='import') prepImport();
 }
 
@@ -648,6 +667,53 @@ function teamDrill(t){
     <tr class="drill"><td colspan="4" class="muted" style="text-transform:uppercase;font-size:11px;letter-spacing:.3px">Spending by account</td><td colspan="3"></td></tr>
     ${rows}</tbody></table></td></tr>`;
 }
+/* ---------- ACCOUNTS: editable account → team mapping ---------- */
+let acctMapRows=[];
+function allAccounts(){
+  const map={};
+  db.teams.forEach(t=>(t.lines||[]).forEach(l=>{
+    map['#'+l.acct]={acct:l.acct,name:l.name,teamId:t.id,budget:+l.budget||0,prior:+l.prior||0,spent:0,fromBudget:true};
+  }));
+  db.txns.filter(x=>inViewYear(x)&&x.type==='expense').forEach(x=>{
+    const nm=(x.account||'(no account)');
+    let hit=Object.values(map).find(a=>a.fromBudget&&a.name.toLowerCase()===nm.toLowerCase()&&a.teamId===x.teamId)
+         || Object.values(map).find(a=>a.fromBudget&&a.name.toLowerCase()===nm.toLowerCase());
+    if(hit){ hit.spent+=(+x.amount||0); }
+    else { const k='n:'+x.teamId+':'+nm.toLowerCase(); if(!map[k]) map[k]={acct:'',name:nm,teamId:x.teamId,budget:0,prior:0,spent:0,fromBudget:false}; map[k].spent+=(+x.amount||0); }
+  });
+  return Object.values(map).sort((a,b)=>String(a.acct||('zzz'+a.name)).localeCompare(String(b.acct||('zzz'+b.name))));
+}
+function renderAccounts(){
+  const tb=document.getElementById('acctRows');
+  if(!db.teams.length){ tb.innerHTML='<tr><td colspan="4"><div class="empty">No accounts yet. Import your budget (Import → Option A) or pull spending from QBO first.</div></td></tr>'; document.getElementById('acctFoot').innerHTML=''; return; }
+  const q=(document.getElementById('acctMapSearch').value||'').trim().toLowerCase();
+  let rows=allAccounts();
+  if(q) rows=rows.filter(a=>String(a.acct).toLowerCase().includes(q)||a.name.toLowerCase().includes(q));
+  acctMapRows=rows;
+  if(!rows.length){ tb.innerHTML='<tr><td colspan="4"><div class="empty">No accounts match.</div></td></tr>'; document.getElementById('acctFoot').innerHTML=''; return; }
+  const opts=(tid)=>db.teams.map(t=>`<option value="${t.id}" ${t.id===tid?'selected':''}>${esc(t.name)}</option>`).join('');
+  let tB=0,tS=0;
+  tb.innerHTML=rows.map((a,i)=>{ tB+=a.budget; tS+=a.spent;
+    return `<tr>
+      <td>${a.acct?`<span class="muted" style="font-family:monospace">${esc(a.acct)}</span> `:''}${esc(a.name)}${a.fromBudget?'':' <span class="pill qbo" style="font-size:10px">QBO only</span>'}</td>
+      <td><select class="mapsel" onchange="reassignByRow(${i},this.value)">${opts(a.teamId)}</select></td>
+      <td class="num">${a.budget?money0(a.budget):''}</td>
+      <td class="num">${a.spent?money0(a.spent):''}</td>
+    </tr>`; }).join('');
+  document.getElementById('acctFoot').innerHTML=`<tr style="font-weight:800"><td>${rows.length} account${rows.length===1?'':'s'}</td><td></td><td class="num">${money0(tB)}</td><td class="num">${money0(tS)}</td></tr>`;
+}
+function reassignByRow(i,newTeamId){
+  const a=acctMapRows[i]; if(!a||a.teamId===newTeamId)return;
+  const oldT=team(a.teamId), newT=team(newTeamId); if(!newT)return;
+  if(a.acct && oldT && oldT.lines){
+    const idx=oldT.lines.findIndex(l=>l.acct===a.acct);
+    if(idx>=0){ const line=oldT.lines.splice(idx,1)[0]; if(!newT.lines)newT.lines=[]; newT.lines.push(line);
+      oldT.alloc=oldT.lines.reduce((s,l)=>s+(+l.budget||0),0); newT.alloc=newT.lines.reduce((s,l)=>s+(+l.budget||0),0); }
+  }
+  db.txns.forEach(x=>{ if(x.type==='expense'&&x.teamId===a.teamId&&(x.account||'').toLowerCase()===a.name.toLowerCase()) x.teamId=newTeamId; });
+  save(); renderAccounts();
+}
+
 function teamTypeHint(){
   const r=document.getElementById('tm_type').value==='restricted';
   document.getElementById('tm_openWrap').style.display=r?'':'none';
