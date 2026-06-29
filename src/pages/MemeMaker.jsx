@@ -183,10 +183,43 @@ export default function MemeMaker({ session }) {
   function paraLines(ctx, paras, maxW, font) { let all = []; for (const p of paras) { wrap(ctx, p, maxW, font).forEach(l => all.push(l)); all.push("__GAP__"); } all.pop(); return all; }
 
   // paints the square 1080x1080 card onto any context
-  const paintCard = (ctx, onReady, themeKey) => {
+  const paintCard = (ctx, onReady, themeKey, minimal) => {
     const CARD = THEME_STYLES[themeKey] || THEME_STYLES.america250;
     const W = 1080, H = 1080, accent = biz.accent || CARD.gold;
     ctx.clearRect(0, 0, W, H);
+
+    // MINIMAL: clean text-only insert for framed themes — transparent, no border/stars/placeholder/footer
+    if (minimal) {
+      const inX = 104, inW = W - 208, top = 134, areaBot = H - 96;
+      ctx.textAlign = "center";
+      if (current.num && current.num.trim()) { ctx.fillStyle = accent; ctx.font = "700 23px 'DM Mono', monospace"; try { ctx.letterSpacing = "3px"; } catch (e) {} ctx.fillText(current.num.toUpperCase(), W / 2, top); try { ctx.letterSpacing = "0px"; } catch (e) {} }
+      let hSize = 52, hLines = [""]; const hasHead = !!(current.head && current.head.trim());
+      if (hasHead) { while (hSize >= 30) { hLines = wrap(ctx, current.head, inW, "700 " + hSize + "px 'DM Serif Display', serif"); if (hLines.length <= 3) break; hSize -= 2; } }
+      const hH = hasHead ? hLines.length * hSize * 1.07 + 16 : 0;
+      const bodyParas = String(current.body || "").split("\n").map(s => s.trim()).filter(Boolean);
+      const measure = sz => { const ls = paraLines(ctx, bodyParas, inW, "400 " + sz + "px Figtree, sans-serif"); let h = 0; for (const l of ls) h += (l === "__GAP__" ? sz * 0.5 : sz * 1.34); return { h, ls }; };
+      let bSize = 28, m = bodyParas.length ? measure(bSize) : { h: 0, ls: [] };
+      const sideTxt = (current.side || "").trim();
+      const sideLines = sideTxt ? wrap(ctx, sideTxt, inW, "italic 24px 'DM Serif Display', serif") : [];
+      const sideH = sideTxt ? sideLines.length * 32 + 16 : 0;
+      const aTop = top + 28, aBot = areaBot - sideH;
+      while (bodyParas.length && bSize >= 15 && aTop + hH + m.h > aBot) { bSize -= 1; m = measure(bSize); }
+      let y = aTop + Math.max(0, ((aBot - aTop) - (hH + m.h)) / 2);
+      if (hasHead) { ctx.fillStyle = CARD.navy; ctx.font = "700 " + hSize + "px 'DM Serif Display', serif"; ctx.textAlign = "center"; hLines.forEach(l => { ctx.fillText(l, W / 2, y + hSize * 0.85); y += hSize * 1.07; }); y += 16; }
+      if (bodyParas.length) {
+        ctx.fillStyle = CARD.ink; ctx.font = "400 " + bSize + "px Figtree, sans-serif"; ctx.textAlign = "left";
+        for (let i = 0; i < m.ls.length; i++) {
+          const l = m.ls[i]; if (l === "__GAP__") { y += bSize * 0.5; continue; }
+          const last = (i === m.ls.length - 1) || (m.ls[i + 1] === "__GAP__");
+          const words = l.split(" "); const lw = ctx.measureText(l).width;
+          if (last || words.length < 2 || lw < inW * 0.5) { ctx.fillText(l, inX, y + bSize * 0.85); }
+          else { const ww = words.reduce((s, w) => s + ctx.measureText(w).width, 0); const gap = (inW - ww) / (words.length - 1); let x = inX; for (const w of words) { ctx.fillText(w, x, y + bSize * 0.85); x += ctx.measureText(w).width + gap; } }
+          y += bSize * 1.34;
+        }
+      }
+      if (sideTxt) { ctx.fillStyle = accent; ctx.font = "italic 24px 'DM Serif Display', serif"; ctx.textAlign = "center"; let sy = areaBot - sideH + 28; sideLines.forEach(l => { ctx.fillText(l, W / 2, sy); sy += 32; }); }
+      return;
+    }
 
     const img = getImg(postImgs[idx], onReady);
     const logo = getImg(biz.logo, onReady);
@@ -304,7 +337,7 @@ export default function MemeMaker({ session }) {
     const box = (themeObj && themeObj.box) || THEME_BOX;
     // render the square card to an offscreen buffer
     const off = document.createElement("canvas"); off.width = 1080; off.height = 1080;
-    paintCard(off.getContext("2d"), onReady, theme);
+    paintCard(off.getContext("2d"), onReady, theme, !!frame);
     if (frame) {
       // composite: full 1080x1350 frame, card dropped into the content window
       if (visible.width !== 1080 || visible.height !== 1350) { visible.width = 1080; visible.height = 1350; }
