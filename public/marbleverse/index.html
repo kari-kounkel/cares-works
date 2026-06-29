@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Marbleverse · A jar for your wins</title>
+<meta name="description" content="Drop a marble for every win — sobriety, water, movement, a sales call, a paid invoice. Watch them pile up.">
+
+<!-- Google Analytics 4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-WHKMKCD1SD"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-WHKMKCD1SD');
+</script>
+<!-- End Google Analytics 4 -->
+
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🫙</text></svg>">
+
+<style>
+  :root{
+    --bg1:#fbfdfc; --bg2:#eef7f5;
+    --ink:#2c4a45; --ink-soft:#5d817b; --muted:#8aa8a2;
+    --line:rgba(120,170,162,.28); --card:#ffffff;
+    --accent:#1fb6a6; --accent-dk:#149587; --accent-bg:rgba(31,182,166,.10);
+    --gold:#e0a526; --shadow:0 1px 3px rgba(31,70,64,.07),0 10px 30px rgba(31,70,64,.08);
+    --shadow-lg:0 24px 60px -18px rgba(31,70,64,.32);
+    --radius:22px;
+    --serif:"Georgia","Times New Roman",serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  /* Midnight theme */
+  body[data-theme="Midnight"]{
+    --bg1:#0b0b12; --bg2:#15142a;
+    --ink:#e7e9ff; --ink-soft:#b7bdf0; --muted:#8089c7;
+    --line:rgba(129,140,248,.26); --card:#161531;
+    --accent:#818cf8; --accent-dk:#6f7bf0; --accent-bg:rgba(129,140,248,.14);
+    --shadow:0 1px 3px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.45);
+    --shadow-lg:0 24px 60px -18px rgba(0,0,0,.7);
+  }
+  /* Ceramic theme */
+  body[data-theme="Ceramic"]{
+    --bg1:#fffdf9; --bg2:#f6ede0;
+    --ink:#6b5740; --ink-soft:#917a5d; --muted:#b09a7c;
+    --line:rgba(180,160,135,.35); --card:#fffefb;
+    --accent:#c89a5b; --accent-dk:#b1843f; --accent-bg:rgba(200,154,91,.13);
+    --gold:#c89a5b;
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:var(--sans); color:var(--ink); line-height:1.5;
+    background:radial-gradient(120% 80% at 50% -10%, var(--bg2) 0%, var(--bg1) 60%);
+    background-attachment:fixed; min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{max-width:480px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column; position:relative; overflow:hidden}
+
+  /* ---------- header ---------- */
+  header{
+    position:sticky; top:0; z-index:30; padding:16px 20px 12px;
+    display:flex; align-items:center; justify-content:space-between;
+    backdrop-filter:blur(10px); background:linear-gradient(to bottom, rgba(255,255,255,.55), rgba(255,255,255,0));
+  }
+  body[data-theme="Midnight"] header{background:linear-gradient(to bottom, rgba(11,11,18,.6), rgba(11,11,18,0))}
+  .brand{display:flex; align-items:center; gap:9px; font-weight:800; letter-spacing:.3px; font-size:18px; color:var(--ink)}
+  .brand .dot{width:13px;height:13px;border-radius:50%;background:radial-gradient(circle at 32% 30%, #fff7, var(--accent) 70%, #0004 130%); box-shadow:0 0 10px var(--accent)}
+  .iconbar{display:flex; gap:2px; align-items:center}
+  .iconbtn{appearance:none; border:none; background:transparent; cursor:pointer; font-size:18px; padding:8px; border-radius:12px; line-height:1; color:var(--ink-soft); transition:background .15s}
+  .iconbtn:hover{background:var(--accent-bg)}
+  .save-flag{font-size:10px; color:var(--muted); margin-right:2px; opacity:.8}
+
+  /* ---------- dates strip ---------- */
+  .chips{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; padding:2px 20px 0}
+  .chip{padding:6px 12px; border-radius:999px; background:var(--accent-bg); border:1px solid var(--line); font-size:12px; color:var(--ink)}
+  .chip b{font-weight:800; color:var(--accent-dk)}
+
+  /* ---------- goals rings ---------- */
+  .goalstrip{display:flex; gap:14px; overflow-x:auto; padding:14px 20px 4px; scrollbar-width:none}
+  .goalstrip::-webkit-scrollbar{display:none}
+  .goalcard{flex:0 0 auto; display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; min-width:78px}
+  .ring{position:relative; width:64px; height:64px}
+  .ring svg{transform:rotate(-90deg)}
+  .ring .pct{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; color:var(--ink)}
+  .goalcard .gname{font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-soft); text-align:center; max-width:84px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .goalcard .gsub{font-size:10px; color:var(--muted)}
+
+  /* ---------- main ---------- */
+  main{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:8px 20px 150px; position:relative}
+  .count{font-family:var(--serif); font-weight:700; font-size:74px; line-height:1; letter-spacing:-3px; color:var(--ink); text-align:center}
+  .count-sub{font-size:12px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-top:6px; text-align:center}
+
+  /* ---------- jar ---------- */
+  .jarwrap{position:relative; width:100%; max-width:340px; aspect-ratio:3/4.2; margin:18px auto 0}
+  .jarwrap::after{content:''; position:absolute; left:15%; right:15%; bottom:-10px; height:24px; border-radius:50%;
+    background:radial-gradient(closest-side, rgba(20,50,46,.20), transparent 75%); filter:blur(3px); z-index:0}
+  .jar-glass{position:absolute; inset:0; border:3px solid var(--glass-edge); border-radius:46px 46px 92px 92px;
+    background:var(--glass); overflow:hidden; z-index:1; pointer-events:none;
+    box-shadow:0 32px 60px -30px rgba(20,50,46,.30), inset 0 -34px 56px -34px rgba(0,0,0,.16), inset 16px 0 30px -22px rgba(255,255,255,.5)}
+  :root{ --glass:linear-gradient(165deg, rgba(31,182,166,.13), rgba(31,182,166,.03)); --glass-edge:rgba(95,150,142,.5) }
+  body[data-theme="Midnight"]{ --glass:linear-gradient(165deg, rgba(129,140,248,.16), rgba(60,55,120,.10)); --glass-edge:rgba(129,140,248,.4) }
+  body[data-theme="Ceramic"]{ --glass:linear-gradient(165deg, rgba(200,154,91,.14), rgba(200,154,91,.03)); --glass-edge:rgba(170,148,120,.55) }
+  .jar-shine{position:absolute; top:34px; left:30px; width:18px; height:66%; border-radius:999px; background:rgba(255,255,255,.55); filter:blur(5px); opacity:.5}
+  body[data-theme="Midnight"] .jar-shine{background:rgba(129,140,248,.4); opacity:.4}
+  .jar-lid{position:absolute; top:-22px; left:50%; transform:translateX(-50%); width:62%; z-index:20; display:flex; flex-direction:column; align-items:center}
+  .jar-lid .top{width:100%; height:18px; border:2px solid var(--line); border-radius:10px 10px 0 0; background:linear-gradient(var(--card),rgba(255,255,255,.4))}
+  .jar-lid .band{width:112%; height:13px; border:2px solid var(--line); border-top:none; border-radius:0 0 7px 7px; background:rgba(255,255,255,.4)}
+  body[data-theme="Midnight"] .jar-lid .band, body[data-theme="Midnight"] .jar-lid .top{background:rgba(49,46,129,.5)}
+  .jar-inner{position:absolute; left:15px; right:15px; top:16px; bottom:30px; overflow:hidden; border-radius:36px 36px 80px 80px; z-index:3}
+  .marble{position:absolute; border-radius:50%; display:flex; align-items:center; justify-content:center}
+  .marble .hl{position:absolute; top:13%; left:13%; width:34%; height:34%; background:rgba(255,255,255,.5); border-radius:50%; filter:blur(.6px)}
+  .marble .lbl{font-weight:900; color:#fff; text-shadow:0 1px 3px rgba(0,0,0,.85); text-align:center; line-height:1; padding:0 2px}
+  @keyframes drop{from{transform:translateY(-120px) scale(.4); opacity:0} to{transform:translateY(0) scale(1); opacity:1}}
+  .empty-hint{position:absolute; top:50%; left:0; right:0; transform:translateY(-50%); text-align:center; color:var(--muted); font-size:13px; font-style:italic; padding:0 28px; z-index:5}
+
+  /* ---------- FAB ---------- */
+  .fab{position:fixed; bottom:30px; left:50%; transform:translateX(-50%); width:66px; height:66px; border-radius:50%;
+    border:none; cursor:pointer; z-index:40; font-size:30px; color:#fff;
+    background:radial-gradient(circle at 35% 30%, var(--accent), var(--accent-dk)); box-shadow:var(--shadow-lg);
+    display:flex; align-items:center; justify-content:center; transition:transform .12s}
+  .fab:active{transform:translateX(-50%) scale(.93)}
+
+  /* ---------- modal ---------- */
+  .scrim{position:fixed; inset:0; z-index:50; background:rgba(20,40,37,.42); backdrop-filter:blur(4px); display:none; align-items:flex-end; justify-content:center}
+  .scrim.open{display:flex}
+  .sheet{background:var(--card); width:100%; max-width:480px; max-height:92vh; overflow-y:auto; border-radius:30px 30px 0 0; padding:24px 22px 36px; box-shadow:var(--shadow-lg); animation:up .25s ease-out}
+  @keyframes up{from{transform:translateY(40px); opacity:.4} to{transform:translateY(0); opacity:1}}
+  .sheet h2{font-family:var(--serif); font-size:23px; margin:0 0 18px; color:var(--ink); display:flex; justify-content:space-between; align-items:center}
+  .sheet h2 .x{appearance:none; border:none; background:var(--accent-bg); color:var(--ink-soft); width:34px; height:34px; border-radius:50%; cursor:pointer; font-size:16px}
+  .lbl-cap{font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:.12em; color:var(--muted); display:block; margin-bottom:11px}
+  .grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+  .grid2{display:grid; grid-template-columns:repeat(2,1fr); gap:12px}
+  .catbtn{display:flex; flex-direction:column; align-items:center; gap:7px; padding:13px 6px; border-radius:16px; border:1.5px solid var(--line); background:var(--card); cursor:pointer; color:var(--ink-soft); transition:.12s}
+  .catbtn .cmarb{width:22px; height:22px; border-radius:50%}
+  .catbtn span{font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:.03em}
+  .catbtn.on{background:var(--accent-bg); border-color:var(--accent); color:var(--ink); transform:translateY(-1px)}
+  input[type=text], input[type=number], input[type=date], textarea, select{
+    width:100%; box-sizing:border-box; border:1.5px solid var(--line); border-radius:13px; padding:13px 15px; font-size:15px;
+    background:var(--card); color:var(--ink); outline:none; font-family:var(--sans)}
+  input:focus, textarea:focus, select:focus{border-color:var(--accent)}
+  textarea{resize:none; min-height:74px; line-height:1.5}
+  .field{margin-bottom:18px}
+  .row{display:flex; gap:12px}
+  .btn{appearance:none; border:none; cursor:pointer; border-radius:15px; padding:15px; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.09em; font-family:var(--sans)}
+  .btn.primary{background:radial-gradient(circle at 40% 30%, var(--accent), var(--accent-dk)); color:#fff; box-shadow:0 12px 24px -10px var(--accent)}
+  .btn.ghost{background:transparent; color:var(--ink-soft)}
+  .btn.outline{background:transparent; color:var(--ink); border:1.5px solid var(--line)}
+  .btn:disabled{opacity:.45; cursor:default}
+  .toggle{width:46px; height:27px; border-radius:14px; border:none; cursor:pointer; padding:4px; background:#cbd5d2; transition:.2s}
+  .toggle.on{background:var(--accent)}
+  .toggle .knob{width:19px; height:19px; background:#fff; border-radius:50%; transition:transform .2s}
+  .toggle.on .knob{transform:translateX(19px)}
+  .togrow{display:flex; align-items:center; justify-content:space-between; padding:15px; border-radius:15px; background:var(--accent-bg); border:1px solid var(--line); margin-bottom:18px}
+  .togrow span{font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.08em}
+  .pill{padding:18px 6px; border-radius:15px; font-size:11px; font-weight:900; cursor:pointer; border:2px solid var(--line); background:var(--card); color:var(--ink-soft)}
+  .pill.on{border-color:var(--accent); background:var(--accent-bg); color:var(--ink)}
+  .listcard{display:flex; justify-content:space-between; align-items:center; padding:15px 17px; border-radius:15px; border:1px solid var(--line); background:var(--card); margin-bottom:11px}
+  .listcard .big{font-size:23px; font-weight:800; color:var(--accent-dk)}
+  .histcard{padding:18px 20px; border-radius:18px; border:1px solid var(--line); background:var(--card); margin-bottom:13px}
+  .histcard .meta{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px}
+  .histcard .tag{font-size:8px; font-weight:800; text-transform:uppercase; letter-spacing:.1em; padding:3px 9px; border-radius:999px; background:var(--accent-bg); color:var(--ink-soft); border:1px solid var(--line)}
+  .histcard .date{font-size:10px; font-weight:900; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-soft)}
+  .histcard p{margin:0; font-style:italic; font-weight:600; color:var(--ink)}
+  .celebrate{text-align:center}
+  .celebrate .badge{display:inline-block; padding:6px 16px; border-radius:999px; font-size:10px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; background:var(--accent-bg); color:var(--accent-dk); border:1px solid var(--line); margin-bottom:18px}
+  .celebrate h3{font-family:var(--serif); font-size:19px; line-height:1.5; color:var(--ink); margin:0 0 22px}
+  .colorrow{display:flex; gap:9px; flex-wrap:wrap}
+  .swatch{width:26px; height:26px; border-radius:50%; cursor:pointer; border:2px solid transparent}
+  .swatch.on{border-color:var(--ink); transform:scale(1.12)}
+  .help{font-size:12.5px; line-height:1.6; color:var(--ink-soft); margin:0 0 18px}
+
+  .foot{padding:18px 20px 26px; text-align:center; font-size:11px; color:var(--muted); line-height:1.6}
+  .foot a{color:var(--accent-dk); text-decoration:none}
+
+  /* ---------- onboarding ---------- */
+  .ob{min-height:100vh; max-width:480px; margin:0 auto; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px 30px; text-align:center}
+  .ob .emoji{font-size:60px; margin-bottom:8px}
+  .ob h1{font-family:var(--serif); font-size:27px; color:var(--ink); margin:14px 0 6px}
+  .ob .sub{font-size:12px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:var(--accent-dk); margin-bottom:18px}
+  .ob p{font-size:15px; line-height:1.65; color:var(--ink-soft); max-width:330px; margin:0 auto 30px}
+  .dots{display:flex; gap:7px; margin-bottom:26px}
+  .dots i{width:8px; height:8px; border-radius:50%; background:var(--line)}
+  .dots i.on{background:var(--accent)}
+  .ob .row{width:100%; max-width:330px}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<!-- Ask Kari widget (Lite support mode) -->
+<script>window.AskKariConfig={mode:"support",site:"Marbleverse"};</script>
+<script src="https://chat.karikounkel.com/widget.js?v=2" defer></script>
+
+<script>
+/* ============================================================
+   MARBLEVERSE — a jar for your wins
+   Single-file · localStorage-only · drops into any static host
+   ============================================================ */
+(function(){
+  "use strict";
+  var KEY = "marbleverse_v6";
+  var MILESTONES = [7,13,30,60,90,100,365];
+  var SIZE = { sm:30, md:42, lg:56, xl:74 };
+  var COLORS = ['#1fb6a6','#FF8C42','#FFD700','#4361EE','#F72585','#70E000','#9B5DE5','#00BBF9','#2E9E6B'];
+
+  /* ---- goal packs ---- */
+  var PACKS = {
+    personal: [
+      {id:'sober',  name:'Sobriety',  label:'SOBER',   color:'#4361EE'},
+      {id:'water',  name:'Hydration', label:'WATER',   color:'#1fb6a6'},
+      {id:'move',   name:'Movement',  label:'MOVE',    color:'#70E000'},
+      {id:'rest',   name:'Rest',      label:'REST',    color:'#9B5DE5'},
+      {id:'grateful',name:'Gratitude',label:'GRATEFUL',color:'#F72585'}
+    ],
+    business: [
+      {id:'reach',  name:'Outreach',   label:'REACH',  color:'#FF8C42'},
+      {id:'paid',   name:'Money In',   label:'PAID',   color:'#2E9E6B'},
+      {id:'content',name:'Content',    label:'POST',   color:'#4361EE'},
+      {id:'books',  name:'Books',      label:'BOOKS',  color:'#9B5DE5'},
+      {id:'client', name:'Client Care',label:'CLIENT', color:'#00BBF9'}
+    ]
+  };
+  function catList(){ return PACKS[S.pack].concat([{id:'custom',name:'Custom',label:'',color:'#FFD700'}]); }
+  function catById(id){ var all = PACKS.personal.concat(PACKS.business); for(var i=0;i<all.length;i++){ if(all[i].id===id) return all[i]; } return {id:id,name:id||'Win',label:'',color:'#FFD700'}; }
+
+  /* ---- voices ---- */
+  var VOICES = ['Zen','Poetic','Grounded','Christian','Boss'];
+  var ENC = {
+    Zen:{7:["Seven days. You showed up seven times. That's a whole week of trying.","Look at you, collecting moments like seashells.","A week of small yeses. The jar notices."],13:["Thirteen! The universe's favorite weirdo number.","A baker's dozen of grace.","13 marbles. Some think that's unlucky. They're wrong."],30:["Thirty whole days of not giving up.","A month! You can do hard things for 30 days.","30 marbles sitting pretty. You built that."],60:["Sixty days. Two whole months of choosing yourself.","Look at this jar getting crowded.","Two months of showing up."],90:["90 DAYS. A whole season.","A quarter year of tiny wins.","90 marbles. A chicken clucks in your honor."],100:["TRIPLE DIGITS. You absolute legend.","One hundred. You did that.","100 moments of not quitting."],365:["A YEAR. 365 days of gathering yourself.","One whole trip around the sun.","365 marbles. Proof you can do hard things."]},
+    Poetic:{7:["Seven small stones, stacking toward something bigger.","A week of breadcrumbs leading you home.","Seven stars in your pocket."],13:["Thirteen — the number of misfits and miracles.","A sideways dozen plus grace.","Thirteen whispers of 'I think I can.'"],30:["A moon has waxed and waned while you gathered these.","One month of stitching yourself back together.","Thirty sunrises you didn't waste."],60:["Sixty pearls on a string of ordinary days.","Two moons of quiet revolution.","Sixty chapters in the language of showing up."],90:["A season. You've weathered a whole season of becoming.","Ninety threads woven into hope.","The jar grows heavy with gathered grace."],100:["A hundred small rebellions against giving up.","Triple digits of stubborn, beautiful trying.","One hundred love letters to your future self."],365:["A year held in glass.","365 acts of faith that tomorrow could be different.","The jar overflows with a year of not quitting."]},
+    Grounded:{7:["Seven days. You showed up. That's the assignment.","A week in the jar. Not bad.","7 down. More where that came from."],13:["13 marbles. Luck had nothing to do with it.","Thirteen. Building something real.","A baker's dozen of 'I did that.'"],30:["A month. Not a fluke — a pattern.","30 days of doing the thing.","One month of receipts."],60:["Two months. Not a phase anymore.","60 marbles don't lie.","Halfway to 90."],90:["90 days. You've made a habit of not giving up.","Three months of proof.","90 marbles. Weight. Substance. You."],100:["Triple digits. The hundred club.","100. A HUNDRED. Say it out loud.","Welcome to 100."],365:["365 days. One whole year of choosing yourself.","A year becoming someone who doesn't quit.","365 marbles. Days you thought you couldn't."]},
+    Christian:{7:["'For seven days celebrate the festival to the Lord.' — Deut. 16:15. A week of faithfulness.","Seven days. Even God rested on the seventh. You showed up all seven.","The Lord made the world in seven days. You made a week of victories."],13:["'I can do all things through Christ who strengthens me.' — Phil. 4:13. Thirteen things and counting.","Thirteen graces gathered. His mercies are new every morning.","13 marbles of faith, each one a mustard seed."],30:["'Be still before the Lord and wait patiently for him.' — Psalm 37:7. Thirty days of waiting well.","A month of manna — daily bread, daily showing up.","'His faithfulness continues through all generations.' Thirty days of yours."],60:["'They who wait upon the Lord shall renew their strength.' — Isaiah 40:31. Sixty days of renewed strength.","Two months. 'He gives power to the weak.' You received it.","'The Lord is my strength and my song.' — Exodus 15:2. Sixty days of song."],90:["'Let us not become weary in doing good, for at the proper time we will reap.' — Gal. 6:9. Ninety days sown.","A season of faithfulness. 'To everything there is a season.' This one is yours.","'He has made everything beautiful in its time.' — Eccl. 3:11. Ninety beautiful days."],100:["'The Lord is my shepherd; I shall not want.' — Psalm 23:1. One hundred days of being led.","Triple digits! 'Great is Thy faithfulness.' One hundred times over.","'With God all things are possible.' — Matt. 19:26. You proved it 100 times."],365:["'His mercies are new every morning.' — Lam. 3:23. You collected 365 of them.","A year! 'The steadfast love of the Lord never ceases.' 365 days of steadfast love.","'Surely goodness and mercy shall follow me all the days of my life.' — Psalm 23:6. All 365."]},
+    Boss:{7:["Seven days of showing up for your business. That's traction.","A week of reps. This is how it starts — boringly, consistently.","7 wins logged. Pros are amateurs who didn't quit in week one."],13:["Thirteen. Momentum doesn't care about lucky numbers.","13 done. You're building a habit your competitors won't.","A baker's dozen of progress. Keep stacking."],30:["Thirty days. That's a system, not a fluke.","A month of consistent action — the unsexy part that wins.","30 wins. Receipts your future self will thank you for."],60:["Two months in. You're not 'trying' anymore — you're operating.","60 reps. Compounding is quietly working in your favor.","Two months of execution. Most quit at week two."],90:["90 days. A full quarter of doing the work.","A quarter of progress. Review what's working and double down.","90 wins. That's a track record."],100:["One hundred. This is a business now, not a hobby.","Triple digits of action. Few make it here.","100 wins logged. Consistency is your unfair advantage."],365:["A full year of showing up. That's the whole game.","365 days of action. You built what most people only talk about.","A year of receipts. This is what 'overnight success' actually looks like."]}
+  };
+  function encouragement(count, voice){
+    var m = MILESTONES.indexOf(count); if(m<0) return count+" marbles. Look at you go.";
+    var arr = ENC[voice][count]; return arr[Math.floor(Math.random()*arr.length)];
+  }
+
+  /* ---- state ---- */
+  function defaultPack(){
+    try{ var q=new URLSearchParams(location.search).get('pack'); if(q&&PACKS[q]) return q; }catch(e){}
+    return /caresmn|cares-works|tools\./i.test(location.host) ? 'business' : 'personal';
+  }
+  var DEFAULT = { marbles:[], tone:'Zen', theme:'Classic', soundEnabled:true, milestonesReached:[], dates:[], goals:[], pack:defaultPack(), onboarded:false };
+  var S;
+  function load(){
+    try{ var raw=localStorage.getItem(KEY); if(raw){ S=JSON.parse(raw); for(var k in DEFAULT){ if(S[k]===undefined) S[k]=DEFAULT[k]; } return; } }catch(e){}
+    S=JSON.parse(JSON.stringify(DEFAULT));
+  }
+  function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} flagSaved(); }
+  var savedT;
+  function flagSaved(){ var f=document.querySelector('.save-flag'); if(!f) return; f.textContent='saved'; f.style.opacity='.8'; clearTimeout(savedT); savedT=setTimeout(function(){ f.style.opacity='0'; },1200); }
+
+  function daysSince(d){ return Math.floor(Math.abs(Date.now()-new Date(d).getTime())/86400000); }
+  function goalProgress(g){ var n=S.marbles.filter(function(m){return m.category===g.category;}).length; return {n:n, pct:Math.min(100, Math.round(n/Math.max(1,g.target)*100))}; }
+
+  /* ---- sound ---- */
+  function playDrop(){
+    if(!S.soundEnabled) return;
+    try{
+      var ctx=new (window.AudioContext||window.webkitAudioContext)();
+      var o=ctx.createOscillator(), g=ctx.createGain();
+      o.type='sine'; o.frequency.setValueAtTime(880,ctx.currentTime); o.frequency.exponentialRampToValueAtTime(330,ctx.currentTime+.18);
+      g.gain.setValueAtTime(.0001,ctx.currentTime); g.gain.exponentialRampToValueAtTime(.22,ctx.currentTime+.01); g.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+.3);
+      o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime+.32);
+    }catch(e){}
+  }
+
+  /* ---- tiny DOM helper ---- */
+  function el(tag, attrs, kids){
+    var n=document.createElement(tag); attrs=attrs||{};
+    for(var k in attrs){
+      if(k==='class') n.className=attrs[k];
+      else if(k==='html') n.innerHTML=attrs[k];
+      else if(k==='style') n.setAttribute('style',attrs[k]);
+      else if(k.slice(0,2)==='on') n.addEventListener(k.slice(2).toLowerCase(), attrs[k]);
+      else if(attrs[k]!=null) n.setAttribute(k,attrs[k]);
+    }
+    (kids||[]).forEach(function(c){ if(c==null) return; n.appendChild(typeof c==='string'?document.createTextNode(c):c); });
+    return n;
+  }
+
+  /* ---- form scratch state ---- */
+  var form = { cat:null, label:'', note:'', history:false, count:1, advanced:false, color:null, size:'lg' };
+  function resetForm(){ var c=catList()[0]; form={cat:c, label:c.label, note:'', history:false, count:1, advanced:false, color:c.color, size:'lg'}; }
+
+  /* ============================== RENDER ============================== */
+  var root=document.getElementById('root');
+  function render(){
+    document.body.setAttribute('data-theme', S.theme);
+    root.innerHTML='';
+    if(!S.onboarded){ root.appendChild(renderOnboarding()); return; }
+    root.appendChild(renderApp());
+  }
+
+  /* ---------- onboarding ---------- */
+  var obSlide=0;
+  function renderOnboarding(){
+    var slides=[
+      {e:'🫙', t:'Welcome to Marbleverse', s:'A jar for your wins', p:"Every small victory deserves a marble. Sobriety, water, movement — or a sales call, a paid invoice, a post shipped. Whatever you're tracking, drop it in the jar."},
+      {e:'🎯', t:'Set a goal', s:'Give the marbles a finish line', p:"Choose a target — 20 sales calls, 30 days hydrated, $5k reached — and watch a progress ring fill with every marble you drop."},
+      {e:'📅', t:'Count what matters', s:'Days since a fresh start', p:"Add your sober date, your launch date, any milestone. The days add up right on your home screen."},
+      {e:'🗣️', t:'Choose your voice', s:'Encouragement your way', p:"Zen, Poetic, Grounded, Christian, or Boss. Hit a milestone and you'll get a message in the voice that speaks to you."},
+      {e:'📲', t:'Make it an app', s:'Add to your home screen', p:"iPhone: Share → 'Add to Home Screen.' Android: menu (⋮) → 'Install.' Now it's one tap away."}
+    ];
+    var sl=slides[obSlide], last=obSlide===slides.length-1;
+    var dots=el('div',{class:'dots'}, slides.map(function(_,i){ return el('i',{class:i===obSlide?'on':''}); }));
+    var row=el('div',{class:'row'},[
+      obSlide>0 ? el('button',{class:'btn outline', style:'flex:1', onClick:function(){ obSlide--; render(); }},['Back']) : null,
+      el('button',{class:'btn primary', style:'flex:2', onClick:function(){ if(last){ S.onboarded=true; resetForm(); save(); render(); } else { obSlide++; render(); } }},[last?"Let's go":'Next'])
+    ]);
+    return el('div',{class:'ob'},[
+      el('div',{class:'emoji'},[sl.e]),
+      el('h1',{},[sl.t]), el('div',{class:'sub'},[sl.s]), el('p',{},[sl.p]),
+      dots, row
+    ]);
+  }
+
+  /* ---------- main app ---------- */
+  function renderApp(){
+    var wrap=el('div',{class:'app'});
+
+    // header
+    wrap.appendChild(el('header',{},[
+      el('div',{class:'brand'},[ el('span',{class:'dot'}), 'Marbleverse' ]),
+      el('div',{class:'iconbar'},[
+        el('span',{class:'save-flag', style:'opacity:0'},['']),
+        el('button',{class:'iconbtn', title:'Goals', onClick:openGoals},['🎯']),
+        el('button',{class:'iconbtn', title:'Dates', onClick:openDates},['📅']),
+        el('button',{class:'iconbtn', title:'History', onClick:openHistory},['🕐']),
+        el('button',{class:'iconbtn', title:'Settings', onClick:openSettings},['⚙️'])
+      ])
+    ]));
+
+    // dates chips
+    if(S.dates.length){
+      wrap.appendChild(el('div',{class:'chips'}, S.dates.map(function(d){
+        return el('div',{class:'chip', html:'<b>'+esc(d.name)+'</b> · '+daysSince(d.date)+' days'});
+      })));
+    }
+
+    // goals rings
+    if(S.goals.length){
+      wrap.appendChild(el('div',{class:'goalstrip'}, S.goals.map(function(g){
+        var pr=goalProgress(g), c=g.color||'#1fb6a6';
+        var circ=2*Math.PI*27, off=circ*(1-pr.pct/100);
+        var svg='<svg width="64" height="64"><circle cx="32" cy="32" r="27" fill="none" stroke="var(--line)" stroke-width="6"/>'+
+          '<circle cx="32" cy="32" r="27" fill="none" stroke="'+c+'" stroke-width="6" stroke-linecap="round" stroke-dasharray="'+circ+'" stroke-dashoffset="'+off+'"/></svg>';
+        return el('div',{class:'goalcard', onClick:openGoals},[
+          el('div',{class:'ring', html:svg+'<div class="pct">'+pr.pct+'%</div>'}),
+          el('div',{class:'gname'},[g.name]),
+          el('div',{class:'gsub'},[pr.n+' / '+g.target])
+        ]);
+      })));
+    }
+
+    // main: count + jar
+    var inner=el('div',{class:'jar-inner'});
+    if(!S.marbles.length){
+      inner.appendChild(el('div',{class:'empty-hint'},['Your jar is empty. Tap + to drop your first marble.']));
+    }
+    S.marbles.forEach(function(m,i){
+      var sz=SIZE[m.size||'lg'], xl=m.size==='xl', newest=i===S.marbles.length-1;
+      var mb=el('div',{class:'marble', style:[
+        'width:'+sz+'px;height:'+sz+'px',
+        'left:'+m.x+'%;bottom:'+m.y+'%',
+        'background:radial-gradient(circle at 34% 32%, '+m.color+' 0%, rgba(0,0,0,.42) 122%)',
+        'box-shadow:'+(xl?'0 0 22px '+m.color+'AA, inset -4px -4px 9px rgba(0,0,0,.6), inset 4px 4px 9px rgba(255,255,255,.5)':'inset -2px -2px 6px rgba(0,0,0,.5), inset 2px 2px 6px rgba(255,255,255,.45), 0 3px 9px rgba(0,0,0,.3)'),
+        'z-index:'+(xl?20:1),
+        'opacity:'+(m.isHonoring?.72:1),
+        'font-size:'+Math.max(7,Math.round(sz*0.17))+'px',
+        newest?'animation:drop .5s ease-out':''
+      ].join(';')},[
+        m.label?el('span',{class:'lbl'},[m.label]):null,
+        el('div',{class:'hl'})
+      ]);
+      inner.appendChild(mb);
+    });
+    wrap.appendChild(el('main',{},[
+      el('div',{},[
+        el('div',{class:'count'},[String(S.marbles.length)]),
+        el('div',{class:'count-sub'},[S.marbles.length===1?'marble':'marbles gathered'])
+      ]),
+      el('div',{class:'jarwrap'},[
+        el('div',{class:'jar-lid'},[ el('div',{class:'top'}), el('div',{class:'band'}) ]),
+        el('div',{class:'jar-glass', html:'<div class="jar-shine"></div>'}),
+        inner
+      ])
+    ]));
+
+    // FAB
+    wrap.appendChild(el('button',{class:'fab', onClick:openCheckin},['+']));
+
+    // footer
+    wrap.appendChild(el('div',{class:'foot', html:'Marbleverse — a Kari Kounkel / CARES tool · your data stays on your device · <a href="https://tools.caresmn.com">tools.caresmn.com</a>'}));
+
+    return wrap;
+  }
+  function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+
+  /* ============================== MODALS ============================== */
+  function modal(title, bodyNodes){
+    var sheet=el('div',{class:'sheet'},[
+      el('h2',{},[ title, el('button',{class:'x', onClick:closeModal},['✕']) ])
+    ].concat(bodyNodes));
+    var scrim=el('div',{class:'scrim open', onClick:function(e){ if(e.target===scrim) closeModal(); }},[sheet]);
+    document.body.appendChild(scrim);
+    return scrim;
+  }
+  function closeModal(){ var s=document.querySelectorAll('.scrim'); s.forEach(function(n){ n.remove(); }); }
+
+  /* ---- check-in (add marble) ---- */
+  function openCheckin(){ resetForm(); _buildCheckinUI(); }
+  function rebuildCheckin(){ _buildCheckinUI(); }
+
+  function _buildCheckinUI(){
+    var body=[];
+    var catWrap=el('div',{class:'field'},[ el('span',{class:'lbl-cap'},["What's the win?"]) ]);
+    var grid=el('div',{class:'grid3'});
+    catList().forEach(function(c){
+      grid.appendChild(el('button',{class:'catbtn'+(form.cat&&form.cat.id===c.id?' on':''), onClick:function(){ form.cat=c; form.color=c.color; form.label=c.label; rebuildCheckin(); }},[
+        el('div',{class:'cmarb', style:'background:radial-gradient(circle at 35% 35%, '+c.color+' 0%, rgba(0,0,0,.3) 110%)'}),
+        el('span',{},[c.name])
+      ]));
+    });
+    catWrap.appendChild(grid); body.push(catWrap);
+    body.push(el('div',{class:'field'},[
+      el('span',{class:'lbl-cap'},['Label (optional, shows on the marble)']),
+      el('input',{type:'text', maxlength:8, value:form.label, placeholder:'E.G. WIN', oninput:function(e){ form.label=e.target.value.toUpperCase(); e.target.value=form.label; }})
+    ]));
+    var histTog=el('button',{class:'toggle'+(form.history?' on':''), onClick:function(){ form.history=!form.history; rebuildCheckin(); }},[el('div',{class:'knob'})]);
+    body.push(el('div',{class:'togrow'},[ el('span',{},['Adding past wins?']), histTog ]));
+    if(form.history){
+      body.push(el('div',{class:'field'},[
+        el('span',{class:'lbl-cap'},['How many? '+form.count]),
+        el('input',{type:'range', min:1, max:30, value:form.count, style:'padding:0', oninput:function(e){ form.count=parseInt(e.target.value); e.target.parentNode.querySelector('.lbl-cap').textContent='How many? '+form.count; }})
+      ]));
+    }
+    body.push(el('button',{class:'btn ghost', style:'padding:0 0 14px;text-align:left', onClick:function(){ form.advanced=!form.advanced; rebuildCheckin(); }},[form.advanced?'Hide options':'More options']));
+    if(form.advanced){
+      body.push(el('div',{class:'field'},[ el('span',{class:'lbl-cap'},['Marble color']),
+        el('div',{class:'colorrow'}, COLORS.map(function(c){ return el('div',{class:'swatch'+(form.color===c?' on':''), style:'background:'+c, onClick:function(){ form.color=c; rebuildCheckin(); }}); })) ]));
+      body.push(el('div',{class:'field'},[ el('span',{class:'lbl-cap'},['Size']),
+        el('div',{class:'row'}, ['sm','md','lg'].map(function(s){ return el('button',{class:'btn '+(form.size===s?'primary':'outline'), style:'flex:1;padding:10px', onClick:function(){ form.size=s; rebuildCheckin(); }},[s.toUpperCase()]); })) ]));
+    }
+    body.push(el('textarea',{placeholder:'Write a tiny note (optional)…', style:'margin-bottom:22px', oninput:function(e){ form.note=e.target.value; }}, [form.note]));
+    body.push(el('div',{class:'row'},[
+      el('button',{class:'btn ghost', style:'flex:1', onClick:closeModal},['Close']),
+      el('button',{class:'btn primary', style:'flex:2', onClick:doAddMarble},['Drop it in'])
+    ]));
+    modal('A moment for you', body);
+  }
+
+  function doAddMarble(){
+    var count = form.history ? form.count : 1;
+    var start = S.marbles.length, total = start+count;
+    var milestone=null;
+    for(var j=0;j<MILESTONES.length;j++){ if(start<MILESTONES[j] && total>=MILESTONES[j]){ milestone=MILESTONES[j]; break; } }
+    var isMs = milestone!=null && S.milestonesReached.indexOf(milestone)<0;
+    var cat=form.cat||catList()[0];
+    for(var i=0;i<count;i++){
+      var idx=start+i, perRow=6, layer=Math.floor(idx/perRow);
+      var x=7+(idx%perRow)*14 + (Math.random()*6-3), y=Math.min(86, 5+layer*11+Math.random()*4);
+      S.marbles.push({
+        id:Date.now().toString(36)+Math.random().toString(36).slice(2)+i,
+        ts: form.history ? Date.now()-86400000*(i+1) : Date.now(),
+        note: i===0 ? (form.note||'').trim() : '',
+        color: form.advanced ? form.color : cat.color,
+        label: form.label, category: cat.id,
+        size: (isMs && i===count-1) ? 'xl' : form.size,
+        isHonoring: form.history, isMilestone: isMs && i===count-1, x:x, y:y
+      });
+    }
+    if(isMs){ S.milestonesReached.push(milestone); }
+    playDrop();
+    save(); closeModal(); render();
+    // celebrate goals newly completed
+    var gc=goalJustCompleted(cat.id);
+    if(isMs) showCelebrate(encouragement(milestone, S.tone), S.marbles.length+' gathered');
+    else if(gc) showCelebrate('Goal complete: '+gc.name+'! '+gc.target+' and done. 🎉','Goal reached');
+  }
+  function goalJustCompleted(catId){
+    for(var i=0;i<S.goals.length;i++){ var g=S.goals[i]; if(g.category===catId && !g.celebrated){ var pr=goalProgress(g); if(pr.pct>=100){ g.celebrated=true; save(); return g; } } }
+    return null;
+  }
+
+  function showCelebrate(msg, badge){
+    modal('', [ el('div',{class:'celebrate'},[
+      el('div',{class:'badge'},[badge]),
+      el('h3',{},[msg]),
+      el('button',{class:'btn primary', style:'width:100%', onClick:closeModal},["I'll take that"])
+    ]) ]);
+    var sh=document.querySelector('.sheet h2'); if(sh) sh.style.display='none';
+  }
+
+  /* ---- goals ---- */
+  var gForm={name:'', target:10, color:'#1fb6a6', category:null};
+  function openGoals(){
+    closeModal();
+    gForm={name:'', target:10, color:catList()[0].color, category:catList()[0].id};
+    var body=[ el('p',{class:'help'},['Give your marbles a finish line. Pick a category, set a target, and the ring fills as you drop marbles.']) ];
+    // existing goals
+    S.goals.forEach(function(g){
+      var pr=goalProgress(g);
+      body.push(el('div',{class:'listcard'},[
+        el('div',{},[
+          el('div',{style:'font-weight:700;font-size:14px;color:var(--ink)'},[g.name]),
+          el('div',{style:'font-size:11px;color:var(--ink-soft);margin-top:2px'},[catById(g.category).name+' · '+pr.n+' of '+g.target])
+        ]),
+        el('div',{style:'display:flex;align-items:center;gap:12px'},[
+          el('div',{class:'big'},[pr.pct+'%']),
+          el('button',{class:'iconbtn', onClick:function(){ S.goals=S.goals.filter(function(x){return x.id!==g.id;}); save(); openGoals(); }},['🗑️'])
+        ])
+      ]));
+    });
+    // add form
+    var cats=catList().filter(function(c){return c.id!=='custom';});
+    var catSel=el('select',{onchange:function(e){ gForm.category=e.target.value; gForm.color=catById(e.target.value).color; }},
+      cats.map(function(c){ return el('option',{value:c.id},[c.name]); }));
+    body.push(el('div',{style:'padding:18px;border-radius:18px;background:var(--accent-bg);border:1px solid var(--line);margin-top:6px'},[
+      el('span',{class:'lbl-cap'},['New goal']),
+      el('div',{class:'field'},[ el('input',{type:'text', placeholder:'Name (e.g. 20 Sales Calls)', oninput:function(e){ gForm.name=e.target.value; }}) ]),
+      el('div',{class:'row', style:'margin-bottom:16px'},[
+        el('div',{style:'flex:1'},[ el('span',{class:'lbl-cap'},['Category']), catSel ]),
+        el('div',{style:'width:110px'},[ el('span',{class:'lbl-cap'},['Target']), el('input',{type:'number', min:1, value:10, oninput:function(e){ gForm.target=Math.max(1,parseInt(e.target.value)||1); }}) ])
+      ]),
+      el('button',{class:'btn primary', style:'width:100%', onClick:function(){
+        if(!gForm.name.trim()) return;
+        S.goals.push({id:Date.now().toString(36), name:gForm.name.trim(), target:gForm.target, color:gForm.color, category:gForm.category, celebrated:false});
+        save(); openGoals();
+      }},['Add goal'])
+    ]));
+    modal('Goals', body);
+  }
+
+  /* ---- dates ---- */
+  var dForm={name:'', date:''};
+  function openDates(){
+    closeModal(); dForm={name:'',date:''};
+    var body=[ el('p',{class:'help'},['Track the days since something important — a sober date, a launch, a fresh start.']) ];
+    S.dates.forEach(function(d){
+      body.push(el('div',{class:'listcard'},[
+        el('div',{},[
+          el('div',{style:'font-weight:700;font-size:14px;color:var(--ink)'},[d.name]),
+          el('div',{style:'font-size:11px;color:var(--ink-soft);margin-top:2px'},['Started '+new Date(d.date).toLocaleDateString()])
+        ]),
+        el('div',{style:'display:flex;align-items:center;gap:12px'},[
+          el('div',{class:'big'},[String(daysSince(d.date)), el('span',{style:'font-size:11px;font-weight:600;margin-left:4px'},['days'])]),
+          el('button',{class:'iconbtn', onClick:function(){ S.dates=S.dates.filter(function(x){return x.id!==d.id;}); save(); openDates(); }},['🗑️'])
+        ])
+      ]));
+    });
+    body.push(el('div',{style:'padding:18px;border-radius:18px;background:var(--accent-bg);border:1px solid var(--line);margin-top:6px'},[
+      el('span',{class:'lbl-cap'},['Add a date to track']),
+      el('div',{class:'field'},[ el('input',{type:'text', placeholder:'Name (e.g. Sober Date)', oninput:function(e){ dForm.name=e.target.value; }}) ]),
+      el('div',{class:'field'},[ el('input',{type:'date', oninput:function(e){ dForm.date=e.target.value; }}) ]),
+      el('button',{class:'btn primary', style:'width:100%', onClick:function(){
+        if(!dForm.name.trim()||!dForm.date) return;
+        S.dates.push({id:Date.now().toString(36), name:dForm.name.trim(), date:dForm.date});
+        save(); openDates();
+      }},['Add date'])
+    ]));
+    modal('Important Dates', body);
+  }
+
+  /* ---- history ---- */
+  function openHistory(){
+    closeModal();
+    var body=[];
+    if(!S.marbles.length){ body.push(el('p',{class:'help', style:'text-align:center;font-style:italic;margin-top:40px'},['No marbles yet. Drop your first one.'])); }
+    else{
+      S.marbles.slice().reverse().forEach(function(m){
+        body.push(el('div',{class:'histcard'},[
+          el('div',{class:'meta'},[
+            el('span',{class:'date'},[new Date(m.ts).toLocaleDateString()]),
+            m.category?el('span',{class:'tag'},[catById(m.category).name]):null
+          ]),
+          el('p',{},[m.note || 'A little win.'])
+        ]));
+      });
+    }
+    modal('What’s in here', body);
+  }
+
+  /* ---- settings ---- */
+  function openSettings(){
+    closeModal();
+    var body=[];
+    // pack
+    body.push(el('div',{class:'field'},[
+      el('span',{class:'lbl-cap'},['Goal pack']),
+      el('div',{class:'grid2'},[
+        el('button',{class:'pill'+(S.pack==='personal'?' on':''), onClick:function(){ S.pack='personal'; save(); openSettings(); }},['🌿 Personal']),
+        el('button',{class:'pill'+(S.pack==='business'?' on':''), onClick:function(){ S.pack='business'; save(); openSettings(); }},['💼 Business'])
+      ]),
+      el('p',{style:'font-size:11px;color:var(--muted);margin:10px 0 0'},[ S.pack==='personal' ? 'Sobriety · Hydration · Movement · Rest · Gratitude' : 'Outreach · Money In · Content · Books · Client Care' ])
+    ]));
+    // theme
+    body.push(el('div',{class:'field'},[
+      el('span',{class:'lbl-cap'},['Atmosphere']),
+      el('div',{class:'grid3'}, ['Classic','Midnight','Ceramic'].map(function(th){
+        return el('button',{class:'pill'+(S.theme===th?' on':''), onClick:function(){ S.theme=th; save(); render(); openSettings(); }},[th]);
+      }))
+    ]));
+    // voice
+    body.push(el('div',{class:'field'},[
+      el('span',{class:'lbl-cap'},['Voice']),
+      el('div',{class:'grid3'}, VOICES.map(function(v){
+        return el('button',{class:'pill'+(S.tone===v?' on':''), onClick:function(){ S.tone=v; save(); openSettings(); }},[v]);
+      }))
+    ]));
+    // sound
+    body.push(el('div',{class:'togrow'},[
+      el('span',{},['🔊 Drop chime']),
+      el('button',{class:'toggle'+(S.soundEnabled?' on':''), onClick:function(){ S.soundEnabled=!S.soundEnabled; save(); openSettings(); }},[el('div',{class:'knob'})])
+    ]));
+    // data
+    body.push(el('div',{class:'field', style:'margin-top:6px'},[
+      el('span',{class:'lbl-cap'},['Your data']),
+      el('button',{class:'btn outline', style:'width:100%;margin-bottom:10px', onClick:exportData},['⬇ Back up my jar (.json)']),
+      el('button',{class:'btn outline', style:'width:100%;margin-bottom:10px', onClick:function(){ document.getElementById('mvImport').click(); }},['⬆ Restore from backup']),
+      el('input',{type:'file', id:'mvImport', accept:'.json', style:'display:none', onchange:importData}),
+      el('button',{class:'btn ghost', style:'width:100%;color:#c0392b', onClick:function(){
+        if(confirm('Empty the whole jar? This erases every marble, goal and date on this device.')){ S=JSON.parse(JSON.stringify(DEFAULT)); S.onboarded=true; save(); closeModal(); render(); }
+      }},['Empty the jar (erase everything)'])
+    ]));
+    body.push(el('p',{style:'font-size:11px;color:var(--muted);text-align:center;margin:8px 0 0;line-height:1.6'},['Marbleverse keeps everything on this device. Back up to move it to another.']));
+    modal('Settings', body);
+  }
+  function exportData(){
+    var blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
+    var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='marbleverse-backup.json'; a.click();
+  }
+  function importData(e){
+    var f=e.target.files[0]; if(!f) return;
+    var r=new FileReader();
+    r.onload=function(){ try{ var d=JSON.parse(r.result); for(var k in DEFAULT){ if(d[k]===undefined) d[k]=DEFAULT[k]; } S=d; save(); closeModal(); render(); }catch(err){ alert('That file could not be read.'); } };
+    r.readAsText(f);
+  }
+
+  /* ---- boot ---- */
+  load(); render();
+})();
+</script>
+</body>
+</html>
