@@ -5,10 +5,12 @@
 // the gated cloud instead.
 import amortization from "./amortization.html?raw";
 import upstairsFloorMap from "./upstairs_floor_map.html?raw";
+import marbleverse from "./marbleverse.html?raw";
 
 export const FRAME_COCKPITS = {
   "amortization": { toolKey: "amortization", html: amortization, title: "Amortization & Journal Engine" },
   "upstairs-floor-map": { toolKey: "upstairs_floor_map", html: upstairsFloorMap, title: "Upstairs Floor Map" },
+  "marbleverse": { toolKey: "marbleverse", html: marbleverse, title: "Marbleverse" },
 };
 
 // Sensitive cockpits (real client/personnel data). Their HTML lives ONLY in the

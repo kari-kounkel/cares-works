@@ -152,6 +152,12 @@ export default function App() {
     if (!session) { navigate("/login"); return null; }
     return <Ledger session={session} />;
   }
+  // Marbleverse Pro — same jar as the free public tool, but cloud-synced to the
+  // member's account via KariCockpitFrame (kari_tool_data, tool_key "marbleverse").
+  if (path === "/tools/marbleverse") {
+    if (!session) { navigate("/login"); return null; }
+    return <KariCockpitFrame session={session} {...FRAME_COCKPITS["marbleverse"]} />;
+  }
 
   if (path.startsWith("/tools/")) {
     const slug = path.replace("/tools/", "");
