@@ -182,8 +182,8 @@
     <p class="sub">Each team gets money <b>set aside</b> by leadership. Steward subtracts what's been <b>spent</b> and shows what's <b>left</b> — so you never have to add up accounts by hand again. Click a team to see the detail behind its number.</p>
 
     <div class="toolbar">
-      <div style="flex:1"></div>
-      <button class="btn ghost sm" onclick="go('import')">📥 Pull spending from QBO</button>
+      <div class="f" style="flex:1"><label>Filter by account (music, kids, 5190…)</label><input id="acctSearch" placeholder="account number or name" oninput="setAcctQuery(this.value)"></div>
+      <button class="btn ghost sm" onclick="go('import')">📥 Import budget / QBO</button>
       <button class="btn sm" onclick="openTeam()">+ Add team</button>
     </div>
 
@@ -283,8 +283,21 @@
 
   <!-- ===================== IMPORT ===================== -->
   <section id="v_import" class="view">
-    <h2>Import spending from QuickBooks</h2>
-    <p class="sub">Pull each team's spending straight from a QBO report — so you never select accounts one-by-one again.</p>
+    <h2>Bring in your numbers</h2>
+    <p class="sub">Two pieces: your <b>budget</b> (what's set aside per ministry) and your <b>actual spending</b> (from QuickBooks). Bring in either or both — Left to spend = Set aside − Spent. Nothing is uploaded; it's read right here in your browser.</p>
+
+    <div class="card">
+      <h3>Option A · Pull in your budget</h3>
+      <p class="sub" style="margin-top:-6px">Drop your budget spreadsheet — one ministry/department per tab (like River of Life's “Proposed Fiscal 2027 Budget”). Steward reads each tab into a team, with every account line and what's set aside.</p>
+      <div class="dropzone" id="budDrop" onclick="document.getElementById('budFile').click()">
+        <div style="font-size:30px">📊</div>
+        <div><b>Drop your budget spreadsheet (.xlsx)</b> — or click to choose</div>
+        <div class="muted" style="font-size:12.5px;margin-top:4px">One ministry per tab · reads account numbers + Proposed amounts</div>
+      </div>
+      <input type="file" id="budFile" accept=".xlsx,.xls" style="display:none" onchange="budFilePicked(event)">
+      <div class="row" style="margin-top:12px"><span class="muted" id="budMsg"></span></div>
+      <div id="budPreview" style="display:none;margin-top:12px"></div>
+    </div>
 
     <div class="info">
       <b>In QuickBooks Online:</b> go to <b>Reports → Profit and Loss by Class</b> (or by Tag / Location), set your date range,
@@ -293,7 +306,7 @@
     </div>
 
     <div class="card">
-      <h3>1 · Bring in the report</h3>
+      <h3>Option B · Pull in actual spending from QuickBooks</h3>
       <div class="dropzone" id="dropzone" onclick="document.getElementById('qboFile').click()">
         <div style="font-size:30px">📄</div>
         <div><b>Drop your QBO export here</b> — or click to choose a file</div>
@@ -572,41 +585,64 @@ function stat(cls,label,n,s){
 /* ============================================================
    TEAMS
    ============================================================ */
-let openTeamId=null;
+let openTeamId=null, acctQuery='';
+function setAcctQuery(v){ acctQuery=(v||'').trim(); renderTeams(); }
 function renderTeams(){
   const tb=document.getElementById('teamRows');
   if(!db.teams.length){
-    tb.innerHTML='<tr><td colspan="7"><div class="empty">No teams yet. Click “+ Add team”, or pull them in from QBO.</div></td></tr>';
+    tb.innerHTML='<tr><td colspan="7"><div class="empty">No teams yet. Click “+ Add team”, or import your budget / QBO.</div></td></tr>';
     document.getElementById('teamFoot').innerHTML=''; return;
   }
   const frac=fyElapsedFraction();
+  const q=acctQuery.toLowerCase();
+  const matches=t=> !q || (t.lines||[]).some(l=>String(l.acct).toLowerCase().includes(q)||String(l.name||'').toLowerCase().includes(q));
+  const shown=db.teams.filter(matches);
   let tSet=0,tSp=0,tLeft=0;
-  tb.innerHTML=db.teams.map(t=>{
-    const pot=teamPot(t), sp=teamSpent(t.id), left=teamLeft(t), pct=pot? sp/pot*100:(sp>0?100:0);
-    tSet+=pot;tSp+=sp;tLeft+=left;
-    const cls=pot&&sp>pot?'red':(pot&&frac&&sp>pot*frac*1.1?'amber':'green');
-    let rows=`<tr>
-      <td><span class="teamname ${openTeamId===t.id?'open':''}" onclick="toggleTeam('${t.id}')"><span class="tri">▶</span>${esc(t.name)}${t.lead?`<span class="muted" style="font-weight:400">· ${esc(t.lead)}</span>`:''}</span></td>
-      <td><span class="pill ${t.type}">${t.type}</span></td>
-      <td class="num">${money0(pot)}</td>
-      <td class="num">${money0(sp)}</td>
-      <td class="num"><b style="${left<0?'color:var(--red)':'color:var(--green)'}">${money0(left)}</b></td>
-      <td class="progwrap"><div class="muted" style="font-size:12px">${pot?Math.round(pct)+'% used':''}</div><div class="bar ${cls}"><span style="width:${Math.min(pct,100)}%"></span></div></td>
-      <td class="right"><button class="btn ghost tiny" onclick="openTeam('${t.id}')">Edit</button></td>
-    </tr>`;
-    if(openTeamId===t.id) rows+=teamDrill(t);
-    return rows;
-  }).join('');
+  db.teams.forEach(t=>{ tSet+=teamPot(t); tSp+=teamSpent(t.id); tLeft+=teamLeft(t); });
+  if(!shown.length){
+    tb.innerHTML=`<tr><td colspan="7"><div class="empty">No accounts match “${esc(acctQuery)}”.</div></td></tr>`;
+  } else {
+    tb.innerHTML=shown.map(t=>{
+      const pot=teamPot(t), sp=teamSpent(t.id), left=teamLeft(t), pct=pot? sp/pot*100:(sp>0?100:0);
+      const cls=pot&&sp>pot?'red':(pot&&frac&&sp>pot*frac*1.1?'amber':'green');
+      const open = openTeamId===t.id || !!q;
+      let rows=`<tr>
+        <td><span class="teamname ${open?'open':''}" onclick="toggleTeam('${t.id}')"><span class="tri">▶</span>${esc(t.name)}${t.lead?`<span class="muted" style="font-weight:400">· ${esc(t.lead)}</span>`:''}</span></td>
+        <td><span class="pill ${t.type}">${t.type}</span></td>
+        <td class="num">${money0(pot)}</td>
+        <td class="num">${money0(sp)}</td>
+        <td class="num"><b style="${left<0?'color:var(--red)':'color:var(--green)'}">${money0(left)}</b></td>
+        <td class="progwrap"><div class="muted" style="font-size:12px">${pot?Math.round(pct)+'% used':''}</div><div class="bar ${cls}"><span style="width:${Math.min(pct,100)}%"></span></div></td>
+        <td class="right"><button class="btn ghost tiny" onclick="openTeam('${t.id}')">Edit</button></td>
+      </tr>`;
+      if(open) rows+=teamDrill(t);
+      return rows;
+    }).join('');
+  }
   document.getElementById('teamFoot').innerHTML=`<tr style="font-weight:800">
     <td>All teams</td><td></td><td class="num">${money0(tSet)}</td><td class="num">${money0(tSp)}</td>
     <td class="num" style="${tLeft<0?'color:var(--red)':'color:var(--green)'}">${money0(tLeft)}</td><td></td><td></td></tr>`;
 }
 function toggleTeam(id){ openTeamId = openTeamId===id?null:id; renderTeams(); }
 function teamDrill(t){
-  const exp=db.txns.filter(x=>inViewYear(x)&&x.teamId===t.id&&x.type==='expense');
-  if(!exp.length) return `<tr class="drill"><td colspan="7"><span class="muted">No spending recorded for this team yet.</span></td></tr>`;
-  const by={}; exp.forEach(x=>{ const k=x.account||'(no account)'; by[k]=(by[k]||0)+(+x.amount||0); });
-  const rows=Object.entries(by).sort((a,b)=>b[1]-a[1])
+  const spentBy={}; db.txns.filter(x=>inViewYear(x)&&x.teamId===t.id&&x.type==='expense')
+    .forEach(x=>{ const k=(x.account||'(no account)').toLowerCase(); spentBy[k]=(spentBy[k]||0)+(+x.amount||0); });
+  const q=acctQuery.toLowerCase();
+  // If this team has budget account lines (from a budget import), show them.
+  if(t.lines && t.lines.length){
+    let lines=t.lines;
+    if(q) lines=lines.filter(l=>String(l.acct).toLowerCase().includes(q)||String(l.name||'').toLowerCase().includes(q));
+    if(!lines.length) return `<tr class="drill"><td colspan="7"><span class="muted">No accounts match “${esc(acctQuery)}”.</span></td></tr>`;
+    const rows=lines.map(l=>{ const sp=spentBy[String(l.name||'').toLowerCase()]||0;
+      return `<tr class="drill"><td colspan="2"><span class="muted" style="font-family:monospace">${esc(l.acct)}</span> ${esc(l.name)}</td><td class="num">${money0(l.budget)}</td><td class="num muted">${money0(l.prior)}</td><td class="num">${sp?money0(sp):''}</td><td colspan="2"></td></tr>`; }).join('');
+    return `<tr class="drill"><td colspan="7" style="padding:0"><table style="margin:0"><tbody>
+      <tr class="drill"><td colspan="2" class="muted" style="text-transform:uppercase;font-size:11px;letter-spacing:.3px">Account</td><td class="num muted" style="font-size:11px">Set aside</td><td class="num muted" style="font-size:11px">Prior yr</td><td class="num muted" style="font-size:11px">Spent</td><td colspan="2"></td></tr>
+      ${rows}</tbody></table></td></tr>`;
+  }
+  // Otherwise fall back to spending-by-account from imported/entered transactions.
+  const exp=Object.entries(spentBy);
+  if(!exp.length) return `<tr class="drill"><td colspan="7"><span class="muted">No accounts or spending yet for this team.</span></td></tr>`;
+  const rows=exp.sort((a,b)=>b[1]-a[1])
     .map(([k,v])=>`<tr class="drill"><td colspan="4">${esc(k)}</td><td class="num">${money0(v)}</td><td colspan="2"></td></tr>`).join('');
   return `<tr class="drill"><td colspan="7" style="padding:0"><table style="margin:0"><tbody>
     <tr class="drill"><td colspan="4" class="muted" style="text-transform:uppercase;font-size:11px;letter-spacing:.3px">Spending by account</td><td colspan="3"></td></tr>
@@ -884,6 +920,60 @@ function loadXlsxLib(ok,fail){
   const s=document.createElement('script');
   s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
   s.onload=ok; s.onerror=fail; document.head.appendChild(s);
+}
+
+/* ---------- BUDGET import (multi-sheet workbook: one ministry per tab) ---------- */
+let budParsed=null;
+function budNum(v){ if(v==null)return 0; if(typeof v==='number')return v; let s=String(v).replace(/[$,]/g,'').trim(); if(!s||s==='N/A'||s==='-')return 0; const n=parseFloat(s); return isNaN(n)?0:n; }
+function prettyMinistry(s){ return String(s).replace(/\s*FY\s*\d+\s*$/i,'').trim().toLowerCase().replace(/\b\w/g,c=>c.toUpperCase()); }
+function parseBudget(wb){
+  const teams=[];
+  wb.SheetNames.forEach(sheet=>{
+    const grid=XLSX.utils.sheet_to_json(wb.Sheets[sheet],{header:1,raw:true,defval:''});
+    const lines=[];
+    grid.forEach(row=>{ const a=String(row[0]==null?'':row[0]).trim();
+      if(/^\d{6,7}$/.test(a)) lines.push({acct:a,name:String(row[1]||'').trim(),budget:budNum(row[5]),prior:budNum(row[6])}); });
+    if(lines.length) teams.push({name:prettyMinistry(sheet),lines,alloc:lines.reduce((s,l)=>s+l.budget,0)});
+  });
+  return teams;
+}
+function budFilePicked(e){ const f=e.target.files[0]; if(!f)return; readBudget(f); e.target.value=''; }
+function readBudget(f){
+  document.getElementById('budMsg').textContent='Reading budget…';
+  loadXlsxLib(()=>{
+    const r=new FileReader();
+    r.onload=()=>{ try{ showBudget(parseBudget(XLSX.read(new Uint8Array(r.result),{type:'array'}))); }
+      catch(err){ document.getElementById('budMsg').innerHTML='<span style="color:var(--red)">⚠ Could not read that spreadsheet.</span>'; } };
+    r.readAsArrayBuffer(f);
+  }, ()=>{ document.getElementById('budMsg').innerHTML='<span style="color:var(--red)">⚠ Spreadsheet reader needs internet right now. Try again in a moment.</span>'; });
+}
+function showBudget(teams){
+  budParsed=teams;
+  const el=document.getElementById('budPreview');
+  if(!teams.length){ document.getElementById('budMsg').innerHTML='<span style="color:var(--red)">⚠ No ministry tabs with account numbers found. Each tab needs an account-number column.</span>'; el.style.display='none'; return; }
+  const grand=teams.reduce((s,t)=>s+t.alloc,0), nlines=teams.reduce((s,t)=>s+t.lines.length,0);
+  document.getElementById('budMsg').innerHTML=`<span style="color:var(--green)">✓ ${teams.length} ministries · ${nlines} account lines · ${money0(grand)} set aside.</span>`;
+  el.style.display='';
+  el.innerHTML=`<div class="card" style="margin:0;padding:0;overflow:hidden"><table>
+    <thead><tr><th>Ministry → team</th><th class="num">Accounts</th><th class="num">Set aside</th><th class="num">Prior year</th></tr></thead>
+    <tbody>${teams.map(t=>`<tr><td><b style="font-weight:600">${esc(t.name)}</b></td><td class="num">${t.lines.length}</td><td class="num">${money0(t.alloc)}</td><td class="num muted">${money0(t.lines.reduce((s,l)=>s+l.prior,0))}</td></tr>`).join('')}</tbody>
+    <tfoot><tr style="font-weight:800"><td>All</td><td class="num">${nlines}</td><td class="num">${money0(grand)}</td><td></td></tr></tfoot>
+    </table></div>
+    <div class="row" style="margin-top:12px"><button class="btn" onclick="applyBudget()">Apply budget to my teams</button>
+    <span class="muted" style="font-size:12.5px">Creates/updates a team per ministry with its set-aside + account lines. Re-importing refreshes them; your spending stays.</span></div>`;
+}
+function applyBudget(){
+  if(!budParsed||!budParsed.length)return;
+  let n=0;
+  budParsed.forEach(b=>{
+    let tm=db.teams.find(t=>t.name.toLowerCase()===b.name.toLowerCase());
+    if(!tm){ tm={id:uid(),name:b.name,type:'operating',alloc:0,opening:0,lead:''}; db.teams.push(tm); }
+    tm.type='operating'; tm.alloc=b.alloc;
+    tm.lines=b.lines.map(l=>({acct:l.acct,name:l.name,budget:l.budget,prior:l.prior}));
+    n++;
+  });
+  save(); refreshTeamSelects(); paintChrome(); go('teams');
+  alert(`Budget loaded — ${n} ministries, each with its set-aside and account lines. Next: pull actual spending from QuickBooks (Option B) to see Left to spend.`);
 }
 function applyImport(){
   if(!parsed||!parsed.classes.length) return;
