@@ -131,6 +131,7 @@
     <h1><span class="icon" id="hdrIcon">⛪</span> Steward <span class="org" id="hdrOrg"></span></h1>
     <div class="row">
       <span class="yr" id="hdrYr"></span>
+      <button class="btn ghost sm" onclick="document.getElementById('helpDlg').showModal()">❓ How to use</button>
       <button class="btn ghost sm" onclick="exportBackup()">⬇ Backup</button>
       <button class="btn ghost sm" onclick="document.getElementById('importFile').click()">⬆ Restore</button>
       <input type="file" id="importFile" accept=".json" style="display:none" onchange="importBackup(event)">
@@ -437,6 +438,42 @@
       <button class="btn" value="save" onclick="saveTeam(event)">Save</button>
     </div>
   </form>
+</dialog>
+
+<dialog id="helpDlg">
+  <div class="dlg-h">How to use Steward</div>
+  <div class="dlg-b" style="max-height:70vh;overflow:auto;line-height:1.55">
+    <p style="margin:0 0 14px;color:var(--muted)">Steward shows what each ministry budget has to spend and what's left — in plain English. No accounting needed. Here's the whole thing in a couple minutes.</p>
+
+    <h3 style="margin:0 0 6px">The big idea</h3>
+    <p style="margin:0 0 14px">Every ministry is a <b>Budget</b> (or a restricted <b>Fund</b>). Each has money <b>Set aside</b>. Steward subtracts what's been <b>Spent</b> and shows what's <b>Left</b>. That's it.</p>
+
+    <h3 style="margin:0 0 6px">Getting your numbers in (Import tab)</h3>
+    <ul style="margin:0 0 14px;padding-left:20px">
+      <li><b>Option A — your budget:</b> drop your budget spreadsheet (one ministry per tab). This fills in <b>Set aside</b> and every account line.</li>
+      <li><b>Option B — actual spending:</b> in QuickBooks, run <b>Reports → Profit and Loss by Class</b>, export it, and drop it here. This fills in <b>Spent</b>.</li>
+      <li>With both in, every budget shows <b>Left = Set aside − Spent</b>.</li>
+    </ul>
+
+    <h3 style="margin:0 0 6px">Finding things fast</h3>
+    <ul style="margin:0 0 14px;padding-left:20px">
+      <li><b>Budgets &amp; Funds tab</b> — every ministry's Set aside / Spent / Left. Click one to see the accounts inside it.</li>
+      <li><b>Accounts tab</b> — every account, which budget it's in, set aside + spent.</li>
+      <li><b>Filter box</b> (both tabs) — type <i>music</i>, <i>kids</i>, or an account number like <i>5190</i> to jump straight to it.</li>
+    </ul>
+
+    <h3 style="margin:0 0 6px">Saving your work</h3>
+    <p style="margin:0 0 6px">When you're <b>signed in</b>, the <b>☁ Vault</b> bar appears at the top:</p>
+    <ul style="margin:0 0 14px;padding-left:20px">
+      <li><b>Save to vault</b> — saves this board to your account (and it shows on your dashboard).</li>
+      <li><b>The dropdown</b> — switch between saved boards (one per church / entity / year).</li>
+      <li><b>+ New board</b> — start a fresh one. Name it in <b>Settings → Organization name</b>.</li>
+    </ul>
+    <p style="margin:0;color:var(--muted);font-size:13px">Not signed in? Steward still works and saves to this browser only. Sign in to save to your vault and see it anywhere.</p>
+  </div>
+  <div class="dlg-f">
+    <button class="btn" onclick="document.getElementById('helpDlg').close()">Got it</button>
+  </div>
 </dialog>
 
 <script>
