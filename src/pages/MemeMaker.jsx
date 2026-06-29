@@ -114,10 +114,23 @@ export default function MemeMaker({ session }) {
   const [idx, setIdx] = useState(0);
   const [layout, setLayout] = useState("full"); // square-native default
   const [contentMode, setContentMode] = useState("text"); // "text" = overlay copy · "frame" = wrap a finished design
-  const [biz, setBiz] = useState({ name: isKari ? "Kari Kounkel · The 13 Series" : "", website: isKari ? "karikounkel.com/history" : "", accent: CARD.gold, logo: "" });
+  const [biz, setBiz] = useState({ name: isKari ? "Kari Kounkel · The 13 Series" : "", website: isKari ? "karikounkel.com/history" : "", accent: "", logo: "" });
   const [postImgs, setPostImgs] = useState({}); // idx -> dataURL
   const [frameImg, setFrameImg] = useState(""); // optional custom 1080x1350 frame (overrides theme)
   const [theme, setTheme] = useState(isKari ? "america250" : "none"); // built-in occasion frame
+  const [seriesLen, setSeriesLen] = useState(13); // how many cards in the series — user-adjustable
+
+  // Resize the series: trim or extend the card list, then renumber every card "No. 0X / N".
+  const setSeriesLength = (nRaw) => {
+    const n = Math.max(1, Math.min(60, parseInt(nRaw, 10) || 1));
+    setSeriesLen(n);
+    setPosts(ps => {
+      const arr = ps.slice(0, n);
+      while (arr.length < n) arr.push({ num: "", title: `Card ${arr.length + 1}`, vis: "Drop in your image for this card", head: "", body: "", side: "" });
+      return arr.map((p, i) => ({ ...p, num: `No. ${String(i + 1).padStart(2, "0")} / ${n}` }));
+    });
+    setIdx(i => Math.min(i, n - 1));
+  };
   const [projName, setProjName] = useState("My America 250 Series");
   const [projId, setProjId] = useState(null); // current saved-project id — reused so Save updates in place
   const [saved, setSaved] = useState([]); // [{id,name}]
@@ -234,17 +247,20 @@ export default function MemeMaker({ session }) {
     // headline (auto-fit <=3 lines)
     let hSize = 50, hLines = [""];
     if (current.head && current.head.trim()) { while (hSize >= 28) { hLines = wrap(ctx, current.head, inW, "700 " + hSize + "px 'DM Serif Display', serif"); if (hLines.length <= 3) break; hSize -= 2; } }
-    ctx.fillStyle = CARD.navy; ctx.font = "700 " + hSize + "px 'DM Serif Display', serif"; ctx.textAlign = "center";
-    let y = cursorY;
-    if (current.head && current.head.trim()) { hLines.forEach(l => { ctx.fillText(l, W / 2, y + hSize * 0.85); y += hSize * 1.07; }); y += 14; }
+    const hasHead = !!(current.head && current.head.trim());
+    const hH = hasHead ? (hLines.length * hSize * 1.07 + 14) : 0;
 
-    // body (auto-fit)
+    // body (auto-fit to the space left under the headline)
     const bodyParas = String(current.body || "").split("\n").map(s => s.trim()).filter(Boolean);
+    const measure = sz => { const ls = paraLines(ctx, bodyParas, inW, "400 " + sz + "px Figtree, sans-serif"); let h = 0; for (const l of ls) h += (l === "__GAP__" ? sz * 0.5 : sz * 1.3); return { h, ls }; };
+    let bSize = 27, m = bodyParas.length ? measure(bSize) : { h: 0, ls: [] };
+    while (bodyParas.length && bSize >= 14 && cursorY + hH + m.h > bottomLimit) { bSize -= 1; m = measure(bSize); }
+
+    // vertically center the headline + body block in the open space
+    let y = cursorY + Math.max(0, ((bottomLimit - cursorY) - (hH + m.h)) / 2);
+    if (hasHead) { ctx.fillStyle = CARD.navy; ctx.font = "700 " + hSize + "px 'DM Serif Display', serif"; ctx.textAlign = "center"; hLines.forEach(l => { ctx.fillText(l, W / 2, y + hSize * 0.85); y += hSize * 1.07; }); y += 14; }
+
     if (bodyParas.length) {
-      let bSize = 27;
-      const measure = sz => { const ls = paraLines(ctx, bodyParas, inW, "400 " + sz + "px Figtree, sans-serif"); let h = 0; for (const l of ls) h += (l === "__GAP__" ? sz * 0.5 : sz * 1.3); return { h, ls }; };
-      let m = measure(bSize);
-      while (bSize >= 14 && y + m.h > bottomLimit) { bSize -= 1; m = measure(bSize); }
       ctx.fillStyle = CARD.ink; ctx.font = "400 " + bSize + "px Figtree, sans-serif"; ctx.textAlign = "left";
       for (let i = 0; i < m.ls.length; i++) {
         const l = m.ls[i];
@@ -311,7 +327,7 @@ export default function MemeMaker({ session }) {
   const onFrame = e => { const f = e.target.files[0]; if (f) readFile(f, d => setFrameImg(d)); };
 
   // ---------- save / load ----------
-  const projectData = () => ({ name: projName, posts, biz, layout, postImgs, frameImg, theme });
+  const projectData = () => ({ name: projName, posts, biz, layout, postImgs, frameImg, theme, seriesLen });
   const handleSave = async () => {
     const data = projectData();
     const id = projId || ("mp_" + Date.now());
@@ -333,7 +349,7 @@ export default function MemeMaker({ session }) {
     let data = null;
     if (isCloud) { try { const { data: row } = await supabase.from("meme_projects").select("data").eq("id", id).maybeSingle(); data = row?.data; } catch (_) {} }
     else { try { data = JSON.parse(localStorage.getItem(LS_KEY) || "{}")[id]; } catch (_) {} }
-    if (data) { setPosts(data.posts || posts); setBiz(data.biz || biz); setLayout(data.layout || "full"); setPostImgs(data.postImgs || {}); setFrameImg(data.frameImg || ""); setTheme(data.theme || "none"); setProjName(data.name || projName); setProjId(id); setIdx(0); setStatus("Loaded “" + (data.name || "project") + ".”"); }
+    if (data) { setPosts(data.posts || posts); setBiz(data.biz || biz); setLayout(data.layout || "full"); setPostImgs(data.postImgs || {}); setFrameImg(data.frameImg || ""); setTheme(data.theme || "none"); setSeriesLen(data.seriesLen || (data.posts ? data.posts.length : 13)); setProjName(data.name || projName); setProjId(id); setIdx(0); setStatus("Loaded “" + (data.name || "project") + ".”"); }
   };
 
   const download = () => {
@@ -396,6 +412,10 @@ export default function MemeMaker({ session }) {
           </div>
           <div style={{ fontSize: 11, color: S.muted, marginTop: 5 }}>{contentMode === "frame" ? "Wraps your finished Canva square in the frame + credit. No text added." : "Lays your headline/body/sidebar over a plain photo or graphic."}</div>
 
+          <label style={lbl}>Cards in series</label>
+          <input type="number" min="1" max="60" value={seriesLen} onChange={e => setSeriesLength(e.target.value)} style={inp} />
+          <div style={{ fontSize: 11, color: S.muted, marginTop: 4 }}>How many posts in this set. Renumbers every card (No. 01 / {seriesLen}…).</div>
+
           <label style={lbl}>Card</label>
           <select value={idx} onChange={e => setIdx(+e.target.value)} style={inp}>
             {posts.map((p, i) => <option key={i} value={i}>{p.num.replace("No. ", "#").replace(" / 13", "")} — {p.title || "Untitled"}</option>)}
@@ -428,7 +448,7 @@ export default function MemeMaker({ session }) {
           <input style={{ ...inp, marginTop: 8 }} placeholder="Website / call to action" value={biz.website} onChange={e => setBiz(b => ({ ...b, website: e.target.value }))} />
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10 }}>
             <span style={{ fontSize: 13, color: S.slate }}>Accent</span>
-            <input type="color" value={biz.accent} onChange={e => setBiz(b => ({ ...b, accent: e.target.value }))} style={{ width: 44, height: 30, border: "none", background: "none" }} />
+            <input type="color" value={biz.accent || (THEME_STYLES[theme] && THEME_STYLES[theme].gold) || CARD.gold} onChange={e => setBiz(b => ({ ...b, accent: e.target.value }))} style={{ width: 44, height: 30, border: "none", background: "none" }} />
             <span style={{ fontSize: 13, color: S.slate, marginLeft: 8 }}>Logo</span>
             <input type="file" accept="image/*" onChange={onLogo} style={{ fontSize: 12 }} />
           </div>
