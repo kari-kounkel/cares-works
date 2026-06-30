@@ -302,17 +302,16 @@
     </div>
 
     <div class="info">
-      <b>In QuickBooks Online:</b> go to <b>Reports → Profit and Loss by Class</b> (or by Tag / Location), set your date range,
-      then <b>Export</b> (Excel or CSV) — or just open it, select all, and copy. Bring that here. Steward reads the totals for
-      each class and turns them into your teams. <b>Nothing is uploaded — it's read right here in your browser.</b>
+      <b>In QuickBooks Online:</b> make sure <b>account numbers are on</b> (Settings → Advanced → Chart of accounts), then run <b>Reports → Profit and Loss</b>, set your date range,
+      and <b>Export</b> (Excel or CSV) — or open it, select all, and copy. Bring it here. Steward matches each account to its budget <b>by account number</b> — no classes needed. <b>Nothing is uploaded — it's read right here in your browser.</b>
     </div>
 
     <div class="card">
       <h3>Option B · Pull in actual spending from QuickBooks</h3>
       <div class="dropzone" id="dropzone" onclick="document.getElementById('qboFile').click()">
         <div style="font-size:30px">📄</div>
-        <div><b>Drop your QBO export here</b> — or click to choose a file</div>
-        <div class="muted" style="font-size:12.5px;margin-top:4px">Accepts .xlsx, .csv — Profit &amp; Loss by Class</div>
+        <div><b>Drop your QBO Profit &amp; Loss here</b> — or click to choose a file</div>
+        <div class="muted" style="font-size:12.5px;margin-top:4px">Accepts .xlsx, .csv — a Profit &amp; Loss with account numbers on</div>
       </div>
       <input type="file" id="qboFile" accept=".xlsx,.xls,.csv" style="display:none" onchange="qboFilePicked(event)">
       <div style="margin:14px 0 6px;text-align:center;color:var(--muted);font-size:12.5px">— or paste it (copy the report from Excel / Google Sheets and paste below) —</div>
@@ -324,21 +323,21 @@
     </div>
 
     <div class="card" id="mapCard" style="display:none">
-      <h3>2 · Match each QBO class to a budget or fund, and set what's budgeted</h3>
-      <p class="sub" style="margin-top:-8px">We read the <b>spending</b> from QBO. You tell us the <b>set aside</b> amount — that's the part QBO doesn't know. Left to spend = Set aside − Spent.</p>
+      <h3>2 · Steward matched your accounts to budgets by number</h3>
+      <p class="sub" style="margin-top:-8px">Most accounts land in the right budget automatically by their number. Only ones it couldn't place — or that live in two budgets — show below for you to pick. Everything else just applies.</p>
       <div class="row" style="margin-bottom:12px">
-        <div><label>Treat this import as of</label><input type="date" id="importDate" style="max-width:200px"></div>
+        <div><label>Treat this spending as of</label><input type="date" id="importDate" style="max-width:200px"></div>
       </div>
       <div style="overflow-x:auto">
         <table>
-          <thead><tr><th>QBO class</th><th class="num">Spent (from QBO)</th><th class="num">Income (from QBO)</th><th>→ Budget / Fund in Steward</th><th class="num">Set aside</th></tr></thead>
+          <thead><tr><th>Account needing a budget</th><th class="num">Amount</th><th>Assign to budget</th></tr></thead>
           <tbody id="mapRows"></tbody>
           <tfoot id="mapFoot"></tfoot>
         </table>
       </div>
       <div class="note" id="importWarn" style="display:none"></div>
       <div class="row" style="margin-top:16px">
-        <button class="btn" onclick="applyImport()">Apply to my budgets &amp; funds</button>
+        <button class="btn" onclick="applyImport()">Apply spending to my budgets</button>
         <button class="btn ghost sm" onclick="cancelImport()">Cancel</button>
         <span class="muted" style="font-size:12.5px">Re-importing replaces the previous QBO numbers. Anything you typed by hand stays put.</span>
       </div>
@@ -451,7 +450,7 @@
     <h3 style="margin:0 0 6px">Getting your numbers in (Import tab)</h3>
     <ul style="margin:0 0 14px;padding-left:20px">
       <li><b>Option A — your budget:</b> drop your budget spreadsheet (one ministry per tab). This fills in <b>Set aside</b> and every account line.</li>
-      <li><b>Option B — actual spending:</b> in QuickBooks, run <b>Reports → Profit and Loss by Class</b>, export it, and drop it here. This fills in <b>Spent</b>.</li>
+      <li><b>Option B — actual spending:</b> in QuickBooks (with account numbers on), run <b>Reports → Profit and Loss</b>, export it, and drop it here. Steward matches each account to its budget by number and fills in <b>Spent</b>.</li>
       <li>With both in, every budget shows <b>Left = Set aside − Spent</b>.</li>
     </ul>
 
@@ -917,76 +916,52 @@ function toGrid(text){
   const delim=text.indexOf('\t')>=0 ? '\t' : ',';
   return text.split('\n').filter(l=>l.length||delim==='\t').map(l=>parseLine(l,delim).map(c=>c.trim()));
 }
-/* parse a QBO "Profit and Loss by Class" grid → {classes:[{name,income,expense,accts:{income:[],expense:[]}}], warnings:[]} */
+/* QBO Profit & Loss (no classes) — match each numbered account to the budget that owns it (by account number). */
+function buildAcctMap(){
+  const map={};
+  db.teams.forEach(t=>(t.lines||[]).forEach(l=>{ (map[l.acct]=map[l.acct]||[]); if(map[l.acct].indexOf(t.id)<0) map[l.acct].push(t.id); }));
+  return map;
+}
 function parsePnL(grid){
-  const warnings=[];
-  // find header row: the row whose cells (after col0) contain a cell === "Total" (case-insens), with >=1 other text cell
-  let hdr=-1;
+  const warnings=[]; const accounts=[]; let section=null;
   for(let r=0;r<grid.length;r++){
-    const row=grid[r]; const hasTotal=row.slice(1).some(c=>/^total$/i.test(c));
-    const textCells=row.slice(1).filter(c=>c&&!/^total$/i.test(c)&&isNaN(num(c))&&num(c)===0&&!/^[\d.,()$\- ]+$/.test(c)).length;
-    if(hasTotal&&textCells>=1){ hdr=r; break; }
-  }
-  if(hdr<0){
-    // fallback: row right before the first "Income"/"Revenue" section header
-    for(let r=0;r<grid.length;r++){ if(/^(income|revenue)$/i.test((grid[r][0]||'').trim())){ hdr=r-1; break; } }
-  }
-  if(hdr<0){ warnings.push('Could not find the class header row. Make sure this is a "Profit and Loss by Class" report.'); return {classes:[],warnings}; }
-
-  const head=grid[hdr];
-  const cols=[]; // {idx,name}
-  head.forEach((name,idx)=>{ if(idx===0) return; const nm=(name||'').trim();
-    if(!nm) return; if(/^total$/i.test(nm)) return; cols.push({idx,name:nm}); });
-  if(!cols.length){ warnings.push('No class columns were found in the report header.'); return {classes:[],warnings}; }
-
-  const classes=cols.map(c=>({name:c.name,idx:c.idx,income:0,expense:0,accts:{income:[],expense:[]}}));
-  let section=null;
-  for(let r=hdr+1;r<grid.length;r++){
     const row=grid[r]; const label=(row[0]||'').trim();
-    if(!label && row.every(c=>!c||!c.trim())) continue;
     if(/^(income|revenue)$/i.test(label)){ section='income'; continue; }
     if(/^(expenses?|cost of goods sold|operating expenses?)$/i.test(label)){ section='expense'; continue; }
-    if(/^(total|net |gross |net$)/i.test(label)){ continue; } // summary rows
-    if(!section) continue;
-    // detail account row — apply each class column
-    let any=false;
-    classes.forEach(cl=>{ const v=num(row[cl.idx]); if(v){ any=true; cl[section]+=v; cl.accts[section].push({name:label,amt:v}); } });
-    if(!any && /total/i.test(label)) {/* ignore */}
+    if(/^(total|net|gross|cost of)/i.test(label)) continue;
+    let acct='', name='';
+    const m=label.match(/^(\d{6,7})\s+(.+)$/);
+    if(m){ acct=m[1]; name=m[2].trim(); }
+    else if(/^\d{6,7}$/.test(label) && (row[1]||'').trim()){ acct=label; name=(row[1]||'').trim(); }
+    else continue;
+    let amt=0;
+    for(let i=row.length-1;i>=1;i--){ const v=num(row[i]); if(v){ amt=v; break; } }
+    if(!amt) continue;
+    accounts.push({acct,name,amount:Math.abs(amt),kind:section||'expense'});
   }
-  // drop classes with nothing
-  const live=classes.filter(c=>c.income||c.expense);
-  if(!live.length) warnings.push('No income or expense amounts were found under the class columns.');
-  return {classes:live,warnings};
+  if(!accounts.length) warnings.push('No numbered account rows found. Turn ON account numbers in QuickBooks (Settings → Advanced → Chart of accounts) and export a Profit & Loss.');
+  return {accounts,warnings};
 }
 
 function showParsed(p){
   parsed=p;
   const card=document.getElementById('mapCard');
-  if(!p.classes.length){
-    card.style.display='none';
-    document.getElementById('parseMsg').innerHTML=`<span style="color:var(--red)">⚠ ${esc(p.warnings[0]||'Nothing readable found.')}</span>`;
-    return;
-  }
-  document.getElementById('parseMsg').innerHTML=`<span style="color:var(--green)">✓ Found ${p.classes.length} class${p.classes.length===1?'':'es'}.</span>`;
+  if(!db.teams.length){ card.style.display='none'; document.getElementById('parseMsg').innerHTML='<span style="color:var(--red)">⚠ Import your budget first (Option A) — that\'s how Steward knows which account belongs to which budget.</span>'; return; }
+  if(!p.accounts || !p.accounts.length){ card.style.display='none'; document.getElementById('parseMsg').innerHTML=`<span style="color:var(--red)">⚠ ${esc((p.warnings&&p.warnings[0])||'Nothing readable found.')}</span>`; return; }
+  const map=buildAcctMap();
+  let matched=0, spent=0, income=0; const need=[];
+  p.accounts.forEach((a,i)=>{ const ids=map[a.acct]||[]; a._teams=ids;
+    if(ids.length===1){ matched++; if(a.kind==='income') income+=a.amount; else spent+=a.amount; } else need.push({a,i}); });
+  document.getElementById('parseMsg').innerHTML=`<span style="color:var(--green)">✓ ${matched} account${matched===1?'':'s'} matched by number — ${money0(spent)} spent${income?(' · '+money0(income)+' income'):''}.</span>`+(need.length?` <span style="color:var(--amber)">· ${need.length} need a budget picked.</span>`:'');
   const tb=document.getElementById('mapRows');
-  tb.innerHTML=p.classes.map((c,i)=>{
-    const match=db.teams.find(t=>t.name.toLowerCase()===c.name.toLowerCase());
-    const opts=`<option value="__new__">➕ Create “${esc(c.name)}”</option>`+
-      db.teams.map(t=>`<option value="${t.id}" ${match&&match.id===t.id?'selected':''}>${esc(t.name)}</option>`).join('');
-    const presetAlloc = match? (match.type==='restricted'?'':match.alloc||'') : '';
-    return `<tr>
-      <td><b style="font-weight:600">${esc(c.name)}</b></td>
-      <td class="num" style="color:var(--rose-dk)">${money0(c.expense)}</td>
-      <td class="num" style="color:var(--green)">${c.income?money0(c.income):'<span class="muted">—</span>'}</td>
-      <td><select class="mapsel" id="map_${i}">${opts}</select></td>
-      <td class="num"><input type="number" class="mapnum" id="set_${i}" placeholder="0" value="${presetAlloc}"></td>
-    </tr>`;
-  }).join('');
-  const tSp=p.classes.reduce((s,c)=>s+c.expense,0), tIn=p.classes.reduce((s,c)=>s+c.income,0);
-  document.getElementById('mapFoot').innerHTML=`<tr style="font-weight:800"><td>Totals</td>
-    <td class="num">${money0(tSp)}</td><td class="num">${money0(tIn)}</td><td></td><td></td></tr>`;
+  if(!need.length){ tb.innerHTML='<tr><td colspan="3"><span class="muted">Every account matched a budget by its number — nothing to pick. Just apply.</span></td></tr>'; }
+  else { tb.innerHTML=need.map(({a,i})=>{
+      const reason=a._teams.length>1?'in 2 budgets':'not in budget';
+      const opts='<option value="">— skip —</option>'+db.teams.map(t=>`<option value="${t.id}" ${a._teams[0]===t.id?'selected':''}>${esc(t.name)}</option>`).join('');
+      return `<tr><td><span class="muted" style="font-family:monospace">${esc(a.acct)}</span> ${esc(a.name)} <span class="pill warn" style="font-size:10px">${reason}</span></td><td class="num">${money0(a.amount)}</td><td><select class="mapsel" id="map_${i}">${opts}</select></td></tr>`;
+    }).join(''); }
   const w=document.getElementById('importWarn');
-  if(p.warnings.length){ w.style.display=''; w.innerHTML=p.warnings.map(esc).join('<br>'); } else w.style.display='none';
+  if(p.warnings && p.warnings.length){ w.style.display=''; w.innerHTML=p.warnings.map(esc).join('<br>'); } else w.style.display='none';
   card.style.display='';
   card.scrollIntoView({behavior:'smooth',block:'start'});
 }
@@ -1078,19 +1053,16 @@ function applyBudget(){
   alert(`Budget loaded — ${n} ministries, each with its set-aside and account lines. Next: pull actual spending from QuickBooks (Option B) to see Left to spend.`);
 }
 function applyImport(){
-  if(!parsed||!parsed.classes.length) return;
+  if(!parsed||!parsed.accounts||!parsed.accounts.length) return;
   const when=document.getElementById('importDate').value||today();
-  // wipe previous QBO import
   db.txns=db.txns.filter(t=>t.source!=='qbo-import');
-  let made=0;
-  parsed.classes.forEach((c,i)=>{
-    const sel=document.getElementById('map_'+i).value;
-    const setv=+document.getElementById('set_'+i).value||0;
-    let tid;
-    if(sel==='__new__'){ tid=uid(); db.teams.push({id:tid,name:c.name,type:'operating',alloc:setv,opening:0,lead:''}); }
-    else { tid=sel; const tm=team(tid); if(tm && tm.type==='operating' && setv) tm.alloc=setv; }
-    c.accts.expense.forEach(a=>{ db.txns.push({id:uid(),type:'expense',date:when,amount:a.amt,teamId:tid,account:a.name,payee:'',memo:'QBO import',source:'qbo-import'}); made++; });
-    c.accts.income.forEach(a=>{ db.txns.push({id:uid(),type:'income',date:when,amount:a.amt,teamId:tid,account:a.name,payee:'',memo:'QBO import',source:'qbo-import'}); made++; });
+  let made=0, skipped=0;
+  parsed.accounts.forEach((a,i)=>{
+    let tid='';
+    if(a._teams && a._teams.length===1) tid=a._teams[0];
+    else { const sel=document.getElementById('map_'+i); tid=sel?sel.value:''; }
+    if(!tid){ skipped++; return; }
+    db.txns.push({id:uid(),type:a.kind==='income'?'income':'expense',date:when,amount:a.amount,teamId:tid,account:a.name,payee:'',memo:'QBO import',source:'qbo-import'}); made++;
   });
   db.settings.viewYear=fiscalYearOf(when);
   save(); parsed=null;
@@ -1099,7 +1071,7 @@ function applyImport(){
   document.getElementById('parseMsg').textContent='';
   buildYearSelect(); refreshTeamSelects(); paintChrome();
   go('teams');
-  alert(`Imported ${made} line${made===1?'':'s'} from QuickBooks. Each team now shows what's left to spend.`);
+  alert(`Imported ${made} account line${made===1?'':'s'} from QuickBooks${skipped?(', skipped '+skipped+' you can map later'):''}. Each budget now shows what's left to spend.`);
 }
 function cancelImport(){ parsed=null; document.getElementById('mapCard').style.display='none'; document.getElementById('parseMsg').textContent=''; }
 // drag & drop
