@@ -1010,7 +1010,13 @@ function parseBudget(wb){
     const lines=[];
     grid.forEach(row=>{ const a=String(row[0]==null?'':row[0]).trim();
       if(/^\d{6,7}$/.test(a)) lines.push({acct:a,name:String(row[1]||'').trim(),budget:budNum(row[5]),prior:budNum(row[6])}); });
-    if(lines.length) teams.push({name:prettyMinistry(sheet),lines,alloc:lines.reduce((s,l)=>s+l.budget,0)});
+    // drop subtotal/parent rows: an account ending "00" whose amount equals the sum of its sibling detail lines (avoids double-counting)
+    const grp={}; lines.forEach(l=>{ const k=l.acct.slice(0,5); (grp[k]=grp[k]||[]).push(l); });
+    const parents=new Set();
+    Object.values(grp).forEach(g=>{ const head=g.find(l=>l.acct.slice(5)==='00'); const kids=g.filter(l=>l.acct.slice(5)!=='00');
+      if(head && kids.length && Math.abs(head.budget-kids.reduce((s,k)=>s+(+k.budget||0),0))<1) parents.add(head.acct); });
+    const kept=lines.filter(l=>!parents.has(l.acct));
+    if(kept.length) teams.push({name:prettyMinistry(sheet),lines:kept,alloc:kept.reduce((s,l)=>s+l.budget,0)});
   });
   return teams;
 }
