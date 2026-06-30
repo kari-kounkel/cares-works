@@ -1273,6 +1273,7 @@ function renderVaultBar(){
     '<select id="boardPick" onchange="loadBoard(this.value)"></select>'+
     '<button class="btn ghost sm" onclick="saveToVault()">Save to vault</button>'+
     '<button class="btn ghost sm" onclick="newBoard()">+ New board</button>'+
+    '<button class="btn danger sm" onclick="deleteBoard()">🗑 Delete</button>'+
     '<span id="vaultMsg" style="color:var(--green);font-weight:600"></span>'+
     '<span style="margin-left:auto;font-size:12px">'+esc(cloudEmail)+'</span>';
   fillBoardPick();
@@ -1319,6 +1320,19 @@ async function loadBoard(id){
 function newBoard(){
   if(!confirm('Start a new blank board? Save your current one to the vault first if you want to keep it.'))return;
   currentBoardId=null; db=blank(); save(); boot(); renderVaultBar();
+}
+async function deleteBoard(){
+  if(!supa||!cloudEmail){ alert('Sign in to manage saved boards.'); return; }
+  if(!currentBoardId){ alert('This board isn’t saved to your vault yet — nothing to delete. Use “+ New board” to start fresh.'); return; }
+  const cur=boards.find(b=>b.id===currentBoardId);
+  const nm=(cur&&cur.name)||db.settings.org||'this board';
+  if(!confirm('Delete the board “'+nm+'” from your vault? This cannot be undone.'))return;
+  await supa.from('steward_boards').delete().eq('id',currentBoardId).eq('user_email',cloudEmail);
+  currentBoardId=null;
+  try{ history.replaceState({},'','/steward'); }catch(e){}
+  await refreshBoards();
+  if(boards.length){ loadBoard(boards[0].id); } else { db=blank(); save(); boot(); renderVaultBar(); }
+  vaultMsg('Deleted “'+nm+'”.');
 }
 function vaultMsg(m){ const el=document.getElementById('vaultMsg'); if(el){ el.textContent=m; setTimeout(()=>{ if(el) el.textContent=''; },2000);} }
 
