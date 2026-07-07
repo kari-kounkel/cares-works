@@ -14,6 +14,7 @@ import FractionalCFOScope from "./pages/FractionalCFOScope";
 import QBODiscovery from "./pages/QBODiscovery";
 import VendorDecoder from "./pages/VendorDecoder";
 import ChecklistBuilder from "./pages/ChecklistBuilder";
+import ExemptionTracker from "./pages/ExemptionTracker";
 import NetProfitRatios from "./pages/NetProfitRatios";
 import QuickbooksTriage from "./pages/QuickbooksTriage";
 import PricingMetrics from "./pages/PricingMetrics";
@@ -131,6 +132,10 @@ export default function App() {
   if (path === "/tools/qbo-discovery") return <QBODiscovery />;
   if (path === "/tools/vendor-decoder") return <VendorDecoder />;
   if (path === "/tools/checklist-builder") return <ChecklistBuilder session={session} />;
+  if (path === "/tools/exemption-tracker") {
+    if (!session) { navigate("/login"); return null; }
+    return <ExemptionTracker session={session} />;
+  }
   if (path === "/tools/net-profit-ratios") return <NetProfitRatios session={session} />;
   if (path === "/tools/quickbooks-triage") return <QuickbooksTriage session={session} />;
   if (path === "/tools/pricing-metrics") return <PricingMetrics session={session} />;
