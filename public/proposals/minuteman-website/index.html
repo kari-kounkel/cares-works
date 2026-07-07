@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Website &amp; E-Commerce Proposal — Minuteman Press Uptown</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#1F2D4D;
+    --gold:#C9A227;
+    --cream:#FAF6E8;
+    --paper:#FBFAF5;
+    --ink:#1A1A1A;
+    --muted:#6B6B6B;
+    --line:#E0DCD0;
+    --accent:#C25C2B;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--paper);color:var(--ink);
+    font-family:"Inter",sans-serif;font-size:16px;line-height:1.6;font-weight:400;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* === COVER === */
+  .cover{
+    background:var(--navy);color:var(--cream);padding:80px 64px;position:relative;overflow:hidden;
+  }
+  .cover::before{
+    content:"";position:absolute;top:-40px;right:-40px;width:200px;height:200px;
+    background:var(--gold);border-radius:50%;opacity:.15;
+  }
+  .cover-meta{display:flex;justify-content:space-between;font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:rgba(250,246,232,.6);margin-bottom:64px;flex-wrap:wrap;gap:12px}
+  .cover-meta strong{color:var(--gold)}
+  .cover h1{
+    font-family:"Lora",serif;font-size:clamp(48px,7vw,96px);font-weight:600;
+    line-height:.98;letter-spacing:-.03em;margin-bottom:24px;  }
+  .cover h1 em{font-style:italic;color:var(--gold);font-weight:400}
+  .cover p{color:var(--cream)}
+  .cover .lede{
+    font-family:"Lora",serif;font-style:italic;font-size:22px;max-width:680px;line-height:1.5;font-weight:500;opacity:.9;margin-bottom:48px;color:var(--cream);
+  }
+
+  .cover-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;margin-top:64px;border-top:1px solid rgba(250,246,232,.2);padding-top:48px}
+  .cover-grid h5{font-family:"Inter",sans-serif;font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:14px;font-weight:600}
+  .cover-grid p{font-size:15px;line-height:1.65;opacity:.85;color:var(--cream)}
+  .cover-grid strong{color:var(--gold);font-weight:600}
+
+  .toc{
+    background:var(--cream);padding:24px 64px;border-bottom:1px solid var(--line);
+    display:flex;gap:32px;flex-wrap:wrap;align-items:center;position:sticky;top:0;z-index:20;
+  }
+  .toc-label{font-size:11px;letter-spacing:.25em;text-transform:uppercase;color:var(--navy);font-weight:600}
+  .toc a{
+    color:var(--ink);text-decoration:none;font-size:13px;font-weight:500;
+    padding:8px 14px;border:1px solid transparent;transition:all .2s;border-radius:99px;
+  }
+  .toc a:hover{border-color:var(--navy);color:var(--navy)}
+
+  /* === SECTIONS === */
+  section{padding:80px 64px;border-bottom:1px solid var(--line)}
+  section.alt{background:var(--cream)}
+  .section-num{display:inline-block;font-size:11px;letter-spacing:.35em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:16px}
+  h2{
+    font-family:"Lora",serif;font-size:54px;font-weight:400;letter-spacing:-.025em;line-height:1.05;margin-bottom:32px;
+    font-variation-settings:"opsz" 144;color:var(--navy);
+  }
+  h2 em{font-style:italic;color:var(--accent)}
+  h3{font-family:"Lora",serif;font-size:28px;font-weight:600;color:var(--navy);margin:32px 0 16px;letter-spacing:-.01em}
+  h4{font-family:"Inter",sans-serif;font-size:15px;letter-spacing:.05em;text-transform:uppercase;color:var(--navy);font-weight:700;margin:20px 0 8px}
+  p{margin-bottom:14px;line-height:1.65;color:var(--ink)}
+  p.lede{font-size:19px;line-height:1.55;color:var(--ink);max-width:780px;margin-bottom:24px}
+  ul{padding-left:24px;margin-bottom:20px}
+  ul li{padding:4px 0;line-height:1.55}
+
+  /* === SUMMARY TABLES === */
+  .summary{
+    border:1px solid var(--line);background:#fff;margin:32px 0;overflow:hidden;
+  }
+  .summary table{width:100%;border-collapse:collapse}
+  .summary th{
+    background:var(--navy);color:var(--cream);padding:14px 18px;text-align:left;
+    font-size:11px;letter-spacing:.2em;text-transform:uppercase;font-weight:600;
+  }
+  .summary th:last-child,.summary td:last-child{text-align:right}
+  .summary td{padding:14px 18px;border-top:1px solid var(--line);font-size:15px;vertical-align:top}
+  .summary tr:nth-child(odd) td{background:var(--paper)}
+  .summary .price{font-weight:700;color:var(--navy);white-space:nowrap}
+  .summary .tier{font-weight:600;color:var(--accent)}
+
+  /* === TIER COMPARISON === */
+  .tier-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin:32px 0}
+  .tier-card{
+    background:#fff;border:1px solid var(--line);padding:32px;position:relative;
+  }
+  .tier-card.featured{border:2px solid var(--gold);background:#fffdf6}
+  .tier-card .ribbon{
+    position:absolute;top:-12px;right:24px;background:var(--gold);color:var(--navy);
+    padding:4px 12px;font-size:11px;letter-spacing:.2em;font-weight:700;text-transform:uppercase;
+  }
+  .tier-card .tag{font-size:11px;letter-spacing:.25em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:10px}
+  .tier-card .price-big{font-family:"Lora",serif;font-size:48px;font-weight:700;color:var(--navy);line-height:1;margin-bottom:8px}
+  .tier-card .price-big small{font-size:18px;font-weight:400;opacity:.7;font-style:italic}
+  .tier-card .name{font-family:"Lora",serif;font-size:22px;font-weight:600;color:var(--navy);margin-bottom:14px}
+  .tier-card ul{padding-left:18px;font-size:14px}
+  .tier-card ul li{padding:3px 0}
+
+  /* === SIDEBAR CALLOUT === */
+  .sidebar{
+    background:var(--cream);border-top:4px solid var(--gold);padding:28px 32px;margin:32px 0;
+  }
+  .sidebar-label{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--navy);font-weight:700;margin-bottom:8px}
+  .sidebar p{font-family:"Lora",serif;font-style:italic;font-size:18px;line-height:1.55;color:var(--ink);margin:0}
+
+  /* === MOCKUP GALLERY === */
+  .gallery-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:32px}
+  .gallery-card{
+    background:#fff;border:1px solid var(--line);text-decoration:none;color:var(--ink);
+    transition:transform .25s, box-shadow .25s;display:block;overflow:hidden;
+  }
+  .gallery-card:hover{transform:translateY(-4px);box-shadow:0 20px 40px -20px rgba(31,45,77,.25)}
+  .gallery-preview{aspect-ratio:4/3;background:var(--cream);display:flex;align-items:center;justify-content:center;font-family:"Lora",serif;font-size:32px;color:var(--navy);position:relative;overflow:hidden}
+  .gallery-preview svg{width:100%;height:100%}
+  .gallery-body{padding:18px 20px}
+  .gallery-num{font-size:11px;letter-spacing:.25em;color:var(--accent);font-weight:600;margin-bottom:6px;text-transform:uppercase}
+  .gallery-name{font-family:"Lora",serif;font-size:18px;font-weight:600;color:var(--navy);margin-bottom:4px}
+  .gallery-tag{font-size:12px;color:var(--muted)}
+  .gallery-link{
+    display:inline-flex;align-items:center;gap:10px;margin-top:24px;
+    padding:14px 24px;background:var(--navy);color:var(--cream);text-decoration:none;
+    font-size:13px;letter-spacing:.1em;font-weight:600;text-transform:uppercase;transition:background .2s;
+  }
+  .gallery-link:hover{background:var(--accent)}
+
+  /* === NEXT STEPS === */
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:32px}
+  .step{
+    background:#fff;border:1px solid var(--line);padding:28px;
+  }
+  .step-num{font-family:"Lora",serif;font-style:italic;font-size:48px;font-weight:400;color:var(--gold);line-height:1;margin-bottom:8px}
+  .step h4{font-family:"Lora",serif;font-size:22px;font-weight:600;color:var(--navy);margin-bottom:10px;text-transform:none;letter-spacing:-.01em}
+  .step p{font-size:14px;line-height:1.55;color:var(--muted);margin:0}
+
+  /* === DOWNLOADS === */
+  .downloads{display:flex;gap:16px;margin-top:32px;flex-wrap:wrap}
+  .dl{
+    display:inline-flex;align-items:center;gap:12px;
+    padding:18px 24px;background:#fff;border:2px solid var(--navy);color:var(--navy);
+    text-decoration:none;font-size:14px;font-weight:600;transition:all .2s;
+  }
+  .dl:hover{background:var(--navy);color:var(--cream)}
+  .dl .ico{font-family:"Lora",serif;font-size:24px;font-weight:700;line-height:1}
+
+  /* === FOOTER === */
+  footer{padding:48px 64px;background:var(--navy);color:var(--cream)}
+  .foot-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:32px}
+  .foot-grid h5{font-family:"Lora",serif;font-size:20px;font-weight:600;color:var(--gold);margin-bottom:12px;letter-spacing:-.01em}
+  .foot-grid p{font-size:14px;line-height:1.7;opacity:.85;color:var(--cream)}
+  .foot-grid a{color:var(--cream);text-decoration:none;display:block;padding:3px 0;opacity:.85;font-size:14px}
+  .foot-grid a:hover{color:var(--gold);opacity:1}
+  .signoff{
+    margin-top:40px;padding-top:24px;border-top:1px solid rgba(250,246,232,.2);
+    display:flex;justify-content:space-between;align-items:center;font-size:11px;letter-spacing:.2em;text-transform:uppercase;opacity:.7;flex-wrap:wrap;gap:12px;
+  }
+  .signoff em{font-family:"Lora",serif;font-style:italic;text-transform:none;letter-spacing:0;font-size:16px;color:var(--gold);font-weight:400;opacity:1}
+
+  /* === MOBILE === */
+  @media (max-width:900px){
+    .cover{padding:48px 24px}
+    .cover-grid{grid-template-columns:1fr;gap:24px}
+    .toc{padding:14px 20px;gap:8px;overflow-x:auto}
+    .toc a{font-size:12px;padding:6px 10px}
+    section{padding:48px 24px}
+    h2{font-size:36px}
+    .tier-grid,.steps,.gallery-grid{grid-template-columns:1fr}
+    footer{padding:32px 24px}
+    .foot-grid{grid-template-columns:1fr;gap:24px}
+    .signoff{flex-direction:column;text-align:center;gap:14px}
+    .downloads{flex-direction:column}
+    .summary{overflow-x:auto}
+  }
+</style>
+</head>
+<body>
+
+<!-- =============== COVER =============== -->
+<div class="cover">
+  <div class="cover-meta">
+    <span>Prepared <strong>by</strong> CARES Consulting, Inc.</span>
+    <span>Prepared <strong>for</strong> Minuteman Press Uptown</span>
+    <span><strong>Issued</strong> July 7, 2026 · Valid through July 15, 2026</span>
+  </div>
+
+  <h1>The site. The launch.<br>The <em>upsell.</em></h1>
+  <p class="lede">A commerce site scoped to win Minuteman back the business slipping away to other shops — plus Phase 3, a brand-new service line you can resell to your own customers at a healthy margin.</p>
+
+  <div class="cover-grid">
+    <div>
+      <h5>What's in this proposal</h5>
+      <p><strong>1.</strong> Website &amp; E-Commerce Proposal — Phase 1 commerce site, Phase 2 launch, plus a brand-new Phase 3 service: branded client storefronts you can sell to your customers.</p>
+      <p><strong>2.</strong> The working demo of the new store — already live at tools.caresmn.com/demo/mmp.html for review.</p>
+      <p><strong>3.</strong> <strong style="color:var(--gold)">FlowSuite Pro pilot access — included free</strong> as our pilot customer.</p>
+    </div>
+    <div>
+      <h5>Website headline numbers</h5>
+      <p>Commerce site <strong>$6,000 total</strong> across two phases — $4,000 initial at kickoff, $2,000 migration package at launch.</p>
+      <p>Client storefronts <strong>$300–$850 setup</strong>, well below the $2,500 price point you've been trying.</p>
+      <p>Once built, your team can run the site without ongoing support — or buy support as needed at <strong>$125/hr</strong>.</p>
+    </div>
+  </div>
+</div>
+
+<!-- =============== TOC =============== -->
+<div class="toc">
+  <span class="toc-label">Jump to</span>
+  <a href="#website">Website Proposal</a>
+  <a href="#mockups">Working Demo</a>
+  <a href="#flowsuite">FlowSuite Pro</a>
+  <a href="#next">Next Steps</a>
+</div>
+
+<!-- =============== WEBSITE =============== -->
+<section id="website" class="alt">
+  <span class="section-num">01 · Website &amp; E-Commerce Proposal</span>
+  <h2>The site you've been wanting <em>—</em> and the service line you've been losing.</h2>
+  <p class="lede">Three phases, all priced independently. Phase 1 builds the new commerce site. Phase 2 launches it. Phase 3 is the new revenue stream: branded customer storefronts that take seconds to spin up because they're filtered views of your existing catalog.</p>
+
+  <div class="summary">
+    <table>
+      <thead>
+        <tr><th>Phase / Item</th><th>Target Completion</th><th>Investment</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Phase 1</strong> — Commerce site build with up to 12 products + basic SEO</td><td>July 15–31, 2026</td><td class="price">$4,000</td></tr>
+        <tr><td><strong>Phase 2</strong> — Migration, Stripe, sales tax, full launch (+ 1 post-launch tweak)</td><td>Last week of July 2026</td><td class="price">$2,000</td></tr>
+        <tr><td><strong>Phase 3</strong> — Client storefronts (filtered views of your catalog)</td><td>Quoted per project</td><td class="price">$300 / $500 / $850</td></tr>
+        <tr><td>Additional product added to a client storefront</td><td>5 business days</td><td class="price">$25 / product</td></tr>
+        <tr><td>Additional website work outside this agreement</td><td>Quoted per request</td><td class="price">$125 / hour</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4>Phase 3 — How the math works for you</h4>
+  <p>The client storefronts are the strategic line in this proposal. Three tiers, priced to win:</p>
+
+  <div class="summary">
+    <table>
+      <thead><tr><th>Tier</th><th>Includes</th><th>How customers reach it</th><th>Setup Fee</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tier">Basic</span></td><td>Filtered view of your catalog branded with the client's logo. Up to 10 tagged products.</td><td>Direct link: <em>minutemanuptown.com/shop/<strong>client-name</strong></em></td><td class="price">$300</td></tr>
+        <tr><td><span class="tier">Standard</span></td><td>Basic + custom landing block, branded checkout color accents, up to 25 tagged products.</td><td>Direct link: <em>minutemanuptown.com/shop/<strong>client-name</strong></em></td><td class="price">$500</td></tr>
+        <tr><td><span class="tier">Premium</span></td><td>Standard + 3–5 custom product mockup photos, extra brand styling.</td><td>Custom subdomain: <em><strong>client-name</strong>.minutemanuptown.com</em></td><td class="price">$850</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="sidebar">
+    <div class="sidebar-label">How storefronts get built — your team's workflow</div>
+    <p>This is the part that makes the whole service line work: your team doesn't have to "build" a new site for each customer. When you're adding or editing a product in the admin, you check off which customers that product belongs to from a dropdown. The customer's storefront automatically shows up at <em>minutemanuptown.com/shop/their-name</em> — no separate build, no developer needed. Tagging products IS the storefront-building workflow.</p>
+  </div>
+
+  <div class="sidebar">
+    <div class="sidebar-label">Sidebar Note</div>
+    <p>At $300 setup for Basic, you can comfortably resell at $750 and still come in well under your previous $2,500 price point. Standard at $500 supports a $1,250 resale; Premium at $850 supports a $1,750 resale. Every tier protects your margin while making the offer an obvious yes for the customer.</p>
+  </div>
+
+  <h4>Payment &amp; timing</h4>
+  <ul>
+    <li><strong>Phase 1 — $4,000 initial payment</strong> due at project kickoff on July 15, 2026 to begin the build. Delivery by July 31.</li>
+    <li><strong>Phase 2 — $2,000 migration package</strong> due at launch (last week of July 2026).</li>
+    <li>Phase 3: 50% at signing per project, 50% at launch.</li>
+    <li><strong>Signed proposal needed by July 15, 2026</strong> to hold the July 15 Phase 1 kickoff.</li>
+  </ul>
+
+  <h4>After launch — your team runs it</h4>
+  <p>Once Phase 2 wraps, your team can operate the site without ongoing support. Adding products, editing pages, swapping out hero copy, tagging customer storefronts — all of that is admin-panel work your team handles directly. If you'd rather we keep doing it, we're happy to — but you're not locked in.</p>
+  <ul>
+    <li><strong>Self-serve, no contract:</strong> Add/edit products, manage orders, tag customer storefronts, swap copy, upload new photos — all from the admin panel built in Phase 1.</li>
+    <li><strong>Optional ongoing support:</strong> Bring us back for site modifications, new features, integrations, or just maintenance — billed at $125/hour with written estimate before work starts.</li>
+    <li><strong>Documentation included:</strong> Phase 2 delivery includes a short admin walkthrough (written + video) so any team member can run the site without us.</li>
+  </ul>
+</section>
+
+<!-- =============== DEMO =============== -->
+<section id="mockups">
+  <span class="section-num">02 · The Working Demo</span>
+  <h2>You've already seen <em>where this is going.</em></h2>
+  <p class="lede">The working mockup of the new store has been live since May 4 at <strong>tools.caresmn.com/demo/mmp.html</strong> — five views, full Minuteman branding (orange and green on crisp white), product placeholders ready for the real catalog drop. <strong>It's intentionally structured to look and feel like what's already in place</strong>, so you can compare apples to apples — same brand, same store concept, just the next-generation version. The July 15 build evolves from there.</p>
+
+  <div class="summary" style="padding:0;border:0;background:transparent;margin:32px 0">
+    <a href="https://tools.caresmn.com/demo/mmp.html" target="_blank" style="display:block;text-decoration:none;color:inherit">
+      <div style="background:#fff;border:1px solid var(--line);overflow:hidden;transition:transform .25s, box-shadow .25s" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 20px 40px -20px rgba(31,45,77,.25)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'">
+        <div style="background:linear-gradient(135deg, #2D7A3E 0%, #2D7A3E 50%, #E97817 50%, #E97817 100%);height:8px"></div>
+        <div style="padding:40px;display:grid;grid-template-columns:1fr auto;gap:32px;align-items:center">
+          <div>
+            <div style="font-size:11px;letter-spacing:.25em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:8px">LIVE DEMO · UPDATED MAY 4</div>
+            <h3 style="margin:0 0 8px;font-family:'Lora',serif;font-size:32px;font-weight:600;color:var(--navy);letter-spacing:-.015em">Minuteman Press Uptown — Store Mockup</h3>
+            <p style="margin:0;color:var(--muted);font-size:15px">Five views: Storefront · Product Detail · Cart · Admin · Add Product. Orange-and-green branding throughout. Product photo placeholders ready for real catalog drops.</p>
+            <p style="margin:14px 0 0;font-family:'Lora',serif;font-style:italic;font-size:17px;color:var(--navy)">→ tools.caresmn.com/demo/mmp.html</p>
+          </div>
+          <div style="font-family:'Lora',serif;font-size:48px;color:var(--gold);line-height:1">↗</div>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <h3 style="margin-top:56px;font-family:'Lora',serif;font-size:32px;font-weight:600;color:var(--navy);letter-spacing:-.015em">Or pick a different direction — <em style="color:var(--accent)">six options, ready to walk through</em></h3>
+  <p>The demo above is the baseline you've been reviewing. We've also built six structurally different homepage strategies — same Minuteman orange-and-green brand, same product catalog, same Phase 3 storefront service line. Completely different store DNA. <strong>Walk through one or two that catch your eye, tell us which feels right, and we build that direction in Phase 1.</strong></p>
+
+  <div class="gallery-grid">
+
+    <a class="gallery-card" href="https://tools.caresmn.com/store-options/option-1-category-first/" target="_blank">
+      <div class="gallery-preview" style="background:linear-gradient(135deg,#2D7A3E 0%,#1F5A2D 100%);color:#FAF6E8;font-style:italic;font-size:72px">01</div>
+      <div class="gallery-body">
+        <div class="gallery-num">Option 01</div>
+        <div class="gallery-name">Category-First</div>
+        <div class="gallery-tag">Classic Shopify-style browse</div>
+      </div>
+    </a>
+
+    <a class="gallery-card" href="https://tools.caresmn.com/store-options/option-2-use-case/" target="_blank">
+      <div class="gallery-preview" style="background:linear-gradient(135deg,#E97817 0%,#B85A0F 100%);color:#FAF6E8;font-style:italic;font-size:72px">02</div>
+      <div class="gallery-body">
+        <div class="gallery-num">Option 02</div>
+        <div class="gallery-name">Use-Case Driven</div>
+        <div class="gallery-tag">"What are you working on?"</div>
+      </div>
+    </a>
+
+    <a class="gallery-card" href="https://tools.caresmn.com/store-options/option-3-quote-first/" target="_blank">
+      <div class="gallery-preview" style="background:linear-gradient(135deg,#1F2D4D 0%,#0F1A30 100%);color:#C9A227;font-style:italic;font-size:72px">03</div>
+      <div class="gallery-body">
+        <div class="gallery-num">Option 03</div>
+        <div class="gallery-name">Quote-First Hybrid</div>
+        <div class="gallery-tag">File upload is the hero</div>
+      </div>
+    </a>
+
+    <a class="gallery-card" href="https://tools.caresmn.com/store-options/option-4-visual-catalog/" target="_blank">
+      <div class="gallery-preview" style="background:linear-gradient(135deg,#1F5A2D 0%,#0D3D1E 100%);color:#C9A227;font-style:italic;font-size:72px">04</div>
+      <div class="gallery-body">
+        <div class="gallery-num">Option 04</div>
+        <div class="gallery-name">Visual Catalog</div>
+        <div class="gallery-tag">Pinterest-style grid + filters</div>
+      </div>
+    </a>
+
+    <a class="gallery-card" href="https://tools.caresmn.com/store-options/option-5-bundles/" target="_blank">
+      <div class="gallery-preview" style="background:linear-gradient(135deg,#B85A0F 0%,#8C4210 100%);color:#FAF6E8;font-style:italic;font-size:72px">05</div>
+      <div class="gallery-body">
+        <div class="gallery-num">Option 05</div>
+        <div class="gallery-name">Bundles &amp; Packages</div>
+        <div class="gallery-tag">Sell solutions, not SKUs</div>
+      </div>
+    </a>
+
+    <a class="gallery-card" href="https://tools.caresmn.com/store-options/option-6-reorder-b2b/" target="_blank">
+      <div class="gallery-preview" style="background:linear-gradient(135deg,#1F2D4D 0%,#2D7A3E 50%,#E97817 100%);color:#C9A227;font-style:italic;font-size:72px">06</div>
+      <div class="gallery-body">
+        <div class="gallery-num">Option 06</div>
+        <div class="gallery-name">B2B / Reorder-First</div>
+        <div class="gallery-tag">Built for repeat business</div>
+      </div>
+    </a>
+
+  </div>
+
+  <a href="https://tools.caresmn.com/store-options/" target="_blank" class="gallery-link">See all six side-by-side ↗</a>
+
+  <h4>What's in the demo</h4>
+  <ul>
+    <li><strong>Storefront view</strong> — branded landing page with featured products and category navigation</li>
+    <li><strong>Product detail</strong> — individual product page with photo, description, options, and add-to-cart</li>
+    <li><strong>Cart</strong> — checkout-ready cart with quantity adjustments and total</li>
+    <li><strong>Admin back-office</strong> — order management, inventory view, product editor</li>
+    <li><strong>Add Product</strong> — the workflow for getting new SKUs live on the site</li>
+  </ul>
+
+  <div class="sidebar">
+    <div class="sidebar-label">What's next after signing</div>
+    <p>Once the proposal is signed, the demo evolves: real product photography drops into the placeholder boxes, the Phase 3 "client storefronts" section gets wired into the homepage, Stripe and sales tax integrations land in Phase 2, and the whole thing goes live on your own server by end of July 2026. Your team takes the reins from there — operating the site, adding products, managing customer storefronts. Optional aesthetic variants are available during the build if you want to explore alternate flavors before going live.</p>
+  </div>
+</section>
+
+<!-- =============== FLOWSUITE PRO =============== -->
+<section id="flowsuite">
+  <span class="section-num">03 · FlowSuite Pro — Pilot Access</span>
+  <h2>FlowSuite Pro, <em>included.</em></h2>
+  <p class="lede">As our pilot customer, Minuteman gets complimentary access to FlowSuite Pro — the multi-module operations platform we're building for print shops and adjacent businesses. No separate contract, no additional fees, no upcharge to your website investment.</p>
+
+  <h4>What you get</h4>
+  <ul>
+    <li>Access to all FlowSuite Pro modules — ScanFlow (barcode job tracking), PeopleFlow (HR), MoneyFlow (financial dashboard), FlowSuite-Print, and the rest of the platform.</li>
+    <li>Runs on CARES infrastructure at a dedicated subdomain (e.g., <em>minuteman.flowsuite.com</em>).</li>
+    <li>Your data on your own Supabase project — you own the database, you own the records, your data lives on your infrastructure.</li>
+  </ul>
+
+  <h4>What's not included</h4>
+  <ul>
+    <li>No source code — the app runs on our infrastructure; you don't host it or modify it.</li>
+    <li>No feature updates or custom builds — you get the platform as it exists today.</li>
+    <li>No production support obligation — break-fix on your side is your team's responsibility.</li>
+    <li>No reinstall — single pilot deployment.</li>
+  </ul>
+
+  <h4>How it works</h4>
+  <ul>
+    <li><strong>We set up the Supabase project for you</strong> — you'll need one for the commerce site anyway, so one setup covers both.</li>
+    <li>We add your Supabase to FlowSuite Pro's allowlist. Your team logs in at the pilot subdomain. All authentication and data live in your Supabase.</li>
+    <li>If the pilot relationship ends, we remove your Supabase from the allowlist — your data stays with you, app access ends cleanly. No ugly extraction process, no fight over the data.</li>
+  </ul>
+
+  <h4>How long it stays free</h4>
+  <p>FlowSuite Pro pilot access is free <strong>as long as your Supabase usage stays within Supabase's free tier</strong>. Once your data volume, bandwidth, or compute needs grow beyond the free tier and require paid Supabase, we'll have a conversation about converting to a paid FlowSuite Pro arrangement. Until then — no charge.</p>
+
+  <div class="sidebar">
+    <div class="sidebar-label">Why this works</div>
+    <p>You get a working operations platform during the pilot phase, at no cost. We get a real customer running real data through the system — invaluable for shaping the product. The arrangement ends cleanly whenever either side wants it to. Your data stays yours. The platform stays ours. Clean lines.</p>
+  </div>
+</section>
+
+<!-- =============== NEXT STEPS =============== -->
+<section id="next" class="alt">
+  <span class="section-num">04 · Next Steps</span>
+  <h2>How this <em>actually moves forward.</em></h2>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">01.</div>
+      <h4>Review &amp; pick a tier</h4>
+      <p>Read the website proposal. One signature covers all three phases — Phase 1 build, Phase 2 launch, and the Phase 3 storefront service line.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">02.</div>
+      <h4>Walk through the demo</h4>
+      <p>Open the live demo at tools.caresmn.com/demo/mmp.html. Click through the five views. Make a list of anything you want changed before the build starts.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">03.</div>
+      <h4>Sign &amp; return by July 15</h4>
+      <p>Download the proposal below, sign, and return by July 15 to hold the July 15 Phase 1 kickoff.</p>
+    </div>
+  </div>
+
+  <h3>Download the proposal</h3>
+  <div class="downloads">
+    <a href="Website_Ecommerce_Proposal_Minuteman.pdf" class="dl" download>
+      <span class="ico">📄</span>
+      <span>Website &amp; E-Commerce Proposal<br><small style="opacity:.7;font-weight:400;font-size:12px">PDF · 3 phases</small></span>
+    </a>
+  </div>
+
+  <h3>How to sign</h3>
+  <p>Print, sign with pen, scan or photograph, and email back to <em>kari@karikounkel.com</em>. One signature on the website proposal and you're done — Phase 1 kicks off July 15, 2026.</p>
+
+  <div class="sidebar">
+    <div class="sidebar-label">Questions before signing?</div>
+    <p>Call us. Text us. Walk down to the shop. Any change you want to negotiate — phase timing, Phase 3 storefront pricing, scope — it's a conversation, not a re-draft. This proposal is a starting point the work happens around, not a finished wall.</p>
+  </div>
+</section>
+
+<!-- =============== FOOTER =============== -->
+<footer>
+  <div class="foot-grid">
+    <div>
+      <h5>CARES Consulting, Inc.</h5>
+      <p>Kari Hoglund Kounkel<br>Saint Paul, Minnesota<br>kari@karikounkel.com<br>caresmn.com</p>
+    </div>
+    <div>
+      <h5>This package</h5>
+      <a href="#website">Website Proposal</a>
+      <a href="#mockups">Working Demo</a>
+      <a href="#flowsuite">FlowSuite Pro</a>
+      <a href="#next">Next Steps</a>
+    </div>
+    <div>
+      <h5>For your team</h5>
+      <p>I A Z Corporation<br>dba Minuteman Press Uptown<br>4024 Washington Ave N<br>Minneapolis, MN 55412</p>
+    </div>
+  </div>
+  <div class="signoff">
+    <span>CARES Consulting · July 7, 2026</span>
+    <em>Now go sparkle. That's an order.</em>
+    <span>Valid through July 15, 2026</span>
+  </div>
+</footer>
+
+<script src="https://chat.karikounkel.com/widget.js" defer></script>
+</body>
+</html>
