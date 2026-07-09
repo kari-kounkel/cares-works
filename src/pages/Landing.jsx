@@ -1,23 +1,18 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 import { navigate } from "../App";
+import { N, N_RGB, FONT_LINK, NeonBox, NeonBtn, SignatureFooter } from "../design/neon";
 
 const MONTHLY_URL = "https://buy.stripe.com/7sY5kD7Nl2HgeLp1Q818c06";
 const ANNUAL_URL = "https://buy.stripe.com/14A5kD4B981AgTxcuM18c09";
 
-const S = {
-  slate: "#3d4560", orange: "#e8773a", orangeDark: "#c95f22",
-  orangeLight: "#fdf0e8", paper: "#faf8f4", cream: "#f2ede3",
-  ink: "#1e1e2a", rule: "#ddd8cc", muted: "#7a7585", gold: "#C9A84C",
-};
-
 const freeTools = [
-  { icon: "✅", title: "The Payroll Checklist Nobody Gave You", desc: "Pay period, quarterly, annual, and 1099 — three checklists in one. Each tracks independently.", cta: "Get the Checklist", href: "/tools/payroll-checklist" },
-  { icon: "📥", title: "Stop Drowning in Email Attachments", desc: "The Python script that pulls every invoice and vendor doc out of your inbox — sorted, named, waiting for you every morning.", cta: "Get the Guide + Script", href: "/tools/email-attachments" },
-  { icon: "📋", title: "Client Visit Summary", desc: "A fillable, printable leave-behind for every client visit. What got done, what's still needed, what happens next.", cta: "Get the Template", href: "/tools/client-visit-summary" },
-  { icon: "✉️", title: "What to Actually Say", desc: "10 client communication templates — late invoices, scope creep, bad news, after-hours texters, and the client you need to fire.", cta: "Get the Templates", href: "/tools/communication-templates" },
-  { icon: "🏦", title: "ACH Banking Form", desc: "Collect banking details from a vendor or employee — or package your own to share. Printable, fillable, no data stored.", cta: "Use the Form", href: "/tools/ach-form" },
-  { icon: "💵", title: "Payroll Stub Calculator", desc: "Gross pay, federal and state withholding, FICA, deductions, printable stub. All 50 states. You look up your state table — the tool does the math.", cta: "Calculate a Stub", href: "/tools/payroll-calculator" },
+  { icon: "✅", title: "The Payroll Checklist Nobody Gave You", desc: "Pay period, quarterly, annual, and 1099 — three checklists in one. Each tracks independently.", cta: "Get the Checklist", href: "/tools/payroll-checklist", color: N.blue, rgb: N_RGB.blue },
+  { icon: "📥", title: "Stop Drowning in Email Attachments", desc: "The Python script that pulls every invoice and vendor doc out of your inbox — sorted, named, waiting for you every morning.", cta: "Get the Guide + Script", href: "/tools/email-attachments", color: N.orange, rgb: N_RGB.orange },
+  { icon: "📋", title: "Client Visit Summary", desc: "A fillable, printable leave-behind for every client visit. What got done, what's still needed, what happens next.", cta: "Get the Template", href: "/tools/client-visit-summary", color: N.pink, rgb: N_RGB.pink },
+  { icon: "✉️", title: "What to Actually Say", desc: "10 client communication templates — late invoices, scope creep, bad news, after-hours texters, and the client you need to fire.", cta: "Get the Templates", href: "/tools/communication-templates", color: N.blue, rgb: N_RGB.blue },
+  { icon: "🏦", title: "ACH Banking Form", desc: "Collect banking details from a vendor or employee — or package your own to share. Printable, fillable, no data stored.", cta: "Use the Form", href: "/tools/ach-form", color: N.orange, rgb: N_RGB.orange },
+  { icon: "💵", title: "Payroll Stub Calculator", desc: "Gross pay, federal and state withholding, FICA, deductions, printable stub. All 50 states. You look up your state table — the tool does the math.", cta: "Calculate a Stub", href: "/tools/payroll-calculator", color: N.pink, rgb: N_RGB.pink },
 ];
 
 const memberTools = [
@@ -37,21 +32,13 @@ const memberTools = [
 
 const MOBILE = `
   @media (max-width: 640px) {
-    .lp-hero { padding: 44px 20px 48px !important; }
-    .lp-hero h1 { font-size: 28px !important; }
-    .lp-hero p { font-size: 15px !important; }
-    .lp-pills { flex-wrap: wrap !important; justify-content: center !important; }
-    .lp-header { padding: 14px 20px !important; }
-    .lp-header-nav { display: none !important; }
+    .lp-hero-flex { flex-direction: column !important; }
+    .lp-hero-copy h1 { font-size: 28px !important; }
     .lp-main { padding: 36px 16px 60px !important; }
     .lp-grid { grid-template-columns: 1fr !important; }
-    .lp-membership { flex-direction: column !important; padding: 28px 20px !important; }
+    .lp-membership { flex-direction: column !important; padding: 32px 24px !important; }
     .lp-membership-price { text-align: left !important; min-width: unset !important; width: 100% !important; }
-    .lp-cta-strip { flex-direction: column !important; padding: 28px 20px !important; }
-    .lp-bottom-cta { flex-direction: column !important; padding: 24px 20px !important; }
-    .lp-footer { padding: 20px 16px !important; flex-direction: column !important; gap: 8px !important; }
-    .lp-vanity { padding: 18px 20px !important; }
-    .lp-vanity p { font-size: 16px !important; }
+    .lp-bottom-cta { flex-direction: column !important; align-items: flex-start !important; }
   }
 `;
 
@@ -62,79 +49,61 @@ export default function Landing({ session }) {
     supabase.from("tools").select("title, category, is_free, published_at")
       .eq("is_published", true).order("published_at", { ascending: false }).limit(10)
       .then(({ data }) => { if (data) setNewTools(data); });
-
-    const script = document.createElement("script");
-    script.src = "https://chat.karikounkel.com/widget.js";
-    script.defer = true;
-    document.body.appendChild(script);
-    return () => { if (document.body.contains(script)) document.body.removeChild(script); };
   }, []);
 
   return (
-    <div style={{ fontFamily: "'Figtree', sans-serif", background: S.paper, color: S.ink, lineHeight: 1.65 }}>
+    <div style={{ fontFamily: "'Figtree', sans-serif", background: N.white, color: N.ink, lineHeight: 1.65 }}>
       <style>{MOBILE}</style>
-      <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
+      <link href={FONT_LINK} rel="stylesheet" />
 
-      {/* HEADER */}
-      <header className="lp-header" style={{ padding: "20px 40px", borderBottom: "1px solid " + S.rule, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, background: "#fff" }}>
-        <a href="/" style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none" }}>
-          <img src="/cares-works-logo.png" alt="CARES Works" style={{ height: 38, width: "auto", display: "block" }} />
-          <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: S.ink }}>CARES <span style={{ color: S.orange }}>Works.</span></span>
-        </a>
-        <nav className="lp-header-nav" style={{ display: "flex", gap: 20, alignItems: "center", flexWrap: "wrap" }}>
-          <a href="https://caresmn.com" style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: S.muted, textDecoration: "none" }}>Home</a>
-          <a href="https://caresmn.com/#services" style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: S.muted, textDecoration: "none" }}>Services</a>
-          {session ? (
-            <button onClick={() => navigate("/dashboard")} style={{ background: S.orange, color: "#fff", fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", padding: "9px 18px", borderRadius: 4, border: "none", cursor: "pointer" }}>My Dashboard</button>
-          ) : (
-            <a href={MONTHLY_URL} style={{ background: S.orange, color: "#fff", fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", padding: "9px 18px", borderRadius: 4, textDecoration: "none" }}>Join — $27/mo</a>
-          )}
-        </nav>
-        {/* Mobile join button */}
-        {!session && (
-          <a href={MONTHLY_URL} className="lp-header-mobile-join" style={{ display: "none", background: S.orange, color: "#fff", fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", padding: "8px 16px", borderRadius: 4, textDecoration: "none" }}>Join — $27/mo</a>
-        )}
-      </header>
-
-      {/* HERO */}
-      <div className="lp-hero" style={{ background: S.slate, color: "#fff", padding: "64px 24px 68px", textAlign: "center", position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 25% 60%, rgba(232,119,58,0.18) 0%, transparent 55%), radial-gradient(ellipse at 80% 20%, rgba(196,86,106,0.1) 0%, transparent 50%)" }} />
-        <div style={{ position: "relative", maxWidth: 640, margin: "0 auto" }}>
-          <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", color: S.orange, marginBottom: 16 }}>CARES Works · Tools that do the actual work.</p>
-          <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(28px, 5vw, 50px)", lineHeight: 1.15, marginBottom: 16 }}>
-            Built from real work.<br /><em style={{ fontStyle: "italic", color: S.orange }}>Not a course. Not a coach.</em>
-          </h1>
-          <p style={{ fontSize: 18, color: "rgba(255,255,255,0.7)", maxWidth: 500, margin: "0 auto 32px" }}>
-            Plain-English tools for the business problems nobody taught you how to solve. New tools added monthly.
-          </p>
-          <div className="lp-pills" style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginBottom: 32 }}>
-            {["New tools monthly", "No fluff", "Ask Kari — real answers"].map(p => (
-              <div key={p} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 100, padding: "7px 16px", fontSize: 13, color: "rgba(255,255,255,0.75)", fontFamily: "'DM Mono', monospace", letterSpacing: "0.05em" }}>{p}</div>
-            ))}
-          </div>
-          <a href={MONTHLY_URL} style={{ display: "inline-block", background: S.orange, color: "#fff", fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", padding: "14px 32px", borderRadius: 6, textDecoration: "none", marginBottom: 12 }}>
-            Join CARES Works — $27/month
+      {/* HERO — logo left, pitch right */}
+      <div style={{ background: N.white, padding: "48px 0 24px" }}>
+        <div className="lp-hero-flex" style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 40, flexWrap: "wrap" }}>
+          <a href="/" style={{ display: "block", textDecoration: "none" }}>
+            <img src="/cares-works-neon-logo.png" alt="CARES Works" style={{ maxHeight: 220, width: "auto", maxWidth: "100%", display: "block", borderRadius: 20, boxShadow: "0 8px 32px rgba(0,128,255,0.28)" }} />
           </a>
-          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>or <a href={ANNUAL_URL} style={{ color: S.gold, textDecoration: "none", fontWeight: 700 }}>$270/year</a> · cancel anytime</div>
+          <div className="lp-hero-copy" style={{ maxWidth: 460, flex: "1 1 320px" }}>
+            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: N.orange, marginBottom: 14, fontWeight: 700, textShadow: "0 0 10px rgba(255,138,42,0.5)" }}>
+              CARES Works · Tools that do the actual work.
+            </div>
+            <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(28px, 4.5vw, 44px)", lineHeight: 1.1, marginBottom: 16, color: N.ink }}>
+              Built from real work.<br /><em style={{ fontStyle: "italic", color: N.blueHot }}>Not a course. Not a coach.</em>
+            </h1>
+            <p style={{ fontSize: 16, color: N.muted, marginBottom: 24, lineHeight: 1.6 }}>
+              Plain-English tools for the business problems nobody taught you how to solve. New tools added monthly.
+            </p>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 24 }}>
+              {[{ p: "New tools monthly", c: N.blue }, { p: "No fluff", c: N.pink }, { p: "Ask Kari — real answers", c: N.orange }].map(chip => (
+                <div key={chip.p} style={{ background: N.white, border: `1.5px solid ${chip.c}`, borderRadius: 100, padding: "6px 14px", fontSize: 12, color: chip.c, fontFamily: "'DM Mono', monospace", letterSpacing: "0.05em", fontWeight: 700, boxShadow: `0 0 12px ${chip.c}33` }}>{chip.p}</div>
+              ))}
+            </div>
+            {session ? (
+              <NeonBtn color={N.blue} onClick={() => navigate("/dashboard")} mono>My Dashboard →</NeonBtn>
+            ) : (
+              <>
+                <a href={MONTHLY_URL} style={{ display: "inline-block", background: N.blue, color: N.white, fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", padding: "14px 32px", borderRadius: 8, textDecoration: "none", marginBottom: 10, fontWeight: 700, boxShadow: `0 6px 20px rgba(0,128,255,0.5)` }}>
+                  Join CARES Works — $27/month
+                </a>
+                <div style={{ fontSize: 12, color: N.muted, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>or <a href={ANNUAL_URL} style={{ color: N.orange, textDecoration: "none", fontWeight: 700 }}>$270/year</a> · cancel anytime</div>
+              </>
+            )}
+          </div>
         </div>
       </div>
-      <div style={{ height: 4, background: S.orange }} />
 
-      {/* LIBRARY SCROLLER — framed left, items scroll out */}
+      {/* LIBRARY SCROLLER — neon-outlined "The Library" label, scrolling titles */}
       {newTools.length > 0 && (
-        <div style={{ background: S.slate, overflow: "hidden", borderBottom: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "stretch" }}>
-          <style>{"@keyframes scroll-left { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } } .lib-track { display: flex; width: max-content; animation: scroll-left 80s linear infinite; align-items: center; } .lib-track:hover { animation-play-state: paused; } @media (max-width: 640px) { .lib-banner { padding: 0 14px !important; } .lib-banner-label { font-size: 10px !important; letter-spacing: 0.1em !important; } .lib-banner-icon { font-size: 16px !important; } }"}</style>
-          {/* LEFT BANNER — the cute "Library" frame */}
-          <div className="lib-banner" style={{ background: "linear-gradient(135deg, #e8773a, #c95f22)", padding: "0 24px", display: "flex", alignItems: "center", gap: 10, flexShrink: 0, height: 48, boxShadow: "4px 0 12px rgba(0,0,0,0.15)", zIndex: 2, position: "relative" }}>
-            <span className="lib-banner-icon" style={{ fontSize: 20 }}>📚</span>
-            <span className="lib-banner-label" style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", color: "#fff", fontWeight: 700, whiteSpace: "nowrap" }}>The Library</span>
+        <div style={{ background: N.ink, overflow: "hidden", display: "flex", alignItems: "stretch", boxShadow: `0 0 30px rgba(0,128,255,0.35)` }}>
+          <style>{"@keyframes scroll-left { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } } .lib-track { display: flex; width: max-content; animation: scroll-left 80s linear infinite; align-items: center; } .lib-track:hover { animation-play-state: paused; }"}</style>
+          <div style={{ background: `linear-gradient(135deg, ${N.blue}, ${N.blueDark})`, padding: "0 24px", display: "flex", alignItems: "center", gap: 10, flexShrink: 0, height: 48, boxShadow: `4px 0 20px rgba(0,128,255,0.6)`, zIndex: 2, position: "relative" }}>
+            <span style={{ fontSize: 20 }}>📚</span>
+            <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", color: N.white, fontWeight: 700, whiteSpace: "nowrap" }}>The Library</span>
           </div>
-          {/* SCROLLING TRACK — items flow out of the banner */}
           <div style={{ overflow: "hidden", height: 48, flex: 1, position: "relative" }}>
             <div className="lib-track">
               {[...newTools, ...newTools].map((t, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "center", height: 48, flexShrink: 0, padding: "0 22px", borderRight: "1px solid " + S.orange }}>
-                  <span style={{ fontFamily: "'Figtree', sans-serif", fontSize: 13, color: "rgba(255,255,255,0.85)", whiteSpace: "nowrap", fontWeight: 500 }}>{t.title}</span>
+                <div key={i} style={{ display: "flex", alignItems: "center", height: 48, flexShrink: 0, padding: "0 22px", borderRight: `1px solid ${N.rule}` }}>
+                  <span style={{ fontFamily: "'Figtree', sans-serif", fontSize: 13, color: "rgba(255,255,255,0.9)", whiteSpace: "nowrap", fontWeight: 500 }}>{t.title}</span>
                 </div>
               ))}
             </div>
@@ -143,118 +112,122 @@ export default function Landing({ session }) {
       )}
 
       {/* MAIN */}
-      <div className="lp-main" style={{ maxWidth: 1000, margin: "0 auto", padding: "56px 24px 80px" }}>
+      <div className="lp-main" style={{ maxWidth: 1000, margin: "0 auto", padding: "56px 24px 40px" }}>
 
-        {/* VANITY */}
-        <div className="lp-vanity" style={{ background: S.cream, border: "1px solid " + S.rule, borderLeft: "4px solid " + S.orange, borderRadius: 10, padding: "24px 32px", marginBottom: 48, display: "flex", alignItems: "center", gap: 16 }}>
+        {/* VANITY QUOTE — pink neon */}
+        <NeonBox color={N.pink} rgb={N_RGB.pink} style={{ padding: "24px 32px", marginBottom: 48, display: "flex", alignItems: "center", gap: 16 }}>
           <span style={{ fontSize: 28, flexShrink: 0 }}>📊</span>
-          <p style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(16px, 2.5vw, 22px)", color: S.slate, fontStyle: "italic" }}>
+          <p style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(16px, 2.5vw, 22px)", color: N.ink, fontStyle: "italic", margin: 0 }}>
             "Revenue is vanity. Net profit is sanity." — The framework nobody taught you is inside.
           </p>
-        </div>
+        </NeonBox>
 
         {/* FREE TOOLS */}
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
-          <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", color: "#5a6481" }}>Free Tools</p>
-          <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, background: "#eef0f6", color: S.slate, padding: "3px 10px", borderRadius: 100, letterSpacing: "0.08em" }}>No account needed</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8, flexWrap: "wrap" }}>
+          <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", color: N.muted, fontWeight: 700 }}>Free Tools</p>
+          <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, background: `rgba(${N_RGB.blue},0.1)`, color: N.blue, padding: "3px 10px", borderRadius: 100, letterSpacing: "0.08em", border: `1px solid ${N.blue}`, fontWeight: 700 }}>No account needed</span>
         </div>
-        <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(22px, 3vw, 30px)", marginBottom: 12, color: S.slate }}>Start here. Take what you need.</h2>
-        <p style={{ fontSize: 14, color: S.muted, marginBottom: 32, lineHeight: 1.6 }}>These are completely free. No login, no credit card, no catch. Just tools.</p>
+        <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(22px, 3vw, 30px)", marginBottom: 12, color: N.ink }}>Start here. Take what you need.</h2>
+        <p style={{ fontSize: 14, color: N.muted, marginBottom: 32, lineHeight: 1.6 }}>These are completely free. No login, no credit card, no catch. Just tools.</p>
 
-        <div className="lp-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 20, marginBottom: 64 }}>
+        <div className="lp-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 22, marginBottom: 64 }}>
           {freeTools.map(t => (
-            <a key={t.title} href={t.href} style={{ background: "#fff", border: "2px solid #eef0f6", borderRadius: 10, padding: "28px 24px", display: "flex", flexDirection: "column", gap: 10, textDecoration: "none", color: "inherit", transition: "box-shadow 0.2s, transform 0.2s, border-color 0.2s" }}
-              onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 8px 28px rgba(0,0,0,0.09)"; e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.borderColor = S.orange; }}
-              onMouseLeave={e => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = "none"; e.currentTarget.style.borderColor = "#eef0f6"; }}>
-              <div style={{ width: 48, height: 48, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, background: "#fdf0e8" }}>{t.icon}</div>
-              <span style={{ display: "inline-block", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase", padding: "3px 10px", borderRadius: 100, background: "#fdf0e8", color: S.orange, fontWeight: 700 }}>Free — no login needed</span>
-              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, lineHeight: 1.25, color: S.slate }}>{t.title}</div>
-              <div style={{ fontSize: 14, color: S.muted, flex: 1, lineHeight: 1.55 }}>{t.desc}</div>
-              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.08em", color: S.orange, fontWeight: 500, marginTop: 8 }}>{t.cta} →</div>
+            <a key={t.title} href={t.href} style={{ textDecoration: "none", color: "inherit" }}>
+              <NeonBox color={t.color} rgb={t.rgb} style={{ padding: "24px 24px", display: "flex", flexDirection: "column", gap: 10, height: "100%" }}>
+                <div style={{ width: 48, height: 48, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, background: `rgba(${t.rgb},0.1)`, border: `1.5px solid ${t.color}` }}>{t.icon}</div>
+                <span style={{ display: "inline-block", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase", padding: "3px 10px", borderRadius: 100, background: `rgba(${N_RGB.blue},0.1)`, color: N.blue, fontWeight: 700, alignSelf: "flex-start", border: `1px solid ${N.blue}` }}>Free — no login needed</span>
+                <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, lineHeight: 1.25, color: N.ink }}>{t.title}</div>
+                <div style={{ fontSize: 14, color: N.muted, flex: 1, lineHeight: 1.55 }}>{t.desc}</div>
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.08em", color: t.color, fontWeight: 700, marginTop: 8 }}>{t.cta} →</div>
+              </NeonBox>
             </a>
           ))}
         </div>
 
-        {/* MEMBERSHIP BLOCK */}
-        <div id="join" style={{ background: S.slate, borderRadius: 14, padding: "48px", color: "#fff", marginBottom: 64, position: "relative", overflow: "hidden" }}>
-          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 90% 50%, rgba(232,119,58,0.15) 0%, transparent 60%)" }} />
-          <div className="lp-membership" style={{ position: "relative", display: "flex", gap: 48, alignItems: "flex-start", flexWrap: "wrap" }}>
+        {/* MEMBERSHIP — big neon-outlined block */}
+        <NeonBox id="join" color={N.blue} rgb={N_RGB.blue} scale={1.6} style={{ padding: "48px", marginBottom: 64 }}>
+          <div className="lp-membership" style={{ display: "flex", gap: 48, alignItems: "flex-start", flexWrap: "wrap" }}>
             <div style={{ flex: 1, minWidth: 240 }}>
-              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase", color: S.orange, marginBottom: 12 }}>CARES Works Membership</div>
-              <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(24px, 3vw, 36px)", marginBottom: 12, lineHeight: 1.15 }}>
-                Everything you need.<br /><em style={{ fontStyle: "italic" }}>One tool at a time.</em>
+              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase", color: N.blue, marginBottom: 12, fontWeight: 700 }}>CARES Works Membership</div>
+              <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(24px, 3vw, 36px)", marginBottom: 12, lineHeight: 1.15, color: N.ink }}>
+                Everything you need.<br /><em style={{ fontStyle: "italic", color: N.blueHot }}>One tool at a time.</em>
               </h2>
-              <p style={{ fontSize: 15, color: "rgba(255,255,255,0.7)", marginBottom: 20, lineHeight: 1.65 }}>
+              <p style={{ fontSize: 15, color: N.muted, marginBottom: 20, lineHeight: 1.65 }}>
                 New tools drop monthly. The Debrief — Kari's monthly video — answers real member questions. Court of Accounts serialized chapter by chapter.
               </p>
-              <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 8 }}>
+              <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 8, padding: 0, margin: 0 }}>
                 {["Full tool library — Money, People, Communication, Leadership", "New tools added monthly — sometimes more", "The Debrief — monthly video: teaching + your questions answered", "Court of Accounts — one chapter per month (annual = full book day one)", "Ask Kari — real answers from someone who's seen your exact situation"].map(p => (
-                  <li key={p} style={{ fontSize: 14, color: "rgba(255,255,255,0.8)", display: "flex", alignItems: "flex-start", gap: 10 }}>
-                    <span style={{ color: S.orange, fontWeight: 700, flexShrink: 0 }}>→</span> {p}
+                  <li key={p} style={{ fontSize: 14, color: N.ink, display: "flex", alignItems: "flex-start", gap: 10 }}>
+                    <span style={{ color: N.blue, fontWeight: 700, flexShrink: 0 }}>→</span> {p}
                   </li>
                 ))}
               </ul>
             </div>
-            <div className="lp-membership-price" style={{ textAlign: "center", flexShrink: 0, minWidth: 200 }}>
-              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 52, color: "#fff", lineHeight: 1, marginBottom: 4 }}>$27<span style={{ fontFamily: "'Figtree', sans-serif", fontSize: 16, color: "rgba(255,255,255,0.5)", fontWeight: 400 }}>/mo</span></div>
-              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "rgba(255,255,255,0.45)", marginBottom: 20, letterSpacing: "0.05em" }}>or <strong style={{ color: S.gold }}>$270/year</strong> — 2 months free</div>
-              <a href={MONTHLY_URL} style={{ display: "block", background: S.orange, color: "#fff", fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", padding: "14px 28px", borderRadius: 6, textDecoration: "none", marginBottom: 8, textAlign: "center" }}>Join Monthly — $27/mo</a>
-              <a href={ANNUAL_URL} style={{ display: "block", background: "linear-gradient(135deg,#C9A84C,#e0c060)", color: "#1e1e2a", fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", padding: "14px 28px", borderRadius: 6, textDecoration: "none", marginBottom: 10, textAlign: "center", fontWeight: 700 }}>Join Annual — $270/yr</a>
-              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "rgba(255,255,255,0.35)", letterSpacing: "0.05em" }}>Full tool library. New monthly drops.<br />Monthly Debrief. Cancel anytime.</div>
+            <div className="lp-membership-price" style={{ textAlign: "center", flexShrink: 0, minWidth: 220 }}>
+              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 52, color: N.ink, lineHeight: 1, marginBottom: 4 }}>$27<span style={{ fontFamily: "'Figtree', sans-serif", fontSize: 16, color: N.muted, fontWeight: 400 }}>/mo</span></div>
+              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: N.muted, marginBottom: 20, letterSpacing: "0.05em" }}>or <strong style={{ color: N.orange }}>$270/year</strong> — 2 months free</div>
+              <a href={MONTHLY_URL} style={{ display: "block", background: N.blue, color: N.white, fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", padding: "14px 28px", borderRadius: 8, textDecoration: "none", marginBottom: 10, textAlign: "center", fontWeight: 700, boxShadow: `0 6px 20px rgba(0,128,255,0.5)` }}>Join Monthly — $27/mo</a>
+              <a href={ANNUAL_URL} style={{ display: "block", background: N.orange, color: N.white, fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", padding: "14px 28px", borderRadius: 8, textDecoration: "none", marginBottom: 10, textAlign: "center", fontWeight: 700, boxShadow: `0 6px 20px rgba(255,138,42,0.5)` }}>Join Annual — $270/yr</a>
+              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: N.muted, letterSpacing: "0.05em" }}>Full tool library. New monthly drops.<br />Monthly Debrief. Cancel anytime.</div>
             </div>
           </div>
-        </div>
+        </NeonBox>
 
         {/* MEMBER TOOLS */}
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
-          <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", color: "#5a6481" }}>Member Tools</p>
-          <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", background: "#fdf0e8", color: "#c95f22", padding: "3px 10px", borderRadius: 100 }}>New tools added monthly</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8, flexWrap: "wrap" }}>
+          <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", color: N.muted, fontWeight: 700 }}>Member Tools</p>
+          <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", background: `rgba(${N_RGB.orange},0.1)`, color: N.orange, padding: "3px 10px", borderRadius: 100, border: `1px solid ${N.orange}`, fontWeight: 700 }}>New tools added monthly</span>
         </div>
-        <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(22px, 3vw, 30px)", marginBottom: 8, color: S.slate }}>What's waiting inside.</h2>
-        <p style={{ fontSize: 14, color: S.muted, marginBottom: 32, lineHeight: 1.6 }}>These are member-only. Join to unlock the full library.</p>
+        <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(22px, 3vw, 30px)", marginBottom: 8, color: N.ink }}>What's waiting inside.</h2>
+        <p style={{ fontSize: 14, color: N.muted, marginBottom: 32, lineHeight: 1.6 }}>These are member-only. Join to unlock the full library.</p>
 
-        <div className="lp-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 20, marginBottom: 64 }}>
-          {memberTools.map(t => (
-            <a key={t.title} href={MONTHLY_URL} style={{ background: "#fff", border: "1px solid " + S.rule, borderRadius: 10, padding: "28px 24px", display: "flex", flexDirection: "column", gap: 10, textDecoration: "none", color: "inherit", position: "relative", cursor: "pointer", transition: "box-shadow 0.2s, transform 0.2s" }}
-              onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 8px 28px rgba(232,119,58,0.15)"; e.currentTarget.style.transform = "translateY(-3px)"; }}
-              onMouseLeave={e => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = "none"; }}>
-              {t.tag && <div style={{ position: "absolute", top: 14, right: 14, background: S.orange, color: "#fff", fontFamily: "'DM Mono', monospace", fontSize: 9, fontWeight: 700, letterSpacing: "0.12em", padding: "2px 8px", borderRadius: 100 }}>{t.tag}</div>}
-              <div style={{ position: "absolute", top: t.tag ? 40 : 14, right: 14, width: 24, height: 24, background: "#fdf0e8", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11 }}>🔒</div>
-              <div style={{ width: 48, height: 48, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, background: "#eef0f6", marginBottom: 4 }}>{t.icon}</div>
-              <span style={{ display: "inline-block", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase", padding: "3px 10px", borderRadius: 100, background: "#fdf0e8", color: "#c95f22" }}>Members Only</span>
-              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, lineHeight: 1.25, color: S.slate }}>{t.title}</div>
-              <div style={{ fontSize: 14, color: S.muted, flex: 1, lineHeight: 1.55 }}>{t.desc}</div>
-              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.08em", color: S.orange, fontWeight: 500, marginTop: 8 }}>Join to access →</div>
-            </a>
-          ))}
+        <div className="lp-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 22, marginBottom: 64 }}>
+          {memberTools.map((t, i) => {
+            const colors = [N.blue, N.pink, N.orange];
+            const rgbs = [N_RGB.blue, N_RGB.pink, N_RGB.orange];
+            const color = colors[i % 3];
+            const rgb = rgbs[i % 3];
+            return (
+              <a key={t.title} href={MONTHLY_URL} style={{ textDecoration: "none", color: "inherit" }}>
+                <NeonBox color={color} rgb={rgb} style={{ padding: "24px 24px", display: "flex", flexDirection: "column", gap: 10, height: "100%" }}>
+                  {t.tag && <div style={{ position: "absolute", top: 14, right: 14, background: color, color: N.white, fontFamily: "'DM Mono', monospace", fontSize: 9, fontWeight: 700, letterSpacing: "0.12em", padding: "3px 8px", borderRadius: 100, boxShadow: `0 0 14px ${color}` }}>{t.tag}</div>}
+                  <div style={{ width: 48, height: 48, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, background: `rgba(${rgb},0.1)`, border: `1.5px solid ${color}`, marginBottom: 4 }}>{t.icon}</div>
+                  <span style={{ display: "inline-block", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase", padding: "3px 10px", borderRadius: 100, background: `rgba(${rgb},0.1)`, color: color, alignSelf: "flex-start", border: `1px solid ${color}`, fontWeight: 700 }}>🔒 Members Only</span>
+                  <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, lineHeight: 1.25, color: N.ink }}>{t.title}</div>
+                  <div style={{ fontSize: 14, color: N.muted, flex: 1, lineHeight: 1.55 }}>{t.desc}</div>
+                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.08em", color: color, fontWeight: 700, marginTop: 8 }}>Join to access →</div>
+                </NeonBox>
+              </a>
+            );
+          })}
         </div>
 
-        {/* ASK KARI STRIP */}
-        <div className="lp-cta-strip" style={{ background: S.slate, color: "#fff", borderRadius: 12, padding: "40px 44px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 24, flexWrap: "wrap", marginBottom: 48, position: "relative", overflow: "hidden" }}>
-          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 10% 50%, rgba(232,119,58,0.2) 0%, transparent 60%)" }} />
-          <div style={{ position: "relative" }}>
-            <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 26, marginBottom: 8 }}>Got a question? <em style={{ fontStyle: "italic", color: S.orange }}>Ask Kari.</em></h3>
-            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.7)", maxWidth: 480 }}>Not a contact form. Not a chatbot. An actual human who has seen your exact situation before and knows what to do about it.</p>
+        {/* ASK KARI STRIP — pink neon */}
+        <NeonBox color={N.pink} rgb={N_RGB.pink} scale={1.2} style={{ padding: "36px 42px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 24, flexWrap: "wrap", marginBottom: 48 }}>
+          <div>
+            <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 26, marginBottom: 8, color: N.ink }}>Got a question? <em style={{ fontStyle: "italic", color: N.pink }}>Ask Kari.</em></h3>
+            <p style={{ fontSize: 15, color: N.muted, maxWidth: 480, margin: 0 }}>Not a contact form. Not a chatbot. An actual human who has seen your exact situation before and knows what to do about it.</p>
           </div>
-          <div style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 100, padding: "8px 20px", fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.7)", flexShrink: 0, position: "relative" }}>
+          <div style={{ background: N.pink, color: N.white, borderRadius: 100, padding: "8px 20px", fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", flexShrink: 0, fontWeight: 700, boxShadow: `0 4px 14px ${N.pink}88` }}>
             Chat open — Ask Kari ↓
           </div>
-        </div>
+        </NeonBox>
 
-        <hr style={{ border: "none", borderTop: "1px solid " + S.rule, margin: "48px 0" }} />
-
-        <div className="lp-bottom-cta" style={{ background: S.cream, border: "1px solid " + S.rule, borderRadius: 10, padding: "36px 40px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 24, flexWrap: "wrap" }}>
+        {/* BOTTOM CTA — orange neon */}
+        <NeonBox color={N.orange} rgb={N_RGB.orange} className="lp-bottom-cta" style={{ padding: "32px 40px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 24, flexWrap: "wrap" }}>
           <div>
-            <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, marginBottom: 6, color: S.slate }}>Need this done for you instead of by you?</h3>
-            <p style={{ fontSize: 15, color: S.muted }}>CARES Consulting does bookkeeping, HR systems, and operations setup for small businesses who are done improvising.</p>
+            <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, marginBottom: 6, color: N.ink }}>Need this done for you instead of by you?</h3>
+            <p style={{ fontSize: 15, color: N.muted, margin: 0 }}>CARES Consulting does bookkeeping, HR systems, and operations setup for small businesses who are done improvising.</p>
           </div>
-          <a href="https://caresmn.com" style={{ background: S.slate, color: "#fff", fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", padding: "13px 26px", borderRadius: 4, textDecoration: "none", whiteSpace: "nowrap", flexShrink: 0 }}>Learn How We Work</a>
-        </div>
+          <a href="https://caresmn.com" style={{ background: N.orange, color: N.white, fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", padding: "13px 26px", borderRadius: 8, textDecoration: "none", whiteSpace: "nowrap", flexShrink: 0, fontWeight: 700, boxShadow: `0 4px 14px ${N.orange}88` }}>Learn How We Work</a>
+        </NeonBox>
       </div>
 
-      <footer className="lp-footer" style={{ borderTop: "1px solid " + S.rule, padding: "28px 40px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
-        <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: S.rule, letterSpacing: "0.08em" }}>© 2026 CARES Consulting Inc. · <a href="https://caresmn.com" style={{ color: S.muted, textDecoration: "underline", fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.08em" }}>caresmn.com</a></div>
-        <a href="https://karikounkel.store" style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: S.muted, textDecoration: "none", letterSpacing: "0.08em" }}>Full Store at karikounkel.store →</a>
+      <SignatureFooter />
+
+      <footer style={{ borderTop: "1px solid " + N.rule, padding: "24px 40px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+        <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: N.muted, letterSpacing: "0.08em" }}>© 2026 CARES Consulting Inc. · <a href="https://caresmn.com" style={{ color: N.muted, textDecoration: "underline" }}>caresmn.com</a></div>
+        <a href="https://karikounkel.store" style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: N.muted, textDecoration: "none", letterSpacing: "0.08em" }}>Full Store at karikounkel.store →</a>
       </footer>
     </div>
   );
