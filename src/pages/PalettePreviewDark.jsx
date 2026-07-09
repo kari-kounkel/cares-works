@@ -69,7 +69,7 @@ export default function PalettePreviewDark() {
           <div style={{ maxWidth: 380, flex: "1 1 300px" }}>
             <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.18em", color: N.pink, fontWeight: 700, marginBottom: 10, display: "flex", alignItems: "center", gap: 8 }}>
               <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: 100, background: N.pink, boxShadow: `0 0 10px ${N.pink}`, animation: "none" }} />
-              THIS WEEK ON CARES WORKS
+              THIS WEEK'S SPOTLIGHT
             </div>
             <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 26, color: N.ink, lineHeight: 1.2, marginBottom: 8 }}>
               New drop: <span style={{ color: N.blueHot }}>The Vendor Decoder</span>
