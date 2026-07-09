@@ -59,27 +59,33 @@ export default function PalettePreviewDark() {
     <div style={{ minHeight: "100vh", background: N.wall, color: N.text, fontFamily: "'Figtree', sans-serif" }}>
       <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-      {/* HERO LOGO BANNER — white, so no seam with the PNG's baked black */}
-      <div style={{ background: N.white, padding: "40px 24px 32px", textAlign: "center" }}>
-        <img src="/cares-works-neon-logo.png" alt="CARES Works — Tools, Training, Confidence, Results. Built for Business. Backed by CARES."
-          style={{ maxHeight: 220, width: "auto", maxWidth: "100%", display: "block", margin: "0 auto", filter: "drop-shadow(0 8px 32px rgba(0,128,255,0.25))" }} />
+      {/* HERO LOGO BANNER — left-aligned to the content column */}
+      <div style={{ background: N.white, padding: "36px 0 28px" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px" }}>
+          <img src="/cares-works-neon-logo.png" alt="CARES Works — Tools, Training, Confidence, Results. Built for Business. Backed by CARES."
+            style={{ maxHeight: 200, width: "auto", maxWidth: "100%", display: "block", filter: "drop-shadow(0 8px 32px rgba(0,128,255,0.25))" }} />
+        </div>
       </div>
 
-      {/* NAV BAR — white sticky */}
-      <header style={{ background: N.white, borderBottom: "1px solid " + N.rule, padding: "0 32px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 64, position: "sticky", top: 0, zIndex: 100 }}>
-        <a href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-          <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>
-            CARES <span style={{ color: N.blueHot, fontStyle: "italic" }}>Works.</span>
-          </span>
-        </a>
-        <div style={{ display: "flex", gap: 4, background: N.wall, borderRadius: 10, padding: 4, border: "1px solid " + N.rule }}>
-          {["Tool Library", "My Work", "The Debrief", "Court of Accounts", "Shop", "Account"].map((t, i) => (
-            <div key={t} style={{ padding: "6px 14px", borderRadius: 7, background: i === 0 ? N.blue : "transparent", color: i === 0 ? N.white : N.muted, fontSize: 12, fontWeight: i === 0 ? 700 : 500, cursor: "pointer", boxShadow: i === 0 ? "0 4px 14px rgba(0,128,255,0.4)" : "none" }}>{t}</div>
-          ))}
-        </div>
-        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", background: N.blue, color: N.white, padding: "5px 12px", borderRadius: 100, fontWeight: 700, boxShadow: "0 3px 10px rgba(0,128,255,0.4)" }}>ANNUAL</div>
-          <div style={{ fontSize: 12, color: N.muted, fontFamily: "'DM Mono', monospace" }}>kari@caresmn.com</div>
+      {/* NAV BAR — left-grouped (wordmark + pill), right group (badge + email) */}
+      <header style={{ background: N.white, borderBottom: "1px solid " + N.rule, padding: 0, position: "sticky", top: 0, zIndex: 100 }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 64 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+            <a href="/" style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
+              <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>
+                CARES <span style={{ color: N.blueHot, fontStyle: "italic" }}>Works.</span>
+              </span>
+            </a>
+            <div style={{ display: "flex", gap: 4, background: N.wall, borderRadius: 10, padding: 4, border: "1px solid " + N.rule }}>
+              {["Tool Library", "My Work", "The Debrief", "Court of Accounts", "Shop", "Account"].map((t, i) => (
+                <div key={t} style={{ padding: "6px 14px", borderRadius: 7, background: i === 0 ? N.blue : "transparent", color: i === 0 ? N.white : N.muted, fontSize: 12, fontWeight: i === 0 ? 700 : 500, cursor: "pointer", boxShadow: i === 0 ? "0 4px 14px rgba(0,128,255,0.4)" : "none" }}>{t}</div>
+              ))}
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", background: N.blue, color: N.white, padding: "5px 12px", borderRadius: 100, fontWeight: 700, boxShadow: "0 3px 10px rgba(0,128,255,0.4)" }}>ANNUAL</div>
+            <div style={{ fontSize: 12, color: N.muted, fontFamily: "'DM Mono', monospace" }}>kari@caresmn.com</div>
+          </div>
         </div>
       </header>
 
@@ -115,8 +121,8 @@ export default function PalettePreviewDark() {
           ))}
         </div>
 
-        {/* WHAT'S NEW — one big blue neon card */}
-        <ColorCard color={N.blue} glow={glow("0,128,255", 1.4)} style={{ padding: "30px 32px", marginBottom: 52 }}>
+        {/* WHAT'S NEW — black card with blue glow, so it stops competing with other blues */}
+        <ColorCard color={N.ink} glow={glow("0,128,255", 1.2)} style={{ padding: "30px 32px", marginBottom: 52 }}>
           <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 20 }}>
             <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 26, color: N.white, margin: 0 }}>🔥 What's New This Week</h2>
             <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "rgba(255,255,255,0.7)", letterSpacing: "0.06em" }}>Updated Jul 9</span>
