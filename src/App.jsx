@@ -15,6 +15,7 @@ import QBODiscovery from "./pages/QBODiscovery";
 import VendorDecoder from "./pages/VendorDecoder";
 import ChecklistBuilder from "./pages/ChecklistBuilder";
 import ExemptionTracker from "./pages/ExemptionTracker";
+import ExemptSubmit from "./pages/ExemptSubmit";
 import NetProfitRatios from "./pages/NetProfitRatios";
 import QuickbooksTriage from "./pages/QuickbooksTriage";
 import PricingMetrics from "./pages/PricingMetrics";
@@ -136,6 +137,8 @@ export default function App() {
     if (!session) { navigate("/login"); return null; }
     return <ExemptionTracker session={session} />;
   }
+  // Public customer-facing certificate submission (no auth — token in URL is the auth).
+  if (path.startsWith("/exempt/")) return <ExemptSubmit />;
   if (path === "/tools/net-profit-ratios") return <NetProfitRatios session={session} />;
   if (path === "/tools/quickbooks-triage") return <QuickbooksTriage session={session} />;
   if (path === "/tools/pricing-metrics") return <PricingMetrics session={session} />;
