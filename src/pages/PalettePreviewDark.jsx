@@ -1,23 +1,49 @@
-// PalettePreviewDark.jsx — the "gulp we did a black background" variant.
-// Same components as PalettePreview but on near-black with brighter neon.
-// Routed at /preview/neon-dark (public, no auth needed).
+// PalettePreviewDark.jsx — the winner. Neon-on-black to match the new logo.
+// Pulls the three logo colors (cyan-blue, magenta, orange) as the palette.
+// Routed at /preview/neon-dark.
 
-// NEON ON BLACK
+// PALETTE — sampled from the new CARES Works neon logo
 const D = {
-  blue:      "#3b82f6",   // brighter blue for dark bg pop
-  blueHot:   "#60a5fa",   // hover / highlight
-  blueTint:  "rgba(59,130,246,0.14)",  // subtle backgrounds
-  blueGlow:  "rgba(59,130,246,0.55)",
-  black:     "#050510",   // page background
-  surface:   "#0d1220",   // elevated panels
-  surface2:  "#141a2b",   // cards
-  text:      "#f8fafc",   // near-white body
-  muted:     "#94a3b8",   // cool slate for secondary
-  rule:      "#1e293b",   // borders
-  ruleHot:   "#334155",   // stronger borders
+  // three neon inks from the logo ribbon
+  blue:      "#00b7ff",   // cyan-leaning electric blue (the "Works." cursive)
+  bluePale:  "#7fdcff",
+  pink:      "#ff2d8a",   // hot magenta (middle ribbon)
+  pinkPale:  "#ff7fb8",
+  orange:    "#ff8a2a",   // neon orange (outer ribbon)
+  orangePale:"#ffbb80",
+  // neutrals
+  black:     "#000000",   // pure black — matches the logo bg
+  ink:       "#0a0a12",   // near-black for layered surfaces
+  ink2:      "#12141f",   // one step up
+  text:      "#ffffff",
+  muted:     "#94a3b8",
+  rule:      "#1e293b",
   green:     "#22c55e",
-  grad:      "linear-gradient(135deg, #3b82f6, #1d4ed8)",
 };
+
+// Glow constants — real neon.
+const HALO_BLUE   = "0 0 24px rgba(0,183,255,0.45), 0 0 60px rgba(0,183,255,0.22)";
+const HALO_PINK   = "0 0 22px rgba(255,45,138,0.45), 0 0 50px rgba(255,45,138,0.22)";
+const HALO_ORANGE = "0 0 22px rgba(255,138,42,0.45), 0 0 50px rgba(255,138,42,0.22)";
+const HALO_L      = "0 0 40px rgba(0,183,255,0.5), 0 0 100px rgba(0,183,255,0.25)";
+const BTN_GLOW    = "0 0 22px rgba(0,183,255,0.7), 0 6px 20px rgba(0,183,255,0.4)";
+const RIM_BLUE    = "inset 0 0 0 1px rgba(0,183,255,0.22)";
+
+function Sign({ children, glow = HALO_BLUE, style = {}, corner = "100% 0%", tint = "rgba(0,183,255,0.15)" }) {
+  return (
+    <div style={{
+      background: `radial-gradient(circle at ${corner}, ${tint}, transparent 60%), ${D.ink}`,
+      borderRadius: 14,
+      boxShadow: glow + ", " + RIM_BLUE,
+      color: D.text,
+      position: "relative",
+      overflow: "hidden",
+      ...style,
+    }}>
+      {children}
+    </div>
+  );
+}
 
 export default function PalettePreviewDark() {
   return (
@@ -25,34 +51,32 @@ export default function PalettePreviewDark() {
       <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
       {/* NAV BAR */}
-      <header style={{ background: D.black, borderBottom: "1px solid " + D.rule, padding: "0 32px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 68, position: "sticky", top: 0, zIndex: 100 }}>
-        <a href="/" style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none" }}>
-          <div style={{ padding: "4px 8px", background: "rgba(255,255,255,0.06)", borderRadius: 8 }}>
-            <img src="/cares-works-logo.png" alt="CARES Works" style={{ height: 30, width: "auto", display: "block", filter: "brightness(1.05)" }} />
-          </div>
-          <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: D.text }}>
-            CARES <span style={{ color: D.blueHot, textShadow: "0 0 12px " + D.blueGlow }}>Works.</span>
-          </span>
+      <header style={{ background: D.black, borderBottom: "1px solid " + D.rule, padding: "0 32px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 76, position: "sticky", top: 0, zIndex: 100 }}>
+        <a href="/" style={{ display: "flex", alignItems: "center", gap: 14, textDecoration: "none" }}>
+          <img src="/cares-works-neon-logo.png" alt="CARES Works" style={{ height: 56, width: "auto", display: "block", filter: "drop-shadow(0 0 12px rgba(0,183,255,0.4))" }} />
         </a>
-        <div style={{ display: "flex", gap: 4, background: D.surface, borderRadius: 10, padding: 4, border: "1px solid " + D.rule }}>
+        <div style={{ display: "flex", gap: 4, background: D.ink, borderRadius: 10, padding: 4, boxShadow: HALO_BLUE }}>
           {["Tool Library", "My Work", "The Debrief", "Court of Accounts", "Shop", "Account"].map((t, i) => (
-            <div key={t} style={{ padding: "6px 14px", borderRadius: 7, background: i === 0 ? D.blue : "transparent", color: i === 0 ? D.text : D.muted, fontSize: 12, fontWeight: i === 0 ? 700 : 500, cursor: "pointer", boxShadow: i === 0 ? "0 0 20px " + D.blueGlow : "none" }}>{t}</div>
+            <div key={t} style={{ padding: "6px 14px", borderRadius: 7, background: i === 0 ? D.blue : "transparent", color: i === 0 ? D.black : D.muted, fontSize: 12, fontWeight: i === 0 ? 700 : 500, cursor: "pointer", boxShadow: i === 0 ? "0 0 18px rgba(0,183,255,0.7)" : "none" }}>{t}</div>
           ))}
         </div>
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", background: D.blueTint, color: D.blueHot, padding: "5px 10px", borderRadius: 100, fontWeight: 700, border: "1px solid " + D.blue }}>ANNUAL</div>
+          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", background: D.ink, color: D.blue, padding: "5px 12px", borderRadius: 100, fontWeight: 700, boxShadow: "0 0 14px rgba(0,183,255,0.5)" }}>ANNUAL</div>
           <div style={{ fontSize: 12, color: D.muted, fontFamily: "'DM Mono', monospace" }}>kari@caresmn.com</div>
         </div>
       </header>
 
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "48px 24px 100px" }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "56px 24px 100px" }}>
 
-        <div style={{ marginBottom: 8, fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.16em", color: D.blueHot, fontWeight: 700 }}>PREVIEW — NEON ON BLACK</div>
-        <div style={{ marginBottom: 40 }}>
-          <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 40, color: D.text, marginBottom: 8, lineHeight: 1.1 }}>
+        {/* WELCOME + TAGLINE STRIP echoing the logo */}
+        <div style={{ marginBottom: 44, textAlign: "left" }}>
+          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.2em", color: D.orange, fontWeight: 700, marginBottom: 14, textShadow: "0 0 10px rgba(255,138,42,0.6)" }}>
+            TOOLS &nbsp;·&nbsp; TRAINING &nbsp;·&nbsp; CONFIDENCE &nbsp;·&nbsp; RESULTS
+          </div>
+          <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 48, color: D.text, marginBottom: 12, lineHeight: 1.05 }}>
             Welcome back, Kari.
           </h1>
-          <p style={{ color: D.text, fontSize: 17, lineHeight: 1.55, marginBottom: 4, maxWidth: 720, opacity: 0.9 }}>
+          <p style={{ color: D.text, fontSize: 17, lineHeight: 1.55, marginBottom: 6, maxWidth: 720, opacity: 0.85 }}>
             Tools, Debriefs, and practical business systems for people who are done letting chaos run the meeting.
           </p>
           <p style={{ color: D.muted, fontSize: 14, fontStyle: "italic" }}>
@@ -60,159 +84,150 @@ export default function PalettePreviewDark() {
           </p>
         </div>
 
-        {/* START HERE STRIP */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14, marginBottom: 36 }}>
+        {/* START HERE — tri-color glow across the 3 cards to echo the logo ribbon */}
+        <div style={{ marginBottom: 14, fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.16em", color: D.muted, fontWeight: 700 }}>START HERE</div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20, marginBottom: 48 }}>
           {[
-            { emoji: "👋", title: "Watch the 2-Minute Welcome", desc: "What this place is, how it works, and where not to panic." },
-            { emoji: "🧭", title: "Learn the Layout", desc: "Tools, Debriefs, downloads, categories, how to find what you need fast." },
-            { emoji: "🔥", title: "What's New This Week", desc: "Latest tools, newest Debriefs, featured fixes." },
+            { emoji: "👋", title: "Watch the 2-Minute Welcome", desc: "What this place is, how it works, and where not to panic.", glow: HALO_ORANGE, tint: "rgba(255,138,42,0.18)", accent: D.orange, corner: "100% 0%" },
+            { emoji: "🧭", title: "Learn the Layout", desc: "Tools, Debriefs, downloads, categories, how to find what you need fast.", glow: HALO_PINK, tint: "rgba(255,45,138,0.18)", accent: D.pink, corner: "50% 0%" },
+            { emoji: "🔥", title: "What's New This Week", desc: "Latest tools, newest Debriefs, featured fixes.", glow: HALO_BLUE, tint: "rgba(0,183,255,0.2)", accent: D.blue, corner: "0% 0%" },
           ].map(c => (
-            <div key={c.title} style={{ background: D.surface, border: "1px solid " + D.rule, borderRadius: 12, padding: "20px 22px", display: "flex", flexDirection: "column", gap: 8 }}>
+            <Sign key={c.title} style={{ padding: "24px 26px", display: "flex", flexDirection: "column", gap: 10 }} glow={c.glow} tint={c.tint} corner={c.corner}>
+              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: c.accent, boxShadow: `0 0 14px ${c.accent}` }} />
               <div style={{ fontSize: 26, lineHeight: 1 }}>{c.emoji}</div>
               <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 17, color: D.text, lineHeight: 1.25 }}>{c.title}</div>
-              <div style={{ fontSize: 13, color: D.muted, lineHeight: 1.5, flex: 1 }}>{c.desc}</div>
-              <button style={{ marginTop: 6, padding: "9px 14px", background: D.blue, border: "none", borderRadius: 8, color: D.text, fontSize: 13, fontWeight: 700, cursor: "pointer", textAlign: "left", boxShadow: "0 0 24px " + D.blueGlow }}>
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.68)", lineHeight: 1.5, flex: 1 }}>{c.desc}</div>
+              <button style={{ marginTop: 6, padding: "10px 16px", background: c.accent, border: "none", borderRadius: 8, color: D.black, fontSize: 13, fontWeight: 700, cursor: "pointer", textAlign: "left", boxShadow: `0 0 20px ${c.accent}` }}>
                 {c.title.split(" ").slice(0, 2).join(" ")} →
               </button>
-            </div>
+            </Sign>
           ))}
         </div>
 
         {/* WHAT'S NEW */}
-        <div style={{ marginBottom: 40, padding: "26px 28px", background: D.surface, border: "1px solid " + D.rule, borderRadius: 14 }}>
-          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 18 }}>
-            <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 24, color: D.text, margin: 0 }}>🔥 What's New This Week</h2>
-            <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: D.muted, letterSpacing: "0.06em" }}>Updated Jul 8</span>
+        <Sign style={{ padding: "28px 30px", marginBottom: 48 }} glow={HALO_L} corner="0% 100%">
+          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 20 }}>
+            <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 26, color: D.text, margin: 0 }}>🔥 What's New This Week</h2>
+            <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: D.muted, letterSpacing: "0.06em" }}>Updated Jul 9</span>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
             {[
-              { tag: "NEW TOOL", icon: "🛠️", title: "Vendor Decoder", desc: "Turn your vendor list into a posting playbook." },
-              { tag: "NEW DEBRIEF", icon: "☕", title: "Cash Flow Is Not a Vibe", desc: "Bank balance is not the business model." },
-              { tag: "FEATURED FIX", icon: "🎯", title: "Open Your Vendor List", desc: "Count the duplicates. That number is telling on you." },
+              { tag: "NEW TOOL", icon: "🛠️", title: "Vendor Decoder", desc: "Turn your vendor list into a posting playbook.", accent: D.blue },
+              { tag: "NEW DEBRIEF", icon: "☕", title: "Cash Flow Is Not a Vibe", desc: "Bank balance is not the business model.", accent: D.pink },
+              { tag: "FEATURED FIX", icon: "🎯", title: "Open Your Vendor List", desc: "Count the duplicates. That number is telling on you.", accent: D.orange },
+              { tag: "KARI'S NOTE", icon: "✨", title: "This Week", desc: "Clarity. Not perfection. One less pile. One place where the truth can take its coat off.", pinned: true, accent: D.blue },
             ].map(b => (
-              <div key={b.tag} style={{ background: D.surface2, border: "1px solid " + D.rule, borderRadius: 10, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 5 }}>
+              <div key={b.tag} style={{ background: b.pinned ? "linear-gradient(135deg, rgba(0,183,255,0.18), rgba(0,183,255,0.04))" : D.ink2, borderRadius: 10, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 6, boxShadow: b.pinned ? `0 0 18px ${b.accent}80, inset 0 0 0 1px ${b.accent}` : `inset 0 0 0 1px ${D.rule}` }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                   <span style={{ fontSize: 15 }}>{b.icon}</span>
-                  <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.12em", color: D.blueHot, fontWeight: 700 }}>{b.tag}</span>
+                  <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.12em", color: b.accent, fontWeight: 700, textShadow: `0 0 8px ${b.accent}80` }}>{b.tag}</span>
                 </div>
                 <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 15, color: D.text, lineHeight: 1.3 }}>{b.title}</div>
-                <div style={{ fontSize: 12, color: D.muted, lineHeight: 1.5, flex: 1 }}>{b.desc}</div>
-                <button style={{ marginTop: 6, padding: "6px 10px", background: D.blue, border: "none", borderRadius: 5, color: D.text, fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "left" }}>
-                  Open →
-                </button>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", lineHeight: 1.5, flex: 1, fontStyle: b.pinned ? "italic" : "normal" }}>{b.desc}</div>
+                {!b.pinned && (
+                  <button style={{ marginTop: 6, padding: "6px 10px", background: b.accent, border: "none", borderRadius: 5, color: D.black, fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "left", boxShadow: `0 0 12px ${b.accent}` }}>
+                    Open →
+                  </button>
+                )}
               </div>
             ))}
-            <div style={{ background: "linear-gradient(135deg, #0a0f1e, #0d1a3a)", borderRadius: 10, padding: "14px 16px", color: D.text, display: "flex", flexDirection: "column", gap: 5, boxShadow: "0 0 0 1px " + D.blue + ", 0 0 24px " + D.blueGlow }}>
-              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.12em", color: D.blueHot, fontWeight: 700 }}>✨ KARI'S NOTE</div>
-              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 15, lineHeight: 1.3 }}>This Week</div>
-              <div style={{ fontSize: 12, color: "rgba(248,250,252,0.7)", lineHeight: 1.5, fontStyle: "italic" }}>
-                Clarity. Not perfection. One less pile. One place where the truth can take its coat off.
-              </div>
-            </div>
           </div>
-        </div>
+        </Sign>
 
-        {/* SEARCH + FILTERS */}
+        {/* SEARCH */}
         <div style={{ marginBottom: 14, position: "relative" }}>
           <input type="text" placeholder="Search tools…"
-            style={{ width: "100%", padding: "12px 16px 12px 44px", fontSize: 14, background: D.surface, border: "1.5px solid " + D.rule, borderRadius: 10, outline: "none", color: D.text, boxSizing: "border-box" }} />
-          <span style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", fontSize: 16, color: D.muted, pointerEvents: "none" }}>🔍</span>
+            style={{ width: "100%", padding: "14px 18px 14px 44px", fontSize: 14, background: D.ink, border: "none", borderRadius: 10, outline: "none", color: D.text, boxSizing: "border-box", boxShadow: HALO_BLUE }} />
+          <span style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", fontSize: 16, color: D.blue, pointerEvents: "none", textShadow: `0 0 8px ${D.blue}` }}>🔍</span>
         </div>
 
+        {/* CATEGORY CHIPS — tri-color when active */}
         <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
           {[
-            { label: "All", active: true },
-            { label: "📒 Bookkeeping", active: false },
-            { label: "💰 Money", active: true, glow: true },
-            { label: "👥 People", active: false },
-            { label: "🤝 Client Work", active: false },
-            { label: "🎯 Leadership", active: false },
+            { label: "All", active: true, accent: D.blue },
+            { label: "📒 Bookkeeping", active: false, accent: D.blue },
+            { label: "💰 Money", active: true, accent: D.orange },
+            { label: "👥 People", active: false, accent: D.pink },
+            { label: "🤝 Client Work", active: false, accent: D.blue },
+            { label: "🎯 Leadership", active: false, accent: D.orange },
           ].map(c => (
             <button key={c.label}
-              style={{ padding: "7px 16px", borderRadius: 100, border: "1.5px solid " + (c.active ? D.blue : D.rule), background: c.active ? D.blue : D.surface, color: c.active ? D.text : D.muted, fontSize: 12, fontWeight: c.active ? 700 : 500, cursor: "pointer", boxShadow: c.glow ? "0 0 16px " + D.blueGlow : "none" }}>
+              style={{ padding: "8px 16px", borderRadius: 100, border: "none", background: c.active ? c.accent : D.ink, color: c.active ? D.black : D.muted, fontSize: 12, fontWeight: c.active ? 700 : 500, cursor: "pointer", boxShadow: c.active ? `0 0 18px ${c.accent}` : "0 0 12px rgba(0,183,255,0.12)" }}>
               {c.label}
             </button>
           ))}
         </div>
 
-        <div style={{ display: "flex", gap: 12, marginBottom: 26 }}>
-          <div style={{ display: "flex", gap: 3, background: D.surface, border: "1px solid " + D.rule, borderRadius: 100, padding: 3 }}>
+        <div style={{ display: "flex", gap: 12, marginBottom: 32 }}>
+          <div style={{ display: "flex", gap: 3, background: D.ink, borderRadius: 100, padding: 3, boxShadow: "0 0 14px rgba(0,183,255,0.2)" }}>
             {["ALL", "FREE", "MEMBER"].map((l, i) => (
-              <div key={l} style={{ padding: "5px 14px", borderRadius: 100, background: i === 0 ? D.blueTint : "transparent", color: i === 0 ? D.blueHot : D.muted, fontSize: 11, fontWeight: i === 0 ? 700 : 500, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", cursor: "pointer" }}>{l}</div>
+              <div key={l} style={{ padding: "6px 16px", borderRadius: 100, background: i === 0 ? D.blue : "transparent", color: i === 0 ? D.black : D.muted, fontSize: 11, fontWeight: i === 0 ? 700 : 500, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", cursor: "pointer", boxShadow: i === 0 ? `0 0 14px ${D.blue}` : "none" }}>{l}</div>
             ))}
           </div>
-          <button style={{ padding: "6px 14px", borderRadius: 100, border: "1.5px solid " + D.rule, background: D.surface, color: D.muted, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>
+          <button style={{ padding: "6px 16px", borderRadius: 100, border: "none", background: D.ink, color: D.muted, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", boxShadow: "0 0 12px rgba(0,183,255,0.12)" }}>
             ✨ NEW ONLY
           </button>
         </div>
 
         {/* TOOL CARDS */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 18, marginBottom: 44 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 22, marginBottom: 48 }}>
           {[
             { icon: "🗂️", cat: "BOOKKEEPING", title: "Vendor Decoder", desc: "Turn your vendor list into a posting playbook. Every account lands where it belongs.", tag: "NEW" },
             { icon: "📊", cat: "MONEY", title: "Monthly Numbers Scorecard", desc: "Seven numbers. Fifteen minutes. The difference between knowing your business and guessing.", tag: "NEW" },
             { icon: "☕", cat: "MONEY", title: "The Collections Playbook", desc: "Most of us send the same friendly nudge seven times and call it collections. It's begging with a smile." },
           ].map(t => (
-            <div key={t.title} style={{ background: D.surface, border: "1px solid " + D.rule, borderRadius: 12, padding: "22px 24px", display: "flex", flexDirection: "column", gap: 10, position: "relative" }}>
-              {t.tag && <div style={{ position: "absolute", top: 14, right: 14, background: D.blue, color: D.text, fontFamily: "'DM Mono', monospace", fontSize: 9, fontWeight: 700, letterSpacing: "0.12em", padding: "3px 8px", borderRadius: 100, boxShadow: "0 0 14px " + D.blueGlow }}>{t.tag}</div>}
+            <Sign key={t.title} style={{ padding: "24px 26px", display: "flex", flexDirection: "column", gap: 11 }}>
+              {t.tag && <div style={{ position: "absolute", top: 16, right: 16, background: D.blue, color: D.black, fontFamily: "'DM Mono', monospace", fontSize: 9, fontWeight: 700, letterSpacing: "0.12em", padding: "4px 10px", borderRadius: 100, boxShadow: `0 0 16px ${D.blue}` }}>{t.tag}</div>}
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div style={{ width: 42, height: 42, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, background: D.blueTint, border: "1px solid " + D.rule }}>{t.icon}</div>
+                <div style={{ width: 42, height: 42, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, background: "rgba(0,183,255,0.14)", boxShadow: `inset 0 0 0 1px ${D.blue}` }}>{t.icon}</div>
                 <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.14em", color: D.muted }}>{t.cat}</div>
               </div>
-              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, lineHeight: 1.3, color: D.text }}>{t.title}</div>
-              <div style={{ fontSize: 13, color: D.muted, lineHeight: 1.55, flex: 1 }}>{t.desc}</div>
-              <button style={{ marginTop: 6, padding: "10px 16px", background: D.blue, border: "none", borderRadius: 8, color: D.text, fontSize: 13, fontWeight: 700, cursor: "pointer", textAlign: "left", boxShadow: "0 0 20px " + D.blueGlow }}>
+              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 19, lineHeight: 1.3, color: D.text }}>{t.title}</div>
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.68)", lineHeight: 1.55, flex: 1 }}>{t.desc}</div>
+              <button style={{ marginTop: 6, padding: "11px 18px", background: D.blue, border: "none", borderRadius: 8, color: D.black, fontSize: 13, fontWeight: 700, cursor: "pointer", textAlign: "left", boxShadow: BTN_GLOW }}>
                 Get this tool →
               </button>
-            </div>
+            </Sign>
           ))}
         </div>
 
-        {/* THE DEBRIEF PREVIEW */}
-        <div style={{ marginBottom: 44 }}>
-          <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 24, color: D.text, marginBottom: 20 }}>The Debrief</h2>
-          <div style={{ background: D.surface, border: "1px solid " + D.blue, borderRadius: 12, padding: "24px 26px", boxShadow: "0 0 0 4px " + D.blueTint + ", 0 0 40px rgba(59,130,246,0.18)" }}>
-            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.12em", color: D.blueHot, fontWeight: 700, marginBottom: 6 }}>NOBODY TOLD OWNERS THIS</div>
-            <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: D.text, marginBottom: 8, lineHeight: 1.25 }}>Cash Flow Is Not a Vibe</h3>
-            <p style={{ color: D.muted, fontSize: 14, lineHeight: 1.6, margin: 0 }}>
+        {/* THE DEBRIEF — pink accent to break the blue monotony */}
+        <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 26, color: D.text, marginBottom: 20 }}>The Debrief</h2>
+        <Sign style={{ padding: "32px 34px", marginBottom: 48 }} glow={HALO_PINK} corner="90% 10%" tint="rgba(255,45,138,0.2)">
+          <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 4, background: D.pink, boxShadow: `0 0 22px ${D.pink}` }} />
+          <div style={{ paddingLeft: 4 }}>
+            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", color: D.pink, fontWeight: 700, marginBottom: 10, textShadow: `0 0 10px ${D.pink}` }}>NOBODY TOLD OWNERS THIS</div>
+            <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 30, color: D.text, marginBottom: 12, lineHeight: 1.2 }}>Cash Flow Is Not a Vibe</h3>
+            <p style={{ color: "rgba(255,255,255,0.78)", fontSize: 15, lineHeight: 1.65, margin: 0, maxWidth: 620 }}>
               Your bank balance is not your business model. Cash flow needs timing, visibility, and fewer surprises wearing tap shoes.
             </p>
-            <div style={{ marginTop: 12, fontFamily: "'DM Mono', monospace", fontSize: 11, color: D.blueHot, fontWeight: 700, letterSpacing: "0.08em" }}>READ →</div>
+            <div style={{ marginTop: 16, fontFamily: "'DM Mono', monospace", fontSize: 11, color: D.pink, fontWeight: 700, letterSpacing: "0.08em", textShadow: `0 0 10px ${D.pink}` }}>READ →</div>
+          </div>
+        </Sign>
+
+        {/* HERO CTA */}
+        <Sign style={{ padding: "44px 46px", marginBottom: 40 }} glow={HALO_L} corner="85% 50%">
+          <div style={{ position: "absolute", top: 0, left: "10%", right: "10%", height: 1, background: `linear-gradient(90deg, transparent, ${D.blue}, transparent)`, boxShadow: `0 0 14px ${D.blue}` }} />
+          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", color: D.blue, fontWeight: 700, marginBottom: 12, textShadow: `0 0 10px ${D.blue}` }}>THERE'S MORE WHERE THIS CAME FROM</div>
+          <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 36, marginBottom: 12, lineHeight: 1.15, color: D.text }}>Tools for running the business, not just the books.</h2>
+          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.75)", marginBottom: 26, maxWidth: 460, lineHeight: 1.6 }}>
+            Checklists, scripts, scope matrices, and calculators built for bookkeepers, advisors, and small-business owners.
+          </p>
+          <button style={{ padding: "14px 32px", background: D.blue, border: "none", borderRadius: 8, color: D.black, fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, cursor: "pointer", boxShadow: BTN_GLOW }}>
+            Join Monthly — $27/mo
+          </button>
+        </Sign>
+
+        {/* SIGNATURE STRIP — the sub-tagline from the logo */}
+        <div style={{ textAlign: "center", padding: "24px 0 8px" }}>
+          <div style={{ display: "inline-block", padding: "8px 22px", fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.2em", color: D.blue, fontWeight: 700, textShadow: `0 0 12px ${D.blue}`, position: "relative" }}>
+            BUILT FOR BUSINESS &nbsp;·&nbsp; BACKED BY CARES
+            <div style={{ position: "absolute", left: "10%", right: "10%", bottom: -4, height: 1, background: `linear-gradient(90deg, transparent, ${D.blue}, transparent)`, boxShadow: `0 0 12px ${D.blue}` }} />
           </div>
         </div>
 
-        {/* HERO CTA PANEL */}
-        <div style={{ background: "linear-gradient(135deg, #050b1e 0%, #0d1a3a 60%, #050510 100%)", borderRadius: 14, padding: "40px 44px", color: D.text, position: "relative", overflow: "hidden", marginBottom: 44, border: "1px solid " + D.rule }}>
-          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 85% 50%, rgba(59,130,246,0.35), transparent 60%)" }} />
-          <div style={{ position: "absolute", top: -1, left: 0, right: 0, height: 1, background: "linear-gradient(90deg, transparent, " + D.blueHot + ", transparent)" }} />
-          <div style={{ position: "relative" }}>
-            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", color: D.blueHot, fontWeight: 700, marginBottom: 12 }}>THERE'S MORE WHERE THIS CAME FROM</div>
-            <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 34, marginBottom: 12, lineHeight: 1.15 }}>Tools for running the business, not just the books.</h2>
-            <p style={{ fontSize: 15, color: "rgba(248,250,252,0.75)", marginBottom: 24, maxWidth: 460, lineHeight: 1.6 }}>
-              Checklists, scripts, scope matrices, and calculators built for bookkeepers, advisors, and small-business owners.
-            </p>
-            <button style={{ padding: "13px 30px", background: D.blue, border: "none", borderRadius: 8, color: D.text, fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, cursor: "pointer", boxShadow: "0 0 30px " + D.blueGlow }}>
-              Join Monthly — $27/mo
-            </button>
-          </div>
-        </div>
-
-        {/* BUTTON ZOO */}
-        <div style={{ padding: "24px 28px", background: D.surface, border: "1px solid " + D.rule, borderRadius: 12 }}>
-          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.12em", color: D.muted, marginBottom: 14 }}>COMPONENT SAMPLES</div>
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-            <button style={{ padding: "10px 20px", background: D.blue, border: "none", borderRadius: 8, color: D.text, fontSize: 13, fontWeight: 700, cursor: "pointer", boxShadow: "0 0 24px " + D.blueGlow }}>Primary button</button>
-            <button style={{ padding: "10px 20px", background: "transparent", border: "1.5px solid " + D.blue, borderRadius: 8, color: D.blueHot, fontSize: 13, fontWeight: 700, cursor: "pointer", boxShadow: "inset 0 0 12px rgba(59,130,246,0.15)" }}>Secondary button</button>
-            <button style={{ padding: "10px 20px", background: "transparent", border: "1px solid " + D.rule, borderRadius: 8, color: D.muted, fontSize: 13, fontWeight: 500, cursor: "pointer" }}>Ghost button</button>
-            <div style={{ padding: "5px 12px", background: D.blue, color: D.text, fontFamily: "'DM Mono', monospace", fontSize: 9, fontWeight: 700, letterSpacing: "0.12em", borderRadius: 100, boxShadow: "0 0 12px " + D.blueGlow }}>NEW BADGE</div>
-            <div style={{ padding: "5px 12px", background: D.green, color: D.text, fontFamily: "'DM Mono', monospace", fontSize: 9, fontWeight: 700, letterSpacing: "0.12em", borderRadius: 100 }}>FREE BADGE</div>
-            <div style={{ padding: "5px 12px", background: D.blueTint, color: D.blueHot, fontFamily: "'DM Mono', monospace", fontSize: 9, fontWeight: 700, letterSpacing: "0.12em", borderRadius: 100, border: "1px solid " + D.blue }}>SUBTLE CHIP</div>
-          </div>
-        </div>
-
-        {/* SIDE-BY-SIDE TIP */}
-        <div style={{ marginTop: 26, padding: "14px 18px", background: D.surface, border: "1px dashed " + D.ruleHot, borderRadius: 10, fontSize: 12, color: D.muted, textAlign: "center", fontFamily: "'DM Mono', monospace", letterSpacing: "0.04em" }}>
-          COMPARE: <a href="/preview/neon" style={{ color: D.blueHot, textDecoration: "underline" }}>the white version →</a>
+        <div style={{ marginTop: 32, padding: "14px 18px", background: D.ink, border: "1px dashed " + D.rule, borderRadius: 10, fontSize: 12, color: D.muted, textAlign: "center", fontFamily: "'DM Mono', monospace", letterSpacing: "0.04em" }}>
+          COMPARE: <a href="/preview/neon" style={{ color: D.blue, textDecoration: "underline" }}>the white-wall version →</a>
         </div>
 
       </div>
