@@ -50,11 +50,10 @@ export default function PalettePreviewDark() {
     <div style={{ minHeight: "100vh", background: D.black, color: D.text, fontFamily: "'Figtree', sans-serif" }}>
       <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-      {/* HERO LOGO BANNER — full-width lit sign, the header the logo deserves */}
-      <div style={{ background: D.black, padding: "40px 24px", textAlign: "center", position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 50% 50%, rgba(0,183,255,0.15), transparent 60%)", pointerEvents: "none" }} />
+      {/* HERO LOGO BANNER — white so the PNG's own black is the frame */}
+      <div style={{ background: "#ffffff", padding: "40px 24px", textAlign: "center" }}>
         <img src="/cares-works-neon-logo.png" alt="CARES Works — Tools, Training, Confidence, Results. Built for Business. Backed by CARES."
-          style={{ position: "relative", maxHeight: 240, width: "auto", maxWidth: "100%", display: "block", margin: "0 auto", filter: "drop-shadow(0 0 50px rgba(0,183,255,0.35))" }} />
+          style={{ maxHeight: 240, width: "auto", maxWidth: "100%", display: "block", margin: "0 auto", filter: "drop-shadow(0 0 40px rgba(0,183,255,0.35))" }} />
       </div>
 
       {/* NAV BAR — sticky wordmark strip below the hero */}
