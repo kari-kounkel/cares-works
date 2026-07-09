@@ -64,7 +64,7 @@ export default function PalettePreviewDark() {
         <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 40, flexWrap: "wrap" }}>
 
           <img src="/cares-works-neon-logo.png" alt="CARES Works — Tools, Training, Confidence, Results. Built for Business. Backed by CARES."
-            style={{ maxHeight: 200, width: "auto", maxWidth: "100%", display: "block", filter: "drop-shadow(0 8px 32px rgba(0,128,255,0.25))" }} />
+            style={{ maxHeight: 200, width: "auto", maxWidth: "100%", display: "block", borderRadius: 20, boxShadow: "0 8px 32px rgba(0,128,255,0.28)" }} />
 
           <div style={{ maxWidth: 380, flex: "1 1 300px" }}>
             <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.18em", color: N.pink, fontWeight: 700, marginBottom: 10, display: "flex", alignItems: "center", gap: 8 }}>
@@ -166,7 +166,7 @@ export default function PalettePreviewDark() {
               { tag: "FEATURED FIX", icon: "🎯", title: "Open Your Vendor List", desc: "Count the duplicates. That number is telling on you." },
               { tag: "KARI'S NOTE", icon: "✨", title: "This Week", desc: "Clarity. Not perfection. One less pile. One place where the truth can take its coat off.", pinned: true },
             ].map(b => (
-              <div key={b.tag} style={{ background: `linear-gradient(135deg, ${N.blue}, ${N.blueDark})`, borderRadius: 10, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 5, boxShadow: b.pinned ? "0 0 0 2px " + N.white + ", 0 4px 14px rgba(0,128,255,0.5)" : "0 4px 14px rgba(0,128,255,0.35)" }}>
+              <div key={b.tag} style={{ background: `linear-gradient(135deg, ${N.blue}, ${N.blueDark})`, borderRadius: 10, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 5, boxShadow: b.pinned ? "0 0 0 2px " + N.white + ", 0 0 28px rgba(0,128,255,0.7), 0 0 60px rgba(0,128,255,0.35)" : "0 0 28px rgba(0,128,255,0.7), 0 0 60px rgba(0,128,255,0.35)" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                   <span style={{ fontSize: 15 }}>{b.icon}</span>
                   <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.12em", color: N.white, fontWeight: 700 }}>{b.tag}</span>
@@ -218,23 +218,25 @@ export default function PalettePreviewDark() {
           </button>
         </div>
 
-        {/* TOOL CARDS — each card takes its category's neon color */}
+        {/* TOOL CARDS — white cards, neon outline + glow. Less saturation, more sign. */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24, marginBottom: 52 }}>
           {[
-            { icon: "🗂️", cat: "BOOKKEEPING", title: "Vendor Decoder", desc: "Turn your vendor list into a posting playbook. Every account lands where it belongs.", tag: "NEW", color: N.blue, glow: GLOW_BLUE },
-            { icon: "📊", cat: "MONEY", title: "Monthly Numbers Scorecard", desc: "Seven numbers. Fifteen minutes. The difference between knowing your business and guessing.", tag: "NEW", color: N.orange, glow: GLOW_ORANGE },
-            { icon: "☕", cat: "MONEY", title: "The Collections Playbook", desc: "Most of us send the same friendly nudge seven times and call it collections. It's begging with a smile.", color: N.pink, glow: GLOW_PINK },
+            { icon: "🗂️", cat: "BOOKKEEPING", title: "Vendor Decoder", desc: "Turn your vendor list into a posting playbook. Every account lands where it belongs.", tag: "NEW", color: N.blue, rgb: "0,128,255" },
+            { icon: "📊", cat: "MONEY", title: "Monthly Numbers Scorecard", desc: "Seven numbers. Fifteen minutes. The difference between knowing your business and guessing.", tag: "NEW", color: N.orange, rgb: "255,138,42" },
+            { icon: "☕", cat: "MONEY", title: "The Collections Playbook", desc: "Most of us send the same friendly nudge seven times and call it collections. It's begging with a smile.", color: N.pink, rgb: "255,45,138" },
           ].map(t => (
-            <ColorCard key={t.title} color={t.color} glow={t.glow} style={{ padding: "26px 28px", display: "flex", flexDirection: "column", gap: 11 }}>
-              {t.tag && <div style={{ position: "absolute", top: 16, right: 16, background: N.white, color: t.color, fontFamily: "'DM Mono', monospace", fontSize: 9, fontWeight: 700, letterSpacing: "0.12em", padding: "4px 10px", borderRadius: 100 }}>{t.tag}</div>}
+            <div key={t.title} style={{ background: N.white, borderRadius: 14, padding: "26px 28px", display: "flex", flexDirection: "column", gap: 11, position: "relative", border: `2px solid ${t.color}`, boxShadow: `0 0 24px rgba(${t.rgb},0.5), 0 0 60px rgba(${t.rgb},0.25), inset 0 0 22px rgba(${t.rgb},0.06)` }}>
+              {t.tag && <div style={{ position: "absolute", top: 14, right: 14, background: t.color, color: N.white, fontFamily: "'DM Mono', monospace", fontSize: 9, fontWeight: 700, letterSpacing: "0.12em", padding: "4px 10px", borderRadius: 100, boxShadow: `0 0 14px ${t.color}` }}>{t.tag}</div>}
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div style={{ width: 44, height: 44, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, background: "rgba(255,255,255,0.22)" }}>{t.icon}</div>
-                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.14em", color: "rgba(255,255,255,0.85)" }}>{t.cat}</div>
+                <div style={{ width: 44, height: 44, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, background: `rgba(${t.rgb},0.1)`, border: `1.5px solid ${t.color}` }}>{t.icon}</div>
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.14em", color: t.color, fontWeight: 700 }}>{t.cat}</div>
               </div>
-              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, lineHeight: 1.3, color: N.white }}>{t.title}</div>
-              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.9)", lineHeight: 1.55, flex: 1 }}>{t.desc}</div>
-              <ReverseBtn color={t.color}>Get this tool →</ReverseBtn>
-            </ColorCard>
+              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, lineHeight: 1.3, color: N.ink }}>{t.title}</div>
+              <div style={{ fontSize: 13, color: N.muted, lineHeight: 1.55, flex: 1 }}>{t.desc}</div>
+              <button style={{ marginTop: 6, padding: "10px 18px", background: t.color, border: "none", borderRadius: 8, color: N.white, fontSize: 13, fontWeight: 700, cursor: "pointer", textAlign: "left", boxShadow: `0 4px 14px ${t.color}88` }}>
+                Get this tool →
+              </button>
+            </div>
           ))}
         </div>
 
