@@ -4,21 +4,26 @@
 
 // ELECTRIC PALETTE
 const N = {
-  blue:      "#0066ff",   // primary
+  blue:      "#0080ff",   // primary — bumped brighter/more electric
+  blueHot:   "#3ba0ff",   // brighter for accents
   blueDark:  "#0052cc",   // hover
   blueTint:  "#e6f0ff",   // very light backgrounds
-  blueGlow:  "rgba(0,102,255,0.35)",
+  blueGlow:  "rgba(0,128,255,0.55)",
+  blueGlowStrong: "rgba(0,128,255,0.8)",
   white:     "#ffffff",
   surface:   "#f7f9fc",   // soft off-white for panels
-  ink:       "#0f172a",   // near-black body text
+  ink:       "#0a0a14",   // deeper near-black for better neon contrast
   muted:     "#64748b",   // cool slate for secondary text
   rule:      "#e2e8f0",   // borders
   green:     "#22c55e",   // status success
   amber:     "#f59e0b",   // warning
-  grad:      "linear-gradient(135deg, #0066ff, #0052cc)",
+  grad:      "linear-gradient(135deg, #0080ff, #0052cc)",
 };
 
-const GLOW = "0 0 0 4px rgba(0,102,255,0.16), 0 8px 20px rgba(0,102,255,0.24)";
+// Real neon halo — layered glows for the "shop window at night" effect.
+const HALO   = "0 0 30px rgba(0,128,255,0.45), 0 0 60px rgba(0,128,255,0.25)";
+const HALO_L = "0 0 40px rgba(0,128,255,0.5), 0 0 80px rgba(0,128,255,0.3)";
+const BTN_GLOW = "0 0 20px rgba(0,128,255,0.6), 0 6px 18px rgba(0,128,255,0.4)";
 
 export default function PalettePreview() {
   return (
@@ -59,20 +64,21 @@ export default function PalettePreview() {
           </p>
         </div>
 
-        {/* START HERE STRIP — black anchor */}
+        {/* START HERE STRIP — glowing black anchors */}
         <div style={{ marginBottom: 12, fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.16em", color: N.muted, fontWeight: 700 }}>START HERE</div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14, marginBottom: 36 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 18, marginBottom: 44 }}>
           {[
             { emoji: "👋", title: "Watch the 2-Minute Welcome", desc: "What this place is, how it works, and where not to panic." },
             { emoji: "🧭", title: "Learn the Layout", desc: "Tools, Debriefs, downloads, categories, how to find what you need fast." },
             { emoji: "🔥", title: "What's New This Week", desc: "Latest tools, newest Debriefs, featured fixes." },
           ].map(c => (
-            <div key={c.title} style={{ background: N.ink, borderRadius: 12, padding: "22px 24px", display: "flex", flexDirection: "column", gap: 8, color: N.white, position: "relative", overflow: "hidden" }}>
-              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: N.blue }} />
-              <div style={{ fontSize: 26, lineHeight: 1 }}>{c.emoji}</div>
-              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 17, color: N.white, lineHeight: 1.25 }}>{c.title}</div>
-              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.65)", lineHeight: 1.5, flex: 1 }}>{c.desc}</div>
-              <button style={{ marginTop: 6, padding: "9px 14px", background: N.blue, border: "none", borderRadius: 8, color: N.white, fontSize: 13, fontWeight: 700, cursor: "pointer", textAlign: "left", boxShadow: "0 4px 12px " + N.blueGlow }}>
+            <div key={c.title} style={{ background: N.ink, borderRadius: 12, padding: "24px 26px", display: "flex", flexDirection: "column", gap: 9, color: N.white, position: "relative", overflow: "hidden", boxShadow: HALO }}>
+              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: N.blue, boxShadow: "0 0 12px " + N.blueGlowStrong }} />
+              <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 100% 0%, rgba(0,128,255,0.22), transparent 60%)", pointerEvents: "none" }} />
+              <div style={{ position: "relative", fontSize: 26, lineHeight: 1 }}>{c.emoji}</div>
+              <div style={{ position: "relative", fontFamily: "'DM Serif Display', serif", fontSize: 17, color: N.white, lineHeight: 1.25 }}>{c.title}</div>
+              <div style={{ position: "relative", fontSize: 13, color: "rgba(255,255,255,0.68)", lineHeight: 1.5, flex: 1 }}>{c.desc}</div>
+              <button style={{ position: "relative", marginTop: 6, padding: "10px 16px", background: N.blue, border: "none", borderRadius: 8, color: N.white, fontSize: 13, fontWeight: 700, cursor: "pointer", textAlign: "left", boxShadow: BTN_GLOW }}>
                 {c.title.split(" ").slice(0, 2).join(" ")} →
               </button>
             </div>
@@ -103,7 +109,7 @@ export default function PalettePreview() {
                 </button>
               </div>
             ))}
-            <div style={{ background: N.ink, borderRadius: 10, padding: "14px 16px", color: N.white, display: "flex", flexDirection: "column", gap: 5, boxShadow: "0 0 0 1px " + N.blue }}>
+            <div style={{ background: "radial-gradient(circle at 0% 100%, rgba(0,128,255,0.28), transparent 60%), " + N.ink, borderRadius: 10, padding: "14px 16px", color: N.white, display: "flex", flexDirection: "column", gap: 5, boxShadow: HALO }}>
               <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.12em", color: N.blue, fontWeight: 700 }}>✨ KARI'S NOTE</div>
               <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 15, lineHeight: 1.3 }}>This Week</div>
               <div style={{ fontSize: 12, color: "rgba(255,255,255,0.75)", lineHeight: 1.5, fontStyle: "italic" }}>
@@ -162,24 +168,27 @@ export default function PalettePreview() {
               </div>
               <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, lineHeight: 1.3, color: N.ink }}>{t.title}</div>
               <div style={{ fontSize: 13, color: N.muted, lineHeight: 1.55, flex: 1 }}>{t.desc}</div>
-              <button style={{ marginTop: 6, padding: "10px 16px", background: N.blue, border: "none", borderRadius: 8, color: N.white, fontSize: 13, fontWeight: 700, cursor: "pointer", textAlign: "left", boxShadow: "0 4px 14px " + N.blueGlow }}>
+              <button style={{ marginTop: 6, padding: "10px 16px", background: N.blue, border: "none", borderRadius: 8, color: N.white, fontSize: 13, fontWeight: 700, cursor: "pointer", textAlign: "left", boxShadow: BTN_GLOW }}>
                 Get this tool →
               </button>
             </div>
           ))}
         </div>
 
-        {/* THE DEBRIEF PREVIEW — black editorial card */}
+        {/* THE DEBRIEF PREVIEW — black editorial card with neon halo */}
         <div style={{ marginBottom: 44 }}>
           <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 24, color: N.ink, marginBottom: 20 }}>The Debrief</h2>
-          <div style={{ background: N.ink, borderRadius: 12, padding: "28px 30px", position: "relative", overflow: "hidden" }}>
-            <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 4, background: N.blue }} />
-            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.12em", color: N.blue, fontWeight: 700, marginBottom: 8 }}>NOBODY TOLD OWNERS THIS</div>
-            <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 24, color: N.white, marginBottom: 10, lineHeight: 1.25 }}>Cash Flow Is Not a Vibe</h3>
-            <p style={{ color: "rgba(255,255,255,0.72)", fontSize: 14, lineHeight: 1.65, margin: 0 }}>
-              Your bank balance is not your business model. Cash flow needs timing, visibility, and fewer surprises wearing tap shoes.
-            </p>
-            <div style={{ marginTop: 14, fontFamily: "'DM Mono', monospace", fontSize: 11, color: N.blue, fontWeight: 700, letterSpacing: "0.08em" }}>READ →</div>
+          <div style={{ background: N.ink, borderRadius: 12, padding: "30px 32px", position: "relative", overflow: "hidden", boxShadow: HALO_L }}>
+            <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 4, background: N.blue, boxShadow: "0 0 16px " + N.blueGlowStrong }} />
+            <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 90% 0%, rgba(0,128,255,0.28), transparent 55%)", pointerEvents: "none" }} />
+            <div style={{ position: "relative" }}>
+              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", color: N.blueHot, fontWeight: 700, marginBottom: 8, textShadow: "0 0 8px " + N.blueGlow }}>NOBODY TOLD OWNERS THIS</div>
+              <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 26, color: N.white, marginBottom: 10, lineHeight: 1.25 }}>Cash Flow Is Not a Vibe</h3>
+              <p style={{ color: "rgba(255,255,255,0.75)", fontSize: 14, lineHeight: 1.65, margin: 0 }}>
+                Your bank balance is not your business model. Cash flow needs timing, visibility, and fewer surprises wearing tap shoes.
+              </p>
+              <div style={{ marginTop: 14, fontFamily: "'DM Mono', monospace", fontSize: 11, color: N.blueHot, fontWeight: 700, letterSpacing: "0.08em", textShadow: "0 0 8px " + N.blueGlow }}>READ →</div>
+            </div>
           </div>
         </div>
 
@@ -192,7 +201,7 @@ export default function PalettePreview() {
             <p style={{ fontSize: 15, color: "rgba(255,255,255,0.75)", marginBottom: 24, maxWidth: 460, lineHeight: 1.6 }}>
               Checklists, scripts, scope matrices, and calculators built for bookkeepers, advisors, and small-business owners.
             </p>
-            <button style={{ padding: "13px 30px", background: N.blue, border: "none", borderRadius: 8, color: N.white, fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, cursor: "pointer", boxShadow: "0 6px 22px " + N.blueGlow }}>
+            <button style={{ padding: "13px 30px", background: N.blue, border: "none", borderRadius: 8, color: N.white, fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, cursor: "pointer", boxShadow: BTN_GLOW }}>
               Join Monthly — $27/mo
             </button>
           </div>
@@ -202,7 +211,7 @@ export default function PalettePreview() {
         <div style={{ padding: "24px 28px", background: N.surface, border: "1px solid " + N.rule, borderRadius: 12 }}>
           <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.12em", color: N.muted, marginBottom: 14 }}>COMPONENT SAMPLES</div>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-            <button style={{ padding: "10px 20px", background: N.blue, border: "none", borderRadius: 8, color: N.white, fontSize: 13, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 14px " + N.blueGlow }}>Primary button</button>
+            <button style={{ padding: "10px 20px", background: N.blue, border: "none", borderRadius: 8, color: N.white, fontSize: 13, fontWeight: 700, cursor: "pointer", boxShadow: BTN_GLOW }}>Primary button</button>
             <button style={{ padding: "10px 20px", background: N.white, border: "1.5px solid " + N.blue, borderRadius: 8, color: N.blue, fontSize: 13, fontWeight: 700, cursor: "pointer" }}>Secondary button</button>
             <button style={{ padding: "10px 20px", background: "transparent", border: "1px solid " + N.rule, borderRadius: 8, color: N.muted, fontSize: 13, fontWeight: 500, cursor: "pointer" }}>Ghost button</button>
             <div style={{ padding: "5px 12px", background: N.blue, color: N.white, fontFamily: "'DM Mono', monospace", fontSize: 9, fontWeight: 700, letterSpacing: "0.12em", borderRadius: 100 }}>NEW BADGE</div>
