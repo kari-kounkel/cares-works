@@ -59,17 +59,19 @@ export default function PalettePreview() {
           </p>
         </div>
 
-        {/* START HERE STRIP */}
+        {/* START HERE STRIP — black anchor */}
+        <div style={{ marginBottom: 12, fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.16em", color: N.muted, fontWeight: 700 }}>START HERE</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14, marginBottom: 36 }}>
           {[
             { emoji: "👋", title: "Watch the 2-Minute Welcome", desc: "What this place is, how it works, and where not to panic." },
             { emoji: "🧭", title: "Learn the Layout", desc: "Tools, Debriefs, downloads, categories, how to find what you need fast." },
             { emoji: "🔥", title: "What's New This Week", desc: "Latest tools, newest Debriefs, featured fixes." },
           ].map(c => (
-            <div key={c.title} style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: "20px 22px", display: "flex", flexDirection: "column", gap: 8 }}>
+            <div key={c.title} style={{ background: N.ink, borderRadius: 12, padding: "22px 24px", display: "flex", flexDirection: "column", gap: 8, color: N.white, position: "relative", overflow: "hidden" }}>
+              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: N.blue }} />
               <div style={{ fontSize: 26, lineHeight: 1 }}>{c.emoji}</div>
-              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 17, color: N.ink, lineHeight: 1.25 }}>{c.title}</div>
-              <div style={{ fontSize: 13, color: N.muted, lineHeight: 1.5, flex: 1 }}>{c.desc}</div>
+              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 17, color: N.white, lineHeight: 1.25 }}>{c.title}</div>
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.65)", lineHeight: 1.5, flex: 1 }}>{c.desc}</div>
               <button style={{ marginTop: 6, padding: "9px 14px", background: N.blue, border: "none", borderRadius: 8, color: N.white, fontSize: 13, fontWeight: 700, cursor: "pointer", textAlign: "left", boxShadow: "0 4px 12px " + N.blueGlow }}>
                 {c.title.split(" ").slice(0, 2).join(" ")} →
               </button>
@@ -167,16 +169,17 @@ export default function PalettePreview() {
           ))}
         </div>
 
-        {/* THE DEBRIEF PREVIEW */}
+        {/* THE DEBRIEF PREVIEW — black editorial card */}
         <div style={{ marginBottom: 44 }}>
           <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 24, color: N.ink, marginBottom: 20 }}>The Debrief</h2>
-          <div style={{ background: N.white, border: "1px solid " + N.blue, borderRadius: 12, padding: "24px 26px", boxShadow: "0 0 0 4px rgba(0,102,255,0.08)" }}>
-            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.12em", color: N.blue, fontWeight: 700, marginBottom: 6 }}>NOBODY TOLD OWNERS THIS</div>
-            <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink, marginBottom: 8, lineHeight: 1.25 }}>Cash Flow Is Not a Vibe</h3>
-            <p style={{ color: N.muted, fontSize: 14, lineHeight: 1.6, margin: 0 }}>
+          <div style={{ background: N.ink, borderRadius: 12, padding: "28px 30px", position: "relative", overflow: "hidden" }}>
+            <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 4, background: N.blue }} />
+            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.12em", color: N.blue, fontWeight: 700, marginBottom: 8 }}>NOBODY TOLD OWNERS THIS</div>
+            <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 24, color: N.white, marginBottom: 10, lineHeight: 1.25 }}>Cash Flow Is Not a Vibe</h3>
+            <p style={{ color: "rgba(255,255,255,0.72)", fontSize: 14, lineHeight: 1.65, margin: 0 }}>
               Your bank balance is not your business model. Cash flow needs timing, visibility, and fewer surprises wearing tap shoes.
             </p>
-            <div style={{ marginTop: 12, fontFamily: "'DM Mono', monospace", fontSize: 11, color: N.blue, fontWeight: 700, letterSpacing: "0.08em" }}>READ →</div>
+            <div style={{ marginTop: 14, fontFamily: "'DM Mono', monospace", fontSize: 11, color: N.blue, fontWeight: 700, letterSpacing: "0.08em" }}>READ →</div>
           </div>
         </div>
 
