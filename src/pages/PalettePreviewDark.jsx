@@ -50,10 +50,19 @@ export default function PalettePreviewDark() {
     <div style={{ minHeight: "100vh", background: "#ffffff", color: "#0a0a14", fontFamily: "'Figtree', sans-serif" }}>
       <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-      {/* NAV BAR — white wall with black neon signage sitting on it */}
-      <header style={{ background: "#ffffff", borderBottom: "1px solid #e2e8f0", padding: "0 32px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 76, position: "sticky", top: 0, zIndex: 100 }}>
-        <a href="/" style={{ display: "flex", alignItems: "center", gap: 14, textDecoration: "none" }}>
-          <img src="/cares-works-neon-logo.png" alt="CARES Works" style={{ height: 56, width: "auto", display: "block", filter: "drop-shadow(0 0 12px rgba(0,183,255,0.4))" }} />
+      {/* HERO LOGO BANNER — full-width lit sign, the header the logo deserves */}
+      <div style={{ background: D.black, padding: "40px 24px", textAlign: "center", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 50% 50%, rgba(0,183,255,0.15), transparent 60%)", pointerEvents: "none" }} />
+        <img src="/cares-works-neon-logo.png" alt="CARES Works — Tools, Training, Confidence, Results. Built for Business. Backed by CARES."
+          style={{ position: "relative", maxHeight: 240, width: "auto", maxWidth: "100%", display: "block", margin: "0 auto", filter: "drop-shadow(0 0 50px rgba(0,183,255,0.35))" }} />
+      </div>
+
+      {/* NAV BAR — sticky wordmark strip below the hero */}
+      <header style={{ background: "#ffffff", borderBottom: "1px solid #e2e8f0", padding: "0 32px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 64, position: "sticky", top: 0, zIndex: 100 }}>
+        <a href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
+          <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "#0a0a14" }}>
+            CARES <span style={{ color: D.blue, fontStyle: "italic" }}>Works.</span>
+          </span>
         </a>
         <div style={{ display: "flex", gap: 4, background: D.ink, borderRadius: 10, padding: 4, boxShadow: HALO_BLUE }}>
           {["Tool Library", "My Work", "The Debrief", "Court of Accounts", "Shop", "Account"].map((t, i) => (
@@ -68,11 +77,8 @@ export default function PalettePreviewDark() {
 
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "56px 24px 100px" }}>
 
-        {/* WELCOME + TAGLINE STRIP echoing the logo */}
+        {/* WELCOME — logo hero already carries the tagline, no need to repeat */}
         <div style={{ marginBottom: 44, textAlign: "left" }}>
-          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.2em", color: D.orange, fontWeight: 700, marginBottom: 14, textShadow: "0 0 10px rgba(255,138,42,0.6)" }}>
-            TOOLS &nbsp;·&nbsp; TRAINING &nbsp;·&nbsp; CONFIDENCE &nbsp;·&nbsp; RESULTS
-          </div>
           <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 48, color: "#0a0a14", marginBottom: 12, lineHeight: 1.05 }}>
             Welcome back, Kari.
           </h1>
