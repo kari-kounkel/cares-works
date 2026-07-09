@@ -1,237 +1,239 @@
-// PalettePreviewDark.jsx — the winner. Neon-on-black to match the new logo.
-// Pulls the three logo colors (cyan-blue, magenta, orange) as the palette.
+// PalettePreviewDark.jsx — "cards ARE the neon" version.
+// White page. White nav. Cards themselves become the electric blue, hot pink,
+// neon orange from the logo. Each glows in its own color.
 // Routed at /preview/neon-dark.
 
-// PALETTE — sampled from the new CARES Works neon logo
-const D = {
-  // three neon inks from the logo ribbon
-  blue:      "#00b7ff",   // cyan-leaning electric blue (the "Works." cursive)
-  bluePale:  "#7fdcff",
-  pink:      "#ff2d8a",   // hot magenta (middle ribbon)
-  pinkPale:  "#ff7fb8",
-  orange:    "#ff8a2a",   // neon orange (outer ribbon)
-  orangePale:"#ffbb80",
-  // neutrals
-  black:     "#000000",   // pure black — matches the logo bg
-  ink:       "#0a0a12",   // near-black for layered surfaces
-  ink2:      "#12141f",   // one step up
-  text:      "#ffffff",
-  muted:     "#94a3b8",
-  rule:      "#1e293b",
+const N = {
+  blue:      "#0080ff",
+  blueHot:   "#00b7ff",   // matches the logo's "Works." cursive
+  blueDark:  "#0052cc",
+  pink:      "#ff2d8a",
+  pinkDark:  "#d91d6d",
+  orange:    "#ff8a2a",
+  orangeDark:"#f06d0a",
+  white:     "#ffffff",
+  wall:      "#ffffff",
+  ink:       "#0a0a14",
+  text:      "#0f172a",
+  muted:     "#64748b",
+  mutedLite: "#94a3b8",
+  rule:      "#e2e8f0",
   green:     "#22c55e",
 };
 
-// Glow constants — real neon.
-const HALO_BLUE   = "0 0 24px rgba(0,183,255,0.45), 0 0 60px rgba(0,183,255,0.22)";
-const HALO_PINK   = "0 0 22px rgba(255,45,138,0.45), 0 0 50px rgba(255,45,138,0.22)";
-const HALO_ORANGE = "0 0 22px rgba(255,138,42,0.45), 0 0 50px rgba(255,138,42,0.22)";
-const HALO_L      = "0 0 40px rgba(0,183,255,0.5), 0 0 100px rgba(0,183,255,0.25)";
-const BTN_GLOW    = "0 0 22px rgba(0,183,255,0.7), 0 6px 20px rgba(0,183,255,0.4)";
-const RIM_BLUE    = "inset 0 0 0 1px rgba(0,183,255,0.22)";
+// Per-color glow builders — cards emit their own color.
+const glow = (rgb, s = 1) => `0 0 ${24*s}px rgba(${rgb},0.5), 0 0 ${60*s}px rgba(${rgb},0.25), 0 12px 30px rgba(${rgb},0.28)`;
+const GLOW_BLUE   = glow("0,128,255");
+const GLOW_PINK   = glow("255,45,138");
+const GLOW_ORANGE = glow("255,138,42");
 
-function Sign({ children, glow = HALO_BLUE, style = {}, corner = "100% 0%", tint = "rgba(0,183,255,0.15)" }) {
+// Neon color card — the card IS the neon.
+function ColorCard({ color, glow, children, style = {} }) {
   return (
     <div style={{
-      background: `radial-gradient(circle at ${corner}, ${tint}, transparent 60%), ${D.ink}`,
+      background: `linear-gradient(135deg, ${color}, ${color}dd)`,
       borderRadius: 14,
-      boxShadow: glow + ", " + RIM_BLUE,
-      color: D.text,
+      boxShadow: glow,
+      color: N.white,
       position: "relative",
       overflow: "hidden",
       ...style,
     }}>
-      {children}
+      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(255,255,255,0.15), transparent 40%)", pointerEvents: "none" }} />
+      <div style={{ position: "relative" }}>{children}</div>
     </div>
+  );
+}
+
+// Reverse button — white bg on colored card, card-color text.
+function ReverseBtn({ color, children }) {
+  return (
+    <button style={{ marginTop: 6, padding: "10px 18px", background: N.white, border: "none", borderRadius: 8, color: color, fontSize: 13, fontWeight: 700, cursor: "pointer", textAlign: "left", boxShadow: "0 4px 12px rgba(0,0,0,0.15)" }}>
+      {children}
+    </button>
   );
 }
 
 export default function PalettePreviewDark() {
   return (
-    <div style={{ minHeight: "100vh", background: D.black, color: D.text, fontFamily: "'Figtree', sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: N.wall, color: N.text, fontFamily: "'Figtree', sans-serif" }}>
       <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-      {/* HERO LOGO BANNER — white so the PNG's own black is the frame */}
-      <div style={{ background: "#ffffff", padding: "40px 24px", textAlign: "center" }}>
+      {/* HERO LOGO BANNER — white, so no seam with the PNG's baked black */}
+      <div style={{ background: N.white, padding: "40px 24px 32px", textAlign: "center" }}>
         <img src="/cares-works-neon-logo.png" alt="CARES Works — Tools, Training, Confidence, Results. Built for Business. Backed by CARES."
-          style={{ maxHeight: 240, width: "auto", maxWidth: "100%", display: "block", margin: "0 auto", filter: "drop-shadow(0 0 40px rgba(0,183,255,0.35))" }} />
+          style={{ maxHeight: 220, width: "auto", maxWidth: "100%", display: "block", margin: "0 auto", filter: "drop-shadow(0 8px 32px rgba(0,128,255,0.25))" }} />
       </div>
 
-      {/* NAV BAR — sticky wordmark strip below the hero */}
-      <header style={{ background: D.black, borderBottom: "1px solid " + D.rule, padding: "0 32px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 64, position: "sticky", top: 0, zIndex: 100 }}>
+      {/* NAV BAR — white sticky */}
+      <header style={{ background: N.white, borderBottom: "1px solid " + N.rule, padding: "0 32px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 64, position: "sticky", top: 0, zIndex: 100 }}>
         <a href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-          <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: D.text }}>
-            CARES <span style={{ color: D.blue, fontStyle: "italic", textShadow: `0 0 10px ${D.blue}` }}>Works.</span>
+          <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>
+            CARES <span style={{ color: N.blueHot, fontStyle: "italic" }}>Works.</span>
           </span>
         </a>
-        <div style={{ display: "flex", gap: 4, background: D.ink, borderRadius: 10, padding: 4, boxShadow: HALO_BLUE }}>
+        <div style={{ display: "flex", gap: 4, background: N.wall, borderRadius: 10, padding: 4, border: "1px solid " + N.rule }}>
           {["Tool Library", "My Work", "The Debrief", "Court of Accounts", "Shop", "Account"].map((t, i) => (
-            <div key={t} style={{ padding: "6px 14px", borderRadius: 7, background: i === 0 ? D.blue : "transparent", color: i === 0 ? D.black : D.muted, fontSize: 12, fontWeight: i === 0 ? 700 : 500, cursor: "pointer", boxShadow: i === 0 ? "0 0 18px rgba(0,183,255,0.7)" : "none" }}>{t}</div>
+            <div key={t} style={{ padding: "6px 14px", borderRadius: 7, background: i === 0 ? N.blue : "transparent", color: i === 0 ? N.white : N.muted, fontSize: 12, fontWeight: i === 0 ? 700 : 500, cursor: "pointer", boxShadow: i === 0 ? "0 4px 14px rgba(0,128,255,0.4)" : "none" }}>{t}</div>
           ))}
         </div>
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", background: D.ink, color: D.blue, padding: "5px 12px", borderRadius: 100, fontWeight: 700, boxShadow: "0 0 14px rgba(0,183,255,0.5)" }}>ANNUAL</div>
-          <div style={{ fontSize: 12, color: D.muted, fontFamily: "'DM Mono', monospace" }}>kari@caresmn.com</div>
+          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", background: N.blue, color: N.white, padding: "5px 12px", borderRadius: 100, fontWeight: 700, boxShadow: "0 3px 10px rgba(0,128,255,0.4)" }}>ANNUAL</div>
+          <div style={{ fontSize: 12, color: N.muted, fontFamily: "'DM Mono', monospace" }}>kari@caresmn.com</div>
         </div>
       </header>
 
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "56px 24px 100px" }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "48px 24px 100px" }}>
 
-        {/* WELCOME — logo hero already carries the tagline, no need to repeat */}
-        <div style={{ marginBottom: 44, textAlign: "left" }}>
-          <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 48, color: D.text, marginBottom: 12, lineHeight: 1.05 }}>
+        {/* WELCOME */}
+        <div style={{ marginBottom: 44 }}>
+          <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 48, color: N.ink, marginBottom: 12, lineHeight: 1.05 }}>
             Welcome back, Kari.
           </h1>
-          <p style={{ color: D.text, fontSize: 17, lineHeight: 1.55, marginBottom: 6, maxWidth: 720, opacity: 0.85 }}>
+          <p style={{ color: N.ink, fontSize: 17, lineHeight: 1.55, marginBottom: 6, maxWidth: 720 }}>
             Tools, Debriefs, and practical business systems for people who are done letting chaos run the meeting.
           </p>
-          <p style={{ color: D.muted, fontSize: 14, fontStyle: "italic" }}>
+          <p style={{ color: N.muted, fontSize: 14, fontStyle: "italic" }}>
             Start with one problem. Find one tool. Fix one thing.
           </p>
         </div>
 
-        {/* START HERE — tri-color glow across the 3 cards to echo the logo ribbon */}
-        <div style={{ marginBottom: 14, fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.16em", color: D.muted, fontWeight: 700 }}>START HERE</div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20, marginBottom: 48 }}>
+        {/* START HERE — tri-color card row echoing the logo ribbon */}
+        <div style={{ marginBottom: 14, fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.16em", color: N.muted, fontWeight: 700 }}>START HERE</div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 22, marginBottom: 52 }}>
           {[
-            { emoji: "👋", title: "Watch the 2-Minute Welcome", desc: "What this place is, how it works, and where not to panic.", glow: HALO_ORANGE, tint: "rgba(255,138,42,0.18)", accent: D.orange, corner: "100% 0%" },
-            { emoji: "🧭", title: "Learn the Layout", desc: "Tools, Debriefs, downloads, categories, how to find what you need fast.", glow: HALO_PINK, tint: "rgba(255,45,138,0.18)", accent: D.pink, corner: "50% 0%" },
-            { emoji: "🔥", title: "What's New This Week", desc: "Latest tools, newest Debriefs, featured fixes.", glow: HALO_BLUE, tint: "rgba(0,183,255,0.2)", accent: D.blue, corner: "0% 0%" },
+            { emoji: "👋", title: "Watch the 2-Minute Welcome", desc: "What this place is, how it works, and where not to panic.", color: N.orange, glow: GLOW_ORANGE },
+            { emoji: "🧭", title: "Learn the Layout", desc: "Tools, Debriefs, downloads, categories, how to find what you need fast.", color: N.pink, glow: GLOW_PINK },
+            { emoji: "🔥", title: "What's New This Week", desc: "Latest tools, newest Debriefs, featured fixes.", color: N.blue, glow: GLOW_BLUE },
           ].map(c => (
-            <Sign key={c.title} style={{ padding: "24px 26px", display: "flex", flexDirection: "column", gap: 10 }} glow={c.glow} tint={c.tint} corner={c.corner}>
-              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: c.accent, boxShadow: `0 0 14px ${c.accent}` }} />
-              <div style={{ fontSize: 26, lineHeight: 1 }}>{c.emoji}</div>
-              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 17, color: D.text, lineHeight: 1.25 }}>{c.title}</div>
-              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.68)", lineHeight: 1.5, flex: 1 }}>{c.desc}</div>
-              <button style={{ marginTop: 6, padding: "10px 16px", background: c.accent, border: "none", borderRadius: 8, color: D.black, fontSize: 13, fontWeight: 700, cursor: "pointer", textAlign: "left", boxShadow: `0 0 20px ${c.accent}` }}>
-                {c.title.split(" ").slice(0, 2).join(" ")} →
-              </button>
-            </Sign>
+            <ColorCard key={c.title} color={c.color} glow={c.glow} style={{ padding: "26px 28px", display: "flex", flexDirection: "column", gap: 10 }}>
+              <div style={{ fontSize: 28, lineHeight: 1 }}>{c.emoji}</div>
+              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 19, color: N.white, lineHeight: 1.25 }}>{c.title}</div>
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.88)", lineHeight: 1.5, flex: 1 }}>{c.desc}</div>
+              <ReverseBtn color={c.color}>{c.title.split(" ").slice(0, 2).join(" ")} →</ReverseBtn>
+            </ColorCard>
           ))}
         </div>
 
-        {/* WHAT'S NEW */}
-        <Sign style={{ padding: "28px 30px", marginBottom: 48 }} glow={HALO_L} corner="0% 100%">
+        {/* WHAT'S NEW — one big blue neon card */}
+        <ColorCard color={N.blue} glow={glow("0,128,255", 1.4)} style={{ padding: "30px 32px", marginBottom: 52 }}>
           <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 20 }}>
-            <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 26, color: D.text, margin: 0 }}>🔥 What's New This Week</h2>
-            <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: D.muted, letterSpacing: "0.06em" }}>Updated Jul 9</span>
+            <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 26, color: N.white, margin: 0 }}>🔥 What's New This Week</h2>
+            <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "rgba(255,255,255,0.7)", letterSpacing: "0.06em" }}>Updated Jul 9</span>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
             {[
-              { tag: "NEW TOOL", icon: "🛠️", title: "Vendor Decoder", desc: "Turn your vendor list into a posting playbook.", accent: D.blue },
-              { tag: "NEW DEBRIEF", icon: "☕", title: "Cash Flow Is Not a Vibe", desc: "Bank balance is not the business model.", accent: D.pink },
-              { tag: "FEATURED FIX", icon: "🎯", title: "Open Your Vendor List", desc: "Count the duplicates. That number is telling on you.", accent: D.orange },
-              { tag: "KARI'S NOTE", icon: "✨", title: "This Week", desc: "Clarity. Not perfection. One less pile. One place where the truth can take its coat off.", pinned: true, accent: D.blue },
+              { tag: "NEW TOOL", icon: "🛠️", title: "Vendor Decoder", desc: "Turn your vendor list into a posting playbook." },
+              { tag: "NEW DEBRIEF", icon: "☕", title: "Cash Flow Is Not a Vibe", desc: "Bank balance is not the business model." },
+              { tag: "FEATURED FIX", icon: "🎯", title: "Open Your Vendor List", desc: "Count the duplicates. That number is telling on you." },
+              { tag: "KARI'S NOTE", icon: "✨", title: "This Week", desc: "Clarity. Not perfection. One less pile. One place where the truth can take its coat off.", pinned: true },
             ].map(b => (
-              <div key={b.tag} style={{ background: b.pinned ? "linear-gradient(135deg, rgba(0,183,255,0.18), rgba(0,183,255,0.04))" : D.ink2, borderRadius: 10, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 6, boxShadow: b.pinned ? `0 0 18px ${b.accent}80, inset 0 0 0 1px ${b.accent}` : `inset 0 0 0 1px ${D.rule}` }}>
+              <div key={b.tag} style={{ background: "rgba(255,255,255,0.13)", backdropFilter: "blur(6px)", borderRadius: 10, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 5, border: b.pinned ? "1px solid rgba(255,255,255,0.5)" : "1px solid rgba(255,255,255,0.2)" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                   <span style={{ fontSize: 15 }}>{b.icon}</span>
-                  <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.12em", color: b.accent, fontWeight: 700, textShadow: `0 0 8px ${b.accent}80` }}>{b.tag}</span>
+                  <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.12em", color: N.white, fontWeight: 700 }}>{b.tag}</span>
                 </div>
-                <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 15, color: D.text, lineHeight: 1.3 }}>{b.title}</div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", lineHeight: 1.5, flex: 1, fontStyle: b.pinned ? "italic" : "normal" }}>{b.desc}</div>
+                <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 15, color: N.white, lineHeight: 1.3 }}>{b.title}</div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.85)", lineHeight: 1.5, flex: 1, fontStyle: b.pinned ? "italic" : "normal" }}>{b.desc}</div>
                 {!b.pinned && (
-                  <button style={{ marginTop: 6, padding: "6px 10px", background: b.accent, border: "none", borderRadius: 5, color: D.black, fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "left", boxShadow: `0 0 12px ${b.accent}` }}>
+                  <button style={{ marginTop: 6, padding: "6px 10px", background: N.white, border: "none", borderRadius: 5, color: N.blue, fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "left" }}>
                     Open →
                   </button>
                 )}
               </div>
             ))}
           </div>
-        </Sign>
+        </ColorCard>
 
         {/* SEARCH */}
         <div style={{ marginBottom: 14, position: "relative" }}>
           <input type="text" placeholder="Search tools…"
-            style={{ width: "100%", padding: "14px 18px 14px 44px", fontSize: 14, background: D.ink, border: "none", borderRadius: 10, outline: "none", color: D.text, boxSizing: "border-box", boxShadow: HALO_BLUE }} />
-          <span style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", fontSize: 16, color: D.blue, pointerEvents: "none", textShadow: `0 0 8px ${D.blue}` }}>🔍</span>
+            style={{ width: "100%", padding: "14px 18px 14px 44px", fontSize: 14, background: N.white, border: "2px solid " + N.rule, borderRadius: 10, outline: "none", color: N.ink, boxSizing: "border-box" }} />
+          <span style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", fontSize: 16, color: N.muted, pointerEvents: "none" }}>🔍</span>
         </div>
 
-        {/* CATEGORY CHIPS — tri-color when active */}
+        {/* CATEGORY CHIPS — active states pick up the tri-color */}
         <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
           {[
-            { label: "All", active: true, accent: D.blue },
-            { label: "📒 Bookkeeping", active: false, accent: D.blue },
-            { label: "💰 Money", active: true, accent: D.orange },
-            { label: "👥 People", active: false, accent: D.pink },
-            { label: "🤝 Client Work", active: false, accent: D.blue },
-            { label: "🎯 Leadership", active: false, accent: D.orange },
+            { label: "All", active: true, color: N.blue },
+            { label: "📒 Bookkeeping", active: false, color: N.blue },
+            { label: "💰 Money", active: true, color: N.orange },
+            { label: "👥 People", active: false, color: N.pink },
+            { label: "🤝 Client Work", active: false, color: N.blue },
+            { label: "🎯 Leadership", active: false, color: N.orange },
           ].map(c => (
             <button key={c.label}
-              style={{ padding: "8px 16px", borderRadius: 100, border: "none", background: c.active ? c.accent : D.ink, color: c.active ? D.black : D.muted, fontSize: 12, fontWeight: c.active ? 700 : 500, cursor: "pointer", boxShadow: c.active ? `0 0 18px ${c.accent}` : "0 0 12px rgba(0,183,255,0.12)" }}>
+              style={{ padding: "8px 16px", borderRadius: 100, border: c.active ? "none" : "1.5px solid " + N.rule, background: c.active ? c.color : N.white, color: c.active ? N.white : N.muted, fontSize: 12, fontWeight: c.active ? 700 : 500, cursor: "pointer", boxShadow: c.active ? `0 4px 14px ${c.color}66` : "none" }}>
               {c.label}
             </button>
           ))}
         </div>
 
         <div style={{ display: "flex", gap: 12, marginBottom: 32 }}>
-          <div style={{ display: "flex", gap: 3, background: D.ink, borderRadius: 100, padding: 3, boxShadow: "0 0 14px rgba(0,183,255,0.2)" }}>
+          <div style={{ display: "flex", gap: 3, background: N.white, border: "1.5px solid " + N.rule, borderRadius: 100, padding: 3 }}>
             {["ALL", "FREE", "MEMBER"].map((l, i) => (
-              <div key={l} style={{ padding: "6px 16px", borderRadius: 100, background: i === 0 ? D.blue : "transparent", color: i === 0 ? D.black : D.muted, fontSize: 11, fontWeight: i === 0 ? 700 : 500, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", cursor: "pointer", boxShadow: i === 0 ? `0 0 14px ${D.blue}` : "none" }}>{l}</div>
+              <div key={l} style={{ padding: "6px 16px", borderRadius: 100, background: i === 0 ? N.blue : "transparent", color: i === 0 ? N.white : N.muted, fontSize: 11, fontWeight: i === 0 ? 700 : 500, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", cursor: "pointer", boxShadow: i === 0 ? "0 3px 10px rgba(0,128,255,0.4)" : "none" }}>{l}</div>
             ))}
           </div>
-          <button style={{ padding: "6px 16px", borderRadius: 100, border: "none", background: D.ink, color: D.muted, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", boxShadow: "0 0 12px rgba(0,183,255,0.12)" }}>
+          <button style={{ padding: "6px 16px", borderRadius: 100, border: "1.5px solid " + N.rule, background: N.white, color: N.muted, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>
             ✨ NEW ONLY
           </button>
         </div>
 
-        {/* TOOL CARDS */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 22, marginBottom: 48 }}>
+        {/* TOOL CARDS — each card takes its category's neon color */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24, marginBottom: 52 }}>
           {[
-            { icon: "🗂️", cat: "BOOKKEEPING", title: "Vendor Decoder", desc: "Turn your vendor list into a posting playbook. Every account lands where it belongs.", tag: "NEW" },
-            { icon: "📊", cat: "MONEY", title: "Monthly Numbers Scorecard", desc: "Seven numbers. Fifteen minutes. The difference between knowing your business and guessing.", tag: "NEW" },
-            { icon: "☕", cat: "MONEY", title: "The Collections Playbook", desc: "Most of us send the same friendly nudge seven times and call it collections. It's begging with a smile." },
+            { icon: "🗂️", cat: "BOOKKEEPING", title: "Vendor Decoder", desc: "Turn your vendor list into a posting playbook. Every account lands where it belongs.", tag: "NEW", color: N.blue, glow: GLOW_BLUE },
+            { icon: "📊", cat: "MONEY", title: "Monthly Numbers Scorecard", desc: "Seven numbers. Fifteen minutes. The difference between knowing your business and guessing.", tag: "NEW", color: N.orange, glow: GLOW_ORANGE },
+            { icon: "☕", cat: "MONEY", title: "The Collections Playbook", desc: "Most of us send the same friendly nudge seven times and call it collections. It's begging with a smile.", color: N.pink, glow: GLOW_PINK },
           ].map(t => (
-            <Sign key={t.title} style={{ padding: "24px 26px", display: "flex", flexDirection: "column", gap: 11 }}>
-              {t.tag && <div style={{ position: "absolute", top: 16, right: 16, background: D.blue, color: D.black, fontFamily: "'DM Mono', monospace", fontSize: 9, fontWeight: 700, letterSpacing: "0.12em", padding: "4px 10px", borderRadius: 100, boxShadow: `0 0 16px ${D.blue}` }}>{t.tag}</div>}
+            <ColorCard key={t.title} color={t.color} glow={t.glow} style={{ padding: "26px 28px", display: "flex", flexDirection: "column", gap: 11 }}>
+              {t.tag && <div style={{ position: "absolute", top: 16, right: 16, background: N.white, color: t.color, fontFamily: "'DM Mono', monospace", fontSize: 9, fontWeight: 700, letterSpacing: "0.12em", padding: "4px 10px", borderRadius: 100 }}>{t.tag}</div>}
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div style={{ width: 42, height: 42, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, background: "rgba(0,183,255,0.14)", boxShadow: `inset 0 0 0 1px ${D.blue}` }}>{t.icon}</div>
-                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.14em", color: D.muted }}>{t.cat}</div>
+                <div style={{ width: 44, height: 44, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, background: "rgba(255,255,255,0.22)" }}>{t.icon}</div>
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.14em", color: "rgba(255,255,255,0.85)" }}>{t.cat}</div>
               </div>
-              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 19, lineHeight: 1.3, color: D.text }}>{t.title}</div>
-              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.68)", lineHeight: 1.55, flex: 1 }}>{t.desc}</div>
-              <button style={{ marginTop: 6, padding: "11px 18px", background: D.blue, border: "none", borderRadius: 8, color: D.black, fontSize: 13, fontWeight: 700, cursor: "pointer", textAlign: "left", boxShadow: BTN_GLOW }}>
-                Get this tool →
-              </button>
-            </Sign>
+              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, lineHeight: 1.3, color: N.white }}>{t.title}</div>
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.9)", lineHeight: 1.55, flex: 1 }}>{t.desc}</div>
+              <ReverseBtn color={t.color}>Get this tool →</ReverseBtn>
+            </ColorCard>
           ))}
         </div>
 
-        {/* THE DEBRIEF — pink accent to break the blue monotony */}
-        <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 26, color: D.text, marginBottom: 20 }}>The Debrief</h2>
-        <Sign style={{ padding: "32px 34px", marginBottom: 48 }} glow={HALO_PINK} corner="90% 10%" tint="rgba(255,45,138,0.2)">
-          <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 4, background: D.pink, boxShadow: `0 0 22px ${D.pink}` }} />
-          <div style={{ paddingLeft: 4 }}>
-            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", color: D.pink, fontWeight: 700, marginBottom: 10, textShadow: `0 0 10px ${D.pink}` }}>NOBODY TOLD OWNERS THIS</div>
-            <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 30, color: D.text, marginBottom: 12, lineHeight: 1.2 }}>Cash Flow Is Not a Vibe</h3>
-            <p style={{ color: "rgba(255,255,255,0.78)", fontSize: 15, lineHeight: 1.65, margin: 0, maxWidth: 620 }}>
-              Your bank balance is not your business model. Cash flow needs timing, visibility, and fewer surprises wearing tap shoes.
-            </p>
-            <div style={{ marginTop: 16, fontFamily: "'DM Mono', monospace", fontSize: 11, color: D.pink, fontWeight: 700, letterSpacing: "0.08em", textShadow: `0 0 10px ${D.pink}` }}>READ →</div>
+        {/* THE DEBRIEF — big pink editorial card */}
+        <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 26, color: N.ink, marginBottom: 20 }}>The Debrief</h2>
+        <ColorCard color={N.pink} glow={glow("255,45,138", 1.3)} style={{ padding: "34px 36px", marginBottom: 52 }}>
+          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", color: "rgba(255,255,255,0.9)", fontWeight: 700, marginBottom: 10 }}>NOBODY TOLD OWNERS THIS</div>
+          <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, color: N.white, marginBottom: 12, lineHeight: 1.2 }}>Cash Flow Is Not a Vibe</h3>
+          <p style={{ color: "rgba(255,255,255,0.92)", fontSize: 15, lineHeight: 1.65, margin: 0, maxWidth: 620 }}>
+            Your bank balance is not your business model. Cash flow needs timing, visibility, and fewer surprises wearing tap shoes.
+          </p>
+          <div style={{ marginTop: 18 }}>
+            <ReverseBtn color={N.pink}>READ →</ReverseBtn>
           </div>
-        </Sign>
+        </ColorCard>
 
-        {/* HERO CTA */}
-        <Sign style={{ padding: "44px 46px", marginBottom: 40 }} glow={HALO_L} corner="85% 50%">
-          <div style={{ position: "absolute", top: 0, left: "10%", right: "10%", height: 1, background: `linear-gradient(90deg, transparent, ${D.blue}, transparent)`, boxShadow: `0 0 14px ${D.blue}` }} />
-          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", color: D.blue, fontWeight: 700, marginBottom: 12, textShadow: `0 0 10px ${D.blue}` }}>THERE'S MORE WHERE THIS CAME FROM</div>
-          <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 36, marginBottom: 12, lineHeight: 1.15, color: D.text }}>Tools for running the business, not just the books.</h2>
-          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.75)", marginBottom: 26, maxWidth: 460, lineHeight: 1.6 }}>
+        {/* HERO CTA — big blue neon block */}
+        <ColorCard color={N.blue} glow={glow("0,128,255", 1.5)} style={{ padding: "48px 50px", marginBottom: 44 }}>
+          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(255,255,255,0.9)", fontWeight: 700, marginBottom: 12 }}>THERE'S MORE WHERE THIS CAME FROM</div>
+          <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 38, marginBottom: 12, lineHeight: 1.15, color: N.white }}>Tools for running the business, not just the books.</h2>
+          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.9)", marginBottom: 26, maxWidth: 480, lineHeight: 1.6 }}>
             Checklists, scripts, scope matrices, and calculators built for bookkeepers, advisors, and small-business owners.
           </p>
-          <button style={{ padding: "14px 32px", background: D.blue, border: "none", borderRadius: 8, color: D.black, fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, cursor: "pointer", boxShadow: BTN_GLOW }}>
+          <button style={{ padding: "14px 32px", background: N.white, border: "none", borderRadius: 8, color: N.blue, fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, cursor: "pointer", boxShadow: "0 8px 22px rgba(0,0,0,0.15)" }}>
             Join Monthly — $27/mo
           </button>
-        </Sign>
+        </ColorCard>
 
-        {/* SIGNATURE STRIP — the sub-tagline, as its own lit sign on the white wall */}
+        {/* SIGNATURE STRIP */}
         <div style={{ textAlign: "center", padding: "24px 0 8px" }}>
-          <div style={{ display: "inline-block", padding: "12px 28px", background: D.ink, borderRadius: 100, fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.2em", color: D.blue, fontWeight: 700, textShadow: `0 0 12px ${D.blue}`, boxShadow: HALO_BLUE + ", " + RIM_BLUE, position: "relative" }}>
+          <div style={{ display: "inline-block", padding: "10px 26px", background: `linear-gradient(135deg, ${N.orange}, ${N.pink}, ${N.blue})`, borderRadius: 100, fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.2em", color: N.white, fontWeight: 700, boxShadow: "0 6px 20px rgba(255,45,138,0.35)" }}>
             BUILT FOR BUSINESS &nbsp;·&nbsp; BACKED BY CARES
           </div>
         </div>
 
-        <div style={{ marginTop: 32, padding: "14px 18px", background: D.ink, border: "1px dashed " + D.rule, borderRadius: 10, fontSize: 12, color: D.muted, textAlign: "center", fontFamily: "'DM Mono', monospace", letterSpacing: "0.04em" }}>
-          COMPARE: <a href="/preview/neon" style={{ color: D.blue, textDecoration: "underline" }}>the white-wall version →</a>
+        <div style={{ marginTop: 32, padding: "14px 18px", background: N.white, border: "1px dashed " + N.rule, borderRadius: 10, fontSize: 12, color: N.muted, textAlign: "center", fontFamily: "'DM Mono', monospace", letterSpacing: "0.04em" }}>
+          COMPARE: <a href="/preview/neon" style={{ color: N.blue, textDecoration: "underline" }}>the black-signs-on-white version →</a>
         </div>
 
       </div>
