@@ -47,7 +47,7 @@ function Sign({ children, glow = HALO_BLUE, style = {}, corner = "100% 0%", tint
 
 export default function PalettePreviewDark() {
   return (
-    <div style={{ minHeight: "100vh", background: "#ffffff", color: "#0a0a14", fontFamily: "'Figtree', sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: D.black, color: D.text, fontFamily: "'Figtree', sans-serif" }}>
       <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
       {/* HERO LOGO BANNER — full-width lit sign, the header the logo deserves */}
@@ -58,10 +58,10 @@ export default function PalettePreviewDark() {
       </div>
 
       {/* NAV BAR — sticky wordmark strip below the hero */}
-      <header style={{ background: "#ffffff", borderBottom: "1px solid #e2e8f0", padding: "0 32px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 64, position: "sticky", top: 0, zIndex: 100 }}>
+      <header style={{ background: D.black, borderBottom: "1px solid " + D.rule, padding: "0 32px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 64, position: "sticky", top: 0, zIndex: 100 }}>
         <a href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-          <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "#0a0a14" }}>
-            CARES <span style={{ color: D.blue, fontStyle: "italic" }}>Works.</span>
+          <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: D.text }}>
+            CARES <span style={{ color: D.blue, fontStyle: "italic", textShadow: `0 0 10px ${D.blue}` }}>Works.</span>
           </span>
         </a>
         <div style={{ display: "flex", gap: 4, background: D.ink, borderRadius: 10, padding: 4, boxShadow: HALO_BLUE }}>
@@ -71,7 +71,7 @@ export default function PalettePreviewDark() {
         </div>
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
           <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", background: D.ink, color: D.blue, padding: "5px 12px", borderRadius: 100, fontWeight: 700, boxShadow: "0 0 14px rgba(0,183,255,0.5)" }}>ANNUAL</div>
-          <div style={{ fontSize: 12, color: "#64748b", fontFamily: "'DM Mono', monospace" }}>kari@caresmn.com</div>
+          <div style={{ fontSize: 12, color: D.muted, fontFamily: "'DM Mono', monospace" }}>kari@caresmn.com</div>
         </div>
       </header>
 
@@ -79,19 +79,19 @@ export default function PalettePreviewDark() {
 
         {/* WELCOME — logo hero already carries the tagline, no need to repeat */}
         <div style={{ marginBottom: 44, textAlign: "left" }}>
-          <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 48, color: "#0a0a14", marginBottom: 12, lineHeight: 1.05 }}>
+          <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 48, color: D.text, marginBottom: 12, lineHeight: 1.05 }}>
             Welcome back, Kari.
           </h1>
-          <p style={{ color: "#0a0a14", fontSize: 17, lineHeight: 1.55, marginBottom: 6, maxWidth: 720 }}>
+          <p style={{ color: D.text, fontSize: 17, lineHeight: 1.55, marginBottom: 6, maxWidth: 720, opacity: 0.85 }}>
             Tools, Debriefs, and practical business systems for people who are done letting chaos run the meeting.
           </p>
-          <p style={{ color: "#64748b", fontSize: 14, fontStyle: "italic" }}>
+          <p style={{ color: D.muted, fontSize: 14, fontStyle: "italic" }}>
             Start with one problem. Find one tool. Fix one thing.
           </p>
         </div>
 
         {/* START HERE — tri-color glow across the 3 cards to echo the logo ribbon */}
-        <div style={{ marginBottom: 14, fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.16em", color: "#64748b", fontWeight: 700 }}>START HERE</div>
+        <div style={{ marginBottom: 14, fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.16em", color: D.muted, fontWeight: 700 }}>START HERE</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20, marginBottom: 48 }}>
           {[
             { emoji: "👋", title: "Watch the 2-Minute Welcome", desc: "What this place is, how it works, and where not to panic.", glow: HALO_ORANGE, tint: "rgba(255,138,42,0.18)", accent: D.orange, corner: "100% 0%" },
@@ -198,7 +198,7 @@ export default function PalettePreviewDark() {
         </div>
 
         {/* THE DEBRIEF — pink accent to break the blue monotony */}
-        <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 26, color: "#0a0a14", marginBottom: 20 }}>The Debrief</h2>
+        <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 26, color: D.text, marginBottom: 20 }}>The Debrief</h2>
         <Sign style={{ padding: "32px 34px", marginBottom: 48 }} glow={HALO_PINK} corner="90% 10%" tint="rgba(255,45,138,0.2)">
           <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 4, background: D.pink, boxShadow: `0 0 22px ${D.pink}` }} />
           <div style={{ paddingLeft: 4 }}>
