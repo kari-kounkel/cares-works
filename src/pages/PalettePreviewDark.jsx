@@ -166,13 +166,13 @@ export default function PalettePreviewDark() {
               { tag: "FEATURED FIX", icon: "🎯", title: "Open Your Vendor List", desc: "Count the duplicates. That number is telling on you." },
               { tag: "KARI'S NOTE", icon: "✨", title: "This Week", desc: "Clarity. Not perfection. One less pile. One place where the truth can take its coat off.", pinned: true },
             ].map(b => (
-              <div key={b.tag} style={{ background: "rgba(255,255,255,0.13)", backdropFilter: "blur(6px)", borderRadius: 10, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 5, border: b.pinned ? "1px solid rgba(255,255,255,0.5)" : "1px solid rgba(255,255,255,0.2)" }}>
+              <div key={b.tag} style={{ background: `linear-gradient(135deg, ${N.blue}, ${N.blueDark})`, borderRadius: 10, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 5, boxShadow: b.pinned ? "0 0 0 2px " + N.white + ", 0 4px 14px rgba(0,128,255,0.5)" : "0 4px 14px rgba(0,128,255,0.35)" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                   <span style={{ fontSize: 15 }}>{b.icon}</span>
                   <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.12em", color: N.white, fontWeight: 700 }}>{b.tag}</span>
                 </div>
                 <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 15, color: N.white, lineHeight: 1.3 }}>{b.title}</div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.85)", lineHeight: 1.5, flex: 1, fontStyle: b.pinned ? "italic" : "normal" }}>{b.desc}</div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.9)", lineHeight: 1.5, flex: 1, fontStyle: b.pinned ? "italic" : "normal" }}>{b.desc}</div>
                 {!b.pinned && (
                   <button style={{ marginTop: 6, padding: "6px 10px", background: N.white, border: "none", borderRadius: 5, color: N.blue, fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "left" }}>
                     Open →
