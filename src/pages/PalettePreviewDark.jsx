@@ -146,36 +146,6 @@ export default function PalettePreviewDark() {
           ))}
         </div>
 
-        {/* WHAT'S NEW — black frame, white-neon-outlined tiles inside */}
-        <div style={{ background: N.ink, borderRadius: 14, padding: "30px 32px", marginBottom: 52, boxShadow: `0 0 30px rgba(0,128,255,0.35), 0 0 70px rgba(0,128,255,0.18)` }}>
-          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 20 }}>
-            <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 26, color: N.white, margin: 0 }}>🔥 What's New This Week</h2>
-            <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "rgba(255,255,255,0.7)", letterSpacing: "0.06em" }}>Updated Jul 9</span>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
-            {[
-              { tag: "NEW TOOL", icon: "🛠️", title: "Vendor Decoder", desc: "Turn your vendor list into a posting playbook." },
-              { tag: "NEW DEBRIEF", icon: "☕", title: "Cash Flow Is Not a Vibe", desc: "Bank balance is not the business model." },
-              { tag: "FEATURED FIX", icon: "🎯", title: "Open Your Vendor List", desc: "Count the duplicates. That number is telling on you." },
-              { tag: "KARI'S NOTE", icon: "✨", title: "This Week", desc: "Clarity. Not perfection. One less pile. One place where the truth can take its coat off.", pinned: true },
-            ].map(b => (
-              <div key={b.tag} style={{ background: N.white, borderRadius: 10, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 6, border: `2px solid ${N.blue}`, boxShadow: `0 0 20px rgba(0,128,255,0.55), 0 0 45px rgba(0,128,255,0.25)${b.pinned ? ", 0 0 0 2px " + N.white : ""}` }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <span style={{ fontSize: 15 }}>{b.icon}</span>
-                  <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.12em", color: N.blue, fontWeight: 700 }}>{b.tag}</span>
-                </div>
-                <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 15, color: N.ink, lineHeight: 1.3 }}>{b.title}</div>
-                <div style={{ fontSize: 12, color: N.muted, lineHeight: 1.55, flex: 1, fontStyle: b.pinned ? "italic" : "normal" }}>{b.desc}</div>
-                {!b.pinned && (
-                  <button style={{ marginTop: 6, padding: "6px 10px", background: N.blue, border: "none", borderRadius: 5, color: N.white, fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "left", boxShadow: `0 3px 10px rgba(0,128,255,0.4)` }}>
-                    Open →
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
         {/* SEARCH */}
         <div style={{ marginBottom: 14, position: "relative" }}>
           <input type="text" placeholder="Search tools…"
