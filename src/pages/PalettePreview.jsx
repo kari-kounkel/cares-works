@@ -208,6 +208,10 @@ export default function PalettePreview() {
           </div>
         </div>
 
+        <div style={{ marginTop: 26, padding: "14px 18px", background: N.white, border: "1px dashed " + N.rule, borderRadius: 10, fontSize: 12, color: N.muted, textAlign: "center", fontFamily: "'DM Mono', monospace", letterSpacing: "0.04em" }}>
+          COMPARE: <a href="/preview/neon-dark" style={{ color: N.blue, textDecoration: "underline" }}>the black version →</a>
+        </div>
+
       </div>
     </div>
   );

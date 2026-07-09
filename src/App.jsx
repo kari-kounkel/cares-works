@@ -17,6 +17,7 @@ import ChecklistBuilder from "./pages/ChecklistBuilder";
 import ExemptionTracker from "./pages/ExemptionTracker";
 import ExemptSubmit from "./pages/ExemptSubmit";
 import PalettePreview from "./pages/PalettePreview";
+import PalettePreviewDark from "./pages/PalettePreviewDark";
 import NetProfitRatios from "./pages/NetProfitRatios";
 import QuickbooksTriage from "./pages/QuickbooksTriage";
 import PricingMetrics from "./pages/PricingMetrics";
@@ -142,6 +143,7 @@ export default function App() {
   if (path.startsWith("/exempt/")) return <ExemptSubmit />;
   // Public palette preview (no auth) — Kari's vibe-check before we rebrand.
   if (path === "/preview/neon") return <PalettePreview />;
+  if (path === "/preview/neon-dark") return <PalettePreviewDark />;
   if (path === "/tools/net-profit-ratios") return <NetProfitRatios session={session} />;
   if (path === "/tools/quickbooks-triage") return <QuickbooksTriage session={session} />;
   if (path === "/tools/pricing-metrics") return <PricingMetrics session={session} />;
