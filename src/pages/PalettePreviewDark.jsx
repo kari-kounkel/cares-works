@@ -21,34 +21,27 @@ const N = {
   green:     "#22c55e",
 };
 
-// Per-color glow builders — cards emit their own color.
-const glow = (rgb, s = 1) => `0 0 ${24*s}px rgba(${rgb},0.5), 0 0 ${60*s}px rgba(${rgb},0.25), 0 12px 30px rgba(${rgb},0.28)`;
-const GLOW_BLUE   = glow("0,128,255");
-const GLOW_PINK   = glow("255,45,138");
-const GLOW_ORANGE = glow("255,138,42");
-
-// Neon color card — the card IS the neon.
-function ColorCard({ color, glow, children, style = {} }) {
+// NeonBox — white interior, neon-color outline + glow. The one card pattern.
+function NeonBox({ color, rgb, scale = 1, style = {}, children }) {
   return (
     <div style={{
-      background: `linear-gradient(135deg, ${color}, ${color}dd)`,
+      background: N.white,
       borderRadius: 14,
-      boxShadow: glow,
-      color: N.white,
+      border: `2px solid ${color}`,
+      boxShadow: `0 0 ${24*scale}px rgba(${rgb},0.5), 0 0 ${60*scale}px rgba(${rgb},0.25), inset 0 0 22px rgba(${rgb},0.06)`,
+      color: N.ink,
       position: "relative",
-      overflow: "hidden",
       ...style,
     }}>
-      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(255,255,255,0.15), transparent 40%)", pointerEvents: "none" }} />
-      <div style={{ position: "relative" }}>{children}</div>
+      {children}
     </div>
   );
 }
 
-// Reverse button — white bg on colored card, card-color text.
-function ReverseBtn({ color, children }) {
+// Solid neon CTA button.
+function NeonBtn({ color, children }) {
   return (
-    <button style={{ marginTop: 6, padding: "10px 18px", background: N.white, border: "none", borderRadius: 8, color: color, fontSize: 13, fontWeight: 700, cursor: "pointer", textAlign: "left", boxShadow: "0 4px 12px rgba(0,0,0,0.15)" }}>
+    <button style={{ marginTop: 6, padding: "10px 18px", background: color, border: "none", borderRadius: 8, color: N.white, fontSize: 13, fontWeight: 700, cursor: "pointer", textAlign: "left", boxShadow: `0 4px 14px ${color}88` }}>
       {children}
     </button>
   );
@@ -136,25 +129,25 @@ export default function PalettePreviewDark() {
           </p>
         </div>
 
-        {/* START HERE — tri-color card row echoing the logo ribbon */}
+        {/* START HERE — outlined tri-color boxes echoing the logo ribbon */}
         <div style={{ marginBottom: 14, fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.16em", color: N.muted, fontWeight: 700 }}>START HERE</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 22, marginBottom: 52 }}>
           {[
-            { emoji: "👋", title: "Watch the 2-Minute Welcome", desc: "What this place is, how it works, and where not to panic.", color: N.orange, glow: GLOW_ORANGE },
-            { emoji: "🧭", title: "Learn the Layout", desc: "Tools, Debriefs, downloads, categories, how to find what you need fast.", color: N.pink, glow: GLOW_PINK },
-            { emoji: "🔥", title: "What's New This Week", desc: "Latest tools, newest Debriefs, featured fixes.", color: N.blue, glow: GLOW_BLUE },
+            { emoji: "👋", title: "Watch the 2-Minute Welcome", desc: "What this place is, how it works, and where not to panic.", color: N.orange, rgb: "255,138,42" },
+            { emoji: "🧭", title: "Learn the Layout", desc: "Tools, Debriefs, downloads, categories, how to find what you need fast.", color: N.pink, rgb: "255,45,138" },
+            { emoji: "🔥", title: "What's New This Week", desc: "Latest tools, newest Debriefs, featured fixes.", color: N.blue, rgb: "0,128,255" },
           ].map(c => (
-            <ColorCard key={c.title} color={c.color} glow={c.glow} style={{ padding: "26px 28px", display: "flex", flexDirection: "column", gap: 10 }}>
+            <NeonBox key={c.title} color={c.color} rgb={c.rgb} style={{ padding: "26px 28px", display: "flex", flexDirection: "column", gap: 10 }}>
               <div style={{ fontSize: 28, lineHeight: 1 }}>{c.emoji}</div>
-              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 19, color: N.white, lineHeight: 1.25 }}>{c.title}</div>
-              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.88)", lineHeight: 1.5, flex: 1 }}>{c.desc}</div>
-              <ReverseBtn color={c.color}>{c.title.split(" ").slice(0, 2).join(" ")} →</ReverseBtn>
-            </ColorCard>
+              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 19, color: N.ink, lineHeight: 1.25 }}>{c.title}</div>
+              <div style={{ fontSize: 13, color: N.muted, lineHeight: 1.5, flex: 1 }}>{c.desc}</div>
+              <NeonBtn color={c.color}>{c.title.split(" ").slice(0, 2).join(" ")} →</NeonBtn>
+            </NeonBox>
           ))}
         </div>
 
-        {/* WHAT'S NEW — black card with blue glow, so it stops competing with other blues */}
-        <ColorCard color={N.ink} glow={glow("0,128,255", 1.2)} style={{ padding: "30px 32px", marginBottom: 52 }}>
+        {/* WHAT'S NEW — black frame, white-neon-outlined tiles inside */}
+        <div style={{ background: N.ink, borderRadius: 14, padding: "30px 32px", marginBottom: 52, boxShadow: `0 0 30px rgba(0,128,255,0.35), 0 0 70px rgba(0,128,255,0.18)` }}>
           <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 20 }}>
             <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 26, color: N.white, margin: 0 }}>🔥 What's New This Week</h2>
             <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "rgba(255,255,255,0.7)", letterSpacing: "0.06em" }}>Updated Jul 9</span>
@@ -166,22 +159,22 @@ export default function PalettePreviewDark() {
               { tag: "FEATURED FIX", icon: "🎯", title: "Open Your Vendor List", desc: "Count the duplicates. That number is telling on you." },
               { tag: "KARI'S NOTE", icon: "✨", title: "This Week", desc: "Clarity. Not perfection. One less pile. One place where the truth can take its coat off.", pinned: true },
             ].map(b => (
-              <div key={b.tag} style={{ background: `linear-gradient(135deg, ${N.blue}, ${N.blueDark})`, borderRadius: 10, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 5, boxShadow: b.pinned ? "0 0 0 2px " + N.white + ", 0 0 28px rgba(0,128,255,0.7), 0 0 60px rgba(0,128,255,0.35)" : "0 0 28px rgba(0,128,255,0.7), 0 0 60px rgba(0,128,255,0.35)" }}>
+              <div key={b.tag} style={{ background: N.white, borderRadius: 10, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 6, border: `2px solid ${N.blue}`, boxShadow: `0 0 20px rgba(0,128,255,0.55), 0 0 45px rgba(0,128,255,0.25)${b.pinned ? ", 0 0 0 2px " + N.white : ""}` }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                   <span style={{ fontSize: 15 }}>{b.icon}</span>
-                  <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.12em", color: N.white, fontWeight: 700 }}>{b.tag}</span>
+                  <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.12em", color: N.blue, fontWeight: 700 }}>{b.tag}</span>
                 </div>
-                <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 15, color: N.white, lineHeight: 1.3 }}>{b.title}</div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.9)", lineHeight: 1.5, flex: 1, fontStyle: b.pinned ? "italic" : "normal" }}>{b.desc}</div>
+                <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 15, color: N.ink, lineHeight: 1.3 }}>{b.title}</div>
+                <div style={{ fontSize: 12, color: N.muted, lineHeight: 1.55, flex: 1, fontStyle: b.pinned ? "italic" : "normal" }}>{b.desc}</div>
                 {!b.pinned && (
-                  <button style={{ marginTop: 6, padding: "6px 10px", background: N.white, border: "none", borderRadius: 5, color: N.blue, fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "left" }}>
+                  <button style={{ marginTop: 6, padding: "6px 10px", background: N.blue, border: "none", borderRadius: 5, color: N.white, fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "left", boxShadow: `0 3px 10px rgba(0,128,255,0.4)` }}>
                     Open →
                   </button>
                 )}
               </div>
             ))}
           </div>
-        </ColorCard>
+        </div>
 
         {/* SEARCH */}
         <div style={{ marginBottom: 14, position: "relative" }}>
@@ -218,14 +211,14 @@ export default function PalettePreviewDark() {
           </button>
         </div>
 
-        {/* TOOL CARDS — white cards, neon outline + glow. Less saturation, more sign. */}
+        {/* TOOL CARDS — white cards, neon outline + glow */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24, marginBottom: 52 }}>
           {[
             { icon: "🗂️", cat: "BOOKKEEPING", title: "Vendor Decoder", desc: "Turn your vendor list into a posting playbook. Every account lands where it belongs.", tag: "NEW", color: N.blue, rgb: "0,128,255" },
             { icon: "📊", cat: "MONEY", title: "Monthly Numbers Scorecard", desc: "Seven numbers. Fifteen minutes. The difference between knowing your business and guessing.", tag: "NEW", color: N.orange, rgb: "255,138,42" },
             { icon: "☕", cat: "MONEY", title: "The Collections Playbook", desc: "Most of us send the same friendly nudge seven times and call it collections. It's begging with a smile.", color: N.pink, rgb: "255,45,138" },
           ].map(t => (
-            <div key={t.title} style={{ background: N.white, borderRadius: 14, padding: "26px 28px", display: "flex", flexDirection: "column", gap: 11, position: "relative", border: `2px solid ${t.color}`, boxShadow: `0 0 24px rgba(${t.rgb},0.5), 0 0 60px rgba(${t.rgb},0.25), inset 0 0 22px rgba(${t.rgb},0.06)` }}>
+            <NeonBox key={t.title} color={t.color} rgb={t.rgb} style={{ padding: "26px 28px", display: "flex", flexDirection: "column", gap: 11 }}>
               {t.tag && <div style={{ position: "absolute", top: 14, right: 14, background: t.color, color: N.white, fontFamily: "'DM Mono', monospace", fontSize: 9, fontWeight: 700, letterSpacing: "0.12em", padding: "4px 10px", borderRadius: 100, boxShadow: `0 0 14px ${t.color}` }}>{t.tag}</div>}
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <div style={{ width: 44, height: 44, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, background: `rgba(${t.rgb},0.1)`, border: `1.5px solid ${t.color}` }}>{t.icon}</div>
@@ -233,37 +226,35 @@ export default function PalettePreviewDark() {
               </div>
               <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, lineHeight: 1.3, color: N.ink }}>{t.title}</div>
               <div style={{ fontSize: 13, color: N.muted, lineHeight: 1.55, flex: 1 }}>{t.desc}</div>
-              <button style={{ marginTop: 6, padding: "10px 18px", background: t.color, border: "none", borderRadius: 8, color: N.white, fontSize: 13, fontWeight: 700, cursor: "pointer", textAlign: "left", boxShadow: `0 4px 14px ${t.color}88` }}>
-                Get this tool →
-              </button>
-            </div>
+              <NeonBtn color={t.color}>Get this tool →</NeonBtn>
+            </NeonBox>
           ))}
         </div>
 
-        {/* THE DEBRIEF — big pink editorial card */}
+        {/* THE DEBRIEF — pink neon-outlined editorial card */}
         <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 26, color: N.ink, marginBottom: 20 }}>The Debrief</h2>
-        <ColorCard color={N.pink} glow={glow("255,45,138", 1.3)} style={{ padding: "34px 36px", marginBottom: 52 }}>
-          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", color: "rgba(255,255,255,0.9)", fontWeight: 700, marginBottom: 10 }}>NOBODY TOLD OWNERS THIS</div>
-          <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, color: N.white, marginBottom: 12, lineHeight: 1.2 }}>Cash Flow Is Not a Vibe</h3>
-          <p style={{ color: "rgba(255,255,255,0.92)", fontSize: 15, lineHeight: 1.65, margin: 0, maxWidth: 620 }}>
+        <NeonBox color={N.pink} rgb="255,45,138" scale={1.3} style={{ padding: "34px 36px", marginBottom: 52 }}>
+          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", color: N.pink, fontWeight: 700, marginBottom: 10 }}>NOBODY TOLD OWNERS THIS</div>
+          <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, color: N.ink, marginBottom: 12, lineHeight: 1.2 }}>Cash Flow Is Not a Vibe</h3>
+          <p style={{ color: N.muted, fontSize: 15, lineHeight: 1.65, margin: 0, maxWidth: 620 }}>
             Your bank balance is not your business model. Cash flow needs timing, visibility, and fewer surprises wearing tap shoes.
           </p>
           <div style={{ marginTop: 18 }}>
-            <ReverseBtn color={N.pink}>READ →</ReverseBtn>
+            <NeonBtn color={N.pink}>READ →</NeonBtn>
           </div>
-        </ColorCard>
+        </NeonBox>
 
-        {/* HERO CTA — big blue neon block */}
-        <ColorCard color={N.blue} glow={glow("0,128,255", 1.5)} style={{ padding: "48px 50px", marginBottom: 44 }}>
-          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(255,255,255,0.9)", fontWeight: 700, marginBottom: 12 }}>THERE'S MORE WHERE THIS CAME FROM</div>
-          <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 38, marginBottom: 12, lineHeight: 1.15, color: N.white }}>Tools for running the business, not just the books.</h2>
-          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.9)", marginBottom: 26, maxWidth: 480, lineHeight: 1.6 }}>
+        {/* HERO CTA — blue neon-outlined block */}
+        <NeonBox color={N.blue} rgb="0,128,255" scale={1.5} style={{ padding: "48px 50px", marginBottom: 44 }}>
+          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", color: N.blue, fontWeight: 700, marginBottom: 12 }}>THERE'S MORE WHERE THIS CAME FROM</div>
+          <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 38, marginBottom: 12, lineHeight: 1.15, color: N.ink }}>Tools for running the business, not just the books.</h2>
+          <p style={{ fontSize: 15, color: N.muted, marginBottom: 26, maxWidth: 480, lineHeight: 1.6 }}>
             Checklists, scripts, scope matrices, and calculators built for bookkeepers, advisors, and small-business owners.
           </p>
-          <button style={{ padding: "14px 32px", background: N.white, border: "none", borderRadius: 8, color: N.blue, fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, cursor: "pointer", boxShadow: "0 8px 22px rgba(0,0,0,0.15)" }}>
+          <button style={{ padding: "14px 32px", background: N.blue, border: "none", borderRadius: 8, color: N.white, fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, cursor: "pointer", boxShadow: `0 6px 20px rgba(0,128,255,0.5)` }}>
             Join Monthly — $27/mo
           </button>
-        </ColorCard>
+        </NeonBox>
 
         {/* SIGNATURE STRIP */}
         <div style={{ textAlign: "center", padding: "24px 0 8px" }}>
