@@ -59,11 +59,43 @@ export default function PalettePreviewDark() {
     <div style={{ minHeight: "100vh", background: N.wall, color: N.text, fontFamily: "'Figtree', sans-serif" }}>
       <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-      {/* HERO LOGO BANNER — left-aligned to the content column */}
-      <div style={{ background: N.white, padding: "36px 0 28px" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px" }}>
+      {/* HERO — logo on the left, live "This Week" callout on the right */}
+      <div style={{ background: N.white, padding: "36px 0 24px" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 40, flexWrap: "wrap" }}>
+
           <img src="/cares-works-neon-logo.png" alt="CARES Works — Tools, Training, Confidence, Results. Built for Business. Backed by CARES."
             style={{ maxHeight: 200, width: "auto", maxWidth: "100%", display: "block", filter: "drop-shadow(0 8px 32px rgba(0,128,255,0.25))" }} />
+
+          <div style={{ maxWidth: 380, flex: "1 1 300px" }}>
+            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.18em", color: N.pink, fontWeight: 700, marginBottom: 10, display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: 100, background: N.pink, boxShadow: `0 0 10px ${N.pink}`, animation: "none" }} />
+              THIS WEEK ON CARES WORKS
+            </div>
+            <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 26, color: N.ink, lineHeight: 1.2, marginBottom: 8 }}>
+              New drop: <span style={{ color: N.blueHot }}>The Vendor Decoder</span>
+            </h2>
+            <p style={{ fontSize: 14, color: N.muted, lineHeight: 1.55, marginBottom: 14 }}>
+              Turn your vendor list into a posting playbook. Every account lands where it belongs — no more asking "wait, where does Amazon go this time?"
+            </p>
+            <button style={{ padding: "9px 18px", background: N.blue, color: N.white, border: "none", borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 14px rgba(0,128,255,0.4)" }}>
+              Open the Vendor Decoder →
+            </button>
+          </div>
+        </div>
+
+        {/* STAT PILL ROW — the site's pulse */}
+        <div style={{ maxWidth: 1100, margin: "24px auto 0", padding: "0 24px", display: "flex", gap: 10, flexWrap: "wrap" }}>
+          {[
+            { n: "22", label: "tools live", color: N.blue },
+            { n: "6", label: "Debriefs", color: N.pink },
+            { n: "3", label: "new this week", color: N.orange },
+            { n: "Weekly", label: "drops", color: N.ink },
+          ].map(s => (
+            <div key={s.label} style={{ display: "flex", alignItems: "baseline", gap: 8, padding: "8px 16px", background: N.white, border: "1px solid " + N.rule, borderRadius: 100 }}>
+              <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: s.color, fontWeight: 400 }}>{s.n}</span>
+              <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.12em", color: N.muted, textTransform: "uppercase", fontWeight: 700 }}>{s.label}</span>
+            </div>
+          ))}
         </div>
       </div>
 
