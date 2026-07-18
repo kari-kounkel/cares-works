@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>You're Not Alone — CARES Ledger</title>
+
+<style>
+  /* Faithful to the live CARES Ledger tool (src/pages/Ledger.jsx).
+     Single light theme on purpose — the real tool is white-paper only. */
+  :root {
+    --paper:#ffffff; --cream:#f7f9fc; --ink:#0a0a14; --slate:#0a0a14;
+    --blue:#0080ff; --blueDark:#0052cc; --blueLight:#e6f0ff;
+    --rule:#e2e8f0; --muted:#64748b; --green:#5a9a5a; --red:#c44a3a; --gold:#ff8a2a;
+    --serif: 'DM Serif Display', 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+    --sans: 'Figtree', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  .tool {
+    background: var(--paper); color: var(--ink);
+    font-family: var(--sans); min-height: 100vh; font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .tool .bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px; height: 52px; border-bottom: 1px solid var(--rule);
+  }
+  .tool .wm { font-family: var(--serif); font-size: 16px; color: var(--slate); }
+  .tool .wm span { color: var(--blue); }
+  .tool .demo {
+    font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--blue); border: 1px dashed var(--blue); border-radius: 999px; padding: 4px 9px;
+  }
+  .tool .wrap { max-width: 1140px; margin: 0 auto; padding: 28px 24px 80px; }
+
+  .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .orgrow { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 6px; }
+  .orgname { font-family: var(--serif); font-size: 34px; color: var(--slate); line-height: 1.1; }
+  .orgpill {
+    font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--blueDark); background: var(--blueLight); padding: 4px 10px; border-radius: 999px;
+  }
+  .orgsub { color: var(--muted); font-size: 14px; margin: 4px 0 26px; }
+
+  /* summary */
+  .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+  .stat { background: #fff; border: 1px solid var(--rule); border-radius: 12px; padding: 16px 18px; }
+  .stat .l { font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .stat .v { font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  @media (max-width: 720px) { .summary { grid-template-columns: repeat(2, 1fr); } }
+
+  /* tabs */
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--rule); margin-bottom: 22px; flex-wrap: wrap; }
+  .tabbtn {
+    background: transparent; border: none; padding: 12px 16px; font-family: inherit;
+    font-size: 14px; font-weight: 600; cursor: pointer; color: var(--muted);
+    border-bottom: 3px solid transparent; margin-bottom: -1px;
+  }
+  .tabbtn.on { color: var(--blue); border-bottom-color: var(--blue); }
+
+  .sec { display: none; }
+  .sec.on { display: block; }
+
+  .barline { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; gap: 12px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+  .barline strong { color: var(--slate); }
+
+  /* funds grid */
+  .funds { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+  .fcard { background: #fff; border: 1px solid var(--rule); border-radius: 14px; padding: 18px; }
+  .fhead { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 4px; }
+  .fname { font-weight: 600; font-size: 16px; color: var(--slate); }
+  .restricted { font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--gold); background: #faf3da; padding: 3px 8px; border-radius: 999px; white-space: nowrap; }
+  .fdesc { font-size: 13px; color: var(--muted); margin-bottom: 12px; }
+  .fbal { font-size: 26px; font-weight: 600; color: var(--slate); font-variant-numeric: tabular-nums; }
+  .fgoal { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .ftrack { height: 6px; background: var(--cream); border-radius: 999px; margin-top: 6px; overflow: hidden; }
+  .ftrack > i { display: block; height: 100%; border-radius: 999px; }
+  .facts { margin-top: 14px; display: flex; gap: 6px; }
+  .subbtn { font-size: 12px; color: var(--muted); background: var(--cream); border: 1px solid var(--rule); border-radius: 7px; padding: 5px 10px; cursor: pointer; }
+
+  /* ledger rows */
+  .ltable { background: #fff; border: 1px solid var(--rule); border-radius: 14px; overflow: hidden; }
+  .lrow { display: grid; grid-template-columns: 92px 1fr 240px 130px; gap: 14px; padding: 12px 18px; align-items: center; border-top: 1px solid var(--rule); }
+  .lrow:first-child { border-top: none; }
+  .ldate { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .ldesc { font-size: 14px; font-weight: 500; }
+  .lcat { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .ltags { font-size: 12px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px; }
+  .tag { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; color: #fff; white-space: nowrap; }
+  .lamt { font-size: 15px; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+  .in { color: var(--green); } .out { color: var(--red); }
+  @media (max-width: 640px) { .lrow { grid-template-columns: 78px 1fr 100px; } .ltags { display: none; } }
+
+  /* donors table */
+  .dtable { background:#fff; border:1px solid var(--rule); border-radius:14px; overflow:hidden; }
+  .drow { display:grid; grid-template-columns: 1fr 200px 130px 110px; gap:14px; padding:13px 18px; align-items:center; border-top:1px solid var(--rule); }
+  .drow:first-child { border-top:none; }
+  .drow.head { background: var(--cream); font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); }
+  .dname { font-weight:600; color:var(--slate); }
+  .dtags { display:flex; gap:5px; flex-wrap:wrap; }
+  .dtag { font-size:10px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); background:var(--cream); border:1px solid var(--rule); border-radius:999px; padding:3px 8px; }
+  .dnum { text-align:right; font-variant-numeric:tabular-nums; font-weight:600; color:var(--slate); }
+  @media (max-width: 640px){ .drow{ grid-template-columns:1fr 100px; } .dtags,.dlast{ display:none; } }
+
+  .note { border-left: 4px solid var(--blue); background: var(--blueLight); border-radius: 0 10px 10px 0; padding: 14px 18px; font-size: 14px; color: var(--slate); margin-top: 24px; }
+  .note b { color: var(--ink); }
+</style>
+</head>
+<body>
+
+
+<div class="tool">
+  <div class="bar">
+    <div style="width:120px;"></div>
+    <div class="wm">CARES <span>Ledger</span></div>
+    <div class="demo">Demo · You're Not Alone</div>
+  </div>
+
+  <div class="wrap">
+    <div class="eyebrow">Bookkeeping for</div>
+    <div class="orgrow">
+      <div class="orgname">You're Not Alone</div>
+      <span class="orgpill">Non-profit</span>
+    </div>
+    <div class="orgsub">Shattering the stigma around mental illness, one therapy dog at a time · Monticello, MN</div>
+
+    <div class="summary">
+      <div class="stat"><div class="l">This month — in</div><div class="v" style="color:var(--green);">$10,300.00</div></div>
+      <div class="stat"><div class="l">This month — out</div><div class="v" style="color:var(--red);">$1,635.00</div></div>
+      <div class="stat"><div class="l">This month — net</div><div class="v" style="color:var(--green);">$8,665.00</div></div>
+      <div class="stat"><div class="l">All-time net</div><div class="v" style="color:var(--slate);">$38,760.00</div></div>
+    </div>
+
+    <div class="tabs">
+      <button class="tabbtn" data-s="ledger">Ledger</button>
+      <button class="tabbtn" data-s="accounts">Accounts</button>
+      <button class="tabbtn on" data-s="funds">Funds</button>
+      <button class="tabbtn" data-s="donors">Donors</button>
+      <button class="tabbtn" data-s="fundraising">Fundraising</button>
+      <button class="tabbtn" data-s="reports">Reports</button>
+    </div>
+
+    <!-- FUNDS -->
+    <section class="sec on" id="s-funds">
+      <div class="barline"><div>5 funds · <strong>You're Not Alone</strong></div><div>Total across funds <strong style="color:var(--slate);">$38,760.00</strong></div></div>
+      <div class="funds">
+        <div class="fcard" style="border-top:4px solid #2F5233;">
+          <div class="fhead"><div class="fname">Team Training &amp; Certification</div><span class="restricted">Restricted</span></div>
+          <div class="fdesc">Certifying &amp; recertifying the 19 teams</div>
+          <div class="fbal">$13,600.00</div>
+          <div class="fgoal">Goal $20,000.00 · 68%</div>
+          <div class="ftrack"><i style="width:68%;background:#2F5233;"></i></div>
+          <div class="facts"><button class="subbtn">Rename</button><button class="subbtn">Archive</button></div>
+        </div>
+        <div class="fcard" style="border-top:4px solid #ff8a2a;">
+          <div class="fhead"><div class="fname">General Operating</div></div>
+          <div class="fdesc">Unrestricted — keeps the lights on</div>
+          <div class="fbal">$8,240.00</div>
+          <div class="facts"><button class="subbtn">Rename</button><button class="subbtn">Archive</button></div>
+        </div>
+        <div class="fcard" style="border-top:4px solid #0080ff;">
+          <div class="fhead"><div class="fname">Vet Care &amp; Vests</div><span class="restricted">Restricted</span></div>
+          <div class="fdesc">Dog health, insurance &amp; gear</div>
+          <div class="fbal">$4,600.00</div>
+          <div class="fgoal">Goal $5,000.00 · 92%</div>
+          <div class="ftrack"><i style="width:92%;background:#0080ff;"></i></div>
+          <div class="facts"><button class="subbtn">Rename</button><button class="subbtn">Archive</button></div>
+        </div>
+        <div class="fcard" style="border-top:4px solid #7a5b8a;">
+          <div class="fhead"><div class="fname">In-School Program</div><span class="restricted">Restricted</span></div>
+          <div class="fdesc">Teams in MN school districts &amp; beyond</div>
+          <div class="fbal">$11,000.00</div>
+          <div class="fgoal">Goal $50,000.00 · 22%</div>
+          <div class="ftrack"><i style="width:22%;background:#7a5b8a;"></i></div>
+          <div class="facts"><button class="subbtn">Rename</button><button class="subbtn">Archive</button></div>
+        </div>
+        <div class="fcard" style="border-top:4px solid #3a7d8a;">
+          <div class="fhead"><div class="fname">Speaking &amp; Outreach</div></div>
+          <div class="fdesc">Amy's speaking engagements &amp; workshops</div>
+          <div class="fbal">$1,320.00</div>
+          <div class="facts"><button class="subbtn">Rename</button><button class="subbtn">Archive</button></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LEDGER -->
+    <section class="sec" id="s-ledger">
+      <div class="barline">
+        <div>7 entries · <strong>This month</strong></div>
+        <div style="display:flex;gap:14px;flex-wrap:wrap;">
+          <span>In <strong style="color:var(--green);">$11,300.00</strong></span>
+          <span>Out <strong style="color:var(--red);">$2,257.00</strong></span>
+          <span>Net <strong style="color:var(--green);">$9,043.00</strong></span>
+        </div>
+      </div>
+      <div class="ltable">
+        <div class="lrow">
+          <div class="ldate">2026-07-12</div>
+          <div><div class="ldesc">Monthly gift</div><div class="lcat">Recurring donation</div></div>
+          <div class="ltags"><span class="tag" style="background:#ff8a2a;">Ruth Ann Berglund</span><span class="tag" style="background:#ff8a2a;">General Operating</span></div>
+          <div class="lamt in">+$300.00</div>
+        </div>
+        <div class="lrow">
+          <div class="ldate">2026-07-10</div>
+          <div><div class="ldesc">Vet visit — Biscuit annual</div><div class="lcat">Veterinary</div></div>
+          <div class="ltags"><span class="tag" style="background:#0080ff;">Vet Care &amp; Vests</span></div>
+          <div class="lamt out">−$285.00</div>
+        </div>
+        <div class="lrow">
+          <div class="ldate">2026-07-08</div>
+          <div><div class="ldesc">Handler certification course — 3 teams</div><div class="lcat">Training</div></div>
+          <div class="ltags"><span class="tag" style="background:#2F5233;">Team Training &amp; Certification</span></div>
+          <div class="lamt out">−$1,350.00</div>
+        </div>
+        <div class="lrow">
+          <div class="ldate">2026-07-01</div>
+          <div><div class="ldesc">Grant award</div><div class="lcat">Foundation grant</div></div>
+          <div class="ltags"><span class="tag" style="background:#ff8a2a;">Halvorsen Family Foundation</span><span class="tag" style="background:#7a5b8a;">In-School Program</span></div>
+          <div class="lamt in">+$10,000.00</div>
+        </div>
+        <div class="lrow">
+          <div class="ldate">2026-06-28</div>
+          <div><div class="ldesc">New team vests ×4</div><div class="lcat">Gear</div></div>
+          <div class="ltags"><span class="tag" style="background:#0080ff;">Vet Care &amp; Vests</span></div>
+          <div class="lamt out">−$480.00</div>
+        </div>
+        <div class="lrow">
+          <div class="ldate">2026-06-24</div>
+          <div><div class="ldesc">Anonymous gift</div><div class="lcat">Donation</div></div>
+          <div class="ltags"><span class="tag" style="background:#ff8a2a;">General Operating</span></div>
+          <div class="lamt in">+$1,000.00</div>
+        </div>
+        <div class="lrow">
+          <div class="ldate">2026-06-20</div>
+          <div><div class="ldesc">Calm-room kits for exam week</div><div class="lcat">Supplies</div></div>
+          <div class="ltags"><span class="tag" style="background:#3a7d8a;">Visit Supplies</span></div>
+          <div class="lamt out">−$142.00</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DONORS -->
+    <section class="sec" id="s-donors">
+      <div class="barline"><div>3 donors</div><div>Given this year <strong style="color:var(--slate);">$28,600.00</strong></div></div>
+      <div class="dtable">
+        <div class="drow head"><div>Donor</div><div class="dtags" style="display:block;">Tags</div><div class="dnum">Total given</div><div class="dnum dlast">Last gift</div></div>
+        <div class="drow"><div class="dname">Halvorsen Family Foundation</div><div class="dtags"><span class="dtag">Major</span><span class="dtag">Board</span></div><div class="dnum">$24,000.00</div><div class="dnum dlast" style="font-weight:400;color:var(--muted);">Jul 1</div></div>
+        <div class="drow"><div class="dname">Ruth Ann Berglund</div><div class="dtags"><span class="dtag">Monthly</span></div><div class="dnum">$3,600.00</div><div class="dnum dlast" style="font-weight:400;color:var(--muted);">Jul 12</div></div>
+        <div class="drow"><div class="dname"><em>Anonymous</em></div><div class="dtags"><span class="dtag">Anonymous</span></div><div class="dnum">$1,000.00</div><div class="dnum dlast" style="font-weight:400;color:var(--muted);">Jun 24</div></div>
+      </div>
+    </section>
+
+    <!-- other tabs (stubs, faithful empty states) -->
+    <section class="sec" id="s-accounts">
+      <div class="barline"><div>2 accounts</div><div>Import a bank CSV to reconcile</div></div>
+      <div class="ltable">
+        <div class="lrow" style="grid-template-columns:1fr 130px 130px;"><div class="ldesc">Checking · Wright-Hennepin CU ••4021</div><div class="ldate">Bank</div><div class="lamt">$21,940.00</div></div>
+        <div class="lrow" style="grid-template-columns:1fr 130px 130px;"><div class="ldesc">Savings — Building reserve ••7788</div><div class="ldate">Bank</div><div class="lamt">$16,820.00</div></div>
+      </div>
+    </section>
+    <section class="sec" id="s-fundraising">
+      <div class="barline"><div>1 active campaign</div></div>
+      <div class="fcard" style="border-top:4px solid #0080ff;max-width:520px;">
+        <div class="fhead"><div class="fname">Showcase Event 2026</div><span class="restricted" style="color:var(--blueDark);background:var(--blueLight);">Active</span></div>
+        <div class="fdesc">Annual fundraiser · feeds the In-School Program</div>
+        <div class="fbal">$13,600.00</div>
+        <div class="fgoal">Goal $25,000.00 · 54% · 3 donors</div>
+        <div class="ftrack"><i style="width:54%;background:#0080ff;"></i></div>
+      </div>
+    </section>
+    <section class="sec" id="s-reports">
+      <div class="barline"><div>Reports</div><div>Statement of activities · fund balances · donor statements</div></div>
+      <div class="ltable">
+        <div class="lrow" style="grid-template-columns:1fr 130px;"><div class="ldesc">Statement of Activities (this year)</div><div class="lamt" style="color:var(--blue);">Open →</div></div>
+        <div class="lrow" style="grid-template-columns:1fr 130px;"><div class="ldesc">Fund Balances</div><div class="lamt" style="color:var(--blue);">Open →</div></div>
+        <div class="lrow" style="grid-template-columns:1fr 130px;"><div class="ldesc">Donor giving statements (year-end)</div><div class="lamt" style="color:var(--blue);">Open →</div></div>
+      </div>
+    </section>
+
+    <div class="note">
+      <b>This is the CARES Ledger — a real, working bookkeeping tool, shown here with You're Not Alone's numbers.</b> Fund accounting, donors, campaigns, bank reconciliation, and year-end donor statements, all in one place. Amy flips between her events business and this from one login.
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var btns = document.querySelectorAll('.tabbtn');
+    btns.forEach(function (b) {
+      b.addEventListener('click', function () {
+        btns.forEach(function (x) { x.classList.remove('on'); });
+        b.classList.add('on');
+        document.querySelectorAll('.sec').forEach(function (s) { s.classList.remove('on'); });
+        var el = document.getElementById('s-' + b.dataset.s);
+        if (el) el.classList.add('on');
+      });
+    });
+  })();
+</script>
+
+</body>
+</html>
