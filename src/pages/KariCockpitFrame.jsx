@@ -100,9 +100,9 @@ export default function KariCockpitFrame({ session, toolKey, slug, html: htmlPro
   const ready = loaded && html !== null;
 
   return (
-    <div style={{ minHeight: "100vh", background: "#faf8f4", display: "flex", flexDirection: "column", fontFamily: "'Figtree', system-ui, sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: "#ffffff", display: "flex", flexDirection: "column", fontFamily: "'Figtree', system-ui, sans-serif" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "10px 18px", borderBottom: "1px solid #e8e0d0", background: "#fff" }}>
-        <button onClick={() => navigate("/kari")} style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#e8773a", background: "none", border: "none", cursor: "pointer" }}>← Cockpits</button>
+        <button onClick={() => navigate("/kari")} style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#0080ff", background: "none", border: "none", cursor: "pointer" }}>← Cockpits</button>
         <span style={{ fontSize: 12, color: "#8a8270" }}>{title || "Cockpit"} · {savedAt ? "saved to your account ✓" : "saves to your account automatically"}</span>
       </div>
       {!ready ? (

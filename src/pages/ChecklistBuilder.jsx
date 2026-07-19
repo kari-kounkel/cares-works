@@ -4,19 +4,19 @@ import { supabase } from "../supabaseClient";
 import { logToolSession } from "../toolSessions";
 
 const S = {
-  slate: "#3d4560",
-  orange: "#e8773a",
-  orangeDark: "#c95f22",
-  orangeLight: "#fdf0e8",
-  paper: "#faf8f4",
-  cream: "#f2ede3",
-  ink: "#1e1e2a",
-  rule: "#ddd8cc",
-  muted: "#7a7585",
-  gold: "#C9A84C",
+  slate: "#0a0a14",
+  orange: "#0080ff",
+  orangeDark: "#0052cc",
+  orangeLight: "#e6f0ff",
+  paper: "#ffffff",
+  cream: "#f7f9fc",
+  ink: "#0a0a14",
+  rule: "#e2e8f0",
+  muted: "#64748b",
+  gold: "#ff8a2a",
   green: "#5a9a5a",
-  red: "#c95f22",
-  grad: "linear-gradient(135deg, #e8773a, #c95f22)",
+  red: "#0052cc",
+  grad: "linear-gradient(135deg, #0080ff, #0052cc)",
 };
 
 const STORAGE_KEY = "cares_checklists_v1";
@@ -655,7 +655,7 @@ export default function ChecklistBuilder({ session }) {
       }}>
         <a href="/dashboard" onClick={(e) => { e.preventDefault(); navigate("/dashboard"); }}
           style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-          <img src="/cares-works-logo.png" alt="CARES Works" style={{ height: 32, width: "auto", display: "block" }} />
+          <img src="/cares-works-neon-logo.png" alt="CARES Works" style={{ height: 32, width: "auto", display: "block" }} />
           <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: "#fff" }}>CARES <span style={{ color: S.orange }}>Works.</span></span>
         </a>
         <span style={{
@@ -967,10 +967,10 @@ export default function ChecklistBuilder({ session }) {
 
 function thStyle(extra) {
   return {
-    background: "#f2ede3", padding: "10px 12px",
+    background: "#f7f9fc", padding: "10px 12px",
     fontFamily: "'DM Mono', monospace", fontSize: 10, fontWeight: 500,
-    color: "#7a7585", textTransform: "uppercase", letterSpacing: "0.1em",
-    borderBottom: "1px solid #ddd8cc",
+    color: "#64748b", textTransform: "uppercase", letterSpacing: "0.1em",
+    borderBottom: "1px solid #e2e8f0",
     ...(extra || {}),
   };
 }
@@ -985,7 +985,7 @@ function subtleBtn() {
 
 function secondaryBtn() {
   return {
-    background: "#fff", color: "#1e1e2a", border: "1px solid #ddd8cc",
+    background: "#fff", color: "#0a0a14", border: "1px solid #e2e8f0",
     padding: "10px 18px", borderRadius: 8, fontSize: 13, fontWeight: 600,
     cursor: "pointer", fontFamily: "'Figtree', sans-serif",
   };
@@ -993,10 +993,10 @@ function secondaryBtn() {
 
 function Circle({ state, onClick }) {
   const colors = {
-    "": { bg: "#fff", border: "#7a7585", fg: "transparent", char: "" },
+    "": { bg: "#fff", border: "#64748b", fg: "transparent", char: "" },
     checked: { bg: "#5a9a5a", border: "#5a9a5a", fg: "#fff", char: "✓" },
-    partial: { bg: "#C9A84C", border: "#C9A84C", fg: "#fff", char: "~" },
-    broken: { bg: "#c95f22", border: "#c95f22", fg: "#fff", char: "✗" },
+    partial: { bg: "#ff8a2a", border: "#ff8a2a", fg: "#fff", char: "~" },
+    broken: { bg: "#0052cc", border: "#0052cc", fg: "#fff", char: "✗" },
   };
   const c = colors[state] || colors[""];
   return (

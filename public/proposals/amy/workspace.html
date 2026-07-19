@@ -820,22 +820,34 @@
     <!-- ================= PACKAGES ================= -->
     <section class="panel" id="p-packages" role="tabpanel" hidden>
       <div class="note" style="margin-bottom:18px;">
-        <b>A package is just a saved pile of inventory with a price on it.</b> Amy picks one, it drops every item onto the invoice and holds every item on the calendar — in one click. She can still add, remove, or swap anything after.
+        <b>A package is a saved set of services — and any décor — with one price.</b> Amy picks one, it drops onto the invoice and holds any rental items on the calendar, in one click. She can still add, remove, or swap after.
       </div>
 
       <div class="grid g-3">
         <div class="card">
           <div class="pkg">
-            <span class="cap-line">Up to 100 guests</span>
-            <h3 style="margin:0;">The Cherished Classic</h3>
-            <span class="price">$2,850</span>
+            <span class="cap-line">The essentials</span>
+            <h3 style="margin:0;">Day-Of Coordination</h3>
+            <span class="price">$1,575</span>
             <ul>
-              <li>100 gold Chiavari chairs</li>
-              <li>10 ivory floor-length linens</li>
-              <li>100 gold charger plates</li>
-              <li>10 copper centerpieces</li>
-              <li>Votives &amp; easel</li>
-              <li>Delivery, setup &amp; teardown</li>
+              <li>Full day-of timeline</li>
+              <li>Vendor coordination on the day</li>
+              <li>Rehearsal walkthrough</li>
+              <li>+ decorating or cleanup → $1,975</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="pkg">
+            <span class="cap-line">The middle ground</span>
+            <h3 style="margin:0;">Partial Planning</h3>
+            <span class="price">$3,000</span>
+            <ul>
+              <li>Everything in Day-Of</li>
+              <li>Planning support in the months before</li>
+              <li>Vendor recommendations &amp; booking</li>
+              <li>+ one added service → $3,500</li>
             </ul>
           </div>
         </div>
@@ -843,30 +855,14 @@
         <div class="card glow p">
           <div class="pkg">
             <span class="pill p-acc tag-sel">On Whitfield</span>
-            <span class="cap-line">Up to 140 guests</span>
-            <h3 style="margin:0;">Garden Party</h3>
-            <span class="price" style="color:var(--pink);">$4,200</span>
+            <span class="cap-line">Hand it all over</span>
+            <h3 style="margin:0;">Full Service Planning</h3>
+            <span class="price">$3,975</span>
             <ul>
-              <li>Everything in the Classic, sized to 140</li>
-              <li>Birch arch, 8 ft</li>
-              <li>Edison bulb string lights</li>
-              <li>2 vintage lounge sofas</li>
-              <li>Extended teardown window</li>
-            </ul>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="pkg">
-            <span class="cap-line">200+ guests</span>
-            <h3 style="margin:0;">The Grand Affair</h3>
-            <span class="price">$6,900</span>
-            <ul>
-              <li>Everything in Garden Party</li>
-              <li>Champagne wall</li>
-              <li>Neon "Better Together" sign</li>
-              <li>Whiskey barrel cocktail bars</li>
-              <li>Day-of coordination, 10 hrs</li>
+              <li>Start-to-finish planning</li>
+              <li>Design, vendors, budget &amp; timeline</li>
+              <li>Amy runs the entire day</li>
+              <li>+ decorating &amp; cleanup → $4,875</li>
             </ul>
           </div>
         </div>
@@ -877,8 +873,9 @@
             <h3 style="margin:0;">À la carte</h3>
             <span class="price" style="color:var(--muted);">Build it</span>
             <ul>
-              <li>Pull straight from inventory</li>
-              <li>Live availability as she adds</li>
+              <li>Decorating $700 · Clean-up $500</li>
+              <li>Rehearsal $150 · Timeline $150 · Vocalist $175</li>
+              <li>Décor rentals pulled from inventory</li>
               <li>Save the result as a new package</li>
             </ul>
           </div>
@@ -886,7 +883,7 @@
       </div>
 
       <div class="note" style="margin-top:20px;border-left-color:var(--blue);background:rgba(10,132,255,.10);">
-        <b>The Grand Affair can't run twice in a weekend.</b> It contains the champagne wall and the neon sign, and Amy owns exactly one of each. The moment a package includes a one-of-one item, the package itself is only bookable once per hold window — the box knows that without anyone writing it down.
+        <b>Some of Amy's rental pieces are one-of-a-kind.</b> When a booking includes a one-of-one item, the calendar won't let that package book twice in the same weekend — the box knows without anyone writing it down.
       </div>
     </section>
 
@@ -897,7 +894,7 @@
         <table>
           <thead><tr><th>Line</th><th>From</th><th class="num">Qty</th><th class="num">Rate</th><th class="num">Amount</th><th>MN tax</th></tr></thead>
           <tbody>
-            <tr class="stripe s-ok"><td class="who">Garden Party package</td><td><span class="pill p-acc">Package</span></td><td class="num">1</td><td class="num">$4,200.00</td><td class="num">$4,200.00</td><td><span class="pill p-warn">Taxable</span></td></tr>
+            <tr class="stripe s-ok"><td class="who">Full Service Planning <span class="sub">— tailored for Whitfield</span></td><td><span class="pill p-acc">Package</span></td><td class="num">1</td><td class="num">$4,200.00</td><td class="num">$4,200.00</td><td><span class="pill p-warn">Taxable</span></td></tr>
             <tr><td class="who">Floral design &amp; install</td><td><span class="pill p-mute">Custom</span></td><td class="num">1</td><td class="num">$4,500.00</td><td class="num">$4,500.00</td><td><span class="pill p-warn">Taxable</span></td></tr>
             <tr><td class="who">Gold Chiavari Chair <span class="sub">— over package 100</span></td><td><span class="pill p-mute">Inventory</span></td><td class="num">40</td><td class="num">$4.50</td><td class="num">$180.00</td><td><span class="pill p-warn">Taxable</span></td></tr>
             <tr><td class="who">Gold Charger Plate</td><td><span class="pill p-mute">Inventory</span></td><td class="num">140</td><td class="num">$2.25</td><td class="num">$315.00</td><td><span class="pill p-warn">Taxable</span></td></tr>

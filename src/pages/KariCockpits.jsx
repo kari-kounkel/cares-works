@@ -8,9 +8,9 @@ import { navigate } from "../App";
 // Each cockpit's DATA lives in public.kari_tool_data (wired per-tool in Pass 2).
 
 const S = {
-  paper: "#faf8f4", ink: "#1e1e2a", slate: "#3d4560", orange: "#e8773a",
-  orangeDark: "#c95f22", muted: "#7a7585", rule: "#ddd8cc", white: "#fff",
-  green: "#5a9a5a", cream: "#f2ede3",
+  paper: "#ffffff", ink: "#0a0a14", slate: "#0a0a14", orange: "#0080ff",
+  orangeDark: "#0052cc", muted: "#64748b", rule: "#e2e8f0", white: "#fff",
+  green: "#5a9a5a", cream: "#f7f9fc",
 };
 
 export default function KariCockpits({ session }) {

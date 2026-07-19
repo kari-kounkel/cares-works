@@ -4,23 +4,23 @@ import { navigate } from "../App";
 import { logToolSession } from "../toolSessions";
 
 const S = {
-  paper: "#faf8f4",
-  cream: "#f2ede3",
-  ink: "#1e1e2a",
-  slate: "#3d4560",
-  orange: "#e8773a",
-  orangeDark: "#c95f22",
-  orangeLight: "#fdf0e8",
-  rule: "#ddd8cc",
-  muted: "#7a7585",
+  paper: "#ffffff",
+  cream: "#f7f9fc",
+  ink: "#0a0a14",
+  slate: "#0a0a14",
+  orange: "#0080ff",
+  orangeDark: "#0052cc",
+  orangeLight: "#e6f0ff",
+  rule: "#e2e8f0",
+  muted: "#64748b",
   green: "#5a9a5a",
   greenLight: "#eef6ee",
   red: "#c44a3a",
   redLight: "#fbeeec",
-  gold: "#C9A84C",
+  gold: "#ff8a2a",
 };
 
-const FUND_COLORS = ["#2F5233", "#C9A84C", "#3d4560", "#e8773a", "#7a5b8a", "#3a7d8a", "#c44a3a", "#5a9a5a"];
+const FUND_COLORS = ["#2F5233", "#ff8a2a", "#0a0a14", "#0080ff", "#7a5b8a", "#3a7d8a", "#c44a3a", "#5a9a5a"];
 const TABS = [
   { key: "ledger", label: "Ledger" },
   { key: "accounts", label: "Accounts" },
@@ -652,7 +652,7 @@ function MemberStatusDot({ member }) {
 
 function memberStatus(m) {
   if (!m.accepted_at) {
-    return { dot: "#C9A84C", color: "#8C6927", bg: "#fdf6e3", border: "#e9d9a8", short: "invited", tooltip: "Invited but not yet signed in" };
+    return { dot: "#ff8a2a", color: "#8C6927", bg: "#fdf6e3", border: "#e9d9a8", short: "invited", tooltip: "Invited but not yet signed in" };
   }
   if (!m.last_seen_at) {
     return { dot: "#5a9a5a", color: "#2f5233", bg: "#eef6ee", border: "#bcdbbc", short: "joined", tooltip: `Joined ${m.accepted_at?.slice(0, 10)}` };
@@ -662,7 +662,7 @@ function memberStatus(m) {
   if (days < 7) {
     return { dot: "#5a9a5a", color: "#2f5233", bg: "#eef6ee", border: "#bcdbbc", short: relativeTime(m.last_seen_at), tooltip: `Last active ${m.last_seen_at?.slice(0, 16).replace("T", " ")}` };
   }
-  return { dot: "#7a7585", color: "#5b4d40", bg: "#f3efe6", border: "#ddd8cc", short: relativeTime(m.last_seen_at), tooltip: `Last active ${m.last_seen_at?.slice(0, 10)}` };
+  return { dot: "#64748b", color: "#5b4d40", bg: "#f3efe6", border: "#e2e8f0", short: relativeTime(m.last_seen_at), tooltip: `Last active ${m.last_seen_at?.slice(0, 10)}` };
 }
 
 function relativeTime(iso) {
@@ -1475,26 +1475,26 @@ function groupByCategory(entries, direction) {
 }
 
 function SectionHead({ label }) {
-  return <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: "#3d4560", marginBottom: 10, paddingBottom: 6, borderBottom: `1px solid #ddd8cc` }}>{label}</div>;
+  return <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: "#0a0a14", marginBottom: 10, paddingBottom: 6, borderBottom: `1px solid #e2e8f0` }}>{label}</div>;
 }
 function Row({ label, value, indent, bold, color }) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0", paddingLeft: indent ? 18 : 0 }}>
-      <div style={{ fontSize: bold ? 16 : 14, fontWeight: bold ? 600 : 400, color: bold ? (color || "#1e1e2a") : "#1e1e2a" }}>{label}</div>
-      <div style={{ fontSize: bold ? 16 : 14, fontWeight: bold ? 600 : 500, color: color || "#1e1e2a", fontVariantNumeric: "tabular-nums" }}>{value}</div>
+      <div style={{ fontSize: bold ? 16 : 14, fontWeight: bold ? 600 : 400, color: bold ? (color || "#0a0a14") : "#0a0a14" }}>{label}</div>
+      <div style={{ fontSize: bold ? 16 : 14, fontWeight: bold ? 600 : 500, color: color || "#0a0a14", fontVariantNumeric: "tabular-nums" }}>{value}</div>
     </div>
   );
 }
 function RowTotal({ label, value, color }) {
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", marginTop: 4, borderTop: `1px solid #ddd8cc`, fontWeight: 600 }}>
-      <div style={{ fontSize: 14, color: "#3d4560" }}>{label}</div>
-      <div style={{ fontSize: 15, color: color || "#1e1e2a", fontVariantNumeric: "tabular-nums" }}>{value}</div>
+    <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", marginTop: 4, borderTop: `1px solid #e2e8f0`, fontWeight: 600 }}>
+      <div style={{ fontSize: 14, color: "#0a0a14" }}>{label}</div>
+      <div style={{ fontSize: 15, color: color || "#0a0a14", fontVariantNumeric: "tabular-nums" }}>{value}</div>
     </div>
   );
 }
 function RowMuted({ children }) {
-  return <div style={{ fontSize: 13, color: "#7a7585", fontStyle: "italic", padding: "8px 18px" }}>{children}</div>;
+  return <div style={{ fontSize: 13, color: "#64748b", fontStyle: "italic", padding: "8px 18px" }}>{children}</div>;
 }
 
 /* ---------- CSV Import View ---------- */
@@ -1827,7 +1827,7 @@ const labelStyle = {
   fontWeight: 600,
   letterSpacing: ".14em",
   textTransform: "uppercase",
-  color: "#7a7585",
+  color: "#64748b",
   marginBottom: 6,
 };
 

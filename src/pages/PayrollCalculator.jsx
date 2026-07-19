@@ -188,24 +188,24 @@ function blankDed() {
 
 function Preview() {
   return (
-    <div style={{ fontFamily: "'DM Sans', sans-serif", background: '#faf8f4', minHeight: '100vh', color: '#1e1e2a' }}>
+    <div style={{ fontFamily: "'DM Sans', sans-serif", background: '#ffffff', minHeight: '100vh', color: '#0a0a14' }}>
       <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
 
       {/* HEADER */}
       <header style={{ background: '#fff', borderBottom: '1px solid #e8e8ec', padding: '18px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-          <img src="/cares-works-logo.png" alt="CARES Works" style={{ height: 36, width: 'auto', display: 'block' }} />
-          <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: '20px', color: '#1e1e2a' }}>CARES <span style={{ color: '#e8773a' }}>Works.</span></span>
+          <img src="/cares-works-neon-logo.png" alt="CARES Works" style={{ height: 36, width: 'auto', display: 'block' }} />
+          <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: '20px', color: '#0a0a14' }}>CARES <span style={{ color: '#0080ff' }}>Works.</span></span>
         </a>
-        <a href={MONTHLY_URL} style={{ background: '#e8773a', color: '#fff', fontFamily: "'DM Mono', monospace", fontSize: '11px', letterSpacing: '.12em', textTransform: 'uppercase', padding: '9px 18px', borderRadius: '4px', textDecoration: 'none' }}>Join — $27/mo</a>
+        <a href={MONTHLY_URL} style={{ background: '#0080ff', color: '#fff', fontFamily: "'DM Mono', monospace", fontSize: '11px', letterSpacing: '.12em', textTransform: 'uppercase', padding: '9px 18px', borderRadius: '4px', textDecoration: 'none' }}>Join — $27/mo</a>
       </header>
 
       {/* HERO */}
-      <div style={{ background: '#f2ede3', borderBottom: '1px solid #e8e8ec', padding: '44px 40px 32px' }}>
+      <div style={{ background: '#f7f9fc', borderBottom: '1px solid #e8e8ec', padding: '44px 40px 32px' }}>
         <div style={{ maxWidth: '860px', margin: '0 auto' }}>
           <div style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '.12em', textTransform: 'uppercase', color: '#c9a84c', marginBottom: '10px' }}>CARES Works · Member Tool</div>
           <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '40px', lineHeight: 1.1, color: '#1a2744', marginBottom: '8px' }}>Payroll <em style={{ fontStyle: 'italic', color: '#c9a84c' }}>Stub Calculator</em></h1>
-          <p style={{ fontSize: '15px', color: '#7a7585', maxWidth: '560px', lineHeight: 1.6 }}>Calculate gross pay, federal and state withholding, FICA, and deductions for all 50 states. Print a clean pay stub every pay period.</p>
+          <p style={{ fontSize: '15px', color: '#64748b', maxWidth: '560px', lineHeight: 1.6 }}>Calculate gross pay, federal and state withholding, FICA, and deductions for all 50 states. Print a clean pay stub every pay period.</p>
         </div>
       </div>
 
@@ -221,7 +221,7 @@ function Preview() {
             <div key={c.title} style={{ background: '#fff', border: '1.5px solid #e8e8ec', borderRadius: '10px', padding: '20px 18px' }}>
               <div style={{ fontSize: '24px', marginBottom: '8px' }}>{c.icon}</div>
               <div style={{ fontSize: '13px', fontWeight: 600, color: '#1a2744', marginBottom: '5px' }}>{c.title}</div>
-              <div style={{ fontSize: '12px', color: '#7a7585', lineHeight: 1.55 }}>{c.body}</div>
+              <div style={{ fontSize: '12px', color: '#64748b', lineHeight: 1.55 }}>{c.body}</div>
             </div>
           ))}
         </div>
@@ -237,7 +237,7 @@ function Preview() {
                 <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '18px', color: '#1a2744', marginBottom: '4px' }}>Acme Business LLC</div>
                 <div style={{ fontSize: '14px', fontWeight: 600 }}>Jane Smith</div>
               </div>
-              <div style={{ textAlign: 'right', fontSize: '12px', color: '#7a7585' }}>
+              <div style={{ textAlign: 'right', fontSize: '12px', color: '#64748b' }}>
                 <div>Pay Period: 05/01 — 05/15</div>
                 <div>Check #: 1042</div>
                 <div>Bi-weekly · Minnesota</div>
@@ -269,17 +269,17 @@ function Preview() {
             <div style={{ background: '#fff', border: '2px solid #1a2744', borderRadius: '14px', padding: '36px 40px', textAlign: 'center', maxWidth: '380px', boxShadow: '0 8px 32px rgba(0,0,0,.12)' }}>
               <div style={{ fontSize: '36px', marginBottom: '12px' }}>🔒</div>
               <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: '22px', color: '#1a2744', marginBottom: '8px' }}>Members Only Tool</h3>
-              <p style={{ fontSize: '14px', color: '#7a7585', marginBottom: '24px', lineHeight: 1.6 }}>Unlock the Payroll Stub Calculator and the full CARES Works tool library for $27/month.</p>
-              <a href={MONTHLY_URL} style={{ display: 'block', background: '#e8773a', color: '#fff', fontFamily: "'DM Mono', monospace", fontSize: '12px', letterSpacing: '.12em', textTransform: 'uppercase', padding: '14px 24px', borderRadius: '8px', textDecoration: 'none', fontWeight: 700, marginBottom: '10px' }}>Join for $27/month</a>
-              <a href={ANNUAL_URL} style={{ display: 'block', background: '#fff', color: '#e8773a', fontFamily: "'DM Mono', monospace", fontSize: '12px', letterSpacing: '.12em', textTransform: 'uppercase', padding: '12px 24px', borderRadius: '8px', textDecoration: 'none', fontWeight: 700, border: '2px solid #e8773a' }}>$270/year — save 2 months</a>
+              <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '24px', lineHeight: 1.6 }}>Unlock the Payroll Stub Calculator and the full CARES Works tool library for $27/month.</p>
+              <a href={MONTHLY_URL} style={{ display: 'block', background: '#0080ff', color: '#fff', fontFamily: "'DM Mono', monospace", fontSize: '12px', letterSpacing: '.12em', textTransform: 'uppercase', padding: '14px 24px', borderRadius: '8px', textDecoration: 'none', fontWeight: 700, marginBottom: '10px' }}>Join for $27/month</a>
+              <a href={ANNUAL_URL} style={{ display: 'block', background: '#fff', color: '#0080ff', fontFamily: "'DM Mono', monospace", fontSize: '12px', letterSpacing: '.12em', textTransform: 'uppercase', padding: '12px 24px', borderRadius: '8px', textDecoration: 'none', fontWeight: 700, border: '2px solid #0080ff' }}>$270/year — save 2 months</a>
             </div>
           </div>
         </div>
       </div>
 
-      <footer style={{ borderTop: '1px solid #e8e8ec', padding: '22px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', fontFamily: "'DM Mono', monospace", fontSize: '11px', color: '#7a7585' }}>
-        <div>© 2026 CARES Consulting Inc. · <a href="https://caresmn.com" style={{ color: '#7a7585' }}>caresmn.com</a></div>
-        <a href="https://karikounkel.store" style={{ color: '#7a7585' }}>Full Store at karikounkel.store →</a>
+      <footer style={{ borderTop: '1px solid #e8e8ec', padding: '22px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', fontFamily: "'DM Mono', monospace", fontSize: '11px', color: '#64748b' }}>
+        <div>© 2026 CARES Consulting Inc. · <a href="https://caresmn.com" style={{ color: '#64748b' }}>caresmn.com</a></div>
+        <a href="https://karikounkel.store" style={{ color: '#64748b' }}>Full Store at karikounkel.store →</a>
       </footer>
     </div>
   );
@@ -290,7 +290,7 @@ function Preview() {
 // =============================================================================
 const S = {
   navy: '#1a2744', navy2: '#243260', gold: '#c9a84c', gold2: '#e8c97a',
-  cream: '#faf8f4', orange: '#e8773a', muted: '#7a7585', ink: '#1e1e2a',
+  cream: '#ffffff', orange: '#0080ff', muted: '#64748b', ink: '#0a0a14',
   rule: '#e8e8ec', white: '#ffffff', green: '#1a7a4a',
 };
 
@@ -430,7 +430,7 @@ export default function PayrollCalculator({ session }) {
       {/* HEADER */}
       <header className="pc-header">
         <a href="/" className="pc-brand" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-          <img src="/cares-works-logo.png" alt="CARES Works" style={{ height: 32, width: 'auto', display: 'block' }} />
+          <img src="/cares-works-neon-logo.png" alt="CARES Works" style={{ height: 32, width: 'auto', display: 'block' }} />
           <span>CARES <span className="pc-brand-accent">Works.</span></span>
         </a>
         <nav className="pc-nav">
@@ -832,9 +832,9 @@ export default function PayrollCalculator({ session }) {
 
 function PCStyles() {
   const css =
-    '.pc-page { font-family: var(--pc-font); background: #faf8f4; color: #1e1e2a; min-height: 100vh; }' +
+    '.pc-page { font-family: var(--pc-font); background: #ffffff; color: #0a0a14; min-height: 100vh; }' +
     '.pc-page * { box-sizing: border-box; margin: 0; padding: 0; }' +
-    ".pc-page { --pc-navy: #1a2744; --pc-navy2: #243260; --pc-gold: #c9a84c; --pc-gold2: #e8c97a; --pc-orange: #e8773a; --pc-cream: #faf8f4; --pc-rule: #e8e8ec; --pc-muted: #7a7585; --pc-ink: #1e1e2a; --pc-font: 'DM Sans', sans-serif; }" +
+    ".pc-page { --pc-navy: #1a2744; --pc-navy2: #243260; --pc-gold: #c9a84c; --pc-gold2: #e8c97a; --pc-orange: #0080ff; --pc-cream: #ffffff; --pc-rule: #e8e8ec; --pc-muted: #64748b; --pc-ink: #0a0a14; --pc-font: 'DM Sans', sans-serif; }" +
 
     // Header
     '.pc-header { background: #fff; border-bottom: 1px solid var(--pc-rule); padding: 18px 40px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }' +
@@ -845,7 +845,7 @@ function PCStyles() {
     '.pc-nav-link:hover { color: var(--pc-navy); }' +
 
     // Hero
-    '.pc-hero { background: #f2ede3; border-bottom: 1px solid var(--pc-rule); padding: 44px 40px 32px; }' +
+    '.pc-hero { background: #f7f9fc; border-bottom: 1px solid var(--pc-rule); padding: 44px 40px 32px; }' +
     '.pc-hero-inner { max-width: 860px; margin: 0 auto; }' +
     ".pc-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--pc-gold); margin-bottom: 10px; }" +
     ".pc-h1 { font-family: 'Playfair Display', Georgia, serif; font-size: 40px; line-height: 1.1; color: var(--pc-navy); margin-bottom: 8px; }" +
@@ -886,7 +886,7 @@ function PCStyles() {
     '.pc-ded-remove { background: transparent; border: none; font-size: 18px; color: var(--pc-muted); cursor: pointer; padding: 0; line-height: 1; transition: color .15s; }' +
     '.pc-ded-remove:hover { color: #c0392b; }' +
     ".pc-add-ded { font-family: var(--pc-font); font-size: 13px; color: var(--pc-orange); background: transparent; border: 1px dashed var(--pc-orange); padding: 8px 16px; border-radius: 6px; cursor: pointer; margin-top: 4px; }" +
-    '.pc-add-ded:hover { background: #fdf0e8; }' +
+    '.pc-add-ded:hover { background: #e6f0ff; }' +
 
     // Actions
     '.pc-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 40px; }' +
@@ -934,14 +934,14 @@ function PCStyles() {
     '.pc-next-link { background: transparent; border: none; font-family: var(--pc-font); font-size: 13px; font-weight: 600; color: var(--pc-orange); cursor: pointer; padding: 0; text-decoration: underline; }' +
 
     // Member upsell strip
-    '.pc-upsell { background: #3d4560; padding: 48px 40px; }' +
+    '.pc-upsell { background: #0a0a14; padding: 48px 40px; }' +
     '.pc-upsell-inner { max-width: 860px; margin: 0 auto; display: flex; gap: 40px; align-items: flex-start; flex-wrap: wrap; }' +
     ".pc-upsell-eyebrow { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--pc-gold); margin-bottom: 8px; }" +
     ".pc-upsell-title { font-family: 'Playfair Display', Georgia, serif; font-size: 22px; color: #fff; line-height: 1.25; margin-bottom: 10px; flex: 1; min-width: 260px; }" +
     '.pc-upsell-desc { font-size: 14px; color: rgba(255,255,255,.6); line-height: 1.6; }' +
     '.pc-upsell-ctas { display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; min-width: 200px; }' +
     ".pc-upsell-btn-primary { display: block; text-align: center; background: var(--pc-orange); color: #fff; font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; padding: 13px 22px; border-radius: 7px; text-decoration: none; font-weight: 700; }" +
-    ".pc-upsell-btn-gold { display: block; text-align: center; background: linear-gradient(135deg,#C9A84C,#e0c060); color: #1e1e2a; font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; padding: 13px 22px; border-radius: 7px; text-decoration: none; font-weight: 700; }" +
+    ".pc-upsell-btn-gold { display: block; text-align: center; background: linear-gradient(135deg,#ff8a2a,#ffbb80); color: #0a0a14; font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; padding: 13px 22px; border-radius: 7px; text-decoration: none; font-weight: 700; }" +
 
     // Footer
     '.pc-footer { border-top: 1px solid var(--pc-rule); padding: 22px 40px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }' +

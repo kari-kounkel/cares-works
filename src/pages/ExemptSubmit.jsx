@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 
 const S = {
-  slate: "#3d4560", orange: "#e8773a", orangeDark: "#c95f22", orangeLight: "#fdf0e8",
-  paper: "#faf8f4", cream: "#f2ede3", ink: "#1e1e2a", rule: "#ddd8cc",
-  muted: "#7a7585", green: "#5a9a5a", red: "#c95050",
-  grad: "linear-gradient(135deg, #e8773a, #c95f22)",
+  slate: "#0a0a14", orange: "#0080ff", orangeDark: "#0052cc", orangeLight: "#e6f0ff",
+  paper: "#ffffff", cream: "#f7f9fc", ink: "#0a0a14", rule: "#e2e8f0",
+  muted: "#64748b", green: "#5a9a5a", red: "#c95050",
+  grad: "linear-gradient(135deg, #0080ff, #0052cc)",
 };
 
 const MOBILE = `
@@ -49,7 +49,7 @@ export default function ExemptSubmit() {
 
       <header style={{ background: S.slate, padding: "0 32px", display: "flex", alignItems: "center", justifyContent: "center", height: 68, boxShadow: "0 2px 12px rgba(0,0,0,0.15)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <img src="/cares-works-logo.png" alt="CARES Works" style={{ height: 38, width: "auto", display: "block" }} />
+          <img src="/cares-works-neon-logo.png" alt="CARES Works" style={{ height: 38, width: "auto", display: "block" }} />
           <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: "#fff" }}>CARES <span style={{ color: S.orange }}>Works.</span></span>
         </div>
       </header>

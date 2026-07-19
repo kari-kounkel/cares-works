@@ -80,7 +80,7 @@ export default function App() {
   }, [session?.user?.email]);
 
   if (loading) return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#faf8f4", fontFamily: "'Figtree', sans-serif", color: "#a07060", fontSize: 15 }}>Loading...</div>
+    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#ffffff", fontFamily: "'Figtree', sans-serif", color: "#64748b", fontSize: 15 }}>Loading...</div>
   );
 
   if (isPasswordReset) return <Login session={session} forceReset={true} />;
@@ -177,13 +177,13 @@ export default function App() {
     if (MEMBER_SLUGS.includes(slug)) {
       if (!session) { navigate("/login"); return null; }
       return (
-        <div style={{ minHeight: "100vh", background: "#faf8f4", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Figtree', sans-serif", padding: 24 }}>
+        <div style={{ minHeight: "100vh", background: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Figtree', sans-serif", padding: 24 }}>
           <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
           <div style={{ textAlign: "center", maxWidth: 480 }}>
-            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase", color: "#e8773a", marginBottom: 12 }}>Coming Soon</div>
-            <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 28, color: "#3d4560", marginBottom: 12 }}>This tool is being built.</div>
+            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase", color: "#0080ff", marginBottom: 12 }}>Coming Soon</div>
+            <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 28, color: "#0a0a14", marginBottom: 12 }}>This tool is being built.</div>
             <p style={{ fontSize: 15, color: "#7a7585", marginBottom: 28, lineHeight: 1.6 }}>It will be in your library when it drops. Check back soon.</p>
-            <button onClick={() => navigate("/dashboard")} style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#e8773a", letterSpacing: "0.1em", background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>Back to dashboard</button>
+            <button onClick={() => navigate("/dashboard")} style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#0080ff", letterSpacing: "0.1em", background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>Back to dashboard</button>
           </div>
         </div>
       );
@@ -196,7 +196,7 @@ export default function App() {
   if (session && !isPublicView) {
     if (memberStatus === null) {
       return (
-        <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#faf8f4", fontFamily: "'Figtree', sans-serif", color: "#a07060", fontSize: 15 }}>Loading...</div>
+        <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#ffffff", fontFamily: "'Figtree', sans-serif", color: "#64748b", fontSize: 15 }}>Loading...</div>
       );
     }
     if (memberStatus === "member") {

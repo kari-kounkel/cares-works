@@ -3,10 +3,10 @@ import { supabase } from "../supabaseClient";
 import { navigate } from "../App";
 
 const S = {
-  slate: "#3d4560", orange: "#e8773a", orangeDark: "#c95f22", orangeLight: "#fdf0e8",
-  paper: "#faf8f4", cream: "#f2ede3", ink: "#1e1e2a", rule: "#ddd8cc",
-  muted: "#7a7585", gold: "#C9A84C", green: "#5a9a5a", red: "#c95050",
-  grad: "linear-gradient(135deg, #e8773a, #c95f22)",
+  slate: "#0a0a14", orange: "#0080ff", orangeDark: "#0052cc", orangeLight: "#e6f0ff",
+  paper: "#ffffff", cream: "#f7f9fc", ink: "#0a0a14", rule: "#e2e8f0",
+  muted: "#64748b", gold: "#ff8a2a", green: "#5a9a5a", red: "#c95050",
+  grad: "linear-gradient(135deg, #0080ff, #0052cc)",
 };
 
 const MOBILE = `
@@ -180,7 +180,7 @@ export default function ExemptionTracker({ session }) {
 
       <header className="ex-header" style={{ background: S.slate, padding: "0 32px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 58, boxShadow: "0 2px 12px rgba(0,0,0,0.15)", position: "sticky", top: 0, zIndex: 100 }}>
         <a href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-          <img src="/cares-works-logo.png" alt="CARES Works" style={{ height: 32, width: "auto", display: "block" }} />
+          <img src="/cares-works-neon-logo.png" alt="CARES Works" style={{ height: 32, width: "auto", display: "block" }} />
           <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: "#fff" }}>CARES <span style={{ color: S.orange }}>Works.</span></span>
         </a>
         <a onClick={(e) => { e.preventDefault(); navigate("/dashboard"); }} href="/dashboard" style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "rgba(255,255,255,0.6)", letterSpacing: "0.08em", textDecoration: "none" }}>{"<- Dashboard"}</a>

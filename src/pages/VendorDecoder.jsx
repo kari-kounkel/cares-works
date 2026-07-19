@@ -1084,17 +1084,17 @@ function VendorRow({
 // =============================================================================
 function Styles() {
   const css = '.vd-page {' +
-    '--vd-slate: #3d4560;' +
-    '--vd-orange: #e8773a;' +
-    '--vd-orange-light: #fdf0e8;' +
-    '--vd-paper: #faf8f4;' +
-    '--vd-cream: #f2ede3;' +
-    '--vd-ink: #1e1e2a;' +
-    '--vd-rule: #ddd8cc;' +
-    '--vd-muted: #7a7585;' +
-    '--vd-gold: #C9A84C;' +
+    '--vd-slate: #0a0a14;' +
+    '--vd-orange: #0080ff;' +
+    '--vd-orange-light: #e6f0ff;' +
+    '--vd-paper: #ffffff;' +
+    '--vd-cream: #f7f9fc;' +
+    '--vd-ink: #0a0a14;' +
+    '--vd-rule: #e2e8f0;' +
+    '--vd-muted: #64748b;' +
+    '--vd-gold: #ff8a2a;' +
     '--vd-green: #5a9a5a;' +
-    '--vd-red: #c95f22;' +
+    '--vd-red: #0052cc;' +
     "font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;" +
     'background: var(--vd-paper);' +
     'color: var(--vd-ink);' +
@@ -1132,19 +1132,19 @@ function Styles() {
     ".vd-paymethod-btn { flex: 1; min-width: 0; font-family: 'DM Mono', monospace; font-size: 9px; padding: 4px 2px; border: 1px solid var(--vd-rule); border-radius: 3px; background: #fff; color: var(--vd-muted); cursor: pointer; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 700; text-align: center; transition: all 0.12s; }" +
     ".vd-paymethod-btn:hover { color: var(--vd-ink); }" +
     /* Per-method active colors: each chip lights up in its own color */
-    ".vd-pm-online.vd-paymethod-active  { background: #e8773a; border-color: #e8773a; color: #fff; }" +
-    ".vd-pm-check.vd-paymethod-active   { background: #3d4560; border-color: #3d4560; color: #fff; }" +
+    ".vd-pm-online.vd-paymethod-active  { background: #0080ff; border-color: #0080ff; color: #fff; }" +
+    ".vd-pm-check.vd-paymethod-active   { background: #0a0a14; border-color: #0a0a14; color: #fff; }" +
     ".vd-pm-amex.vd-paymethod-active    { background: #5a9a5a; border-color: #5a9a5a; color: #fff; }" +
-    ".vd-pm-ach.vd-paymethod-active     { background: #C9A84C; border-color: #C9A84C; color: #fff; }" +
+    ".vd-pm-ach.vd-paymethod-active     { background: #ff8a2a; border-color: #ff8a2a; color: #fff; }" +
     ".vd-pm-auto.vd-paymethod-active    { background: #9b7bb8; border-color: #9b7bb8; color: #fff; }" +
-    ".vd-pm-other.vd-paymethod-active   { background: #7a7585; border-color: #7a7585; color: #fff; }" +
+    ".vd-pm-other.vd-paymethod-active   { background: #64748b; border-color: #64748b; color: #fff; }" +
     /* Inactive hover hint of each color so user sees what they're picking */
-    ".vd-pm-online:hover  { border-color: #e8773a; }" +
-    ".vd-pm-check:hover   { border-color: #3d4560; }" +
+    ".vd-pm-online:hover  { border-color: #0080ff; }" +
+    ".vd-pm-check:hover   { border-color: #0a0a14; }" +
     ".vd-pm-amex:hover    { border-color: #5a9a5a; }" +
-    ".vd-pm-ach:hover     { border-color: #C9A84C; }" +
+    ".vd-pm-ach:hover     { border-color: #ff8a2a; }" +
     ".vd-pm-auto:hover    { border-color: #9b7bb8; }" +
-    ".vd-pm-other:hover   { border-color: #7a7585; }" +
+    ".vd-pm-other:hover   { border-color: #64748b; }" +
     ".vd-preview-conventions { background: var(--vd-cream); border-left: 3px solid var(--vd-gold); padding: 10px 14px; margin-bottom: 16px; border-radius: 4px; }" +
     ".vd-preview-conventions-label { font-family: 'DM Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--vd-muted); margin-bottom: 4px; font-weight: 600; }" +
     ".vd-preview-conventions-body { font-size: 11px; color: var(--vd-ink); white-space: pre-wrap; line-height: 1.5; }" +

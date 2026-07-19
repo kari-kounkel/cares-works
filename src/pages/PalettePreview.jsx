@@ -49,7 +49,7 @@ export default function PalettePreview() {
       {/* NAV — white, so the neon signs below have a clean gallery wall */}
       <header style={{ background: N.white, borderBottom: "1px solid #e2e8f0", padding: "0 32px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 68, position: "sticky", top: 0, zIndex: 100 }}>
         <a href="/" style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none" }}>
-          <img src="/cares-works-logo.png" alt="CARES Works" style={{ height: 34, width: "auto", display: "block" }} />
+          <img src="/cares-works-neon-logo.png" alt="CARES Works" style={{ height: 34, width: "auto", display: "block" }} />
           <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: N.ink }}>
             CARES <span style={{ color: N.blue }}>Works.</span>
           </span>

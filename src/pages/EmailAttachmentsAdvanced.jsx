@@ -3,10 +3,10 @@ import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 
 const S = {
-  slate: "#3d4560", orange: "#e8773a", orangeDark: "#c95f22",
-  orangeLight: "#fdf0e8", paper: "#faf8f4", cream: "#f2ede3",
-  ink: "#1e1e2a", rule: "#ddd8cc", muted: "#7a7585", gold: "#C9A84C",
-  grad: "linear-gradient(135deg, #e8773a, #c95f22)",
+  slate: "#0a0a14", orange: "#0080ff", orangeDark: "#0052cc",
+  orangeLight: "#e6f0ff", paper: "#ffffff", cream: "#f7f9fc",
+  ink: "#0a0a14", rule: "#e2e8f0", muted: "#64748b", gold: "#ff8a2a",
+  grad: "linear-gradient(135deg, #0080ff, #0052cc)",
 };
 
 const MOBILE_TOOL = "@media (max-width: 640px) { .tool-header { padding: 0 16px !important; } .tool-page { padding: 28px 16px 60px !important; } .tool-h1 { font-size: 26px !important; } .tool-section { padding: 20px 16px !important; } }";
@@ -81,7 +81,7 @@ export default function EmailAttachmentsAdvanced({ session }) {
         <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
         <header className="tool-header" style={{ background: S.slate, padding: "0 32px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 58, boxShadow: "0 2px 12px rgba(0,0,0,0.15)" }}>
           <a href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-          <img src="/cares-works-logo.png" alt="CARES Works" style={{ height: 32, width: "auto", display: "block" }} />
+          <img src="/cares-works-neon-logo.png" alt="CARES Works" style={{ height: 32, width: "auto", display: "block" }} />
           <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: "#fff" }}>CARES <span style={{ color: S.orange }}>Works.</span></span>
         </a>
           <a onClick={(e) => { e.preventDefault(); navigate("/dashboard"); }} href="/dashboard" style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "rgba(255,255,255,0.6)", letterSpacing: "0.08em", textDecoration: "none" }}>{"<- Dashboard"}</a>
@@ -109,7 +109,7 @@ export default function EmailAttachmentsAdvanced({ session }) {
 
       <header className="tool-header" style={{ background: S.slate, padding: "0 32px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 58, boxShadow: "0 2px 12px rgba(0,0,0,0.15)", position: "sticky", top: 0, zIndex: 100 }}>
         <a href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-          <img src="/cares-works-logo.png" alt="CARES Works" style={{ height: 32, width: "auto", display: "block" }} />
+          <img src="/cares-works-neon-logo.png" alt="CARES Works" style={{ height: 32, width: "auto", display: "block" }} />
           <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: "#fff" }}>CARES <span style={{ color: S.orange }}>Works.</span></span>
         </a>
         <a onClick={(e) => { e.preventDefault(); navigate("/dashboard"); }} href="/dashboard" style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "rgba(255,255,255,0.6)", letterSpacing: "0.08em", textDecoration: "none" }}>{"<- Dashboard"}</a>

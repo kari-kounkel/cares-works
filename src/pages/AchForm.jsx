@@ -111,7 +111,7 @@ export default function AchForm() {
       {/* HEADER */}
       <header className="ach-site-header">
         <a href="/" className="ach-site-brand" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-          <img src="/cares-works-logo.png" alt="CARES Works" style={{ height: 32, width: 'auto', display: 'block' }} />
+          <img src="/cares-works-neon-logo.png" alt="CARES Works" style={{ height: 32, width: 'auto', display: 'block' }} />
           <span>CARES <span className="ach-brand-accent">Works.</span></span>
         </a>
         <nav className="ach-site-nav">
@@ -565,11 +565,11 @@ function Styles() {
     '--ach-navy2: #243260;' +
     '--ach-gold: #c9a84c;' +
     '--ach-gold2: #e8c97a;' +
-    '--ach-cream: #faf8f4;' +
+    '--ach-cream: #ffffff;' +
     '--ach-rule: #e8e8ec;' +
-    '--ach-muted: #7a7585;' +
-    '--ach-ink: #1e1e2a;' +
-    '--ach-orange: #e8773a;' +
+    '--ach-muted: #64748b;' +
+    '--ach-ink: #0a0a14;' +
+    '--ach-orange: #0080ff;' +
     '--ach-warn: #fff8e8;' +
     '--ach-warn-border: #f0d898;' +
     '--ach-green: #1a7a4a;' +
@@ -589,10 +589,10 @@ function Styles() {
     ".ach-nav-link { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ach-muted); text-decoration: none; transition: color .15s; }" +
     '.ach-nav-link:hover { color: var(--ach-navy); }' +
     ".ach-nav-join { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; background: var(--ach-orange); color: #fff; padding: 9px 18px; border-radius: 4px; text-decoration: none; transition: background .15s; }" +
-    '.ach-nav-join:hover { background: #c95f22; }' +
+    '.ach-nav-join:hover { background: #0052cc; }' +
 
     // CTA strip
-    '.ach-cta-strip { background: #3d4560; padding: 56px 40px; }' +
+    '.ach-cta-strip { background: #0a0a14; padding: 56px 40px; }' +
     '.ach-cta-inner { max-width: 820px; margin: 0 auto; display: flex; gap: 48px; align-items: flex-start; flex-wrap: wrap; }' +
     '.ach-cta-left { flex: 1; min-width: 260px; }' +
     ".ach-cta-eyebrow { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ach-orange); margin-bottom: 12px; }" +
@@ -607,8 +607,8 @@ function Styles() {
     ".ach-cta-price-sub { font-family: 'DM Mono', monospace; font-size: 11px; color: rgba(255,255,255,.4); letter-spacing: .05em; margin-bottom: 4px; }" +
     '.ach-cta-price-sub strong { color: var(--ach-gold); }' +
     ".ach-cta-btn-primary { display: block; text-align: center; background: var(--ach-orange); color: #fff; font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; padding: 14px 24px; border-radius: 6px; text-decoration: none; font-weight: 600; transition: background .15s; }" +
-    '.ach-cta-btn-primary:hover { background: #c95f22; }' +
-    ".ach-cta-btn-gold { display: block; text-align: center; background: linear-gradient(135deg,#C9A84C,#e0c060); color: #1e1e2a; font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; padding: 14px 24px; border-radius: 6px; text-decoration: none; font-weight: 700; }" +
+    '.ach-cta-btn-primary:hover { background: #0052cc; }' +
+    ".ach-cta-btn-gold { display: block; text-align: center; background: linear-gradient(135deg,#ff8a2a,#ffbb80); color: #0a0a14; font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; padding: 14px 24px; border-radius: 6px; text-decoration: none; font-weight: 700; }" +
 
     // Footer
     '.ach-footer { border-top: 1px solid var(--ach-rule); padding: 24px 40px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }' +
@@ -617,7 +617,7 @@ function Styles() {
     '.ach-footer-link:hover { color: var(--ach-navy); }' +
 
     // Hero
-    '.ach-hero { background: #f2ede3; border-bottom: 1px solid var(--ach-rule); padding: 48px 32px 32px; }' +
+    '.ach-hero { background: #f7f9fc; border-bottom: 1px solid var(--ach-rule); padding: 48px 32px 32px; }' +
     '.ach-hero-inner { max-width: 820px; margin: 0 auto; }' +
     ".ach-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ach-gold); margin-bottom: 12px; }" +
     ".ach-h1 { font-family: 'Playfair Display', Georgia, serif; font-size: 42px; line-height: 1.1; color: var(--ach-navy); margin-bottom: 10px; }" +

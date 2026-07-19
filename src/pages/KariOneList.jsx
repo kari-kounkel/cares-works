@@ -57,7 +57,7 @@ export default function KariOneList({ session }) {
   return (
     <div style={{ minHeight: "100vh", background: "#faf7f0", display: "flex", flexDirection: "column", fontFamily: "'Figtree', system-ui, sans-serif" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "10px 18px", borderBottom: "1px solid #e8e0d0", background: "#fff" }}>
-        <button onClick={() => navigate("/kari")} style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#e8773a", background: "none", border: "none", cursor: "pointer" }}>← Cockpits</button>
+        <button onClick={() => navigate("/kari")} style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#0080ff", background: "none", border: "none", cursor: "pointer" }}>← Cockpits</button>
         <span style={{ fontSize: 12, color: "#8a8270" }}>The One List · saves to your account automatically</span>
       </div>
       {ticks === null ? (

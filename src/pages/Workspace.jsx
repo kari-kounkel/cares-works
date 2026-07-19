@@ -4,10 +4,10 @@ import { navigate } from "../App";
 import { fetchAllSavedWork } from "../toolSessions";
 
 const S = {
-  slate: "#3d4560", orange: "#e8773a", orangeDark: "#c95f22", orangeLight: "#fdf0e8",
-  paper: "#faf8f4", cream: "#f2ede3", ink: "#1e1e2a", rule: "#ddd8cc",
-  muted: "#7a7585", gold: "#C9A84C", green: "#5a9a5a",
-  grad: "linear-gradient(135deg, #e8773a, #c95f22)",
+  slate: "#0a0a14", orange: "#0080ff", orangeDark: "#0052cc", orangeLight: "#e6f0ff",
+  paper: "#ffffff", cream: "#f7f9fc", ink: "#0a0a14", rule: "#e2e8f0",
+  muted: "#64748b", gold: "#ff8a2a", green: "#5a9a5a",
+  grad: "linear-gradient(135deg, #0080ff, #0052cc)",
 };
 
 const MOBILE = `
