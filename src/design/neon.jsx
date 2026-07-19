@@ -42,7 +42,7 @@ export function NeonBox({ color, rgb, scale = 1, style = {}, children }) {
       background: N.white,
       borderRadius: 14,
       border: `2px solid ${color}`,
-      boxShadow: `0 0 ${24*scale}px rgba(${rgb},0.5), 0 0 ${60*scale}px rgba(${rgb},0.25), inset 0 0 22px rgba(${rgb},0.06)`,
+      boxShadow: `0 0 ${20*scale}px rgba(${rgb},0.28), 0 0 ${44*scale}px rgba(${rgb},0.12), inset 0 0 18px rgba(${rgb},0.03)`,
       color: N.ink,
       position: "relative",
       ...style,
