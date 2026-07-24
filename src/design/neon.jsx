@@ -212,12 +212,17 @@ export function NeonNav({ tabs = [], right = null, hrefHome = "/dashboard" }) {
   );
 }
 
-// SignatureFooter — the "BUILT FOR BUSINESS · BACKED BY CARES" tri-color pill.
+// SignatureFooter — tri-color pill + proprietary IP notice.
+// Same pattern as FlowSuite Pro's footer so all Kari-built products share IP boilerplate.
 export function SignatureFooter() {
   return (
-    <div style={{ textAlign: "center", padding: "40px 24px 60px" }}>
-      <div style={{ display: "inline-block", padding: "10px 26px", background: `linear-gradient(135deg, ${N.orange}, ${N.pink}, ${N.blue})`, borderRadius: 100, fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.2em", color: N.white, fontWeight: 700, boxShadow: "0 6px 20px rgba(255,45,138,0.35)" }}>
+    <div style={{ textAlign: "center", padding: "40px 24px 32px" }}>
+      <div style={{ display: "inline-block", padding: "10px 26px", background: `linear-gradient(135deg, ${N.orange}, ${N.pink}, ${N.blue})`, borderRadius: 100, fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.2em", color: N.white, fontWeight: 700, boxShadow: "0 6px 20px rgba(255,45,138,0.35)", marginBottom: 26 }}>
         BUILT FOR BUSINESS &nbsp;·&nbsp; BACKED BY CARES
+      </div>
+      <div style={{ maxWidth: 640, margin: "0 auto", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.06em", color: N.muted, lineHeight: 1.7 }}>
+        CARES Works &mdash; proprietary software of Kari Hoglund Kounkel LLC &amp; CARES Consulting, Inc.<br />
+        &copy; 2026. All rights reserved.
       </div>
     </div>
   );
