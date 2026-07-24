@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 
 const S = {
-  orange: "#E8500A", orangeLight: "#FFF4EE", slate: "#1E293B",
-  slateLight: "#F8FAFC", muted: "#64748B", border: "#E2E8F0",
-  green: "#15803D", greenLight: "#F0FDF4", red: "#DC2626",
-  white: "#FFFFFF",
+  orange: "#0080ff", orangeLight: "#e6f0ff", slate: "#0a0a14",
+  slateLight: "#f7f9fc", muted: "#64748b", border: "#e2e8f0",
+  green: "#22c55e", greenLight: "#f0fdf4", red: "#ef4444",
+  white: "#ffffff",
 };
 
 const MONTHLY_URL = "https://buy.stripe.com/7sY5kD7Nl2HgeLp1Q818c06";
@@ -126,7 +126,7 @@ export default function BuyingTimeScripts({ session }) {
   return (
     <div style={{ maxWidth: "860px", margin: "0 auto", padding: "32px 16px 60px", fontFamily: "system-ui, -apple-system, sans-serif" }}>
       <div style={{ marginBottom: "8px" }}>
-        <span style={{ background: S.orangeLight, color: S.orange, fontSize: "11px", fontWeight: "700", padding: "4px 10px", borderRadius: "20px", border: "1px solid #FED7AA", textTransform: "uppercase", letterSpacing: "0.06em" }}>Communication Tools</span>
+        <span style={{ background: S.orangeLight, color: S.orange, fontSize: "11px", fontWeight: "700", padding: "4px 10px", borderRadius: "20px", border: "1px solid #cce6ff", textTransform: "uppercase", letterSpacing: "0.06em" }}>Communication Tools</span>
       </div>
       <h1 style={{ fontSize: "30px", fontWeight: "800", color: S.slate, marginBottom: "10px" }}>Buying Time Scripts</h1>
       <p style={{ color: S.muted, fontSize: "15px", lineHeight: "1.7", marginBottom: "32px", maxWidth: "640px" }}>
@@ -146,11 +146,11 @@ export default function BuyingTimeScripts({ session }) {
             </div>
             {open === i && (
               <div style={{ padding: "0 20px 20px", borderTop: "1px solid " + S.border }}>
-                <div style={{ background: "#FFF1F1", border: "1px solid #FECACA", borderRadius: "8px", padding: "12px 16px", marginTop: "16px", marginBottom: "14px" }}>
+                <div style={{ background: "#fff1f1", border: "1px solid #fecaca", borderRadius: "8px", padding: "12px 16px", marginTop: "16px", marginBottom: "14px" }}>
                   <p style={{ margin: "0 0 4px", fontSize: "11px", fontWeight: "700", color: S.red, textTransform: "uppercase", letterSpacing: "0.05em" }}>Don't say this</p>
                   <p style={{ margin: 0, fontSize: "14px", color: S.slate, fontStyle: "italic", lineHeight: "1.5" }}>{s.wrong}</p>
                 </div>
-                <div style={{ background: S.greenLight, border: "1px solid #BBF7D0", borderRadius: "8px", padding: "12px 16px", marginBottom: "14px" }}>
+                <div style={{ background: S.greenLight, border: "1px solid #bbf7d0", borderRadius: "8px", padding: "12px 16px", marginBottom: "14px" }}>
                   <p style={{ margin: "0 0 8px", fontSize: "11px", fontWeight: "700", color: S.green, textTransform: "uppercase", letterSpacing: "0.05em" }}>Say this instead</p>
                   {s.right.map((r, j) => (
                     <p key={j} style={{ margin: j < s.right.length - 1 ? "0 0 8px" : 0, fontSize: "14px", color: S.slate, fontStyle: "italic", lineHeight: "1.5", borderLeft: "3px solid " + S.green, paddingLeft: "12px" }}>{r}</p>
@@ -165,7 +165,7 @@ export default function BuyingTimeScripts({ session }) {
         ))}
       </div>
 
-      <div style={{ background: S.orangeLight, border: "1px solid #FED7AA", borderRadius: "12px", padding: "18px 22px", marginTop: "24px" }}>
+      <div style={{ background: S.orangeLight, border: "1px solid #cce6ff", borderRadius: "12px", padding: "18px 22px", marginTop: "24px" }}>
         <p style={{ margin: 0, color: S.orange, fontSize: "14px", fontWeight: "600", lineHeight: "1.6" }}>
           Facing a conversation you're not sure how to navigate? Hit Ask Kari. Describe the situation and I'll help you find the right words.
         </p>

@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 
 const S = {
-  orange: "#E8500A", orangeLight: "#FFF4EE", slate: "#1E293B",
-  slateLight: "#F8FAFC", muted: "#64748B", border: "#E2E8F0",
-  green: "#15803D", greenLight: "#F0FDF4", red: "#DC2626",
-  white: "#FFFFFF",
+  orange: "#0080ff", orangeLight: "#e6f0ff", slate: "#0a0a14",
+  slateLight: "#f7f9fc", muted: "#64748b", border: "#e2e8f0",
+  green: "#22c55e", greenLight: "#f0fdf4", red: "#ef4444",
+  white: "#ffffff",
 };
 
 const MONTHLY_URL = "https://buy.stripe.com/7sY5kD7Nl2HgeLp1Q818c06";
@@ -15,9 +15,9 @@ const TYPES = [
   {
     type: "Assets",
     range: "1000–1999",
-    color: "#1D4ED8",
-    bg: "#EFF6FF",
-    border: "#BFDBFE",
+    color: "#0052cc",
+    bg: "#e6f0ff",
+    border: "#cce6ff",
     what: "Everything your business owns or is owed.",
     examples: [
       { num: "1000", name: "Checking Account" },
@@ -31,9 +31,9 @@ const TYPES = [
   {
     type: "Liabilities",
     range: "2000–2999",
-    color: "#DC2626",
-    bg: "#FFF1F1",
-    border: "#FECACA",
+    color: "#ef4444",
+    bg: "#fff1f1",
+    border: "#fecaca",
     what: "Everything your business owes to others.",
     examples: [
       { num: "2000", name: "Accounts Payable" },
@@ -47,9 +47,9 @@ const TYPES = [
   {
     type: "Equity",
     range: "3000–3999",
-    color: "#6D28D9",
-    bg: "#F5F3FF",
-    border: "#DDD6FE",
+    color: "#ff2d8a",
+    bg: "#fff0f7",
+    border: "#ffc2dd",
     what: "Owner's stake in the business — what's left after liabilities.",
     examples: [
       { num: "3000", name: "Owner's Equity / Retained Earnings" },
@@ -61,9 +61,9 @@ const TYPES = [
   {
     type: "Income",
     range: "4000–4999",
-    color: "#15803D",
-    bg: "#F0FDF4",
-    border: "#BBF7D0",
+    color: "#22c55e",
+    bg: "#f0fdf4",
+    border: "#bbf7d0",
     what: "All revenue your business earns.",
     examples: [
       { num: "4000", name: "Services Revenue" },
@@ -76,9 +76,9 @@ const TYPES = [
   {
     type: "Expenses",
     range: "5000–9999",
-    color: "#E8500A",
-    bg: "#FFF4EE",
-    border: "#FED7AA",
+    color: "#0080ff",
+    bg: "#e6f0ff",
+    border: "#cce6ff",
     what: "Everything it costs to run the business. COGS lives here too (5000s).",
     examples: [
       { num: "5000", name: "Cost of Goods Sold / Direct Labor" },
@@ -147,7 +147,7 @@ export default function ChartOfAccounts({ session }) {
   return (
     <div style={{ maxWidth: "860px", margin: "0 auto", padding: "32px 16px 60px", fontFamily: "system-ui, -apple-system, sans-serif" }}>
       <div style={{ marginBottom: "8px" }}>
-        <span style={{ background: S.orangeLight, color: S.orange, fontSize: "11px", fontWeight: "700", padding: "4px 10px", borderRadius: "20px", border: "1px solid #FED7AA", textTransform: "uppercase", letterSpacing: "0.06em" }}>Money Tools</span>
+        <span style={{ background: S.orangeLight, color: S.orange, fontSize: "11px", fontWeight: "700", padding: "4px 10px", borderRadius: "20px", border: "1px solid #cce6ff", textTransform: "uppercase", letterSpacing: "0.06em" }}>Money Tools</span>
       </div>
       <h1 style={{ fontSize: "30px", fontWeight: "800", color: S.slate, marginBottom: "10px" }}>Chart of Accounts Cheat Sheet</h1>
       <p style={{ color: S.muted, fontSize: "15px", lineHeight: "1.7", marginBottom: "32px", maxWidth: "640px" }}>
@@ -196,7 +196,7 @@ export default function ChartOfAccounts({ session }) {
         ))}
       </div>
 
-      <div style={{ background: S.orangeLight, border: "1px solid #FED7AA", borderRadius: "12px", padding: "18px 22px" }}>
+      <div style={{ background: S.orangeLight, border: "1px solid #cce6ff", borderRadius: "12px", padding: "18px 22px" }}>
         <p style={{ margin: 0, color: S.orange, fontSize: "14px", fontWeight: "600", lineHeight: "1.6" }}>
           Your chart of accounts is a mess and you're not sure where to start cleaning? Hit Ask Kari. Bring a list of your current accounts and we'll sort it out.
         </p>

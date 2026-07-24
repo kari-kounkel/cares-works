@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 
 const S = {
-  orange: "#E8500A", orangeLight: "#FFF4EE", slate: "#1E293B",
-  slateLight: "#F8FAFC", muted: "#64748B", border: "#E2E8F0",
-  green: "#15803D", greenLight: "#F0FDF4", red: "#DC2626",
-  white: "#FFFFFF",
+  orange: "#0080ff", orangeLight: "#e6f0ff", slate: "#0a0a14",
+  slateLight: "#f7f9fc", muted: "#64748b", border: "#e2e8f0",
+  green: "#22c55e", greenLight: "#f0fdf4", red: "#ef4444",
+  white: "#ffffff",
 };
 
 const MONTHLY_URL = "https://buy.stripe.com/7sY5kD7Nl2HgeLp1Q818c06";
@@ -133,7 +133,7 @@ export default function SeparationScript({ session }) {
   return (
     <div style={{ maxWidth: "860px", margin: "0 auto", padding: "32px 16px 60px", fontFamily: "system-ui, -apple-system, sans-serif" }}>
       <div style={{ marginBottom: "8px" }}>
-        <span style={{ background: S.orangeLight, color: S.orange, fontSize: "11px", fontWeight: "700", padding: "4px 10px", borderRadius: "20px", border: "1px solid #FED7AA", textTransform: "uppercase", letterSpacing: "0.06em" }}>People Tools</span>
+        <span style={{ background: S.orangeLight, color: S.orange, fontSize: "11px", fontWeight: "700", padding: "4px 10px", borderRadius: "20px", border: "1px solid #cce6ff", textTransform: "uppercase", letterSpacing: "0.06em" }}>People Tools</span>
       </div>
       <h1 style={{ fontSize: "30px", fontWeight: "800", color: S.slate, marginBottom: "10px" }}>Separation Script</h1>
       <p style={{ color: S.muted, fontSize: "15px", lineHeight: "1.7", marginBottom: "28px", maxWidth: "640px" }}>
@@ -165,7 +165,7 @@ export default function SeparationScript({ session }) {
 
       {tab === "script" && (
         <div>
-          <div style={{ background: S.orangeLight, border: "1px solid #FED7AA", borderRadius: "10px", padding: "14px 18px", marginBottom: "20px" }}>
+          <div style={{ background: S.orangeLight, border: "1px solid #cce6ff", borderRadius: "10px", padding: "14px 18px", marginBottom: "20px" }}>
             <p style={{ margin: 0, color: S.orange, fontSize: "13px", fontWeight: "600", lineHeight: "1.6" }}>
               These are word-for-word starting points, not a transcript. Adjust for your situation. Never memorize a script — know the key points and speak from them.
             </p>
@@ -196,11 +196,11 @@ export default function SeparationScript({ session }) {
       )}
 
       {tab === "never" && (
-        <div style={{ background: "#FFF1F1", border: "2px solid #FECACA", borderRadius: "12px", padding: "24px" }}>
+        <div style={{ background: "#fff1f1", border: "2px solid #fecaca", borderRadius: "12px", padding: "24px" }}>
           <h2 style={{ color: S.red, fontSize: "17px", fontWeight: "800", margin: "0 0 18px" }}>🚨 Never Do These Things</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             {NEVER.map((entry, i) => (
-              <div key={i} style={{ background: S.white, borderRadius: "8px", padding: "14px 16px", border: "1px solid #FECACA" }}>
+              <div key={i} style={{ background: S.white, borderRadius: "8px", padding: "14px 16px", border: "1px solid #fecaca" }}>
                 <p style={{ margin: 0, color: S.slate, fontSize: "14px", fontWeight: "700", lineHeight: "1.5" }}>{entry.item}</p>
                 {entry.note && <p style={{ margin: "6px 0 0", color: S.muted, fontSize: "13px", fontStyle: "italic", lineHeight: "1.5" }}>{entry.note}</p>}
               </div>
@@ -209,7 +209,7 @@ export default function SeparationScript({ session }) {
         </div>
       )}
 
-      <div style={{ background: S.orangeLight, border: "1px solid #FED7AA", borderRadius: "12px", padding: "18px 22px", marginTop: "24px" }}>
+      <div style={{ background: S.orangeLight, border: "1px solid #cce6ff", borderRadius: "12px", padding: "18px 22px", marginTop: "24px" }}>
         <p style={{ margin: 0, color: S.orange, fontSize: "14px", fontWeight: "600", lineHeight: "1.6" }}>
           Navigating a complicated separation or worried about legal exposure? Ask Kari. Bring what happened and what you've documented.
         </p>

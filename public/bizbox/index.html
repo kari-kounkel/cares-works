@@ -4,19 +4,22 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Intake &amp; Claim Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#2b2440; --muted:#7c7596; --line:#e7e2f0; --bg:#faf8fd;
-    --card:#ffffff; --rose:#d96a8e; --rose-dk:#b94f73; --plum:#6c4f9c;
-    --green:#2e9e6b; --green-bg:#e9f7f0; --amber:#c98a1e; --amber-bg:#fdf4e2;
-    --gray-bg:#f0eef5; --shadow:0 1px 3px rgba(43,36,64,.08),0 6px 20px rgba(43,36,64,.06);
+    --ink:#0a0a14; --muted:#64748b; --line:#e2e8f0; --bg:#ffffff;
+    --card:#ffffff; --rose:#ff2d8a; --rose-dk:#d91d6d; --plum:#0080ff;
+    --green:#22c55e; --green-bg:rgba(34,197,94,.1); --amber:#f06d0a; --amber-bg:rgba(255,138,42,.1);
+    --gray-bg:#f7f9fc; --shadow:0 0 20px rgba(0,128,255,.28),0 0 44px rgba(0,128,255,.12);
   }
   *{box-sizing:border-box}
-  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  body{margin:0;font-family:'Figtree',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     color:var(--ink);background:var(--bg);line-height:1.45;font-size:15px;-webkit-font-smoothing:antialiased}
-  header{background:linear-gradient(120deg,#6c4f9c,#d96a8e);color:#fff;padding:18px 20px 16px}
+  header{background:linear-gradient(120deg,#0080ff,#ff2d8a);color:#fff;padding:18px 20px 16px}
   header .wrap{max-width:1060px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-  header h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.2px;display:flex;align-items:center;gap:9px}
+  header h1{margin:0;font-family:'DM Serif Display',Georgia,serif;font-size:24px;font-weight:400;letter-spacing:0;display:flex;align-items:center;gap:9px}
   header h1 .biz{opacity:.92;font-weight:500;font-size:15px}
   .needle{font-size:24px}
   .tabs{max-width:1060px;margin:0 auto;display:flex;gap:4px;padding:0 20px;overflow-x:auto}
@@ -26,18 +29,18 @@
   .tabbar{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
   main{max-width:1060px;margin:0 auto;padding:22px 20px 60px}
   .view{display:none}.view.active{display:block}
-  h2{font-size:18px;margin:0 0 4px}
+  h2{font-family:'DM Serif Display',Georgia,serif;font-size:20px;font-weight:400;margin:0 0 4px}
   .sub{color:var(--muted);font-size:13px;margin:0 0 18px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px;margin-bottom:18px}
-  label{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin:0 0 4px;text-transform:uppercase;letter-spacing:.3px}
+  .card{background:var(--card);border:2px solid #0080ff;border-radius:14px;box-shadow:var(--shadow);padding:18px;margin-bottom:18px}
+  label{display:block;font-family:'DM Mono',ui-monospace,monospace;font-size:11.5px;font-weight:500;color:var(--muted);margin:0 0 4px;text-transform:uppercase;letter-spacing:.14em}
   input,select,textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;font:inherit;color:var(--ink);background:#fff}
-  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--plum);box-shadow:0 0 0 3px rgba(108,79,156,.12)}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--plum);box-shadow:0 0 0 3px rgba(0,128,255,.15)}
   textarea{resize:vertical;min-height:46px}
   .grid{display:grid;gap:14px}
   .g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr 1fr}.g4{grid-template-columns:repeat(4,1fr)}
   @media(max-width:680px){.g2,.g3,.g4{grid-template-columns:1fr}}
-  .btn{background:var(--rose);color:#fff;border:none;padding:10px 18px;border-radius:9px;font:inherit;font-weight:700;cursor:pointer}
-  .btn:hover{background:var(--rose-dk)}
+  .btn{background:linear-gradient(135deg,#0080ff,#0052cc);color:#fff;border:none;padding:10px 18px;border-radius:8px;font:inherit;font-weight:700;cursor:pointer;box-shadow:0 4px 14px #0080ff88}
+  .btn:hover{background:#0052cc}
   .btn.ghost{background:#fff;color:var(--plum);border:1px solid var(--line)}
   .btn.ghost:hover{background:var(--gray-bg)}
   .btn.sm{padding:6px 12px;font-size:13px;font-weight:600}
@@ -45,35 +48,35 @@
   .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
   .chips{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 0}
   .chip{background:var(--gray-bg);border:1px solid var(--line);border-radius:20px;padding:5px 12px;font-size:13px;cursor:pointer;font-weight:600;color:var(--plum)}
-  .chip:hover{background:#e6e0f2}
+  .chip:hover{background:#e6f0ff}
   table{width:100%;border-collapse:collapse;font-size:14px}
-  th{text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--line)}
+  th{text-align:left;font-family:'DM Mono',ui-monospace,monospace;font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--line)}
   td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top}
   tr:last-child td{border-bottom:none}
   .pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11.5px;font-weight:700;white-space:nowrap}
   .pill.open{background:var(--amber-bg);color:var(--amber)}
-  .pill.done{background:#eaf1fb;color:#3a6bc0}
+  .pill.done{background:#e6f0ff;color:#0080ff}
   .pill.paid{background:var(--green-bg);color:var(--green)}
-  .pill.tax{background:#fbeaf0;color:var(--rose-dk)}
+  .pill.tax{background:rgba(255,45,138,.12);color:var(--rose-dk)}
   .pill.exempt{background:var(--gray-bg);color:var(--muted)}
   .claim{font-weight:800;color:var(--plum);font-variant-numeric:tabular-nums;white-space:nowrap}
   .stat{display:flex;flex-direction:column;gap:2px}
   .stat .n{font-size:24px;font-weight:800;letter-spacing:-.5px}
-  .stat .l{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+  .stat .l{font-family:'DM Mono',ui-monospace,monospace;font-size:11px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.14em}
   .stat.rose .n{color:var(--rose-dk)}.stat.plum .n{color:var(--plum)}.stat.green .n{color:var(--green)}
   .muted{color:var(--muted)}
   .right{text-align:right}.center{text-align:center}
   .empty{text-align:center;color:var(--muted);padding:34px 10px;font-size:14px}
-  .note{background:var(--amber-bg);border:1px solid #f0dcb0;border-radius:10px;padding:11px 14px;font-size:13px;color:#7a5a14;margin:0 0 16px}
-  .note b{color:#5e4410}
+  .note{background:var(--amber-bg);border:1px solid rgba(255,138,42,.35);border-radius:10px;padding:11px 14px;font-size:13px;color:#f06d0a;margin:0 0 16px}
+  .note b{color:#f06d0a}
   .linkbtn{background:none;border:none;color:var(--rose-dk);font:inherit;font-weight:600;cursor:pointer;padding:0;text-decoration:underline}
   .switch{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;font-weight:600;color:var(--ink);text-transform:none;letter-spacing:0}
   .switch input{width:auto;margin:0}
   .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px}
   .toolbar .f{flex:1;min-width:140px}
   .foot{text-align:center;color:var(--muted);font-size:12px;padding:20px}
-  dialog{border:none;border-radius:16px;box-shadow:0 10px 40px rgba(43,36,64,.3);padding:0;max-width:560px;width:92%}
-  dialog::backdrop{background:rgba(43,36,64,.35)}
+  dialog{border:2px solid #0080ff;border-radius:16px;box-shadow:0 0 20px rgba(0,128,255,.28),0 0 44px rgba(0,128,255,.12);padding:0;max-width:560px;width:92%}
+  dialog::backdrop{background:rgba(10,10,20,.45)}
   .dlg-h{padding:16px 20px;border-bottom:1px solid var(--line);font-weight:700;font-size:16px}
   .dlg-b{padding:18px 20px}
   .dlg-f{padding:14px 20px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:10px;background:var(--bg);border-radius:0 0 16px 16px}
@@ -491,25 +494,25 @@ function printTicket(id){
       <div class="role">${role==='customer'?'CUSTOMER COPY — keep this to pick up':'SHOP TAG — attach to the items'}</div>
     </div>`;
   const w=window.open('','_blank','width=420,height=640');
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Claim #${j.claim}</title><style>
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Claim #${j.claim}</title><link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet"><style>
     @page{margin:10mm}
-    body{font-family:-apple-system,Segoe UI,Arial,sans-serif;color:#000;margin:0;padding:8px}
-    .tk{border:1.5px dashed #555;border-radius:8px;padding:12px 14px;margin-bottom:10px}
-    .tk-top{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #ccc;padding-bottom:6px}
+    body{font-family:'Figtree',-apple-system,Segoe UI,Arial,sans-serif;color:#000;margin:0;padding:8px}
+    .tk{border:1.5px dashed #64748b;border-radius:8px;padding:12px 14px;margin-bottom:10px}
+    .tk-top{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e2e8f0;padding-bottom:6px}
     .biz{font-weight:700;font-size:15px}
     .num{font-size:30px;font-weight:800;letter-spacing:-1px}
     .who{font-weight:600;margin:8px 0 6px;font-size:14px}
     table{width:100%;border-collapse:collapse;font-size:13px}
     td{padding:3px 0;vertical-align:top}
-    td.k{color:#666;width:90px;font-weight:600}
-    .role{margin-top:8px;font-size:10px;letter-spacing:.5px;color:#888;text-align:center;font-weight:700}
-    .scissors{text-align:center;color:#aaa;font-size:11px;margin:2px 0 10px}
+    td.k{color:#64748b;width:90px;font-weight:600}
+    .role{margin-top:8px;font-size:10px;letter-spacing:.5px;color:#64748b;text-align:center;font-weight:700}
+    .scissors{text-align:center;color:#94a3b8;font-size:11px;margin:2px 0 10px}
     @media print{.noprint{display:none}}
   </style></head><body>
     ${half('customer')}
     <div class="scissors">✂ — — — — — — — — — — — — — — — — — —</div>
     ${half('shop')}
-    <button class="noprint" onclick="window.print()" style="display:block;margin:12px auto;padding:9px 20px;font-size:14px;font-weight:700;background:#6c4f9c;color:#fff;border:none;border-radius:8px;cursor:pointer">🖨 Print</button>
+    <button class="noprint" onclick="window.print()" style="display:block;margin:12px auto;padding:9px 20px;font-size:14px;font-weight:700;background:#0080ff;color:#fff;border:none;border-radius:8px;cursor:pointer">🖨 Print</button>
   </body></html>`);
   w.document.close();
 }
@@ -521,32 +524,32 @@ function printInvoice(id){
   const paid=j.status==='paid';
   const doc=paid?'RECEIPT':'INVOICE';
   const contact=[s.phone,s.email,s.address].filter(Boolean).map(esc).join(' &middot; ');
-  const taxRow=t>0?`<tr><td class="a" style="color:#888">MN sales tax (${j.rate||rate()}%)</td><td class="a">${money(t)}</td></tr>`:'';
+  const taxRow=t>0?`<tr><td class="a" style="color:#64748b">MN sales tax (${j.rate||rate()}%)</td><td class="a">${money(t)}</td></tr>`:'';
   const w=window.open('','_blank','width=720,height=900');
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${doc} #${j.claim} — ${esc(biz)}</title><style>
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${doc} #${j.claim} — ${esc(biz)}</title><link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet"><style>
     @page{margin:14mm}
     *{box-sizing:border-box}
-    body{font-family:-apple-system,Segoe UI,Arial,sans-serif;color:#1c1830;margin:0;padding:24px;max-width:720px}
-    .top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #6c4f9c;padding-bottom:14px}
+    body{font-family:'Figtree',-apple-system,Segoe UI,Arial,sans-serif;color:#0a0a14;margin:0;padding:24px;max-width:720px}
+    .top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #0080ff;padding-bottom:14px}
     .biz{font-size:22px;font-weight:800}
-    .contact{font-size:12px;color:#666;margin-top:4px}
+    .contact{font-size:12px;color:#64748b;margin-top:4px}
     .doc{text-align:right}
-    .doc .t{font-size:26px;font-weight:800;letter-spacing:1px;color:#6c4f9c}
-    .doc .m{font-size:13px;color:#444;margin-top:4px}
+    .doc .t{font-size:26px;font-weight:800;letter-spacing:1px;color:#0080ff}
+    .doc .m{font-size:13px;color:#0f172a;margin-top:4px}
     .billto{margin:18px 0 6px;font-size:13px}
-    .billto .l{color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.5px;font-size:11px}
+    .billto .l{color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.5px;font-size:11px}
     .billto .n{font-size:16px;font-weight:700}
     table{width:100%;border-collapse:collapse;margin-top:14px;font-size:14px}
-    th{text-align:left;background:#f3f0f9;padding:8px 10px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#555}
+    th{text-align:left;background:#f7f9fc;padding:8px 10px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#64748b}
     th.a,td.a{text-align:right}
-    td{padding:9px 10px;border-bottom:1px solid #eee}
-    td.d .sub{color:#888;font-size:12px}
+    td{padding:9px 10px;border-bottom:1px solid #e2e8f0}
+    td.d .sub{color:#64748b;font-size:12px}
     tfoot td{border:none;padding:5px 10px}
-    tfoot .tot td{font-size:18px;font-weight:800;border-top:2px solid #1c1830;padding-top:10px}
-    .stamp{display:inline-block;margin-top:16px;border:3px solid ${paid?'#2e9e6b':'#c98a1e'};color:${paid?'#2e9e6b':'#c98a1e'};
+    tfoot .tot td{font-size:18px;font-weight:800;border-top:2px solid #0a0a14;padding-top:10px}
+    .stamp{display:inline-block;margin-top:16px;border:3px solid ${paid?'#22c55e':'#f06d0a'};color:${paid?'#22c55e':'#f06d0a'};
       font-weight:800;font-size:18px;letter-spacing:2px;padding:6px 18px;border-radius:8px;transform:rotate(-4deg)}
-    .note{margin-top:22px;font-size:13px;color:#555;border-top:1px solid #eee;padding-top:12px;white-space:pre-wrap}
-    .thanks{margin-top:8px;font-size:13px;color:#6c4f9c;font-weight:600}
+    .note{margin-top:22px;font-size:13px;color:#64748b;border-top:1px solid #e2e8f0;padding-top:12px;white-space:pre-wrap}
+    .thanks{margin-top:8px;font-size:13px;color:#0080ff;font-weight:600}
     @media print{.noprint{display:none}}
   </style></head><body>
     <div class="top">
@@ -555,12 +558,12 @@ function printInvoice(id){
     </div>
     <div class="billto"><div class="l">Bill to</div><div class="n">${esc(c?c.name:'Walk-in customer')}</div>
       ${c&&c.phone?`<div>${esc(c.phone)}</div>`:''}${c&&c.email?`<div>${esc(c.email)}</div>`:''}
-      ${c&&c.delivery?`<div style="margin-top:4px;color:#666">🚚 Deliver to: ${esc(c.delivery)}</div>`:''}</div>
+      ${c&&c.delivery?`<div style="margin-top:4px;color:#64748b">🚚 Deliver to: ${esc(c.delivery)}</div>`:''}</div>
     <table>
       <thead><tr><th>Description</th><th class="a">Amount</th></tr></thead>
       <tbody><tr><td class="d">${esc(j.desc)||'Services'}${j.items?`<div class="sub">Items: ${esc(j.items)}</div>`:''}</td><td class="a">${money(p)}</td></tr></tbody>
       <tfoot>
-        <tr><td class="a" style="color:#888">Subtotal</td><td class="a">${money(p)}</td></tr>
+        <tr><td class="a" style="color:#64748b">Subtotal</td><td class="a">${money(p)}</td></tr>
         ${taxRow}
         <tr class="tot"><td class="a">${paid?'Paid in full':'Total due'}</td><td class="a">${money(total)}</td></tr>
       </tfoot>
@@ -568,7 +571,7 @@ function printInvoice(id){
     <div class="stamp">${paid?'✓ PAID':'BALANCE DUE'}</div>
     ${s.invoiceNote?`<div class="note">${esc(s.invoiceNote)}</div>`:''}
     <div class="thanks">Thank you for your business!</div>
-    <button class="noprint" onclick="window.print()" style="display:block;margin:22px auto;padding:10px 22px;font-size:14px;font-weight:700;background:#6c4f9c;color:#fff;border:none;border-radius:8px;cursor:pointer">🖨 Print / Save as PDF</button>
+    <button class="noprint" onclick="window.print()" style="display:block;margin:22px auto;padding:10px 22px;font-size:14px;font-weight:700;background:#0080ff;color:#fff;border:none;border-radius:8px;cursor:pointer">🖨 Print / Save as PDF</button>
   </body></html>`);
   w.document.close();
 }

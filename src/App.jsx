@@ -39,6 +39,7 @@ import MemeMaker from "./pages/MemeMaker";
 import KariCockpits from "./pages/KariCockpits";
 import KariOneList from "./pages/KariOneList";
 import KariCockpitFrame from "./pages/KariCockpitFrame";
+import BudgetBuilder from "./pages/BudgetBuilder";
 import { FRAME_COCKPITS, CLOUD_COCKPITS } from "./cockpits/registry";
 
 export function navigate(path) {
@@ -134,6 +135,7 @@ export default function App() {
   if (path === "/tools/fractional-cfo-scope") return <FractionalCFOScope session={session} />;
   if (path === "/tools/qbo-discovery") return <QBODiscovery />;
   if (path === "/tools/vendor-decoder") return <VendorDecoder />;
+  if (path === "/tools/budget-builder") return <BudgetBuilder />;
   if (path === "/tools/checklist-builder") return <ChecklistBuilder session={session} />;
   if (path === "/tools/exemption-tracker") {
     if (!session) { navigate("/login"); return null; }

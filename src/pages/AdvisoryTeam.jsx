@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 
 const S = {
-  orange: "#E8500A", orangeLight: "#FFF4EE", slate: "#1E293B",
-  slateLight: "#F8FAFC", muted: "#64748B", border: "#E2E8F0",
-  green: "#15803D", greenLight: "#F0FDF4", red: "#DC2626",
-  white: "#FFFFFF",
+  orange: "#0080ff", orangeLight: "#e6f0ff", slate: "#0a0a14",
+  slateLight: "#f7f9fc", muted: "#64748b", border: "#e2e8f0",
+  green: "#22c55e", greenLight: "#f0fdf4", red: "#ef4444",
+  white: "#ffffff",
 };
 
 const MONTHLY_URL = "https://buy.stripe.com/7sY5kD7Nl2HgeLp1Q818c06";
@@ -120,7 +120,7 @@ export default function AdvisoryTeam({ session }) {
   return (
     <div style={{ maxWidth: "860px", margin: "0 auto", padding: "32px 16px 60px", fontFamily: "system-ui, -apple-system, sans-serif" }}>
       <div style={{ marginBottom: "8px" }}>
-        <span style={{ background: S.orangeLight, color: S.orange, fontSize: "11px", fontWeight: "700", padding: "4px 10px", borderRadius: "20px", border: "1px solid #FED7AA", textTransform: "uppercase", letterSpacing: "0.06em" }}>People Tools</span>
+        <span style={{ background: S.orangeLight, color: S.orange, fontSize: "11px", fontWeight: "700", padding: "4px 10px", borderRadius: "20px", border: "1px solid #cce6ff", textTransform: "uppercase", letterSpacing: "0.06em" }}>People Tools</span>
       </div>
       <h1 style={{ fontSize: "30px", fontWeight: "800", color: S.slate, marginBottom: "10px" }}>Building Your Advisory Team</h1>
       <p style={{ color: S.muted, fontSize: "15px", lineHeight: "1.7", marginBottom: "32px", maxWidth: "640px" }}>
@@ -171,7 +171,7 @@ export default function AdvisoryTeam({ session }) {
         ))}
       </div>
 
-      <div style={{ background: "#FFF1F1", border: "2px solid #FECACA", borderRadius: "12px", padding: "22px 24px", marginBottom: "24px" }}>
+      <div style={{ background: "#fff1f1", border: "2px solid #fecaca", borderRadius: "12px", padding: "22px 24px", marginBottom: "24px" }}>
         <h2 style={{ color: S.red, fontSize: "16px", fontWeight: "800", margin: "0 0 14px" }}>🚨 Signs Your Advisory Team Has Gaps</h2>
         {GAPS.map((g, i) => (
           <div key={i} style={{ display: "flex", gap: "10px", marginBottom: i < GAPS.length - 1 ? "8px" : 0 }}>
@@ -181,7 +181,7 @@ export default function AdvisoryTeam({ session }) {
         ))}
       </div>
 
-      <div style={{ background: S.orangeLight, border: "1px solid #FED7AA", borderRadius: "12px", padding: "18px 22px" }}>
+      <div style={{ background: S.orangeLight, border: "1px solid #cce6ff", borderRadius: "12px", padding: "18px 22px" }}>
         <p style={{ margin: 0, color: S.orange, fontSize: "14px", fontWeight: "600", lineHeight: "1.6" }}>
           Not sure which role to fill first given where your business is right now? Hit Ask Kari. The answer depends on your revenue, your risk exposure, and what's keeping you up at night.
         </p>

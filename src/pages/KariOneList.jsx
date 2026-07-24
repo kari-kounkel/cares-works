@@ -55,13 +55,13 @@ export default function KariOneList({ session }) {
   }, [ticks]);
 
   return (
-    <div style={{ minHeight: "100vh", background: "#faf7f0", display: "flex", flexDirection: "column", fontFamily: "'Figtree', system-ui, sans-serif" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "10px 18px", borderBottom: "1px solid #e8e0d0", background: "#fff" }}>
+    <div style={{ minHeight: "100vh", background: "#f7f9fc", display: "flex", flexDirection: "column", fontFamily: "'Figtree', system-ui, sans-serif" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "10px 18px", borderBottom: "1px solid #e2e8f0", background: "#fff" }}>
         <button onClick={() => navigate("/kari")} style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#0080ff", background: "none", border: "none", cursor: "pointer" }}>← Cockpits</button>
-        <span style={{ fontSize: 12, color: "#8a8270" }}>The One List · saves to your account automatically</span>
+        <span style={{ fontSize: 12, color: "#64748b" }}>The One List · saves to your account automatically</span>
       </div>
       {ticks === null ? (
-        <div style={{ padding: 40, fontFamily: "'DM Mono', monospace", color: "#8a8270", fontSize: 13 }}>Loading your saved progress…</div>
+        <div style={{ padding: 40, fontFamily: "'DM Mono', monospace", color: "#64748b", fontSize: 13 }}>Loading your saved progress…</div>
       ) : (
         <iframe title="The One List" srcDoc={srcDoc} style={{ flex: 1, width: "100%", border: "none", minHeight: "calc(100vh - 45px)" }} />
       )}

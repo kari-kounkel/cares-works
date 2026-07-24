@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 
 const S = {
-  orange: "#E8500A", orangeLight: "#FFF4EE", slate: "#1E293B",
-  slateLight: "#F8FAFC", muted: "#64748B", border: "#E2E8F0",
-  green: "#15803D", greenLight: "#F0FDF4", red: "#DC2626",
-  white: "#FFFFFF",
+  orange: "#0080ff", orangeLight: "#e6f0ff", slate: "#0a0a14",
+  slateLight: "#f7f9fc", muted: "#64748b", border: "#e2e8f0",
+  green: "#22c55e", greenLight: "#f0fdf4", red: "#ef4444",
+  white: "#ffffff",
 };
 
 const MONTHLY_URL = "https://buy.stripe.com/7sY5kD7Nl2HgeLp1Q818c06";
@@ -117,7 +117,7 @@ export default function FindingACPA({ session }) {
   return (
     <div style={{ maxWidth: "860px", margin: "0 auto", padding: "32px 16px 60px", fontFamily: "system-ui, -apple-system, sans-serif" }}>
       <div style={{ marginBottom: "8px" }}>
-        <span style={{ background: S.orangeLight, color: S.orange, fontSize: "11px", fontWeight: "700", padding: "4px 10px", borderRadius: "20px", border: "1px solid #FED7AA", textTransform: "uppercase", letterSpacing: "0.06em" }}>Money Tools</span>
+        <span style={{ background: S.orangeLight, color: S.orange, fontSize: "11px", fontWeight: "700", padding: "4px 10px", borderRadius: "20px", border: "1px solid #cce6ff", textTransform: "uppercase", letterSpacing: "0.06em" }}>Money Tools</span>
       </div>
       <h1 style={{ fontSize: "30px", fontWeight: "800", color: S.slate, marginBottom: "10px" }}>Finding a CPA — The Right Questions</h1>
       <p style={{ color: S.muted, fontSize: "15px", lineHeight: "1.7", marginBottom: "32px", maxWidth: "640px" }}>
@@ -137,24 +137,24 @@ export default function FindingACPA({ session }) {
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px", marginBottom: "24px" }}>
-        <div style={{ background: S.greenLight, border: "1px solid #BBF7D0", borderRadius: "12px", overflow: "hidden" }}>
-          <div style={{ padding: "14px 18px", borderBottom: "1px solid #BBF7D0" }}>
+        <div style={{ background: S.greenLight, border: "1px solid #bbf7d0", borderRadius: "12px", overflow: "hidden" }}>
+          <div style={{ padding: "14px 18px", borderBottom: "1px solid #bbf7d0" }}>
             <h2 style={{ color: S.green, fontSize: "15px", fontWeight: "800", margin: 0 }}>✅ Green Flags</h2>
           </div>
           {GREEN_FLAGS.map((flag, i) => (
-            <div key={i} style={{ padding: "11px 18px", borderBottom: i < GREEN_FLAGS.length - 1 ? "1px solid #BBF7D0" : "none", display: "flex", gap: "10px" }}>
+            <div key={i} style={{ padding: "11px 18px", borderBottom: i < GREEN_FLAGS.length - 1 ? "1px solid #bbf7d0" : "none", display: "flex", gap: "10px" }}>
               <span style={{ color: S.green, fontWeight: "700", flexShrink: 0 }}>✓</span>
               <span style={{ color: S.slate, fontSize: "13px", lineHeight: "1.5" }}>{flag}</span>
             </div>
           ))}
         </div>
 
-        <div style={{ background: "#FFF1F1", border: "1px solid #FECACA", borderRadius: "12px", overflow: "hidden" }}>
-          <div style={{ padding: "14px 18px", borderBottom: "1px solid #FECACA" }}>
+        <div style={{ background: "#fff1f1", border: "1px solid #fecaca", borderRadius: "12px", overflow: "hidden" }}>
+          <div style={{ padding: "14px 18px", borderBottom: "1px solid #fecaca" }}>
             <h2 style={{ color: S.red, fontSize: "15px", fontWeight: "800", margin: 0 }}>🚩 Red Flags — Run</h2>
           </div>
           {RED_FLAGS.map((flag, i) => (
-            <div key={i} style={{ padding: "11px 18px", borderBottom: i < RED_FLAGS.length - 1 ? "1px solid #FECACA" : "none", display: "flex", gap: "10px" }}>
+            <div key={i} style={{ padding: "11px 18px", borderBottom: i < RED_FLAGS.length - 1 ? "1px solid #fecaca" : "none", display: "flex", gap: "10px" }}>
               <span style={{ color: S.red, fontWeight: "700", flexShrink: 0 }}>✗</span>
               <span style={{ color: S.slate, fontSize: "13px", lineHeight: "1.5" }}>{flag}</span>
             </div>
@@ -174,7 +174,7 @@ export default function FindingACPA({ session }) {
         ))}
       </div>
 
-      <div style={{ background: S.orangeLight, border: "1px solid #FED7AA", borderRadius: "12px", padding: "18px 22px" }}>
+      <div style={{ background: S.orangeLight, border: "1px solid #cce6ff", borderRadius: "12px", padding: "18px 22px" }}>
         <p style={{ margin: 0, color: S.orange, fontSize: "14px", fontWeight: "600", lineHeight: "1.6" }}>
           Not sure whether you need a CPA, a bookkeeper, or both? Hit Ask Kari. The answer depends on where your business is right now.
         </p>

@@ -2,19 +2,19 @@ import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 
 const S = {
-  orange: "#E8500A",
-  orangeLight: "#FFF4EE",
-  slate: "#1E293B",
-  slateLight: "#F8FAFC",
-  muted: "#64748B",
-  border: "#E2E8F0",
-  red: "#DC2626",
-  redLight: "#FFF1F1",
-  green: "#15803D",
-  greenLight: "#F0FDF4",
-  blue: "#1D4ED8",
-  blueLight: "#EFF6FF",
-  white: "#FFFFFF",
+  orange: "#0080ff",
+  orangeLight: "#e6f0ff",
+  slate: "#0a0a14",
+  slateLight: "#f7f9fc",
+  muted: "#64748b",
+  border: "#e2e8f0",
+  red: "#ef4444",
+  redLight: "#fff1f1",
+  green: "#22c55e",
+  greenLight: "#f0fdf4",
+  blue: "#0052cc",
+  blueLight: "#e6f0ff",
+  white: "#ffffff",
 };
 
 const MONTHLY_URL = "https://buy.stripe.com/7sY5kD7Nl2HgeLp1Q818c06";
@@ -114,9 +114,9 @@ const NEVER_LIST = [
 ];
 
 const TAG = {
-  yes: { label: "Yes", bg: "#F0FDF4", color: "#15803D", border: "#BBF7D0" },
-  no: { label: "No", bg: "#FFF1F1", color: "#DC2626", border: "#FECACA" },
-  outsource: { label: "Outsource", bg: "#EFF6FF", color: "#1D4ED8", border: "#BFDBFE" },
+  yes: { label: "Yes", bg: "#f0fdf4", color: "#0f172a", border: "#bbf7d0" },
+  no: { label: "No", bg: "#fff1f1", color: "#ef4444", border: "#fecaca" },
+  outsource: { label: "Outsource", bg: "#e6f0ff", color: "#0052cc", border: "#cce6ff" },
 };
 
 export default function BookkeeperScope({ session }) {
@@ -276,7 +276,7 @@ export default function BookkeeperScope({ session }) {
             fontWeight: "700",
             padding: "4px 10px",
             borderRadius: "20px",
-            border: "1px solid #FED7AA",
+            border: "1px solid #cce6ff",
             textTransform: "uppercase",
             letterSpacing: "0.06em",
           }}
@@ -415,8 +415,8 @@ export default function BookkeeperScope({ session }) {
 
       <div
         style={{
-          background: "#FFF1F1",
-          border: "2px solid #DC2626",
+          background: "#fff1f1",
+          border: "2px solid #ef4444",
           borderRadius: "14px",
           padding: "28px",
           marginTop: "8px",
@@ -428,7 +428,7 @@ export default function BookkeeperScope({ session }) {
           <div>
             <h2
               style={{
-                color: "#DC2626",
+                color: "#ef4444",
                 fontSize: "19px",
                 fontWeight: "800",
                 margin: "0 0 6px",
@@ -436,7 +436,7 @@ export default function BookkeeperScope({ session }) {
             >
               Never Let a Bookkeeper Do These Things
             </h2>
-            <p style={{ color: "#991B1B", fontSize: "13px", margin: 0, lineHeight: "1.6" }}>
+            <p style={{ color: "#991b1b", fontSize: "13px", margin: 0, lineHeight: "1.6" }}>
               This is the lawsuit section. Every item below is a real way owners lose money,
               lose control, or end up in a dispute they cannot easily win.
             </p>
@@ -451,7 +451,7 @@ export default function BookkeeperScope({ session }) {
                 background: S.white,
                 borderRadius: "8px",
                 padding: "14px 16px",
-                border: "1px solid #FECACA",
+                border: "1px solid #fecaca",
               }}
             >
               <p
@@ -486,12 +486,12 @@ export default function BookkeeperScope({ session }) {
           style={{
             marginTop: "20px",
             padding: "14px 18px",
-            background: "#FEF2F2",
+            background: "#fef2f2",
             borderRadius: "8px",
-            border: "1px solid #FECACA",
+            border: "1px solid #fecaca",
           }}
         >
-          <p style={{ margin: 0, color: "#DC2626", fontSize: "13px", fontWeight: "700", lineHeight: "1.6" }}>
+          <p style={{ margin: 0, color: "#ef4444", fontSize: "13px", fontWeight: "700", lineHeight: "1.6" }}>
             Sidebar: A bookkeeper who resists any of the above is not protecting you.
             They are protecting themselves. That is your sign to look harder at the books.
           </p>
@@ -501,7 +501,7 @@ export default function BookkeeperScope({ session }) {
       <div
         style={{
           background: S.orangeLight,
-          border: "1px solid #FED7AA",
+          border: "1px solid #cce6ff",
           borderRadius: "12px",
           padding: "18px 22px",
         }}

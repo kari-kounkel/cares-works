@@ -15,20 +15,23 @@
 </script>
 <!-- End Google Analytics 4 -->
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#2b2440; --muted:#7c7596; --line:#e7e2f0; --bg:#faf8fd;
-    --card:#ffffff; --rose:#d96a8e; --rose-dk:#b94f73; --plum:#6c4f9c;
-    --green:#2e9e6b; --green-bg:#e9f7f0; --amber:#c98a1e; --amber-bg:#fdf4e2;
-    --red:#c0392b; --red-bg:#fbeaea; --blue:#3a6bc0; --blue-bg:#eaf1fb;
-    --gray-bg:#f0eef5; --shadow:0 1px 3px rgba(43,36,64,.08),0 6px 20px rgba(43,36,64,.06);
+    --ink:#0a0a14; --muted:#64748b; --line:#e2e8f0; --bg:#ffffff;
+    --card:#ffffff; --rose:#ff2d8a; --rose-dk:#d91d6d; --plum:#0080ff;
+    --green:#22c55e; --green-bg:rgba(34,197,94,.1); --amber:#f06d0a; --amber-bg:rgba(255,138,42,.1);
+    --red:#ef4444; --red-bg:rgba(239,68,68,.1); --blue:#0080ff; --blue-bg:#e6f0ff;
+    --gray-bg:#f7f9fc; --shadow:0 0 20px rgba(0,128,255,.28),0 0 44px rgba(0,128,255,.12);
   }
   *{box-sizing:border-box}
-  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  body{margin:0;font-family:'Figtree',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     color:var(--ink);background:var(--bg);line-height:1.45;font-size:15px;-webkit-font-smoothing:antialiased}
-  header{background:linear-gradient(120deg,#6c4f9c,#d96a8e);color:#fff;padding:18px 20px 16px}
+  header{background:linear-gradient(120deg,#0080ff,#ff2d8a);color:#fff;padding:18px 20px 16px}
   header .wrap{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-  header h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.2px;display:flex;align-items:center;gap:9px}
+  header h1{margin:0;font-family:'DM Serif Display',Georgia,serif;font-size:24px;font-weight:400;letter-spacing:0;display:flex;align-items:center;gap:9px}
   header h1 .org{opacity:.92;font-weight:500;font-size:15px}
   header .yr{font-size:13px;opacity:.9;font-weight:600}
   .icon{font-size:24px}
@@ -39,45 +42,45 @@
   .tabs button.active{color:var(--plum);border-bottom-color:var(--rose)}
   main{max-width:1100px;margin:0 auto;padding:22px 20px 60px}
   .view{display:none}.view.active{display:block}
-  h2{font-size:18px;margin:0 0 4px}
+  h2{font-family:'DM Serif Display',Georgia,serif;font-size:20px;font-weight:400;margin:0 0 4px}
   .sub{color:var(--muted);font-size:13px;margin:0 0 18px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px;margin-bottom:18px}
+  .card{background:var(--card);border:2px solid #0080ff;border-radius:14px;box-shadow:var(--shadow);padding:18px;margin-bottom:18px}
   .card h3{margin:0 0 14px;font-size:15px}
-  label{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin:0 0 4px;text-transform:uppercase;letter-spacing:.3px}
+  label{display:block;font-family:'DM Mono',ui-monospace,monospace;font-size:11.5px;font-weight:500;color:var(--muted);margin:0 0 4px;text-transform:uppercase;letter-spacing:.14em}
   input,select,textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;font:inherit;color:var(--ink);background:#fff}
-  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--plum);box-shadow:0 0 0 3px rgba(108,79,156,.12)}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--plum);box-shadow:0 0 0 3px rgba(0,128,255,.15)}
   textarea{resize:vertical;min-height:46px}
   .grid{display:grid;gap:14px}
   .g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr 1fr}.g4{grid-template-columns:repeat(4,1fr)}
   @media(max-width:720px){.g2,.g3,.g4{grid-template-columns:1fr}}
-  .btn{background:var(--rose);color:#fff;border:none;padding:10px 18px;border-radius:9px;font:inherit;font-weight:700;cursor:pointer}
-  .btn:hover{background:var(--rose-dk)}
+  .btn{background:linear-gradient(135deg,#0080ff,#0052cc);color:#fff;border:none;padding:10px 18px;border-radius:8px;font:inherit;font-weight:700;cursor:pointer;box-shadow:0 4px 14px #0080ff88}
+  .btn:hover{background:#0052cc}
   .btn.ghost{background:#fff;color:var(--plum);border:1px solid var(--line)}
   .btn.ghost:hover{background:var(--gray-bg)}
-  .btn.plum{background:var(--plum)}.btn.plum:hover{background:#583f86}
+  .btn.plum{background:var(--plum)}.btn.plum:hover{background:#0052cc}
   .btn.sm{padding:6px 12px;font-size:13px;font-weight:600}
   .btn.tiny{padding:4px 9px;font-size:12px;border-radius:7px}
-  .btn.danger{background:#fff;color:var(--red);border:1px solid #ecc7c3}
+  .btn.danger{background:#fff;color:var(--red);border:1px solid rgba(239,68,68,.3)}
   .btn.danger:hover{background:var(--red-bg)}
   .btn:disabled{opacity:.5;cursor:not-allowed}
   .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
   table{width:100%;border-collapse:collapse;font-size:14px}
-  th{text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--line)}
+  th{text-align:left;font-family:'DM Mono',ui-monospace,monospace;font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--line)}
   td{padding:10px;border-bottom:1px solid var(--line);vertical-align:middle}
   tr:last-child td{border-bottom:none}
   .num{font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
   .pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11.5px;font-weight:700;white-space:nowrap}
   .pill.income{background:var(--green-bg);color:var(--green)}
-  .pill.expense{background:#fbeaf0;color:var(--rose-dk)}
+  .pill.expense{background:rgba(255,45,138,.12);color:var(--rose-dk)}
   .pill.restricted{background:var(--blue-bg);color:var(--blue)}
   .pill.operating{background:var(--gray-bg);color:var(--muted)}
   .pill.ok{background:var(--green-bg);color:var(--green)}
   .pill.warn{background:var(--amber-bg);color:var(--amber)}
   .pill.over{background:var(--red-bg);color:var(--red)}
-  .pill.qbo{background:#e7f0ff;color:#2563a8}
+  .pill.qbo{background:#e6f0ff;color:#0052cc}
   .stat{display:flex;flex-direction:column;gap:2px}
   .stat .n{font-size:25px;font-weight:800;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
-  .stat .l{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+  .stat .l{font-family:'DM Mono',ui-monospace,monospace;font-size:11px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.14em}
   .stat .s{font-size:12px;color:var(--muted)}
   .stat.green .n{color:var(--green)}.stat.rose .n{color:var(--rose-dk)}.stat.plum .n{color:var(--plum)}
   .stat.red .n{color:var(--red)}.stat.blue .n{color:var(--blue)}
@@ -88,11 +91,11 @@
   .bar > span{position:absolute;left:0;top:0;bottom:0;border-radius:6px;background:var(--plum)}
   .bar.green > span{background:var(--green)} .bar.amber > span{background:var(--amber)} .bar.red > span{background:var(--red)}
   .progwrap{min-width:130px}
-  .note{background:var(--amber-bg);border:1px solid #f0dcb0;border-radius:10px;padding:11px 14px;font-size:13px;color:#7a5a14;margin:0 0 16px}
-  .note b{color:#5e4410}
-  .info{background:var(--blue-bg);border:1px solid #cfe0f6;border-radius:10px;padding:12px 14px;font-size:13.5px;color:#274d8c;margin:0 0 16px;line-height:1.5}
-  .info b{color:#1c3f78}
-  .ok-box{background:var(--green-bg);border:1px solid #bfe6d2;border-radius:10px;padding:11px 14px;font-size:13px;color:#1f6e4b;margin:0 0 16px}
+  .note{background:var(--amber-bg);border:1px solid rgba(255,138,42,.35);border-radius:10px;padding:11px 14px;font-size:13px;color:#f06d0a;margin:0 0 16px}
+  .note b{color:#f06d0a}
+  .info{background:var(--blue-bg);border:1px solid rgba(0,128,255,.3);border-radius:10px;padding:12px 14px;font-size:13.5px;color:#0052cc;margin:0 0 16px;line-height:1.5}
+  .info b{color:#0052cc}
+  .ok-box{background:var(--green-bg);border:1px solid rgba(34,197,94,.35);border-radius:10px;padding:11px 14px;font-size:13px;color:#16a34a;margin:0 0 16px}
   .linkbtn{background:none;border:none;color:var(--rose-dk);font:inherit;font-weight:600;cursor:pointer;padding:0;text-decoration:underline}
   .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px}
   .toolbar .f{flex:1;min-width:130px}
@@ -103,8 +106,8 @@
   .vcloud{font-weight:800;color:var(--plum)}
   .vlink{color:var(--rose-dk);font-weight:700;text-decoration:none}
   .vlink:hover{text-decoration:underline}
-  dialog{border:none;border-radius:16px;box-shadow:0 10px 40px rgba(43,36,64,.3);padding:0;max-width:560px;width:92%}
-  dialog::backdrop{background:rgba(43,36,64,.35)}
+  dialog{border:2px solid #0080ff;border-radius:16px;box-shadow:0 0 20px rgba(0,128,255,.28),0 0 44px rgba(0,128,255,.12);padding:0;max-width:560px;width:92%}
+  dialog::backdrop{background:rgba(10,10,20,.45)}
   .dlg-h{padding:16px 20px;border-bottom:1px solid var(--line);font-weight:700;font-size:16px}
   .dlg-b{padding:18px 20px}
   .dlg-f{padding:14px 20px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:10px;background:var(--bg);border-radius:0 0 16px 16px}
@@ -120,7 +123,7 @@
   .step{display:flex;gap:10px;align-items:flex-start;margin:0 0 6px}
   .step .n{flex:0 0 22px;height:22px;border-radius:50%;background:var(--plum);color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:1px}
   .dropzone{border:2px dashed var(--line);border-radius:12px;padding:26px;text-align:center;color:var(--muted);background:#fff;cursor:pointer;transition:.15s}
-  .dropzone:hover,.dropzone.drag{border-color:var(--plum);background:#f7f4fc;color:var(--plum)}
+  .dropzone:hover,.dropzone.drag{border-color:var(--plum);background:#e6f0ff;color:var(--plum)}
   .mapsel{padding:6px 8px;font-size:13px}
   .mapnum{width:120px;padding:6px 8px;font-size:13px;text-align:right}
 </style>
@@ -602,7 +605,7 @@ function renderOverview(){
             <span class="num"><b style="${teamLeft(t)<0?'color:var(--red)':'color:var(--green)'}">${money0(teamLeft(t))} left</b> <span class="muted">· ${money0(sp)} of ${money0(pot)}</span></span>
           </div>
           <div class="bar ${cls}" style="height:12px"><span style="width:${Math.min(pct,100)}%"></span>
-            ${pot?`<span style="left:${marker}%;width:2px;background:#2b2440;opacity:.45;border-radius:0"></span>`:''}</div>
+            ${pot?`<span style="left:${marker}%;width:2px;background:#0a0a14;opacity:.45;border-radius:0"></span>`:''}</div>
         </div>`;
       }).join('');
   }
@@ -689,7 +692,7 @@ function teamDrill(t){
     if(q) lines=lines.filter(l=>String(l.acct).toLowerCase().includes(q)||String(l.name||'').toLowerCase().includes(q));
     if(!lines.length) return `<tr class="drill"><td colspan="7"><span class="muted">No accounts match “${esc(acctQuery)}”.</span></td></tr>`;
     const rows=lines.map(l=>{ const sp=spentBy[String(l.name||'').toLowerCase()]||0;
-      return `<tr class="drill"><td colspan="2"><span class="muted" style="font-family:monospace">${esc(l.acct)}</span> ${esc(l.name)}</td><td class="num">${money0(l.budget)}</td><td class="num muted">${money0(l.prior)}</td><td class="num">${sp?money0(sp):''}</td><td colspan="2"></td></tr>`; }).join('');
+      return `<tr class="drill"><td colspan="2"><span class="muted" style="font-family:'DM Mono',monospace">${esc(l.acct)}</span> ${esc(l.name)}</td><td class="num">${money0(l.budget)}</td><td class="num muted">${money0(l.prior)}</td><td class="num">${sp?money0(sp):''}</td><td colspan="2"></td></tr>`; }).join('');
     return `<tr class="drill"><td colspan="7" style="padding:0"><table style="margin:0"><tbody>
       <tr class="drill"><td colspan="2" class="muted" style="text-transform:uppercase;font-size:11px;letter-spacing:.3px">Account</td><td class="num muted" style="font-size:11px">Set aside</td><td class="num muted" style="font-size:11px">Prior yr</td><td class="num muted" style="font-size:11px">Spent</td><td colspan="2"></td></tr>
       ${rows}</tbody></table></td></tr>`;
@@ -730,7 +733,7 @@ function renderAccounts(){
   let tB=0,tS=0;
   tb.innerHTML=rows.map(a=>{ tB+=a.budget; tS+=a.spent;
     return `<tr>
-      <td>${a.acct?`<span class="muted" style="font-family:monospace">${esc(a.acct)}</span> `:''}${esc(a.name)}${a.fromBudget?'':' <span class="pill qbo" style="font-size:10px">QBO only</span>'}</td>
+      <td>${a.acct?`<span class="muted" style="font-family:'DM Mono',monospace">${esc(a.acct)}</span> `:''}${esc(a.name)}${a.fromBudget?'':' <span class="pill qbo" style="font-size:10px">QBO only</span>'}</td>
       <td>${esc(teamName(a.teamId))}</td>
       <td class="num">${a.budget?money0(a.budget):''}</td>
       <td class="num">${a.spent?money0(a.spent):''}</td>
@@ -958,7 +961,7 @@ function showParsed(p){
   else { tb.innerHTML=need.map(({a,i})=>{
       const reason=a._teams.length>1?'in 2 budgets':'not in budget';
       const opts='<option value="">— skip —</option>'+db.teams.map(t=>`<option value="${t.id}" ${a._teams[0]===t.id?'selected':''}>${esc(t.name)}</option>`).join('');
-      return `<tr><td><span class="muted" style="font-family:monospace">${esc(a.acct)}</span> ${esc(a.name)} <span class="pill warn" style="font-size:10px">${reason}</span></td><td class="num">${money0(a.amount)}</td><td><select class="mapsel" id="map_${i}">${opts}</select></td></tr>`;
+      return `<tr><td><span class="muted" style="font-family:'DM Mono',monospace">${esc(a.acct)}</span> ${esc(a.name)} <span class="pill warn" style="font-size:10px">${reason}</span></td><td class="num">${money0(a.amount)}</td><td><select class="mapsel" id="map_${i}">${opts}</select></td></tr>`;
     }).join(''); }
   const w=document.getElementById('importWarn');
   if(p.warnings && p.warnings.length){ w.style.display=''; w.innerHTML=p.warnings.map(esc).join('<br>'); } else w.style.display='none';

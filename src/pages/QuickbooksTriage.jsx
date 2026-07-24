@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 
 const S = {
-  orange: "#E8500A", orangeLight: "#FFF4EE", slate: "#1E293B",
-  slateLight: "#F8FAFC", muted: "#64748B", border: "#E2E8F0",
-  green: "#15803D", greenLight: "#F0FDF4", red: "#DC2626",
-  white: "#FFFFFF",
+  orange: "#0080ff", orangeLight: "#e6f0ff", slate: "#0a0a14",
+  slateLight: "#f7f9fc", muted: "#64748b", border: "#e2e8f0",
+  green: "#22c55e", greenLight: "#f0fdf4", red: "#ef4444",
+  white: "#ffffff",
 };
 
 const MONTHLY_URL = "https://buy.stripe.com/7sY5kD7Nl2HgeLp1Q818c06";
@@ -132,7 +132,7 @@ export default function QuickbooksTriage({ session }) {
   return (
     <div style={{ maxWidth: "860px", margin: "0 auto", padding: "32px 16px 60px", fontFamily: "system-ui, -apple-system, sans-serif" }}>
       <div style={{ marginBottom: "8px" }}>
-        <span style={{ background: S.orangeLight, color: S.orange, fontSize: "11px", fontWeight: "700", padding: "4px 10px", borderRadius: "20px", border: "1px solid #FED7AA", textTransform: "uppercase", letterSpacing: "0.06em" }}>Money Tools</span>
+        <span style={{ background: S.orangeLight, color: S.orange, fontSize: "11px", fontWeight: "700", padding: "4px 10px", borderRadius: "20px", border: "1px solid #cce6ff", textTransform: "uppercase", letterSpacing: "0.06em" }}>Money Tools</span>
       </div>
       <h1 style={{ fontSize: "30px", fontWeight: "800", color: S.slate, marginBottom: "10px" }}>Period End QuickBooks Triage</h1>
       <p style={{ color: S.muted, fontSize: "15px", lineHeight: "1.7", marginBottom: "24px", maxWidth: "640px" }}>
@@ -165,7 +165,7 @@ export default function QuickbooksTriage({ session }) {
                 <span style={{ fontSize: "18px" }}>{section.icon}</span>
                 <h2 style={{ color: S.white, fontSize: "14px", fontWeight: "700", margin: 0 }}>{section.title}</h2>
               </div>
-              <span style={{ fontSize: "12px", color: sectionChecked === section.items.length ? "#86EFAC" : "rgba(255,255,255,0.5)", fontWeight: "700" }}>
+              <span style={{ fontSize: "12px", color: sectionChecked === section.items.length ? "#86efac" : "rgba(255,255,255,0.5)", fontWeight: "700" }}>
                 {sectionChecked}/{section.items.length}
               </span>
             </div>
@@ -190,7 +190,7 @@ export default function QuickbooksTriage({ session }) {
       })}
 
       {pct === 100 && (
-        <div style={{ background: S.greenLight, border: "2px solid #BBF7D0", borderRadius: "12px", padding: "20px 24px", marginBottom: "24px", textAlign: "center" }}>
+        <div style={{ background: S.greenLight, border: "2px solid #bbf7d0", borderRadius: "12px", padding: "20px 24px", marginBottom: "24px", textAlign: "center" }}>
           <div style={{ fontSize: "32px", marginBottom: "8px" }}>🎉</div>
           <p style={{ margin: 0, color: S.green, fontSize: "16px", fontWeight: "700" }}>
             {period ? period + " is closed clean." : "Period closed clean."} Go enjoy something.
@@ -198,7 +198,7 @@ export default function QuickbooksTriage({ session }) {
         </div>
       )}
 
-      <div style={{ background: S.orangeLight, border: "1px solid #FED7AA", borderRadius: "12px", padding: "18px 22px" }}>
+      <div style={{ background: S.orangeLight, border: "1px solid #cce6ff", borderRadius: "12px", padding: "18px 22px" }}>
         <p style={{ margin: 0, color: S.orange, fontSize: "14px", fontWeight: "600", lineHeight: "1.6" }}>
           Stuck on something in QBO that doesn't look right? Ask Kari. Bring the account name and what you're seeing.
         </p>

@@ -2,11 +2,11 @@ import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 
 const S = {
-  orange: "#E8500A", orangeLight: "#FFF4EE", slate: "#1E293B",
-  slateLight: "#F8FAFC", muted: "#64748B", border: "#E2E8F0",
-  green: "#15803D", greenLight: "#F0FDF4", red: "#DC2626",
-  blue: "#1D4ED8", blueLight: "#EFF6FF",
-  white: "#FFFFFF",
+  orange: "#0080ff", orangeLight: "#e6f0ff", slate: "#0a0a14",
+  slateLight: "#f7f9fc", muted: "#64748b", border: "#e2e8f0",
+  green: "#22c55e", greenLight: "#f0fdf4", red: "#ef4444",
+  blue: "#0052cc", blueLight: "#e6f0ff",
+  white: "#ffffff",
 };
 
 const MONTHLY_URL = "https://buy.stripe.com/7sY5kD7Nl2HgeLp1Q818c06";
@@ -115,7 +115,7 @@ export default function InHouseVsContract({ session }) {
   return (
     <div style={{ maxWidth: "860px", margin: "0 auto", padding: "32px 16px 60px", fontFamily: "system-ui, -apple-system, sans-serif" }}>
       <div style={{ marginBottom: "8px" }}>
-        <span style={{ background: S.orangeLight, color: S.orange, fontSize: "11px", fontWeight: "700", padding: "4px 10px", borderRadius: "20px", border: "1px solid #FED7AA", textTransform: "uppercase", letterSpacing: "0.06em" }}>People Tools</span>
+        <span style={{ background: S.orangeLight, color: S.orange, fontSize: "11px", fontWeight: "700", padding: "4px 10px", borderRadius: "20px", border: "1px solid #cce6ff", textTransform: "uppercase", letterSpacing: "0.06em" }}>People Tools</span>
       </div>
       <h1 style={{ fontSize: "30px", fontWeight: "800", color: S.slate, marginBottom: "10px" }}>In-House vs. Contract Decision</h1>
       <p style={{ color: S.muted, fontSize: "15px", lineHeight: "1.7", marginBottom: "32px", maxWidth: "640px" }}>
@@ -163,9 +163,9 @@ export default function InHouseVsContract({ session }) {
         </div>
       </div>
 
-      <div style={{ background: "#FFF1F1", border: "2px solid #FECACA", borderRadius: "12px", padding: "22px 24px", marginBottom: "24px" }}>
+      <div style={{ background: "#fff1f1", border: "2px solid #fecaca", borderRadius: "12px", padding: "22px 24px", marginBottom: "24px" }}>
         <h2 style={{ color: S.red, fontSize: "16px", fontWeight: "800", margin: "0 0 14px" }}>🚨 Misclassification Red Flags</h2>
-        <p style={{ color: "#991B1B", fontSize: "13px", margin: "0 0 14px", lineHeight: "1.6" }}>If any of these describe your current contractor relationship, you may have a misclassification problem. The IRS and state agencies can reclassify workers retroactively — with penalties and back taxes.</p>
+        <p style={{ color: "#991b1b", fontSize: "13px", margin: "0 0 14px", lineHeight: "1.6" }}>If any of these describe your current contractor relationship, you may have a misclassification problem. The IRS and state agencies can reclassify workers retroactively — with penalties and back taxes.</p>
         {MISCLASS_RISK.map((item, i) => (
           <div key={i} style={{ display: "flex", gap: "10px", marginBottom: i < MISCLASS_RISK.length - 1 ? "8px" : 0 }}>
             <span style={{ color: S.red, fontWeight: "700", flexShrink: 0 }}>⚠</span>
@@ -184,7 +184,7 @@ export default function InHouseVsContract({ session }) {
         ))}
       </div>
 
-      <div style={{ background: S.orangeLight, border: "1px solid #FED7AA", borderRadius: "12px", padding: "18px 22px" }}>
+      <div style={{ background: S.orangeLight, border: "1px solid #cce6ff", borderRadius: "12px", padding: "18px 22px" }}>
         <p style={{ margin: 0, color: S.orange, fontSize: "14px", fontWeight: "600", lineHeight: "1.6" }}>
           Not sure which structure fits your situation — or worried you've already made the wrong call? Hit Ask Kari. Bring the role description and how you've been paying them.
         </p>

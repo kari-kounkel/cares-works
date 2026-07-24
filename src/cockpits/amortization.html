@@ -6,18 +6,18 @@
 <title>Amortization & Journal Engine — FlowSuite MoneyFlow</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Figtree:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>
   :root{
-    --slate:#3d4560;--slate-deep:#2b3147;--slate-soft:#5a6480;
-    --orange:#e8773a;--orange-soft:#f4a373;
-    --paper:#f7f5f1;--card:#ffffff;--line:#e3ddd2;
-    --ink:#26293a;--muted:#8a8576;--good:#3f7a5a;--warn:#b5532a;--maroon:#7A1F2B;
+    --slate:#0080ff;--slate-deep:#0052cc;--slate-soft:#64748b;
+    --orange:#ff8a2a;--orange-soft:rgba(255,138,42,.5);
+    --paper:#ffffff;--card:#ffffff;--line:#e2e8f0;
+    --ink:#0f172a;--muted:#64748b;--good:#22c55e;--warn:#f06d0a;--maroon:#d91d6d;
     --serif:'DM Serif Display',Georgia,serif;--body:'Figtree',system-ui,sans-serif;--mono:'DM Mono',ui-monospace,monospace;
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   body{font-family:var(--body);background:var(--paper);color:var(--ink);line-height:1.5;
-    background-image:radial-gradient(circle at 15% -10%, rgba(232,119,58,.06), transparent 45%),radial-gradient(circle at 100% 0%, rgba(61,69,96,.07), transparent 40%);min-height:100vh;}
+    background-image:radial-gradient(circle at 15% -10%, rgba(255,138,42,.06), transparent 45%),radial-gradient(circle at 100% 0%, rgba(0,128,255,.06), transparent 40%);min-height:100vh;}
   .wrap{max-width:1280px;margin:0 auto;padding:36px 22px 80px;}
   header.masthead{border-bottom:2px solid var(--slate);padding-bottom:18px;margin-bottom:22px;display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;}
   .brand-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--orange);font-weight:500;}
@@ -29,9 +29,9 @@
   .btn{font-family:var(--body);font-weight:600;font-size:13px;border-radius:8px;cursor:pointer;padding:9px 16px;border:1px solid var(--slate);background:var(--slate);color:#fff;}
   .btn:hover{background:var(--slate-deep);}
   .btn.ghost{background:transparent;color:var(--slate);}
-  .btn.ghost:hover{background:#f1ede4;}
+  .btn.ghost:hover{background:#e6f0ff;}
   .btn.orange{background:var(--orange);border-color:var(--orange);}
-  .btn.orange:hover{background:#d9682f;}
+  .btn.orange:hover{background:#f06d0a;}
   .btn.sm{padding:6px 11px;font-size:12px;}
   .spacer{flex:1;}
   .savednote{font-family:var(--mono);font-size:11px;color:var(--good);}
@@ -39,12 +39,12 @@
   .layout{display:grid;grid-template-columns:268px 1fr;gap:18px;align-items:start;}
   @media(max-width:900px){.layout{grid-template-columns:1fr;}}
 
-  .rail{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 18px 40px -30px rgba(43,49,71,.4);}
+  .rail{background:var(--card);border:2px solid #0080ff;border-radius:14px;padding:14px;box-shadow:0 0 20px rgba(0,128,255,.28),0 0 44px rgba(0,128,255,.12);}
   .rail h2{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--slate-soft);margin-bottom:10px;}
   .ilist{display:flex;flex-direction:column;gap:6px;max-height:62vh;overflow:auto;}
-  .icard{border:1px solid var(--line);border-radius:10px;padding:9px 11px;cursor:pointer;background:#fdfcfa;position:relative;}
+  .icard{border:1px solid var(--line);border-radius:10px;padding:9px 11px;cursor:pointer;background:#f7f9fc;position:relative;}
   .icard:hover{border-color:var(--orange-soft);}
-  .icard.on{border-color:var(--slate);background:#f1ede4;}
+  .icard.on{border-color:var(--slate);background:#e6f0ff;}
   .icard .nm{font-weight:600;color:var(--slate-deep);font-size:13px;line-height:1.25;}
   .icard .meta{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:3px;}
   .pill{display:inline-block;font-family:var(--mono);font-size:8.5px;letter-spacing:.05em;text-transform:uppercase;border-radius:4px;padding:1px 5px;vertical-align:middle;color:#fff;}
@@ -55,13 +55,13 @@
   .empty{font-size:12px;color:var(--muted);font-style:italic;padding:8px 2px;}
 
   .main{display:flex;flex-direction:column;gap:18px;min-width:0;}
-  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 40px -30px rgba(43,49,71,.4);overflow:hidden;}
-  .panel .ph{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:14px 18px;border-bottom:1px solid var(--line);background:#fbfaf7;}
+  .panel{background:var(--card);border:2px solid #0080ff;border-radius:14px;box-shadow:0 0 20px rgba(0,128,255,.28),0 0 44px rgba(0,128,255,.12);overflow:hidden;}
+  .panel .ph{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:14px 18px;border-bottom:1px solid var(--line);background:#f7f9fc;}
   .panel .ph h3{font-family:var(--serif);font-size:19px;color:var(--slate-deep);}
   .panel .pb{padding:18px;}
 
   .tabs{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;}
-  .tabs button{border:none;background:#fdfcfa;padding:8px 14px;cursor:pointer;font-family:var(--body);font-size:12.5px;font-weight:600;color:var(--slate-soft);border-right:1px solid var(--line);}
+  .tabs button{border:none;background:#f7f9fc;padding:8px 14px;cursor:pointer;font-family:var(--body);font-size:12.5px;font-weight:600;color:var(--slate-soft);border-right:1px solid var(--line);}
   .tabs button:last-child{border-right:none;}
   .tabs button.on{background:var(--slate);color:#fff;}
 
@@ -70,8 +70,8 @@
   .field{display:flex;flex-direction:column;gap:4px;}
   .field.full{grid-column:1/-1;}
   .field label{font-family:var(--mono);font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--slate-soft);}
-  .field input,.field select,.field textarea{font-family:var(--body);font-size:14px;color:var(--ink);background:#fdfcfa;border:1px solid var(--line);border-radius:8px;padding:9px 11px;width:100%;}
-  .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--orange);box-shadow:0 0 0 3px rgba(232,119,58,.14);}
+  .field input,.field select,.field textarea{font-family:var(--body);font-size:14px;color:var(--ink);background:#f7f9fc;border:1px solid var(--line);border-radius:8px;padding:9px 11px;width:100%;}
+  .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--orange);box-shadow:0 0 0 3px rgba(255,138,42,.16);}
   .field .sub{font-size:10.5px;color:var(--muted);font-family:var(--mono);}
   .secdiv{grid-column:1/-1;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--orange);border-top:1px solid var(--line);padding-top:13px;margin-top:3px;}
 
@@ -89,12 +89,12 @@
   thead th.l{text-align:left;}
   tbody td{padding:8px 9px;text-align:right;font-family:var(--mono);border-bottom:1px solid var(--line);}
   tbody td.l{text-align:left;font-family:var(--body);}
-  tbody tr:hover td{background:#faf8f4;cursor:pointer;}
-  tbody tr.sel td{background:#fdf6ee;}
-  tbody tr.totals td{background:#f1ede4;font-weight:600;border-top:2px solid var(--slate);}
+  tbody tr:hover td{background:#f7f9fc;cursor:pointer;}
+  tbody tr.sel td{background:rgba(255,138,42,.14);}
+  tbody tr.totals td{background:#e6f0ff;font-weight:600;border-top:2px solid var(--slate);}
 
   .je{border:1px solid var(--line);border-radius:12px;overflow:hidden;}
-  .je .jh{background:#fbfaf7;padding:11px 15px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:11px;color:var(--slate-soft);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+  .je .jh{background:#f7f9fc;padding:11px 15px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:11px;color:var(--slate-soft);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;}
   .je table td.acct{font-family:var(--body);text-align:left;}
   .je .bal{padding:9px 15px;font-family:var(--mono);font-size:11px;}
   .je .bal.ok{color:var(--good);}.je .bal.bad{color:var(--warn);}
@@ -105,14 +105,14 @@
   .howto b{color:var(--slate-deep);}
   .disclaimer{margin-top:14px;font-size:11px;color:var(--muted);font-style:italic;line-height:1.55;border-left:2px solid var(--line);padding-left:13px;}
 
-  .modal{position:fixed;inset:0;background:rgba(38,41,58,.55);display:none;align-items:center;justify-content:center;padding:24px;z-index:50;}
+  .modal{position:fixed;inset:0;background:rgba(10,10,20,.55);display:none;align-items:center;justify-content:center;padding:24px;z-index:50;}
   .modal.on{display:flex;}
   .modal .box{background:var(--card);border-radius:16px;max-width:680px;width:100%;max-height:88vh;overflow:auto;padding:24px;}
   .modal h3{font-family:var(--serif);font-size:22px;color:var(--slate-deep);margin-bottom:6px;}
   .modal p{font-size:13px;color:var(--slate-soft);margin-bottom:12px;}
-  .modal textarea{width:100%;min-height:200px;font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-radius:9px;padding:11px;background:#fdfcfa;}
+  .modal textarea{width:100%;min-height:200px;font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-radius:9px;padding:11px;background:#f7f9fc;}
   .modal .row{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;}
-  code.k{font-family:var(--mono);font-size:11px;background:#f1ede4;padding:1px 5px;border-radius:4px;color:var(--maroon);}
+  code.k{font-family:var(--mono);font-size:11px;background:#e6f0ff;padding:1px 5px;border-radius:4px;color:var(--maroon);}
 
   .foot{margin-top:34px;text-align:center;font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.1em;}
   @media print{@page{margin:.4in;} body{background:#fff;background-image:none;} .toolbar,.rail,.tabs,.howto,.btn,.modal{display:none!important;} .layout{grid-template-columns:1fr;} thead th{position:static;} .panel{box-shadow:none;}}
@@ -603,7 +603,7 @@
       head='<th class="l">#</th><th class="l">Date</th><th class="l">Type</th><th>Payment</th><th>Interest</th><th>Principal</th><th>Accrued int</th><th>Balance</th>';
       body=sc.rows.map(function(r){
         if(r.type==='origination'){
-          return '<tr style="background:#f1ede4;"><td class="l">'+r.t+'</td><td class="l">'+r.date+'</td><td class="l vname">Book loan</td><td class="l" colspan="4" style="color:var(--slate-soft);font-style:italic;">Origination — books '+fmt(r.payment)+' (Dr '+esc(r.book||'loan purpose')+') · see Journal entry tab</td><td>'+fmt(r.balance)+'</td></tr>';
+          return '<tr style="background:#e6f0ff;"><td class="l">'+r.t+'</td><td class="l">'+r.date+'</td><td class="l vname">Book loan</td><td class="l" colspan="4" style="color:var(--slate-soft);font-style:italic;">Origination — books '+fmt(r.payment)+' (Dr '+esc(r.book||'loan purpose')+') · see Journal entry tab</td><td>'+fmt(r.balance)+'</td></tr>';
         }
         var ty=r.type==='accrual'?'Accrual':r.type==='down'?'Down pmt':r.type==='capitalize'?'Int→bal':'Payment';
         return '<tr><td class="l">'+r.t+'</td><td class="l">'+r.date+'</td><td class="l">'+ty+'</td><td>'+(r.payment?fmt(r.payment):'')+'</td><td>'+fmt(r.interest||0)+'</td><td>'+(r.principal?fmt(r.principal):'')+'</td><td>'+(r.accrued?fmt(r.accrued):'')+'</td><td>'+fmt(r.balance)+'</td></tr>';
@@ -763,7 +763,7 @@
     var trows=rows.map(function(r){
       var sched= r.sched!=null? fmt(r.sched) : '<span style="color:var(--muted);font-style:italic;">no schedule</span>';
       var qv=(r.it.yeQbo&&r.it.yeQbo[dateStr]!=null)? r.it.yeQbo[dateStr] : '';
-      var qinput='<input data-ye="'+r.it.id+'" type="number" step="any" value="'+esc(qv)+'" placeholder="QBO $" style="width:118px;font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-radius:6px;padding:5px 7px;text-align:right;background:#fdfcfa;" />';
+      var qinput='<input data-ye="'+r.it.id+'" type="number" step="any" value="'+esc(qv)+'" placeholder="QBO $" style="width:118px;font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-radius:6px;padding:5px 7px;text-align:right;background:#f7f9fc;" />';
       var diff= r.diff==null? '<span style="color:var(--muted);">—</span>' : (Math.abs(r.diff)<0.005? '<span style="color:var(--good);font-weight:600;">✓ ties out</span>' : '<b style="color:var(--warn);">'+fmt(r.diff)+'</b>');
       return '<tr><td class="l vname">'+esc(r.it.name)+'</td><td>'+sched+'</td><td>'+qinput+'</td><td>'+diff+'</td></tr>';
     }).join('');

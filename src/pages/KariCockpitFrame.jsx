@@ -101,12 +101,12 @@ export default function KariCockpitFrame({ session, toolKey, slug, html: htmlPro
 
   return (
     <div style={{ minHeight: "100vh", background: "#ffffff", display: "flex", flexDirection: "column", fontFamily: "'Figtree', system-ui, sans-serif" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "10px 18px", borderBottom: "1px solid #e8e0d0", background: "#fff" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "10px 18px", borderBottom: "1px solid #e2e8f0", background: "#fff" }}>
         <button onClick={() => navigate("/kari")} style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#0080ff", background: "none", border: "none", cursor: "pointer" }}>← Cockpits</button>
-        <span style={{ fontSize: 12, color: "#8a8270" }}>{title || "Cockpit"} · {savedAt ? "saved to your account ✓" : "saves to your account automatically"}</span>
+        <span style={{ fontSize: 12, color: "#64748b" }}>{title || "Cockpit"} · {savedAt ? "saved to your account ✓" : "saves to your account automatically"}</span>
       </div>
       {!ready ? (
-        <div style={{ padding: 40, fontFamily: "'DM Mono', monospace", color: "#8a8270", fontSize: 13 }}>Loading your saved data…</div>
+        <div style={{ padding: 40, fontFamily: "'DM Mono', monospace", color: "#64748b", fontSize: 13 }}>Loading your saved data…</div>
       ) : (
         <iframe title={title || "Cockpit"} srcDoc={srcDoc} style={{ flex: 1, width: "100%", border: "none", minHeight: "calc(100vh - 45px)" }} />
       )}

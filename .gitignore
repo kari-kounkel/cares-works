@@ -7,3 +7,9 @@ dist
 ~$*
 *.tmp
 .DS_Store
+
+# Never commit env files (secrets)
+.env
+
+# Editor config
+.vscode/

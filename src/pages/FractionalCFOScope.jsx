@@ -2,21 +2,21 @@ import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 
 const S = {
-  orange: "#E8500A",
-  orangeLight: "#FFF4EE",
-  slate: "#1E293B",
-  slateLight: "#F8FAFC",
-  muted: "#64748B",
-  border: "#E2E8F0",
-  red: "#DC2626",
-  redLight: "#FFF1F1",
-  green: "#15803D",
-  greenLight: "#F0FDF4",
-  purple: "#6D28D9",
-  purpleLight: "#F5F3FF",
-  blue: "#1D4ED8",
-  blueLight: "#EFF6FF",
-  white: "#FFFFFF",
+  orange: "#0080ff",
+  orangeLight: "#e6f0ff",
+  slate: "#0a0a14",
+  slateLight: "#f7f9fc",
+  muted: "#64748b",
+  border: "#e2e8f0",
+  red: "#ef4444",
+  redLight: "#fff1f1",
+  green: "#22c55e",
+  greenLight: "#f0fdf4",
+  purple: "#ff2d8a",
+  purpleLight: "#fff0f7",
+  blue: "#0052cc",
+  blueLight: "#e6f0ff",
+  white: "#ffffff",
 };
 
 const MONTHLY_URL = "https://buy.stripe.com/7sY5kD7Nl2HgeLp1Q818c06";
@@ -84,9 +84,9 @@ const NEVER_LIST = [
 ];
 
 const COL = {
-  does: { label: "Does", bg: "#F0FDF4", color: "#15803D", border: "#BBF7D0", icon: "✅" },
-  doesnt: { label: "Doesn't", bg: "#FFF1F1", color: "#DC2626", border: "#FECACA", icon: "🚫" },
-  advises: { label: "Advises — You Decide", bg: "#F5F3FF", color: "#6D28D9", border: "#DDD6FE", icon: "💬" },
+  does: { label: "Does", bg: "#f0fdf4", color: "#0f172a", border: "#bbf7d0", icon: "✅" },
+  doesnt: { label: "Doesn't", bg: "#fff1f1", color: "#ef4444", border: "#fecaca", icon: "🚫" },
+  advises: { label: "Advises — You Decide", bg: "#fff0f7", color: "#ff2d8a", border: "#ffc2dd", icon: "💬" },
 };
 
 export default function FractionalCFOScope({ session }) {
@@ -232,7 +232,7 @@ export default function FractionalCFOScope({ session }) {
             fontWeight: "700",
             padding: "4px 10px",
             borderRadius: "20px",
-            border: "1px solid #FED7AA",
+            border: "1px solid #cce6ff",
             textTransform: "uppercase",
             letterSpacing: "0.06em",
           }}
@@ -360,8 +360,8 @@ export default function FractionalCFOScope({ session }) {
 
       <div
         style={{
-          background: "#FFF1F1",
-          border: "2px solid #DC2626",
+          background: "#fff1f1",
+          border: "2px solid #ef4444",
           borderRadius: "14px",
           padding: "28px",
           marginBottom: "32px",
@@ -372,7 +372,7 @@ export default function FractionalCFOScope({ session }) {
           <div>
             <h2
               style={{
-                color: "#DC2626",
+                color: "#ef4444",
                 fontSize: "19px",
                 fontWeight: "800",
                 margin: "0 0 6px",
@@ -380,7 +380,7 @@ export default function FractionalCFOScope({ session }) {
             >
               Never Ask Your CFO to Do These Things
             </h2>
-            <p style={{ color: "#991B1B", fontSize: "13px", margin: 0, lineHeight: "1.6" }}>
+            <p style={{ color: "#991b1b", fontSize: "13px", margin: 0, lineHeight: "1.6" }}>
               This is where the trust breaks and the relationship costs you more than it was worth.
               Each item below has ended a working partnership — or started a legal one.
             </p>
@@ -395,7 +395,7 @@ export default function FractionalCFOScope({ session }) {
                 background: S.white,
                 borderRadius: "8px",
                 padding: "14px 16px",
-                border: "1px solid #FECACA",
+                border: "1px solid #fecaca",
               }}
             >
               <p
@@ -430,12 +430,12 @@ export default function FractionalCFOScope({ session }) {
           style={{
             marginTop: "20px",
             padding: "14px 18px",
-            background: "#FEF2F2",
+            background: "#fef2f2",
             borderRadius: "8px",
-            border: "1px solid #FECACA",
+            border: "1px solid #fecaca",
           }}
         >
-          <p style={{ margin: 0, color: "#DC2626", fontSize: "13px", fontWeight: "700", lineHeight: "1.6" }}>
+          <p style={{ margin: 0, color: "#ef4444", fontSize: "13px", fontWeight: "700", lineHeight: "1.6" }}>
             Sidebar: The fractional CFO who says no to the wrong things is worth more than the one who says yes to everything. Compliance is not loyalty. Pushback is the job.
           </p>
         </div>
@@ -444,7 +444,7 @@ export default function FractionalCFOScope({ session }) {
       <div
         style={{
           background: S.orangeLight,
-          border: "1px solid #FED7AA",
+          border: "1px solid #cce6ff",
           borderRadius: "12px",
           padding: "18px 22px",
         }}

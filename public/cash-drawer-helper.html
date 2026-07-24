@@ -8,7 +8,10 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="Cash Helper" />
-<meta name="theme-color" content="#1F9D55" />
+<meta name="theme-color" content="#22c55e" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>
   /* ============================================================
      CASH DRAWER HELPER  (IBK Thrift)
@@ -19,28 +22,28 @@
      MANAGER: tap "Set up" to set store / bag / drawer amount.
      ============================================================ */
   :root{
-    --bg:#F2F5F4; --card:#FFFFFF; --ink:#1F2A2E; --muted:#5C6B70; --line:#DDE5E3;
-    --keep:#1F9D55; --keep-bg:#E6F6ED; --safe:#2563C9; --safe-bg:#E7EEFB;
-    --shadow:0 2px 0 rgba(31,42,46,.06), 0 10px 24px rgba(31,42,46,.08); --radius:18px;
+    --bg:#f7f9fc; --card:#FFFFFF; --ink:#0f172a; --muted:#64748b; --line:#e2e8f0;
+    --keep:#22c55e; --keep-bg:rgba(34,197,94,.12); --safe:#0080ff; --safe-bg:#e6f0ff;
+    --shadow:0 2px 0 rgba(15,23,42,.06), 0 10px 24px rgba(15,23,42,.08); --radius:18px;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
-  body{font-family:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--ink);-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent;padding-bottom:160px;}
+  body{font-family:'Figtree',"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;background:#ffffff;color:var(--ink);-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent;padding-bottom:160px;}
   .wrap{max-width:820px;margin:0 auto;padding:0 16px;}
 
   header{background:var(--card);border-bottom:1px solid var(--line);padding:16px;text-align:center;position:relative;}
-  .eyebrow{font-size:14px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--keep);margin-bottom:2px;}
-  header h1{margin:0;font-size:30px;letter-spacing:-.5px;}
+  .eyebrow{font-family:'DM Mono',ui-monospace,monospace;font-size:14px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--keep);margin-bottom:2px;}
+  header h1{margin:0;font-family:'DM Serif Display',Georgia,serif;font-size:30px;letter-spacing:-.5px;}
   header p{margin:6px 0 0;color:var(--muted);font-size:17px;}
   .gear{position:absolute;top:14px;right:12px;background:none;border:1px solid var(--line);font-size:15px;font-weight:700;color:var(--muted);cursor:pointer;padding:8px 10px;line-height:1;border-radius:10px;}
   .gear:active{background:var(--bg);}
 
-  .howto{background:#FFF;border:1px solid var(--line);border-radius:var(--radius);margin:18px 0 6px;padding:14px 18px;font-size:17px;box-shadow:var(--shadow);}
+  .howto{background:#FFF;border:2px solid #0080ff;border-radius:var(--radius);margin:18px 0 6px;padding:14px 18px;font-size:17px;box-shadow:0 0 20px rgba(0,128,255,.28),0 0 44px rgba(0,128,255,.12);}
   .howto b{display:block;font-size:18px;margin-bottom:4px;}
   .howto ol{margin:0;padding-left:22px;}
   .howto li{margin:3px 0;}
 
-  .colhead{display:flex;align-items:center;gap:12px;padding:6px 16px 0;color:var(--muted);font-size:13px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;}
+  .colhead{display:flex;align-items:center;gap:12px;padding:6px 16px 0;color:var(--muted);font-family:'DM Mono',ui-monospace,monospace;font-size:13px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;}
   .colhead .h-name{flex:1 1 auto;}
   .colhead .h-count{flex:0 0 200px;text-align:center;}
   .colhead .h-val{flex:0 0 148px;text-align:center;}
@@ -56,31 +59,31 @@
   .stepper{flex:0 0 auto;display:flex;align-items:center;gap:8px;}
   .step{width:60px;height:60px;border-radius:14px;border:2px solid var(--line);background:#FFF;font-size:34px;font-weight:800;color:var(--ink);cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;}
   .step:active{background:var(--bg);transform:translateY(1px);}
-  .step.minus{color:var(--safe);border-color:#C7D6F4;}
+  .step.minus{color:var(--safe);border-color:rgba(0,128,255,.35);}
   .step.plus{color:#FFF;background:var(--keep);border-color:var(--keep);}
-  .step.plus:active{background:#188046;}
-  .qty{width:74px;height:60px;text-align:center;font-size:30px;font-weight:800;border:2px solid var(--line);border-radius:12px;color:var(--ink);background:#FBFDFC;-moz-appearance:textfield;}
+  .step.plus:active{background:#16a34a;}
+  .qty{width:74px;height:60px;text-align:center;font-size:30px;font-weight:800;border:2px solid var(--line);border-radius:12px;color:var(--ink);background:#f7f9fc;-moz-appearance:textfield;}
   .qty::-webkit-outer-spin-button,.qty::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
 
   .cashbox{flex:0 0 148px;display:flex;align-items:center;gap:4px;justify-content:center;}
   .cs{font-size:23px;font-weight:800;color:var(--muted);}
-  .cash{width:118px;height:60px;text-align:right;font-size:25px;font-weight:800;border:2px solid #C7D6F4;border-radius:12px;color:var(--ink);background:#F7FAFF;padding:0 10px;-moz-appearance:textfield;}
+  .cash{width:118px;height:60px;text-align:right;font-size:25px;font-weight:800;border:2px solid rgba(0,128,255,.35);border-radius:12px;color:var(--ink);background:#e6f0ff;padding:0 10px;-moz-appearance:textfield;}
   .cash::-webkit-outer-spin-button,.cash::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
 
-  .bar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);box-shadow:0 -8px 24px rgba(31,42,46,.10);padding:12px 16px 16px;}
+  .bar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);box-shadow:0 -8px 24px rgba(15,23,42,.10);padding:12px 16px 16px;}
   .bar .wrap{display:flex;flex-direction:column;gap:10px;}
   .total{display:flex;justify-content:space-between;align-items:baseline;font-size:18px;color:var(--muted);}
   .total b{font-size:30px;color:var(--ink);}
-  .go{width:100%;border:none;border-radius:16px;background:var(--keep);color:#FFF;font-size:24px;font-weight:800;padding:20px;cursor:pointer;box-shadow:0 4px 0 #168045;}
-  .go:active{transform:translateY(2px);box-shadow:0 2px 0 #168045;}
+  .go{width:100%;border:none;border-radius:16px;background:var(--keep);color:#FFF;font-size:24px;font-weight:800;padding:20px;cursor:pointer;box-shadow:0 4px 0 #16a34a;}
+  .go:active{transform:translateY(2px);box-shadow:0 2px 0 #16a34a;}
 
   #results{display:none;}
   .panel{border-radius:var(--radius);padding:18px;margin:16px 0;border:2px solid;}
   .panel h2{margin:0 0 4px;font-size:24px;display:flex;align-items:center;gap:10px;}
   .panel .sub{margin:0 0 14px;font-size:16px;color:var(--muted);}
-  .panel.safe{background:var(--safe-bg);border-color:#BBD0F6;}
+  .panel.safe{background:var(--safe-bg);border-color:#0080ff;box-shadow:0 0 20px rgba(0,128,255,.28),0 0 44px rgba(0,128,255,.12);}
   .panel.safe h2{color:var(--safe);}
-  .panel.keep{background:var(--keep-bg);border-color:#B7E6C9;}
+  .panel.keep{background:var(--keep-bg);border-color:#22c55e;box-shadow:0 0 20px rgba(34,197,94,.28),0 0 44px rgba(34,197,94,.12);}
   .panel.keep h2{color:var(--keep);}
   .line{display:flex;align-items:center;gap:14px;background:rgba(255,255,255,.78);border-radius:14px;padding:12px 14px;margin:9px 0;font-size:20px;}
   .line .cnt{font-size:30px;font-weight:800;min-width:46px;text-align:center;}
@@ -91,17 +94,17 @@
   .line.done .lbl{text-decoration:line-through;}
   .tally{text-align:center;font-size:22px;font-weight:800;padding:10px 0 2px;}
   .tally span{display:block;font-size:15px;font-weight:600;color:var(--muted);}
-  .ready{text-align:center;background:var(--keep-bg);border:2px solid #B7E6C9;border-radius:var(--radius);padding:22px;margin:16px 0;}
+  .ready{text-align:center;background:var(--keep-bg);border:2px solid #22c55e;box-shadow:0 0 20px rgba(34,197,94,.28),0 0 44px rgba(34,197,94,.12);border-radius:var(--radius);padding:22px;margin:16px 0;}
   .ready .big{font-size:44px;font-weight:900;color:var(--keep);margin:6px 0;}
   .ready .em{font-size:40px;}
   .restart{width:100%;border:2px solid var(--line);border-radius:16px;background:#FFF;color:var(--ink);font-size:21px;font-weight:800;padding:18px;cursor:pointer;margin-top:10px;}
   .restart:active{background:var(--bg);}
-  .restart.print{border-color:#BBD0F6;color:var(--safe);}
+  .restart.print{border-color:rgba(0,128,255,.45);color:var(--safe);}
   .backlink{display:block;text-align:center;margin:14px 0 0;color:var(--safe);font-weight:700;font-size:17px;background:none;border:none;width:100%;cursor:pointer;}
 
-  .modal{display:none;position:fixed;inset:0;z-index:50;background:rgba(20,28,30,.45);align-items:flex-start;justify-content:center;padding:20px 14px;overflow:auto;}
+  .modal{display:none;position:fixed;inset:0;z-index:50;background:rgba(10,10,20,.45);align-items:flex-start;justify-content:center;padding:20px 14px;overflow:auto;}
   .modal.open{display:flex;}
-  .sheet{background:#FFF;border-radius:var(--radius);max-width:580px;width:100%;padding:20px;box-shadow:var(--shadow);}
+  .sheet{background:#FFF;border:2px solid #0080ff;border-radius:var(--radius);max-width:580px;width:100%;padding:20px;box-shadow:0 0 20px rgba(0,128,255,.28),0 0 44px rgba(0,128,255,.12);}
   .sheet h2{margin:0 0 2px;font-size:22px;}
   .sheet p{margin:0 0 14px;color:var(--muted);font-size:15px;}
   .field{margin:10px 0 4px;}
@@ -127,12 +130,12 @@
     body{background:#fff;}
     body > *:not(#printArea){display:none !important;}
     #printArea{display:block !important;}
-    .slip{font-family:Georgia,"Times New Roman",serif;color:#000;max-width:540px;margin:0 auto;}
-    .slip h2{margin:0;font-size:22px;text-align:center;}
-    .slipsub{text-align:center;color:#333;margin:3px 0 14px;font-size:13px;}
+    .slip{font-family:'Figtree',"Segoe UI",Arial,sans-serif;color:#000;max-width:540px;margin:0 auto;}
+    .slip h2{margin:0;font-family:'DM Serif Display',Georgia,serif;font-size:22px;text-align:center;}
+    .slipsub{text-align:center;color:#0f172a;margin:3px 0 14px;font-size:13px;}
     .slip table{width:100%;border-collapse:collapse;font-size:14px;}
-    .slip th,.slip td{border:1px solid #999;padding:6px 8px;}
-    .slip thead th{background:#eee;text-align:left;}
+    .slip th,.slip td{border:1px solid #64748b;padding:6px 8px;}
+    .slip thead th{background:#e2e8f0;text-align:left;}
     .slip tfoot td{font-weight:800;border-top:2px solid #000;}
     .slip .sliprow{display:flex;justify-content:space-between;margin-top:8px;font-size:14px;}
     .slip .sign{margin-top:30px;font-size:13px;line-height:2.4;}
@@ -227,11 +230,11 @@ let SHOW   = { 10000:true,5000:true,2000:true,1000:true,500:true,100:true,50:tru
 /* 3) MONEY PICTURES (drawn — offline-safe, no currency-reproduction issues) */
 function svgBill(d){
   const big=d.label, sm=d.label.replace("$",""), init=d.short.charAt(0).toUpperCase();
-  return `<svg class="m m-bill" viewBox="0 0 96 56" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${d.label} bill"><rect x="1.5" y="1.5" width="93" height="53" rx="7" fill="#CDE6D2" stroke="#2F7048" stroke-width="2"/><rect x="6" y="6" width="84" height="44" rx="4" fill="none" stroke="#52916C" stroke-width="1.2" opacity=".7"/><circle cx="20" cy="28" r="11" fill="#BBDDC3" stroke="#52916C"/><text x="20" y="32" text-anchor="middle" font-family="Georgia,serif" font-size="12" font-weight="700" fill="#1d5333">${init}</text><text x="58" y="36" text-anchor="middle" font-size="22" font-weight="800" fill="#13401f">${big}</text><text x="89" y="16" text-anchor="end" font-size="10" font-weight="800" fill="#13401f">${sm}</text><text x="10" y="49" font-size="10" font-weight="800" fill="#13401f">${sm}</text></svg>`;
+  return `<svg class="m m-bill" viewBox="0 0 96 56" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${d.label} bill"><rect x="1.5" y="1.5" width="93" height="53" rx="7" fill="rgba(34,197,94,.16)" stroke="#16a34a" stroke-width="2"/><rect x="6" y="6" width="84" height="44" rx="4" fill="none" stroke="#22c55e" stroke-width="1.2" opacity=".7"/><circle cx="20" cy="28" r="11" fill="rgba(34,197,94,.28)" stroke="#22c55e"/><text x="20" y="32" text-anchor="middle" font-family="'DM Serif Display',Georgia,serif" font-size="12" font-weight="700" fill="#0a0a14">${init}</text><text x="58" y="36" text-anchor="middle" font-size="22" font-weight="800" fill="#0a0a14">${big}</text><text x="89" y="16" text-anchor="end" font-size="10" font-weight="800" fill="#0a0a14">${sm}</text><text x="10" y="49" font-size="10" font-weight="800" fill="#0a0a14">${sm}</text></svg>`;
 }
 function coinR(v){ return v===50?26:v===25?25:v===5?23:v===1?22:v===10?19:24; }
 function svgCoin(d){
-  const copper=d.v===1, r=coinR(d.v), a=copper?"#EBB079":"#DCE0E6", b=copper?"#A9602F":"#9AA1AB", fs=r<21?12:15, tcol=copper?"#5a2f12":"#2b3138";
+  const copper=d.v===1, r=coinR(d.v), a=copper?"#ff8a2a":"#e2e8f0", b=copper?"#f06d0a":"#94a3b8", fs=r<21?12:15, tcol=copper?"#0a0a14":"#0f172a";
   return `<svg class="m m-coin" viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${d.label} coin"><defs><radialGradient id="cg${d.v}" cx="38%" cy="32%" r="75%"><stop offset="0%" stop-color="${a}"/><stop offset="100%" stop-color="${b}"/></radialGradient></defs><circle cx="28" cy="28" r="${r}" fill="url(#cg${d.v})" stroke="${b}" stroke-width="2"/><circle cx="28" cy="28" r="${r-4}" fill="none" stroke="#fff" stroke-width="1" opacity=".4"/><text x="28" y="${28+fs*0.36}" text-anchor="middle" font-size="${fs}" font-weight="800" fill="${tcol}">${d.label}</text></svg>`;
 }
 function moneyHTML(d){ return d.kind==="bill" ? svgBill(d) : svgCoin(d); }

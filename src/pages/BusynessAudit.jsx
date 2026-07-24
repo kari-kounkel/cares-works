@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 
 const S = {
-  orange: "#E8500A", orangeLight: "#FFF4EE", slate: "#1E293B",
-  slateLight: "#F8FAFC", muted: "#64748B", border: "#E2E8F0",
-  green: "#15803D", greenLight: "#F0FDF4", red: "#DC2626",
-  white: "#FFFFFF",
+  orange: "#0080ff", orangeLight: "#e6f0ff", slate: "#0a0a14",
+  slateLight: "#f7f9fc", muted: "#64748b", border: "#e2e8f0",
+  green: "#22c55e", greenLight: "#f0fdf4", red: "#ef4444",
+  white: "#ffffff",
 };
 
 const MONTHLY_URL = "https://buy.stripe.com/7sY5kD7Nl2HgeLp1Q818c06";
@@ -95,9 +95,9 @@ export default function BusynessAudit({ session }) {
   const s = score();
   const pct = total ? Math.round((s / total) * 100) : 0;
 
-  const result = pct >= 75 ? { label: "Running Profitable", color: S.green, bg: S.greenLight, border: "#BBF7D0", msg: "You're thinking like a business owner, not just a freelancer. The behaviors are there — keep sharpening the numbers side." }
-    : pct >= 50 ? { label: "Mixed — More Busy Than Profitable", color: S.orange, bg: S.orangeLight, border: "#FED7AA", msg: "You have the instincts but the systems aren't fully there yet. Pick two moves from below and do them this month." }
-    : { label: "Running Busy", color: S.red, bg: "#FFF1F1", border: "#FECACA", msg: "You are working hard. You may not be building wealth. That's fixable — but it requires looking at the numbers honestly." };
+  const result = pct >= 75 ? { label: "Running Profitable", color: S.green, bg: S.greenLight, border: "#bbf7d0", msg: "You're thinking like a business owner, not just a freelancer. The behaviors are there — keep sharpening the numbers side." }
+    : pct >= 50 ? { label: "Mixed — More Busy Than Profitable", color: S.orange, bg: S.orangeLight, border: "#cce6ff", msg: "You have the instincts but the systems aren't fully there yet. Pick two moves from below and do them this month." }
+    : { label: "Running Busy", color: S.red, bg: "#fff1f1", border: "#fecaca", msg: "You are working hard. You may not be building wealth. That's fixable — but it requires looking at the numbers honestly." };
 
   if (loading) return <div style={{ padding: "60px", textAlign: "center", color: S.muted }}>Loading...</div>;
 
@@ -116,7 +116,7 @@ export default function BusynessAudit({ session }) {
   return (
     <div style={{ maxWidth: "860px", margin: "0 auto", padding: "32px 16px 60px", fontFamily: "system-ui, -apple-system, sans-serif" }}>
       <div style={{ marginBottom: "8px" }}>
-        <span style={{ background: S.orangeLight, color: S.orange, fontSize: "11px", fontWeight: "700", padding: "4px 10px", borderRadius: "20px", border: "1px solid #FED7AA", textTransform: "uppercase", letterSpacing: "0.06em" }}>Leadership Tools</span>
+        <span style={{ background: S.orangeLight, color: S.orange, fontSize: "11px", fontWeight: "700", padding: "4px 10px", borderRadius: "20px", border: "1px solid #cce6ff", textTransform: "uppercase", letterSpacing: "0.06em" }}>Leadership Tools</span>
       </div>
       <h1 style={{ fontSize: "30px", fontWeight: "800", color: S.slate, marginBottom: "10px" }}>Busy vs. Profitable Audit</h1>
       <p style={{ color: S.muted, fontSize: "15px", lineHeight: "1.7", marginBottom: "8px", maxWidth: "640px" }}>
@@ -162,23 +162,23 @@ export default function BusynessAudit({ session }) {
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px", marginBottom: "24px" }}>
-            <div style={{ background: "#FFF1F1", border: "1px solid #FECACA", borderRadius: "12px", overflow: "hidden" }}>
-              <div style={{ padding: "14px 18px", borderBottom: "1px solid #FECACA" }}>
+            <div style={{ background: "#fff1f1", border: "1px solid #fecaca", borderRadius: "12px", overflow: "hidden" }}>
+              <div style={{ padding: "14px 18px", borderBottom: "1px solid #fecaca" }}>
                 <h2 style={{ color: S.red, fontSize: "14px", fontWeight: "800", margin: 0 }}>Signs You're Running Busy</h2>
               </div>
               {SIGNS_BUSY.map((item, i) => (
-                <div key={i} style={{ padding: "10px 18px", borderBottom: i < SIGNS_BUSY.length - 1 ? "1px solid #FECACA" : "none", display: "flex", gap: "10px" }}>
+                <div key={i} style={{ padding: "10px 18px", borderBottom: i < SIGNS_BUSY.length - 1 ? "1px solid #fecaca" : "none", display: "flex", gap: "10px" }}>
                   <span style={{ color: S.red, flexShrink: 0 }}>✗</span>
                   <span style={{ fontSize: "13px", color: S.slate, lineHeight: "1.5" }}>{item}</span>
                 </div>
               ))}
             </div>
-            <div style={{ background: S.greenLight, border: "1px solid #BBF7D0", borderRadius: "12px", overflow: "hidden" }}>
-              <div style={{ padding: "14px 18px", borderBottom: "1px solid #BBF7D0" }}>
+            <div style={{ background: S.greenLight, border: "1px solid #bbf7d0", borderRadius: "12px", overflow: "hidden" }}>
+              <div style={{ padding: "14px 18px", borderBottom: "1px solid #bbf7d0" }}>
                 <h2 style={{ color: S.green, fontSize: "14px", fontWeight: "800", margin: 0 }}>Signs You're Running Profitable</h2>
               </div>
               {SIGNS_PROFITABLE.map((item, i) => (
-                <div key={i} style={{ padding: "10px 18px", borderBottom: i < SIGNS_PROFITABLE.length - 1 ? "1px solid #BBF7D0" : "none", display: "flex", gap: "10px" }}>
+                <div key={i} style={{ padding: "10px 18px", borderBottom: i < SIGNS_PROFITABLE.length - 1 ? "1px solid #bbf7d0" : "none", display: "flex", gap: "10px" }}>
                   <span style={{ color: S.green, flexShrink: 0 }}>✓</span>
                   <span style={{ fontSize: "13px", color: S.slate, lineHeight: "1.5" }}>{item}</span>
                 </div>
@@ -200,7 +200,7 @@ export default function BusynessAudit({ session }) {
         </div>
       )}
 
-      <div style={{ background: S.orangeLight, border: "1px solid #FED7AA", borderRadius: "12px", padding: "18px 22px" }}>
+      <div style={{ background: S.orangeLight, border: "1px solid #cce6ff", borderRadius: "12px", padding: "18px 22px" }}>
         <p style={{ margin: 0, color: S.orange, fontSize: "14px", fontWeight: "600", lineHeight: "1.6" }}>
           Not sure which move to make first? Hit Ask Kari. Bring your current revenue, your top three clients, and what's taking most of your time.
         </p>
