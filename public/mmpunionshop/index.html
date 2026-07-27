@@ -243,16 +243,13 @@ footer.site .legal {
 }
 </style>
 </head>
-<body>
+<body data-page-slug="union-home">
 
 <!-- =============================================================
      CHRISTINE — this is the mmpunionshop.com site. Its own domain,
-     union-first identity. When it launches, this site lives at
-     mmpunionshop.com. For now, it previews under
-     tools.caresmn.com/mmpunionshop/
-
-     Content between <main>...</main> is what you can rework.
-     Yellow boxes = write copy. Grey boxes = image needed.
+     union-first identity. It shares your edit token with the main
+     site — one bookmark, both sites. Click any dashed-outline block
+     to edit it in place, then hit "Save & Publish" at the bottom.
      ============================================================= -->
 
 <div class="top-bar">
@@ -287,9 +284,9 @@ footer.site .legal {
 <section class="hero">
   <div class="hero-inner">
     <div>
-      <div class="eyebrow">Union-printed. Union-bugged. Union-proud.</div>
-      <h1>Union-mandated print,<br><span class="accent">done by a union shop.</span></h1>
-      <p class="lede">If your local is required to buy union-printed materials, you shouldn&rsquo;t have to hunt through a catalog aimed at anyone-else. Every job we run here carries the bug — direct mail, palm cards, yard signs, buttons, apparel, banners. Fast turnaround. Union pricing. Zero drama.</p>
+      <div class="eyebrow" data-block-id="hero-eyebrow">Union-printed. Union-bugged. Union-proud.</div>
+      <h1 data-block-id="hero-h1">Union-mandated print,<br><span class="accent">done by a union shop.</span></h1>
+      <p class="lede" data-block-id="hero-lede">If your local is required to buy union-printed materials, you shouldn&rsquo;t have to hunt through a catalog aimed at anyone-else. Every job we run here carries the bug — direct mail, palm cards, yard signs, buttons, apparel, banners. Fast turnaround. Union pricing. Zero drama.</p>
       <div class="hero-ctas">
         <a class="btn btn-primary btn-lg" href="/mmpuptown/print-store/order/">Place a Union Order →</a>
         <a class="btn btn-gold btn-lg" href="/mmpuptown/print-store/quote/">Get a Union Quote</a>
@@ -323,9 +320,9 @@ footer.site .legal {
 <!-- =============== UNION PRODUCT GRID (9 categories from sitemap) =============== -->
 <section id="products">
   <div class="section-inner">
-    <div class="section-eyebrow">What we print with the bug</div>
-    <h2>Nine categories. <span class="accent">Every one union-mandated ready.</span></h2>
-    <p class="sub">The full Union &amp; Political Printing catalog. Every job carries the bug. Standard turnaround 3–4 business days; rush available.</p>
+    <div class="section-eyebrow" data-block-id="prods-eyebrow">What we print with the bug</div>
+    <h2 data-block-id="prods-h2">Nine categories. <span class="accent">Every one union-mandated ready.</span></h2>
+    <p class="sub" data-block-id="prods-sub">The full Union &amp; Political Printing catalog. Every job carries the bug. Standard turnaround 3–4 business days; rush available.</p>
 
     <div class="card-grid">
       <a class="card" href="/mmpuptown/print-store/quote/">
@@ -409,9 +406,9 @@ footer.site .legal {
   <div class="section-inner">
     <div class="callout red-accent" style="grid-template-columns:1.2fr 1fr;">
       <div>
-        <div class="section-eyebrow">Why us</div>
-        <h3>Because it&rsquo;s not just a bug — it&rsquo;s a real shop.</h3>
-        <p>Some shops slap a union bug on brochures printed by non-union labor. We don&rsquo;t. This is a real union print shop with real union pressmen and real union suppliers. Every job. No exceptions.</p>
+        <div class="section-eyebrow" data-block-id="why-eyebrow">Why us</div>
+        <h3 data-block-id="why-h3">Because it&rsquo;s not just a bug — it&rsquo;s a real shop.</h3>
+        <p data-block-id="why-body">Some shops slap a union bug on brochures printed by non-union labor. We don&rsquo;t. This is a real union print shop with real union pressmen and real union suppliers. Every job. No exceptions.</p>
         <p class="ck-note" style="margin-top:0;">Christine — this is the trust-signal callout. Frank has an actual story here about union labor. Rewrite in his voice. Include a specific credential (local number, longevity, whatever&rsquo;s true).</p>
         <a class="btn btn-primary" href="/mmpuptown/mission/">Read Frank&rsquo;s union story →</a>
       </div>
@@ -518,5 +515,6 @@ footer.site .legal {
 </footer>
 
 <script src="https://chat.karikounkel.com/widget.js" defer></script>
+<script src="/mmpuptown/assets/editor.js" defer></script>
 </body>
 </html>
