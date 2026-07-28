@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 import { navigate } from "../App";
-import { N, N_RGB, FONT_LINK, NeonBox, NeonBtn, SignatureFooter } from "../design/neon";
+import { N, N_RGB, FONT_LINK, NeonBox, NeonBtn, SignatureFooter, WASH_BG, HERO_TEXT_GRAD, HERO_BTN_GLOW } from "../design/neon";
 
 const MONTHLY_URL = "https://buy.stripe.com/7sY5kD7Nl2HgeLp1Q818c06";
 const ANNUAL_URL = "https://buy.stripe.com/14A5kD4B981AgTxcuM18c09";
@@ -52,7 +52,7 @@ export default function Landing({ session }) {
   }, []);
 
   return (
-    <div style={{ fontFamily: "'Figtree', sans-serif", background: N.white, color: N.ink, lineHeight: 1.65 }}>
+    <div style={{ fontFamily: "'Figtree', sans-serif", background: WASH_BG, color: N.ink, lineHeight: 1.65 }}>
       <style>{MOBILE}</style>
       <link href={FONT_LINK} rel="stylesheet" />
 
@@ -67,7 +67,7 @@ export default function Landing({ session }) {
               CARES Works · Tools that do the actual work.
             </div>
             <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(28px, 4.5vw, 44px)", lineHeight: 1.1, marginBottom: 16, color: N.ink }}>
-              Built from real work.<br /><em style={{ fontStyle: "italic", color: N.blueHot }}>Not a course. Not a coach.</em>
+              Built from real work.<br /><em style={{ fontStyle: "italic", ...HERO_TEXT_GRAD }}>Not a course. Not a coach.</em>
             </h1>
             <p style={{ fontSize: 16, color: N.muted, marginBottom: 24, lineHeight: 1.6 }}>
               Plain-English tools for the business problems nobody taught you how to solve. New tools added monthly.
@@ -81,10 +81,10 @@ export default function Landing({ session }) {
               <NeonBtn color={N.blue} onClick={() => navigate("/dashboard")} mono>My Dashboard →</NeonBtn>
             ) : (
               <>
-                <a href={MONTHLY_URL} style={{ display: "inline-block", background: N.blue, color: N.white, fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", padding: "14px 32px", borderRadius: 8, textDecoration: "none", marginBottom: 10, fontWeight: 700, boxShadow: `0 6px 20px rgba(0,128,255,0.5)` }}>
+                <a href={MONTHLY_URL} style={{ display: "inline-block", background: N.blue, color: N.white, fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", padding: "14px 32px", borderRadius: 8, textDecoration: "none", marginBottom: 10, fontWeight: 700, boxShadow: HERO_BTN_GLOW }}>
                   Join CARES Works — $27/month
                 </a>
-                <div style={{ fontSize: 12, color: N.muted, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>or <a href={ANNUAL_URL} style={{ color: N.orange, textDecoration: "none", fontWeight: 700 }}>$270/year</a> · cancel anytime</div>
+                <div style={{ fontSize: 12, color: N.muted, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>or <a href={ANNUAL_URL} style={{ color: N.orange, textDecoration: "none", fontWeight: 700 }}>$270/year</a> · cancel anytime · <a href="/pricing" style={{ color: N.pink, textDecoration: "none", fontWeight: 700 }}>see all plans →</a></div>
               </>
             )}
           </div>
@@ -166,7 +166,7 @@ export default function Landing({ session }) {
             <div className="lp-membership-price" style={{ textAlign: "center", flexShrink: 0, minWidth: 220 }}>
               <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 52, color: N.ink, lineHeight: 1, marginBottom: 4 }}>$27<span style={{ fontFamily: "'Figtree', sans-serif", fontSize: 16, color: N.muted, fontWeight: 400 }}>/mo</span></div>
               <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: N.muted, marginBottom: 20, letterSpacing: "0.05em" }}>or <strong style={{ color: N.orange }}>$270/year</strong> — 2 months free</div>
-              <a href={MONTHLY_URL} style={{ display: "block", background: N.blue, color: N.white, fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", padding: "14px 28px", borderRadius: 8, textDecoration: "none", marginBottom: 10, textAlign: "center", fontWeight: 700, boxShadow: `0 6px 20px rgba(0,128,255,0.5)` }}>Join Monthly — $27/mo</a>
+              <a href={MONTHLY_URL} style={{ display: "block", background: N.blue, color: N.white, fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", padding: "14px 28px", borderRadius: 8, textDecoration: "none", marginBottom: 10, textAlign: "center", fontWeight: 700, boxShadow: HERO_BTN_GLOW }}>Join Monthly — $27/mo</a>
               <a href={ANNUAL_URL} style={{ display: "block", background: N.orange, color: N.white, fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", padding: "14px 28px", borderRadius: 8, textDecoration: "none", marginBottom: 10, textAlign: "center", fontWeight: 700, boxShadow: `0 6px 20px rgba(255,138,42,0.5)` }}>Join Annual — $270/yr</a>
               <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: N.muted, letterSpacing: "0.05em" }}>Full tool library. New monthly drops.<br />Monthly Debrief. Cancel anytime.</div>
             </div>

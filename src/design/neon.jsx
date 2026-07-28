@@ -33,6 +33,47 @@ export const N_RGB = {
 
 export const FONT_LINK = "https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&display=swap";
 
+// --- Pizzazz helpers (no black — subtle color energy on white) ---------------
+
+// Multi-color radial wash for the page background. Blue top-left, pink top-right,
+// orange bottom-center. All very low opacity so text stays black-on-white readable.
+export const WASH_BG = `
+  radial-gradient(ellipse at 15% 0%, rgba(0,128,255,0.10), transparent 55%),
+  radial-gradient(ellipse at 85% 0%, rgba(255,45,138,0.08), transparent 55%),
+  radial-gradient(ellipse at 50% 100%, rgba(255,138,42,0.06), transparent 60%),
+  #ffffff
+`;
+
+// Subtler version — used for interior pages (Dashboard/tools). Less color, more air.
+export const WASH_BG_LITE = `
+  radial-gradient(ellipse at 10% 0%, rgba(0,128,255,0.06), transparent 45%),
+  radial-gradient(ellipse at 90% 20%, rgba(255,45,138,0.04), transparent 50%),
+  #ffffff
+`;
+
+// Gradient-fill text — inline style for hero <h1> highlights.
+// Usage: <h1>Pricing that <span style={HERO_TEXT_GRAD}>respects the work.</span></h1>
+export const HERO_TEXT_GRAD = {
+  background: `linear-gradient(90deg, ${N.blue} 0%, ${N.pink} 55%, ${N.orange} 100%)`,
+  WebkitBackgroundClip: "text",
+  WebkitTextFillColor: "transparent",
+  backgroundClip: "text",
+};
+
+// Blue-to-blue subtler gradient — for less-loud accents.
+export const HERO_TEXT_GRAD_BLUE = {
+  background: `linear-gradient(90deg, ${N.blue} 0%, ${N.blueHot} 100%)`,
+  WebkitBackgroundClip: "text",
+  WebkitTextFillColor: "transparent",
+  backgroundClip: "text",
+};
+
+// Bigger, more energetic glow for primary hero CTAs — used on Join/Start/Upgrade
+// buttons where you want the eye to land immediately.
+export const HERO_BTN_GLOW = `0 4px 18px rgba(0,128,255,0.55), 0 0 40px rgba(0,128,255,0.25)`;
+export const HERO_BTN_GLOW_PINK = `0 4px 18px rgba(255,45,138,0.55), 0 0 40px rgba(255,45,138,0.25)`;
+export const HERO_BTN_GLOW_ORANGE = `0 4px 18px rgba(255,138,42,0.55), 0 0 40px rgba(255,138,42,0.25)`;
+
 // --- Building blocks ---------------------------------------------------------
 
 // NeonBox — white interior, neon-color outline + layered glow. THE card.

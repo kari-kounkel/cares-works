@@ -40,6 +40,7 @@ import KariCockpits from "./pages/KariCockpits";
 import KariOneList from "./pages/KariOneList";
 import KariCockpitFrame from "./pages/KariCockpitFrame";
 import BudgetBuilder from "./pages/BudgetBuilder";
+import Pricing from "./pages/Pricing";
 import { FRAME_COCKPITS, CLOUD_COCKPITS } from "./cockpits/registry";
 
 export function navigate(path) {
@@ -146,6 +147,7 @@ export default function App() {
   // Public palette preview (no auth) — Kari's vibe-check before we rebrand.
   if (path === "/preview/neon") return <PalettePreview />;
   if (path === "/preview/neon-dark") return <PalettePreviewDark />;
+  if (path === "/pricing") return <Pricing />;
   if (path === "/tools/net-profit-ratios") return <NetProfitRatios session={session} />;
   if (path === "/tools/quickbooks-triage") return <QuickbooksTriage session={session} />;
   if (path === "/tools/pricing-metrics") return <PricingMetrics session={session} />;

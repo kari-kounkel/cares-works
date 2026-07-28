@@ -3,7 +3,7 @@ import { supabase } from "../supabaseClient";
 import { navigate } from "../App";
 import Workspace from "./Workspace";
 import { fetchAllSavedWork } from "../toolSessions";
-import { N, N_RGB, FONT_LINK, NeonBox, NeonBtn, LogoHero, NeonNav, SignatureFooter, SpotlightCallout, StatPills } from "../design/neon";
+import { N, N_RGB, FONT_LINK, NeonBox, NeonBtn, LogoHero, NeonNav, SignatureFooter, SpotlightCallout, StatPills, WASH_BG_LITE, HERO_TEXT_GRAD_BLUE } from "../design/neon";
 
 const MOBILE_DASH = `
   @media (max-width: 640px) {
@@ -185,7 +185,7 @@ export default function Dashboard({ session }) {
   }));
 
   return (
-    <div style={{ minHeight: "100vh", background: N.white, fontFamily: "'Figtree', sans-serif", color: N.ink }}>
+    <div style={{ minHeight: "100vh", background: WASH_BG_LITE, fontFamily: "'Figtree', sans-serif", color: N.ink }}>
       <style>{MOBILE_DASH}</style>
       <link href={FONT_LINK} rel="stylesheet" />
 
@@ -226,7 +226,9 @@ export default function Dashboard({ session }) {
           <>
             <div style={{ marginBottom: 32 }}>
               <h1 className="dash-h1" style={{ fontFamily: "'DM Serif Display', serif", fontSize: 36, color: N.ink, marginBottom: 8, lineHeight: 1.15 }}>
-                {"Welcome back" + (member?.full_name ? ", " + member.full_name.split(" ")[0] : "") + "."}
+                Welcome back{member?.full_name ? ", " : ""}
+                {member?.full_name && <span style={HERO_TEXT_GRAD_BLUE}>{member.full_name.split(" ")[0]}</span>}
+                .
               </h1>
               <p style={{ color: N.ink, fontSize: 17, lineHeight: 1.55, marginBottom: 6, maxWidth: 720 }}>
                 Tools, Debriefs, and practical business systems for people who are done letting chaos run the meeting.
