@@ -40,8 +40,9 @@ const TIERS = [
       "Court of Accounts — one chapter/month",
       "Verified 501(c)(3) required",
     ],
-    cta: "Apply for Nonprofit",
-    ctaHref: "mailto:kari@caresmn.com?subject=CARES%20Works%20Nonprofit%20Application&body=Hi%20Kari%20%E2%80%94%20we%27re%20a%20501(c)(3)%20interested%20in%20the%20Nonprofit%20tier.%20Our%20org%20is%20%5BNAME%5D%20and%20our%20EIN%20is%20%5BEIN%5D.%20Send%20us%20a%20checkout%20link%3F",
+    cta: "See the Nonprofit Series",
+    ctaHref: "/series/nonprofit",
+    ctaAlt: { label: "or email us directly →", href: "mailto:kari@caresmn.com?subject=CARES%20Works%20Nonprofit%20Application&body=Hi%20Kari%20%E2%80%94%20we%27re%20a%20501(c)(3)%20interested%20in%20the%20Nonprofit%20tier.%20Our%20org%20is%20%5BNAME%5D%20and%20our%20EIN%20is%20%5BEIN%5D.%20Send%20us%20a%20checkout%20link%3F" },
     highlight: false,
   },
   {

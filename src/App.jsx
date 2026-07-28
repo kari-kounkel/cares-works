@@ -41,6 +41,7 @@ import KariOneList from "./pages/KariOneList";
 import KariCockpitFrame from "./pages/KariCockpitFrame";
 import BudgetBuilder from "./pages/BudgetBuilder";
 import Pricing from "./pages/Pricing";
+import NonprofitSeries from "./pages/NonprofitSeries";
 import { FRAME_COCKPITS, CLOUD_COCKPITS } from "./cockpits/registry";
 
 export function navigate(path) {
@@ -148,6 +149,7 @@ export default function App() {
   if (path === "/preview/neon") return <PalettePreview />;
   if (path === "/preview/neon-dark") return <PalettePreviewDark />;
   if (path === "/pricing") return <Pricing />;
+  if (path === "/series/nonprofit" || path === "/series/nonprofits") return <NonprofitSeries />;
   if (path === "/tools/net-profit-ratios") return <NetProfitRatios session={session} />;
   if (path === "/tools/quickbooks-triage") return <QuickbooksTriage session={session} />;
   if (path === "/tools/pricing-metrics") return <PricingMetrics session={session} />;
