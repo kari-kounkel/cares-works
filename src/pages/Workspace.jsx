@@ -1,13 +1,15 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "../supabaseClient";
 import { navigate } from "../App";
 import { fetchAllSavedWork } from "../toolSessions";
+import { N, N_RGB, NeonBox, NeonBtn, HERO_TEXT_GRAD_BLUE } from "../design/neon";
 
 const S = {
-  slate: "#0a0a14", orange: "#0080ff", orangeDark: "#0052cc", orangeLight: "#e6f0ff",
-  paper: "#ffffff", cream: "#f7f9fc", ink: "#0a0a14", rule: "#e2e8f0",
-  muted: "#64748b", gold: "#ff8a2a", green: "#5a9a5a",
-  grad: "linear-gradient(135deg, #0080ff, #0052cc)",
+  slate: N.ink, orange: N.blue, orangeDark: N.blueDark, orangeLight: `rgba(${N_RGB.blue},0.1)`,
+  paper: N.white, cream: "#f7f9fc", ink: N.ink, rule: N.rule,
+  muted: N.muted, gold: N.orange, green: N.green,
+  pink: N.pink, pinkTint: `rgba(${N_RGB.pink},0.1)`,
+  grad: `linear-gradient(135deg, ${N.blue}, ${N.blueDark})`,
 };
 
 const MOBILE = `
@@ -40,6 +42,7 @@ export default function Workspace({ session }) {
 
   const [toolWork, setToolWork] = useState([]);
   const [toolFilter, setToolFilter] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [showAddClient, setShowAddClient] = useState(false);
   const [newClient, setNewClient] = useState({ name: "", company: "" });
@@ -122,47 +125,150 @@ export default function Workspace({ session }) {
   const selectedClient = clients.find(c => c.id === selectedId);
   const startHere = entries.find(e => e.whats_next && e.whats_next.trim());
 
+  // Filter + tint helpers for the saved-work grid
+  const filteredWork = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return toolWork.filter(w => {
+      if (toolFilter && w.tool_title !== toolFilter) return false;
+      if (q) {
+        const hay = ((w.name || "") + " " + (w.tool_title || "")).toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [toolWork, toolFilter, searchQuery]);
+
+  const toolTint = (title) => {
+    if (!title) return { color: N.blue, rgb: N_RGB.blue };
+    if (/steward|budget|ledger/i.test(title)) return { color: N.orange, rgb: N_RGB.orange };
+    if (/checklist|payroll/i.test(title)) return { color: N.blue, rgb: N_RGB.blue };
+    if (/discovery|assessment/i.test(title)) return { color: N.pink, rgb: N_RGB.pink };
+    if (/communication|template|debrief/i.test(title)) return { color: N.pink, rgb: N_RGB.pink };
+    if (/vendor|profit|calculator/i.test(title)) return { color: N.blue, rgb: N_RGB.blue };
+    return { color: N.blue, rgb: N_RGB.blue };
+  };
+
+  const relativeTime = (iso) => {
+    if (!iso) return "";
+    const then = new Date(iso).getTime();
+    const now = Date.now();
+    const mins = Math.round((now - then) / 60000);
+    if (mins < 60) return mins <= 1 ? "just now" : mins + " min ago";
+    const hrs = Math.round(mins / 60);
+    if (hrs < 24) return hrs + "h ago";
+    const days = Math.round(hrs / 24);
+    if (days < 7) return days + "d ago";
+    return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  };
+
   return (
     <div>
       <style>{MOBILE}</style>
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, color: S.slate, marginBottom: 6 }}>My Work</h1>
-        <p style={{ color: S.muted, fontSize: 15 }}>Keep a running record for each client — what you did, and where to pick up next time.</p>
+        <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, color: N.ink, marginBottom: 6 }}>
+          <span style={HERO_TEXT_GRAD_BLUE}>My Work.</span> Everything in one place.
+        </h1>
+        <p style={{ color: N.muted, fontSize: 15 }}>Every saved session across every tool. Search it, open it, pick up where you left off — the QBO way.</p>
       </div>
 
-      {/* YOUR SAVED WORK — pulled from the shared tool index (tool_sessions), by tool + date */}
-      <div style={{ marginBottom: 34 }}>
-        <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: S.slate, marginBottom: 4 }}>Your saved work</h2>
-        <p style={{ color: S.muted, fontSize: 14, marginBottom: 16 }}>Everything you've saved across the tools — newest first.</p>
-        {toolWork.length === 0 ? (
-          <div style={{ background: S.cream, border: "1px dashed " + S.rule, borderRadius: 10, padding: "24px 20px", textAlign: "center", color: S.muted, fontSize: 14 }}>
-            Nothing here yet. When you save inside a tool — a Steward board, a Ledger org, a checklist — it shows up here automatically.
+      {/* RECENT — top 4 most recent as neon-outlined cards */}
+      {toolWork.length > 0 && (
+        <div style={{ marginBottom: 32 }}>
+          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.16em", color: N.muted, fontWeight: 700, marginBottom: 12 }}>PICK UP WHERE YOU LEFT OFF</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 14 }}>
+            {toolWork.slice(0, 4).map(w => {
+              const t = toolTint(w.tool_title);
+              return (
+                <button key={w.id}
+                  onClick={() => { const h = w.href; if (h && h.startsWith("/steward")) { window.location.href = h; } else if (h) { navigate(h); } else { navigate("/tools/" + w.tool_slug); } }}
+                  style={{ padding: 0, background: "transparent", border: "none", textAlign: "left", cursor: "pointer" }}>
+                  <NeonBox color={t.color} rgb={t.rgb} style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 6, height: "100%" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+                      <span style={{ fontSize: 20 }}>{w.tool_icon || "🗂️"}</span>
+                      <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase", color: t.color, fontWeight: 700 }}>{w.tool_title || "Tool"}</span>
+                    </div>
+                    <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 16, color: N.ink, lineHeight: 1.25 }}>{w.name || "Untitled"}</div>
+                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: N.muted, marginTop: "auto" }}>
+                      {relativeTime(w.updated_at)} · Reopen →
+                    </div>
+                  </NeonBox>
+                </button>
+              );
+            })}
           </div>
+        </div>
+      )}
+
+      {/* ALL SAVED WORK — searchable + filterable list */}
+      <div style={{ marginBottom: 34 }}>
+        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", flexWrap: "wrap", gap: 10, marginBottom: 6 }}>
+          <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink, margin: 0 }}>All your saved work</h2>
+          <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: N.muted, letterSpacing: "0.06em" }}>
+            {filteredWork.length} of {toolWork.length} items
+          </span>
+        </div>
+        <p style={{ color: N.muted, fontSize: 14, marginBottom: 14 }}>Every session, every tool, one searchable place.</p>
+
+        {toolWork.length === 0 ? (
+          <NeonBox color={N.blue} rgb={N_RGB.blue} scale={0.6} style={{ padding: "28px 24px", textAlign: "center" }}>
+            <div style={{ color: N.muted, fontSize: 14, lineHeight: 1.55 }}>
+              Nothing saved yet. When you save inside a tool — a Steward board, a Ledger org, a checklist — it lands here automatically.
+            </div>
+          </NeonBox>
         ) : (
           <>
+            {/* SEARCH */}
+            <div style={{ marginBottom: 12, position: "relative" }}>
+              <input type="text" placeholder="Search saved work…" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+                style={{ width: "100%", padding: "11px 40px 11px 40px", fontSize: 14, fontFamily: "'Figtree', sans-serif", background: N.white, border: "1.5px solid " + N.rule, borderRadius: 10, outline: "none", color: N.ink, boxSizing: "border-box" }}
+                onFocus={e => { e.target.style.borderColor = N.blue; e.target.style.boxShadow = "0 0 0 3px rgba(0,128,255,0.15)"; }}
+                onBlur={e => { e.target.style.borderColor = N.rule; e.target.style.boxShadow = "none"; }} />
+              <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", fontSize: 14, color: N.muted, pointerEvents: "none" }}>🔍</span>
+              {searchQuery && (
+                <button onClick={() => setSearchQuery("")}
+                  style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "transparent", border: "none", color: N.muted, fontSize: 18, cursor: "pointer" }}>×</button>
+              )}
+            </div>
+
+            {/* TOOL FILTER CHIPS */}
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
               {["", ...Array.from(new Set(toolWork.map(w => w.tool_title).filter(Boolean)))].map(tt => {
                 const active = toolFilter === tt;
+                const tint = tt ? toolTint(tt) : { color: N.ink, rgb: N_RGB.ink };
                 return (
                   <button key={tt || "all"} onClick={() => setToolFilter(tt)}
-                    style={{ padding: "6px 14px", borderRadius: 100, border: "1.5px solid " + (active ? S.orange : S.rule), background: active ? S.orange : "#fff", color: active ? "#fff" : S.muted, fontSize: 12, fontWeight: active ? 700 : 500, cursor: "pointer", fontFamily: "'Figtree', sans-serif" }}>
+                    style={{ padding: "7px 14px", borderRadius: 100, border: active ? "none" : "1.5px solid " + N.rule, background: active ? tint.color : N.white, color: active ? N.white : N.muted, fontSize: 12, fontWeight: active ? 700 : 500, cursor: "pointer", fontFamily: "'Figtree', sans-serif", boxShadow: active ? `0 3px 12px ${tint.color}66` : "none" }}>
                     {tt || "All tools"}
                   </button>
                 );
               })}
             </div>
-            <div style={{ background: "#fff", border: "1px solid " + S.rule, borderRadius: 12, overflow: "hidden" }}>
-              {toolWork.filter(w => !toolFilter || w.tool_title === toolFilter).map((w, i) => (
-                <button key={w.id} onClick={() => { const h = w.href; if (h && h.startsWith("/steward")) { window.location.href = h; } else if (h) { navigate(h); } else { navigate("/tools/" + w.tool_slug); } }}
-                  style={{ width: "100%", textAlign: "left", display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", background: "#fff", border: "none", borderTop: i ? "1px solid " + S.cream : "none", cursor: "pointer", fontFamily: "'Figtree', sans-serif" }}>
-                  <span style={{ fontSize: 19, flexShrink: 0 }}>{w.tool_icon || "🗂️"}</span>
-                  <span style={{ flex: 1, minWidth: 0, fontWeight: 700, fontSize: 15, color: S.slate, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{w.name || "Untitled"}</span>
-                  <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9.5, letterSpacing: "0.1em", textTransform: "uppercase", color: S.muted, flexShrink: 0 }}>{w.tool_title || "Tool"}</span>
-                  <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: S.muted, width: 56, textAlign: "right", flexShrink: 0 }}>{w.updated_at ? new Date(w.updated_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : ""}</span>
-                  <span style={{ color: S.orange, fontWeight: 700, flexShrink: 0 }}>→</span>
-                </button>
-              ))}
-            </div>
+
+            {/* LIST */}
+            {filteredWork.length === 0 ? (
+              <div style={{ padding: 24, textAlign: "center", color: N.muted, fontSize: 14, background: N.white, border: "1px dashed " + N.rule, borderRadius: 10 }}>
+                No matches. Try clearing the search or filter.
+              </div>
+            ) : (
+              <div style={{ background: N.white, border: "1.5px solid " + N.rule, borderRadius: 12, overflow: "hidden", boxShadow: "0 0 20px rgba(0,128,255,0.08)" }}>
+                {filteredWork.map((w, i) => {
+                  const t = toolTint(w.tool_title);
+                  return (
+                    <button key={w.id}
+                      onClick={() => { const h = w.href; if (h && h.startsWith("/steward")) { window.location.href = h; } else if (h) { navigate(h); } else { navigate("/tools/" + w.tool_slug); } }}
+                      style={{ width: "100%", textAlign: "left", display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", background: N.white, border: "none", borderTop: i ? "1px solid " + N.rule : "none", cursor: "pointer", fontFamily: "'Figtree', sans-serif", transition: "background 0.1s" }}
+                      onMouseEnter={e => e.currentTarget.style.background = `rgba(${t.rgb},0.05)`}
+                      onMouseLeave={e => e.currentTarget.style.background = N.white}>
+                      <span style={{ fontSize: 19, flexShrink: 0 }}>{w.tool_icon || "🗂️"}</span>
+                      <span style={{ flex: 1, minWidth: 0, fontWeight: 700, fontSize: 14.5, color: N.ink, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{w.name || "Untitled"}</span>
+                      <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.1em", textTransform: "uppercase", color: t.color, fontWeight: 700, flexShrink: 0 }}>{w.tool_title || "Tool"}</span>
+                      <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: N.muted, width: 72, textAlign: "right", flexShrink: 0 }}>{relativeTime(w.updated_at)}</span>
+                      <span style={{ color: t.color, fontWeight: 700, flexShrink: 0 }}>→</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </>
         )}
       </div>
