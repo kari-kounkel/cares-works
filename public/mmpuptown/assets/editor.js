@@ -120,6 +120,10 @@
       '.ck-image-slot[data-block-id].has-image{outline-style:solid;}' +
       '.ck-image-slot[data-block-id] .ck-img-hint{position:absolute;top:6px;right:6px;background:#1d7a44;color:white;font-size:10px;font-weight:800;padding:4px 8px;border-radius:3px;letter-spacing:0.06em;text-transform:uppercase;z-index:2;pointer-events:none;}' +
       '.ck-image-slot[data-block-id] img{width:100%;height:100%;object-fit:cover;display:block;}' +
+      /* brand-logo slot — different sizing rules (contain, not cover) */
+      '.ck-image-slot.brand-logo{overflow:visible;min-width:230px;max-width:400px;min-height:70px;padding:6px;}' +
+      '.ck-image-slot.brand-logo svg{width:100%;height:auto;max-height:80px;display:block;}' +
+      '.ck-image-slot.brand-logo img{width:auto !important;max-width:400px;max-height:110px;height:auto !important;object-fit:contain !important;}' +
       /* edit bar */
       '.mmp-edit-bar{position:fixed;bottom:0;left:0;right:0;background:#1a1a1a;color:white;' +
       'padding:14px 24px;display:flex;align-items:center;gap:12px;z-index:99998;' +
@@ -159,6 +163,18 @@
         el.setAttribute('spellcheck', 'true');
         el.addEventListener('input', updateStatus);
       }
+    });
+
+    // Kill link navigation on any <a> that IS or CONTAINS an editable block —
+    // otherwise clicking the text/photo/button inside just navigates away.
+    // Preview mode restores navigation so she can click through as a visitor.
+    Array.prototype.slice.call(document.querySelectorAll('a')).forEach(function (a) {
+      if (!a.matches('[data-block-id]') && !a.querySelector('[data-block-id]')) return;
+      a.addEventListener('click', function (e) {
+        if (document.body.classList.contains('mmp-preview')) return;
+        e.preventDefault();
+        e.stopPropagation();
+      });
     });
 
     // edit bar
