@@ -115,7 +115,7 @@ export default function App() {
   if (path.startsWith("/org/")) {
     if (!session) { navigate("/login"); return null; }
     const slug = path.replace("/org/", "").replace(/\/$/, "");
-    return <OrgHome slug={slug} />;
+    return <OrgHome slug={slug} session={session} />;
   }
 
   // If a member has a primary org set, root URL takes them straight to their org workspace.

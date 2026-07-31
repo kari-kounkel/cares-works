@@ -48,8 +48,7 @@ function fmtDate(d) {
   return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
-export default function OrgHome({ slug }) {
-  const [session, setSession] = useState(null);
+export default function OrgHome({ slug, session }) {
   const [org, setOrg] = useState(null);
   const [me, setMe] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -61,10 +60,6 @@ export default function OrgHome({ slug }) {
   const [fundraisers, setFundraisers] = useState([]);
   const [documents, setDocuments] = useState([]);
   const [board, setBoard] = useState(null);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
-  }, []);
 
   useEffect(() => {
     if (!session) return;
@@ -90,8 +85,6 @@ export default function OrgHome({ slug }) {
       setLoading(false);
     })();
   }, [session, slug]);
-
-  if (!session) { navigate("/login"); return null; }
 
   if (loading) {
     return (
