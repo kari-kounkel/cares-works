@@ -317,13 +317,18 @@
       };
     });
 
-    api('mmp_content', {
+    // on_conflict tells PostgREST which unique index to merge on;
+    // without it the whole upsert 409s the moment any row already exists.
+    api('mmp_content?on_conflict=page_slug%2Cblock_id', {
       method: 'POST',
       headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
       body: JSON.stringify(payload)
     })
       .then(function (r) {
-        if (!r.ok) throw new Error('HTTP ' + r.status);
+        if (r.ok) return null;
+        return r.text().then(function (t) { throw new Error('HTTP ' + r.status + ' — ' + (t || 'no body')); });
+      })
+      .then(function () {
         dirty.forEach(function (el) { el.setAttribute('data-original', currentContent(el)); });
         updateStatus();
         saveBtn.textContent = 'Save & Publish';
@@ -333,7 +338,7 @@
         console.error('[mmp-editor] save failed', e);
         saveBtn.disabled = false;
         saveBtn.textContent = 'Save & Publish';
-        toast('Save failed — ' + e.message + '. Check console.', 'error');
+        toast('Save failed — ' + e.message, 'error');
       });
   }
 })();
