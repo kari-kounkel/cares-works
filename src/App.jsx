@@ -42,6 +42,7 @@ import KariCockpitFrame from "./pages/KariCockpitFrame";
 import BudgetBuilder from "./pages/BudgetBuilder";
 import Pricing from "./pages/Pricing";
 import NonprofitSeries from "./pages/NonprofitSeries";
+import OrgHome from "./pages/OrgHome";
 import { FRAME_COCKPITS, CLOUD_COCKPITS } from "./cockpits/registry";
 
 export function navigate(path) {
@@ -58,6 +59,7 @@ export default function App() {
   const [isPasswordReset, setIsPasswordReset] = useState(false);
   const [path, setPath] = useState(window.location.pathname);
   const [memberStatus, setMemberStatus] = useState(null);
+  const [primaryOrg, setPrimaryOrg] = useState(undefined); // undefined = not yet checked, null = no org, string = slug
 
   useEffect(() => {
     if (window.location.hash.includes("type=recovery")) setIsPasswordReset(true);
@@ -69,7 +71,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (!session?.user?.email) { setMemberStatus(null); return; }
+    if (!session?.user?.email) { setMemberStatus(null); setPrimaryOrg(undefined); return; }
     let cancelled = false;
     (async () => {
       const { data } = await supabase
@@ -78,6 +80,15 @@ export default function App() {
         .eq("email", session.user.email)
         .maybeSingle();
       if (!cancelled) setMemberStatus(data ? "member" : "none");
+
+      // Check for a primary org membership — routes org members straight to their workspace on login
+      const { data: mem } = await supabase
+        .from("organization_members")
+        .select("is_primary, organizations(slug)")
+        .eq("user_email", session.user.email)
+        .eq("is_primary", true)
+        .maybeSingle();
+      if (!cancelled) setPrimaryOrg(mem?.organizations?.slug || null);
     })();
     return () => { cancelled = true; };
   }, [session?.user?.email]);
@@ -98,6 +109,20 @@ export default function App() {
   if (path === "/dashboard") {
     if (!session) { navigate("/login"); return null; }
     return <Dashboard session={session} />;
+  }
+
+  // Org workspace routes — every /org/:slug hits OrgHome. RLS decides whether the user can see it.
+  if (path.startsWith("/org/")) {
+    if (!session) { navigate("/login"); return null; }
+    const slug = path.replace("/org/", "").replace(/\/$/, "");
+    return <OrgHome slug={slug} />;
+  }
+
+  // If a member has a primary org set, root URL takes them straight to their org workspace.
+  // (They can still click "CARES Works →" in the header to reach the generic library.)
+  if (path === "/" && session && primaryOrg) {
+    navigate("/org/" + primaryOrg);
+    return null;
   }
 
   if (path === "/kari") {
