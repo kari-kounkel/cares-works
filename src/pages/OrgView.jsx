@@ -98,6 +98,24 @@ export default function OrgView() {
   const totalGoal   = activeFundraisers.reduce((s, f) => s + Number(f.goal_amount || 0), 0);
   const totalRaised = activeFundraisers.reduce((s, f) => s + Number(f.raised_amount || 0), 0);
 
+  // Frozen-in-time snapshot as of a meeting date, computed from raw entries
+  const rawEntries = ledger?.raw_entries || [];
+  const rawFunds   = ledger?.raw_funds   || [];
+  const snapshotAsOf = (asOfDate) => {
+    if (!asOfDate || rawEntries.length === 0) return null;
+    const asOf = asOfDate.slice ? asOfDate.slice(0, 10) : asOfDate;
+    const filtered = rawEntries.filter(e => (e.entry_date || "") <= asOf);
+    const income  = filtered.filter(e => e.direction === "in" ).reduce((s, e) => s + Number(e.amount_cents || 0), 0) / 100;
+    const outflow = filtered.filter(e => e.direction === "out").reduce((s, e) => s + Number(e.amount_cents || 0), 0) / 100;
+    const funds = rawFunds.map(f => {
+      const bal = filtered
+        .filter(e => e.fund_id === f.id)
+        .reduce((s, e) => s + (e.direction === "in" ? Number(e.amount_cents || 0) : -Number(e.amount_cents || 0)), 0) / 100;
+      return { id: f.id, name: f.name, is_restricted: f.is_restricted, balance: bal };
+    });
+    return { funds, income_ytd: income, expenses_ytd: outflow, on_hand: funds.reduce((s, f) => s + f.balance, 0), entry_count: filtered.length };
+  };
+
   return (
     <div style={{ minHeight: "100vh", background: WASH_BG_LITE, fontFamily: "'Figtree', sans-serif", color: N.ink }}>
       <link href={FONT_LINK} rel="stylesheet" />
@@ -235,6 +253,35 @@ export default function OrgView() {
                     {m.agenda && <div style={{ marginBottom: 10 }}><div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.12em", color: N.muted, marginBottom: 4 }}>AGENDA</div><div style={{ whiteSpace: "pre-wrap", fontSize: 13.5, color: N.ink, lineHeight: 1.55 }}>{m.agenda}</div></div>}
                     {m.minutes && <div style={{ marginBottom: 10 }}><div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.12em", color: N.muted, marginBottom: 4 }}>MINUTES</div><div style={{ whiteSpace: "pre-wrap", fontSize: 13.5, color: N.ink, lineHeight: 1.55 }}>{m.minutes}</div></div>}
                     {m.next_steps && <div style={{ padding: "10px 12px", background: `rgba(${accent.rgb},0.08)`, borderRadius: 8, borderLeft: `3px solid ${accent.color}` }}><div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.12em", color: accent.color, marginBottom: 4, fontWeight: 700 }}>NEXT STEPS</div><div style={{ whiteSpace: "pre-wrap", fontSize: 13.5, color: N.ink, lineHeight: 1.55 }}>{m.next_steps}</div></div>}
+                    {(() => {
+                      const snap = snapshotAsOf(m.meeting_date);
+                      if (!snap || snap.funds.length === 0) return null;
+                      return (
+                        <div style={{ marginTop: 12, padding: "14px 16px", background: N.white, border: `1.5px solid ${accent.color}`, borderRadius: 10 }}>
+                          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 10, gap: 10 }}>
+                            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.14em", color: accent.color, fontWeight: 700 }}>💰 FINANCIAL SNAPSHOT — FROZEN AS OF {fmtDate(m.meeting_date).toUpperCase()}</div>
+                            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: N.muted }}>{snap.entry_count} entries</div>
+                          </div>
+                          <div style={{ display: "flex", gap: 20, flexWrap: "wrap", marginBottom: 12 }}>
+                            <div><div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: N.muted }}>ON HAND</div><div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>{money(snap.on_hand)}</div></div>
+                            <div><div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: N.muted }}>INCOME</div><div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>{money(snap.income_ytd)}</div></div>
+                            <div><div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: N.muted }}>EXPENSES</div><div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>{money(snap.expenses_ytd)}</div></div>
+                            <div><div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: N.muted }}>NET</div><div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: (snap.income_ytd - snap.expenses_ytd) >= 0 ? N.green : N.red }}>{money(snap.income_ytd - snap.expenses_ytd)}</div></div>
+                          </div>
+                          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 8 }}>
+                            {snap.funds.map(f => (
+                              <div key={f.id} style={{ padding: "8px 10px", background: `rgba(${accent.rgb},0.04)`, borderRadius: 6, border: `1px solid ${N.rule}` }}>
+                                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: N.muted, textTransform: "uppercase" }}>{f.name}{f.is_restricted ? " · restricted" : ""}</div>
+                                <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 16, color: N.ink }}>{money(f.balance)}</div>
+                              </div>
+                            ))}
+                          </div>
+                          <div style={{ marginTop: 10, fontFamily: "'DM Mono', monospace", fontSize: 10, color: N.muted, fontStyle: "italic" }}>
+                            These numbers are frozen at meeting time. They won't change even if entries are added later.
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </NeonBox>
                 ))}
               </div>

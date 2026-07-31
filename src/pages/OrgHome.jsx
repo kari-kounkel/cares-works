@@ -59,7 +59,9 @@ export default function OrgHome({ slug, session }) {
   const [newsletters, setNewsletters] = useState([]);
   const [fundraisers, setFundraisers] = useState([]);
   const [documents, setDocuments] = useState([]);
-  const [ledger, setLedger] = useState(null);     // { funds:[], accounts:[], income_ytd, expenses_ytd, entry_count }
+  const [ledger, setLedger] = useState(null);     // { funds:[], income_ytd, expenses_ytd, entry_count }
+  const [rawEntries, setRawEntries] = useState([]);  // full ledger_entries so we can snapshot balances as of ANY date
+  const [rawFunds,   setRawFunds]   = useState([]);
   const [invites, setInvites] = useState([]);
 
   // Compose modal — one form used for meetings, newsletters, fundraisers
@@ -101,9 +103,12 @@ export default function OrgHome({ slug, session }) {
 
       if (ledgerOrgId) {
         const entryRows = entries.data || [];
+        const fundList  = funds.data || [];
+        setRawEntries(entryRows);
+        setRawFunds(fundList);
         const income  = entryRows.filter(e => e.direction === "in").reduce((s, e) => s + Number(e.amount_cents || 0), 0) / 100;
         const outflow = entryRows.filter(e => e.direction === "out").reduce((s, e) => s + Number(e.amount_cents || 0), 0) / 100;
-        const fundBalances = (funds.data || []).map(f => {
+        const fundBalances = fundList.map(f => {
           const bal = entryRows
             .filter(e => e.fund_id === f.id)
             .reduce((s, e) => s + (e.direction === "in" ? Number(e.amount_cents || 0) : -Number(e.amount_cents || 0)), 0) / 100;
@@ -164,6 +169,25 @@ export default function OrgHome({ slug, session }) {
   // Share ONE link to the whole workspace. Use the existing invite (Invite button
   // in the header) — this doesn't need per-document links. The board bookmarks the
   // /view/:token URL once and sees everything, always.
+
+  // FROZEN financial snapshot as of a specific date. Sums all ledger entries
+  // where entry_date <= asOfDate, grouped by fund. Used inside each meeting
+  // card so the numbers a board member sees NEVER drift after the meeting.
+  const snapshotAsOf = (asOfDate) => {
+    if (!asOfDate || rawEntries.length === 0) return null;
+    const asOf = asOfDate.slice ? asOfDate.slice(0, 10) : asOfDate;
+    const filtered = rawEntries.filter(e => (e.entry_date || "") <= asOf);
+    const income  = filtered.filter(e => e.direction === "in" ).reduce((s, e) => s + Number(e.amount_cents || 0), 0) / 100;
+    const outflow = filtered.filter(e => e.direction === "out").reduce((s, e) => s + Number(e.amount_cents || 0), 0) / 100;
+    const funds = rawFunds.map(f => {
+      const bal = filtered
+        .filter(e => e.fund_id === f.id)
+        .reduce((s, e) => s + (e.direction === "in" ? Number(e.amount_cents || 0) : -Number(e.amount_cents || 0)), 0) / 100;
+      return { id: f.id, name: f.name, is_restricted: f.is_restricted, balance: bal };
+    });
+    const totalOnHand = funds.reduce((s, f) => s + f.balance, 0);
+    return { funds, income_ytd: income, expenses_ytd: outflow, on_hand: totalOnHand, entry_count: filtered.length, as_of: asOf };
+  };
 
   if (loading) {
     return (
@@ -423,6 +447,47 @@ export default function OrgHome({ slug, session }) {
                         <div style={{ whiteSpace: "pre-wrap", fontSize: 13.5, color: N.ink, lineHeight: 1.55 }}>{m.next_steps}</div>
                       </div>
                     )}
+                    {(() => {
+                      const snap = snapshotAsOf(m.meeting_date);
+                      if (!snap || snap.funds.length === 0) return null;
+                      return (
+                        <div style={{ marginTop: 12, padding: "14px 16px", background: N.white, border: `1.5px solid ${accent.color}`, borderRadius: 10 }}>
+                          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 10, gap: 10 }}>
+                            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.14em", color: accent.color, fontWeight: 700 }}>💰 FINANCIAL SNAPSHOT — FROZEN AS OF {fmtDate(m.meeting_date).toUpperCase()}</div>
+                            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: N.muted }}>{snap.entry_count} entries</div>
+                          </div>
+                          <div style={{ display: "flex", gap: 20, flexWrap: "wrap", marginBottom: 12 }}>
+                            <div>
+                              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.1em", color: N.muted }}>ON HAND</div>
+                              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>{money(snap.on_hand)}</div>
+                            </div>
+                            <div>
+                              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.1em", color: N.muted }}>INCOME (TO-DATE)</div>
+                              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>{money(snap.income_ytd)}</div>
+                            </div>
+                            <div>
+                              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.1em", color: N.muted }}>EXPENSES (TO-DATE)</div>
+                              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>{money(snap.expenses_ytd)}</div>
+                            </div>
+                            <div>
+                              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.1em", color: N.muted }}>NET</div>
+                              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: (snap.income_ytd - snap.expenses_ytd) >= 0 ? N.green : N.red }}>{money(snap.income_ytd - snap.expenses_ytd)}</div>
+                            </div>
+                          </div>
+                          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 8 }}>
+                            {snap.funds.map(f => (
+                              <div key={f.id} style={{ padding: "8px 10px", background: `rgba(${accent.rgb},0.04)`, borderRadius: 6, border: `1px solid ${N.rule}` }}>
+                                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.08em", color: N.muted, textTransform: "uppercase" }}>{f.name}{f.is_restricted ? " · restricted" : ""}</div>
+                                <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 16, color: N.ink }}>{money(f.balance)}</div>
+                              </div>
+                            ))}
+                          </div>
+                          <div style={{ marginTop: 10, fontFamily: "'DM Mono', monospace", fontSize: 10, color: N.muted, fontStyle: "italic" }}>
+                            These numbers are computed from the ledger at meeting time. They won't change even if new entries are added later.
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </NeonBox>
                 ))}
               </div>
