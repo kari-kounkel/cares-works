@@ -8,20 +8,20 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>
-  :root{--slate:#0080ff;--slate-deep:#0052cc;--slate-soft:#64748b;--orange:#ff8a2a;--orange-soft:rgba(255,138,42,.5);
-    --paper:#ffffff;--card:#ffffff;--line:#e2e8f0;--ink:#0f172a;--muted:#64748b;--good:#22c55e;--warn:#f06d0a;--maroon:#d91d6d;
+  :root{--slate:#0080ff;--slate-deep:#0052cc;--slate-soft:#64748b;--orange:#22c55e;--orange-soft:rgba(34,197,94,.5);
+    --paper:#ffffff;--card:#ffffff;--line:#e2e8f0;--ink:#0f172a;--muted:#64748b;--good:#22c55e;--warn:#16a34a;--maroon:#16a34a;
     --serif:'DM Serif Display',Georgia,serif;--body:'Figtree',system-ui,sans-serif;--mono:'DM Mono',ui-monospace,monospace;}
   *{box-sizing:border-box;margin:0;padding:0;}
   body{font-family:var(--body);background:var(--paper);color:var(--ink);line-height:1.5;
-    background-image:radial-gradient(circle at 15% -10%, rgba(255,138,42,.06), transparent 45%),radial-gradient(circle at 100% 0%, rgba(0,128,255,.06), transparent 40%);min-height:100vh;}
+    background-image:radial-gradient(circle at 15% -10%, rgba(34,197,94,.06), transparent 45%),radial-gradient(circle at 100% 0%, rgba(0,128,255,.06), transparent 40%);min-height:100vh;}
   .wrap{max-width:1320px;margin:0 auto;padding:34px 24px 80px;}
   header.masthead{border-bottom:2px solid var(--slate);padding-bottom:16px;margin-bottom:8px;display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;}
   .brand-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--orange);font-weight:500;}
   h1{font-family:var(--serif);font-size:32px;line-height:1.05;color:var(--slate-deep);margin-top:6px;}
   .statute{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:8px;}
   .masthead .seal{font-family:var(--serif);font-size:13px;color:var(--slate-soft);text-align:right;border-left:1px solid var(--line);padding-left:18px;line-height:1.35;}
-  .propbar{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;color:var(--maroon);background:rgba(217,29,109,.08);border:1px solid rgba(217,29,109,.3);border-radius:7px;padding:6px 12px;margin-bottom:16px;text-transform:uppercase;}
-  .warnbar{font-family:var(--mono);font-size:11px;color:var(--warn);background:rgba(255,138,42,.1);border:1px solid var(--orange-soft);border-radius:7px;padding:7px 12px;margin-bottom:14px;}
+  .propbar{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;color:var(--maroon);background:rgba(22,163,74,.08);border:1px solid rgba(22,163,74,.3);border-radius:7px;padding:6px 12px;margin-bottom:16px;text-transform:uppercase;}
+  .warnbar{font-family:var(--mono);font-size:11px;color:var(--warn);background:rgba(34,197,94,.1);border:1px solid var(--orange-soft);border-radius:7px;padding:7px 12px;margin-bottom:14px;}
   .cards{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px;}
   @media(max-width:900px){.cards{grid-template-columns:repeat(2,1fr);}}
   .mc{background:var(--slate-deep);color:#fff;border-radius:13px;padding:13px 15px;}
@@ -42,7 +42,7 @@
   .sb:hover{background:#e6f0ff;}
   .ed label{display:block;font-size:11px;font-weight:600;color:var(--slate-soft);margin:10px 0 4px;}
   .ed input,.ed select{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px 10px;font-family:var(--mono);font-size:13px;background:#f7f9fc;}
-  .ed input:focus,.ed select:focus{outline:none;border-color:var(--orange);box-shadow:0 0 0 3px rgba(255,138,42,.16);}
+  .ed input:focus,.ed select:focus{outline:none;border-color:var(--orange);box-shadow:0 0 0 3px rgba(34,197,94,.16);}
   .selname{font-family:var(--serif);font-size:19px;color:var(--slate-deep);}
   .selsf{font-family:var(--mono);font-size:12px;color:var(--muted);}
   .applybtn{margin-top:12px;width:100%;font-family:var(--body);font-weight:600;font-size:13px;border-radius:8px;cursor:pointer;padding:10px;border:1px solid var(--orange);background:var(--orange);color:#fff;}
@@ -83,9 +83,9 @@
       <div class="panel-head"><span>Floor Map (schematic — sized by area)</span><span>▲ NORTH ▶</span></div>
       <svg id="map" viewBox="0 0 840 580" xmlns="http://www.w3.org/2000/svg"></svg>
       <div class="legend">
-        <span><i class="sw" style="background:#ff8a2a"></i> Open</span>
+        <span><i class="sw" style="background:#22c55e"></i> Open</span>
         <span><i class="sw" style="background:#22c55e"></i> Rented</span>
-        <span><i class="sw" style="background:#d91d6d"></i> MMP</span>
+        <span><i class="sw" style="background:#16a34a"></i> MMP</span>
         <span><i class="sw" style="background:#94a3b8"></i> Common</span>
         <span class="hint">· click = select · Shift/Ctrl-click = add more</span>
       </div>
@@ -147,7 +147,7 @@
    ["213","Office 213",131.09,"office",662,428,156,94],
   ];
   const KEY='mmp_floormap_v2';
-  const COL={Rented:"#22c55e",Vacant:"#ff8a2a",MMP:"#d91d6d",Common:"#94a3b8"};
+  const COL={Rented:"#22c55e",Vacant:"#22c55e",MMP:"#16a34a",Common:"#94a3b8"};
   const STATUS=["Vacant","Rented","MMP","Common"];
   const fmt=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(n||0);
   const sf=n=>new Intl.NumberFormat('en-US',{maximumFractionDigits:0}).format(n||0);
@@ -164,7 +164,7 @@
       const rect=document.createElementNS('http://www.w3.org/2000/svg','rect');
       rect.setAttribute('x',x);rect.setAttribute('y',y);rect.setAttribute('width',w);rect.setAttribute('height',h);
       rect.setAttribute('rx',5);rect.setAttribute('fill',fill);rect.setAttribute('fill-opacity',kind==='common'?0.55:0.9);
-      rect.setAttribute('stroke',isSel?'#ff8a2a':'#ffffff');rect.setAttribute('stroke-width',isSel?4:1.5);
+      rect.setAttribute('stroke',isSel?'#22c55e':'#ffffff');rect.setAttribute('stroke-width',isSel?4:1.5);
       g.appendChild(rect);
       const star=(a.status==='Vacant'&&kind==='office')?' 🎯':'';
       const t1=document.createElementNS('http://www.w3.org/2000/svg','text');

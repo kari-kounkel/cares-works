@@ -59,7 +59,16 @@ export default function OrgHome({ slug, session }) {
   const [newsletters, setNewsletters] = useState([]);
   const [fundraisers, setFundraisers] = useState([]);
   const [documents, setDocuments] = useState([]);
-  const [board, setBoard] = useState(null);
+  const [ledger, setLedger] = useState(null);     // { funds:[], accounts:[], income_ytd, expenses_ytd, entry_count }
+  const [invites, setInvites] = useState([]);
+
+  // Invite modal state
+  const [showInvite, setShowInvite] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteName, setInviteName] = useState("");
+  const [inviteTitle, setInviteTitle] = useState("Board Member");
+  const [inviteSaving, setInviteSaving] = useState(false);
+  const [invitedLink, setInvitedLink] = useState("");
 
   useEffect(() => {
     if (!session) return;
@@ -68,23 +77,60 @@ export default function OrgHome({ slug, session }) {
       if (oe || !o) { setError("You don't have access to this workspace."); setLoading(false); return; }
       setOrg(o);
 
-      const [{ data: mem }, m, nl, fr, docs, bd] = await Promise.all([
+      const ledgerOrgId = o.primary_ledger_org_id;
+      const [{ data: mem }, m, nl, fr, docs, inv, funds, entries] = await Promise.all([
         supabase.from("organization_members").select("*").eq("org_id", o.id).eq("user_email", session.user.email).maybeSingle(),
         supabase.from("org_meetings").select("*").eq("org_id", o.id).order("meeting_date", { ascending: false }),
         supabase.from("org_newsletters").select("*").eq("org_id", o.id).order("issue_date", { ascending: false }),
         supabase.from("org_fundraisers").select("*").eq("org_id", o.id).order("ends_on", { ascending: true }),
         supabase.from("org_documents").select("*").eq("org_id", o.id).order("created_at", { ascending: false }),
-        o.primary_steward_board_id ? supabase.from("steward_boards").select("*").eq("id", o.primary_steward_board_id).maybeSingle() : Promise.resolve({ data: null }),
+        supabase.from("org_invites").select("*").eq("org_id", o.id).order("created_at", { ascending: false }),
+        ledgerOrgId ? supabase.from("ledger_funds").select("id,name,is_restricted,archived").eq("org_id", ledgerOrgId).eq("archived", false).order("name") : Promise.resolve({ data: [] }),
+        ledgerOrgId ? supabase.from("ledger_entries").select("fund_id,direction,amount_cents,entry_date").eq("org_id", ledgerOrgId) : Promise.resolve({ data: [] }),
       ]);
       setMe(mem);
       setMeetings(m.data || []);
       setNewsletters(nl.data || []);
       setFundraisers(fr.data || []);
       setDocuments(docs.data || []);
-      setBoard(bd.data || null);
+      setInvites(inv.data || []);
+
+      if (ledgerOrgId) {
+        const entryRows = entries.data || [];
+        const income  = entryRows.filter(e => e.direction === "in").reduce((s, e) => s + Number(e.amount_cents || 0), 0) / 100;
+        const outflow = entryRows.filter(e => e.direction === "out").reduce((s, e) => s + Number(e.amount_cents || 0), 0) / 100;
+        const fundBalances = (funds.data || []).map(f => {
+          const bal = entryRows
+            .filter(e => e.fund_id === f.id)
+            .reduce((s, e) => s + (e.direction === "in" ? Number(e.amount_cents || 0) : -Number(e.amount_cents || 0)), 0) / 100;
+          return { ...f, balance: bal };
+        });
+        setLedger({ funds: fundBalances, income_ytd: income, expenses_ytd: outflow, entry_count: entryRows.length });
+      }
       setLoading(false);
     })();
   }, [session, slug]);
+
+  const inviteSubmit = async () => {
+    if (!org) return;
+    setInviteSaving(true);
+    setInvitedLink("");
+    const { data, error: err } = await supabase.from("org_invites").insert({
+      org_id: org.id,
+      invited_email: inviteEmail.trim() || null,
+      invited_name: inviteName.trim() || null,
+      invited_title: inviteTitle.trim() || null,
+      invited_role: "viewer",
+      invited_by: session.user.email,
+    }).select().single();
+    setInviteSaving(false);
+    if (err) { alert("Could not create invite: " + err.message); return; }
+    const url = window.location.origin + "/view/" + data.token;
+    setInvitedLink(url);
+    setInvites(prev => [data, ...prev]);
+    setInviteEmail(""); setInviteName(""); setInviteTitle("Board Member");
+    try { await navigator.clipboard.writeText(url); } catch (e) {}
+  };
 
   if (loading) {
     return (
@@ -114,8 +160,8 @@ export default function OrgHome({ slug, session }) {
   // Derive quick stats
   const totalGoal = fundraisers.filter(f => f.status === "active").reduce((s, f) => s + Number(f.goal_amount || 0), 0);
   const totalRaised = fundraisers.filter(f => f.status === "active").reduce((s, f) => s + Number(f.raised_amount || 0), 0);
-  const boardFunds = board?.data?.funds || [];
-  const totalOnHand = boardFunds.reduce((s, f) => s + Number(f.balance || 0), 0);
+  const ledgerFunds = ledger?.funds || [];
+  const totalOnHand = ledgerFunds.reduce((s, f) => s + Number(f.balance || 0), 0);
   const nextMeeting = meetings[0];
   const draftLetter = newsletters.find(n => n.status === "draft");
   const activeFundraisers = fundraisers.filter(f => f.status === "active");
@@ -140,6 +186,10 @@ export default function OrgHome({ slug, session }) {
             </div>
           </div>
           <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+            <button onClick={() => { setShowInvite(true); setInvitedLink(""); }}
+              style={{ padding: "6px 14px", background: accent.color, color: N.white, border: "none", borderRadius: 8, fontSize: 12, cursor: "pointer", fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", fontWeight: 700, boxShadow: `0 3px 10px ${accent.color}66` }}>
+              + Invite
+            </button>
             <a href="/dashboard?tab=tools" style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: N.muted, textDecoration: "none", letterSpacing: "0.08em" }}>CARES Works →</a>
             <button onClick={async () => { await supabase.auth.signOut(); window.location.href = "/"; }}
               style={{ padding: "5px 12px", borderRadius: 6, border: "1px solid " + N.rule, background: "transparent", color: N.muted, fontSize: 11, cursor: "pointer", fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>Log out</button>
@@ -192,7 +242,7 @@ export default function OrgHome({ slug, session }) {
                 <NeonBox color={accent.color} rgb={accent.rgb} style={{ padding: "18px 20px" }}>
                   <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.12em", color: accent.color, fontWeight: 700, marginBottom: 6 }}>ON HAND</div>
                   <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 26, color: N.ink }}>{money(totalOnHand)}</div>
-                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: N.muted, marginTop: 4 }}>across {boardFunds.length || 0} funds</div>
+                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: N.muted, marginTop: 4 }}>across {ledgerFunds.length || 0} funds</div>
                 </NeonBox>
                 <NeonBox color={N.pink} rgb={N_RGB.pink} style={{ padding: "18px 20px" }}>
                   <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.12em", color: N.pink, fontWeight: 700, marginBottom: 6 }}>RAISED (ACTIVE)</div>
@@ -248,30 +298,49 @@ export default function OrgHome({ slug, session }) {
               <div style={{ marginBottom: 20 }}>
                 <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.16em", color: accent.color, fontWeight: 700, marginBottom: 8 }}>YOUR MONEY</div>
                 <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 30, color: N.ink, marginBottom: 8 }}>Financials</h1>
-                <p style={{ color: N.muted, fontSize: 14 }}>Fund balances, budget-vs-actual, and reserve months — all in your Steward board.</p>
+                <p style={{ color: N.muted, fontSize: 14 }}>Fund balances and year-to-date activity from your ledger.</p>
               </div>
-              {board ? (
+              {ledger && ledger.funds.length > 0 ? (
                 <>
+                  {/* YTD income / expenses / net */}
+                  <div className="oh-stat-row" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14, marginBottom: 20 }}>
+                    <NeonBox color={accent.color} rgb={accent.rgb} style={{ padding: "18px 20px" }}>
+                      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.12em", color: accent.color, fontWeight: 700, marginBottom: 6 }}>INCOME (YTD)</div>
+                      <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 26, color: N.ink }}>{money(ledger.income_ytd)}</div>
+                    </NeonBox>
+                    <NeonBox color={accent.color} rgb={accent.rgb} style={{ padding: "18px 20px" }}>
+                      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.12em", color: accent.color, fontWeight: 700, marginBottom: 6 }}>EXPENSES (YTD)</div>
+                      <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 26, color: N.ink }}>{money(ledger.expenses_ytd)}</div>
+                    </NeonBox>
+                    <NeonBox color={accent.color} rgb={accent.rgb} style={{ padding: "18px 20px" }}>
+                      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.12em", color: accent.color, fontWeight: 700, marginBottom: 6 }}>NET (YTD)</div>
+                      <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 26, color: (ledger.income_ytd - ledger.expenses_ytd) >= 0 ? N.green : N.red }}>{money(ledger.income_ytd - ledger.expenses_ytd)}</div>
+                    </NeonBox>
+                  </div>
+
                   <NeonBox color={accent.color} rgb={accent.rgb} style={{ padding: "22px 24px", marginBottom: 16 }}>
-                    <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: N.ink, marginBottom: 12 }}>{board.name}</div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 12, marginBottom: 14 }}>
-                      {boardFunds.map(f => (
-                        <div key={f.name} style={{ padding: "12px 14px", background: N.white, border: "1px solid " + N.rule, borderRadius: 8 }}>
-                          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", color: N.muted, marginBottom: 4 }}>{f.name.toUpperCase()} FUND</div>
+                    <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: N.ink, marginBottom: 4 }}>Fund balances</div>
+                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: N.muted, marginBottom: 14 }}>{ledger.entry_count} entries · {ledger.funds.length} funds</div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12, marginBottom: 14 }}>
+                      {ledger.funds.map(f => (
+                        <div key={f.id} style={{ padding: "12px 14px", background: N.white, border: `1px solid ${N.rule}`, borderRadius: 8, position: "relative" }}>
+                          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", color: N.muted, marginBottom: 4 }}>
+                            {f.name.toUpperCase()}{f.is_restricted ? " · RESTRICTED" : ""}
+                          </div>
                           <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>{money(f.balance)}</div>
                         </div>
                       ))}
                     </div>
-                    <NeonBtn color={accent.color} onClick={() => navigate("/tools/ledger")}>Open the full Steward board →</NeonBtn>
+                    <NeonBtn color={accent.color} onClick={() => navigate("/tools/ledger?org=" + org.primary_ledger_org_id)}>Open the full Ledger →</NeonBtn>
                   </NeonBox>
-                  <p style={{ color: N.muted, fontSize: 13, fontStyle: "italic" }}>The Steward board is where you edit fund balances, add transactions, and build your budget-vs-actual.</p>
+                  <p style={{ color: N.muted, fontSize: 13, fontStyle: "italic" }}>Live from CARES Ledger — the numbers here update whenever you add entries in the Ledger tool.</p>
                 </>
               ) : (
                 <NeonBox color={accent.color} rgb={accent.rgb} scale={0.7} style={{ padding: "28px 24px", textAlign: "center" }}>
                   <div style={{ fontSize: 32, marginBottom: 10 }}>💰</div>
-                  <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: N.ink, marginBottom: 8 }}>No financial board linked yet.</div>
-                  <p style={{ color: N.muted, fontSize: 14, marginBottom: 14 }}>Kari can link your Steward board to this workspace so it lands here.</p>
-                  <NeonBtn color={accent.color} onClick={() => navigate("/tools/ledger")}>Open Steward →</NeonBtn>
+                  <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: N.ink, marginBottom: 8 }}>No ledger linked yet.</div>
+                  <p style={{ color: N.muted, fontSize: 14, marginBottom: 14 }}>Kari can link this workspace to your CARES Ledger org so balances land here.</p>
+                  <NeonBtn color={accent.color} onClick={() => navigate("/tools/ledger")}>Open Ledger →</NeonBtn>
                 </NeonBox>
               )}
             </div>
@@ -413,6 +482,75 @@ export default function OrgHome({ slug, session }) {
 
         </main>
       </div>
+
+      {/* INVITE MODAL */}
+      {showInvite && (
+        <div onClick={() => setShowInvite(false)}
+          style={{ position: "fixed", inset: 0, background: "rgba(10,10,20,0.7)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+          <div onClick={e => e.stopPropagation()}
+            style={{ background: N.white, maxWidth: 520, width: "100%", borderRadius: 14, padding: "28px 32px", border: `2px solid ${accent.color}`, boxShadow: `0 0 40px ${accent.color}66`, maxHeight: "90vh", overflowY: "auto" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+              <div>
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.16em", color: accent.color, fontWeight: 700, marginBottom: 6 }}>INVITE TO {org.short_name || org.name}</div>
+                <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink, margin: 0 }}>Add a board member</h2>
+              </div>
+              <button onClick={() => setShowInvite(false)} style={{ background: "transparent", border: "none", fontSize: 22, cursor: "pointer", color: N.muted, lineHeight: 1 }}>×</button>
+            </div>
+            <p style={{ color: N.muted, fontSize: 13.5, marginBottom: 18, lineHeight: 1.55 }}>
+              Generate a private link. They can view financials, minutes, fundraisers, and documents — no login needed. They only sign up if they want to make changes.
+            </p>
+
+            <label style={{ display: "block", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: N.muted, marginBottom: 4, fontWeight: 700 }}>Their name (optional)</label>
+            <input value={inviteName} onChange={e => setInviteName(e.target.value)} placeholder="Sarah Chen"
+              style={{ width: "100%", padding: "10px 14px", background: N.white, border: "1.5px solid " + N.rule, borderRadius: 8, fontSize: 14, marginBottom: 12, boxSizing: "border-box", fontFamily: "'Figtree', sans-serif" }} />
+
+            <label style={{ display: "block", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: N.muted, marginBottom: 4, fontWeight: 700 }}>Email (optional — for your records)</label>
+            <input type="email" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} placeholder="sarah@boardchair.org"
+              style={{ width: "100%", padding: "10px 14px", background: N.white, border: "1.5px solid " + N.rule, borderRadius: 8, fontSize: 14, marginBottom: 12, boxSizing: "border-box", fontFamily: "'Figtree', sans-serif" }} />
+
+            <label style={{ display: "block", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: N.muted, marginBottom: 4, fontWeight: 700 }}>Their role on the board</label>
+            <input value={inviteTitle} onChange={e => setInviteTitle(e.target.value)} placeholder="Board Chair"
+              style={{ width: "100%", padding: "10px 14px", background: N.white, border: "1.5px solid " + N.rule, borderRadius: 8, fontSize: 14, marginBottom: 18, boxSizing: "border-box", fontFamily: "'Figtree', sans-serif" }} />
+
+            <button onClick={inviteSubmit} disabled={inviteSaving}
+              style={{ width: "100%", padding: 12, background: inviteSaving ? N.rule : accent.color, border: "none", borderRadius: 8, color: N.white, fontSize: 14, fontWeight: 700, cursor: inviteSaving ? "default" : "pointer", fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", textTransform: "uppercase", boxShadow: inviteSaving ? "none" : `0 4px 14px ${accent.color}66` }}>
+              {inviteSaving ? "Creating link…" : "Generate invite link →"}
+            </button>
+
+            {invitedLink && (
+              <div style={{ marginTop: 20, padding: "14px 16px", background: `rgba(${accent.rgb},0.08)`, border: `1.5px solid ${accent.color}`, borderRadius: 10 }}>
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.12em", color: accent.color, fontWeight: 700, marginBottom: 6 }}>✓ LINK COPIED TO CLIPBOARD</div>
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: N.ink, wordBreak: "break-all", marginBottom: 10, lineHeight: 1.5 }}>{invitedLink}</div>
+                <div style={{ fontSize: 12, color: N.muted, lineHeight: 1.5 }}>
+                  Paste this in a text, email, or DM. Anyone with the link can view — no login required. Valid for 1 year.
+                </div>
+              </div>
+            )}
+
+            {invites.length > 0 && (
+              <div style={{ marginTop: 24 }}>
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", color: N.muted, fontWeight: 700, marginBottom: 10 }}>ACTIVE INVITES · {invites.length}</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6, maxHeight: 200, overflowY: "auto" }}>
+                  {invites.slice(0, 20).map(i => (
+                    <div key={i.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", background: N.white, border: `1px solid ${N.rule}`, borderRadius: 8 }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 13, color: N.ink, fontWeight: 600 }}>{i.invited_name || i.invited_email || "Unnamed viewer"}</div>
+                        <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: N.muted }}>
+                          {i.invited_title || "Viewer"} · {i.view_count || 0} view{(i.view_count || 0) === 1 ? "" : "s"}{i.last_viewed_at ? " · last " + fmtDate(i.last_viewed_at) : ""}
+                        </div>
+                      </div>
+                      <button onClick={() => { const u = window.location.origin + "/view/" + i.token; navigator.clipboard?.writeText(u); alert("Copied: " + u); }}
+                        style={{ background: "transparent", border: "none", color: accent.color, fontSize: 11, cursor: "pointer", fontFamily: "'DM Mono', monospace", fontWeight: 700, letterSpacing: "0.06em" }}>
+                        COPY LINK
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <SignatureFooter />
     </div>

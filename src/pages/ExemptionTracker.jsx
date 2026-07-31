@@ -5,7 +5,7 @@ import { navigate } from "../App";
 const S = {
   slate: "#0a0a14", orange: "#0080ff", orangeDark: "#0052cc", orangeLight: "#e6f0ff",
   paper: "#ffffff", cream: "#f7f9fc", ink: "#0a0a14", rule: "#e2e8f0",
-  muted: "#64748b", gold: "#ff8a2a", green: "#5a9a5a", red: "#c95050",
+  muted: "#64748b", gold: "#22c55e", green: "#5a9a5a", red: "#c95050",
   grad: "linear-gradient(135deg, #0080ff, #0052cc)",
 };
 

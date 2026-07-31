@@ -141,7 +141,7 @@ export default function NonprofitSeries() {
 
         {/* HERO */}
         <div className="np-hero" style={{ textAlign: "center", marginBottom: 44 }}>
-          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.2em", color: N.orange, fontWeight: 700, marginBottom: 14, textShadow: "0 0 10px rgba(255,138,42,0.5)" }}>
+          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.2em", color: N.orange, fontWeight: 700, marginBottom: 14, textShadow: "0 0 10px rgba(34,197,94,0.5)" }}>
             THE NONPROFIT SERIES
           </div>
           <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(34px, 5.5vw, 56px)", lineHeight: 1.05, marginBottom: 16, color: N.ink }}>
@@ -155,7 +155,7 @@ export default function NonprofitSeries() {
             Verified 501(c)(3)? You're in for $13/mo.
           </p>
           <a href="mailto:kari@caresmn.com?subject=CARES%20Works%20Nonprofit%20Series&body=Hi%20Kari%20%E2%80%94%20we%27re%20a%20501(c)(3)%20interested%20in%20the%20Nonprofit%20Series%20at%20%2413%2Fmo.%20Our%20org%20is%20%5BNAME%5D%20and%20our%20EIN%20is%20%5BEIN%5D.%20Send%20us%20a%20checkout%20link%3F"
-            style={{ display: "inline-block", padding: "14px 32px", background: N.orange, border: "none", borderRadius: 8, color: N.white, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Mono', monospace", letterSpacing: "0.12em", textTransform: "uppercase", textDecoration: "none", boxShadow: `0 4px 18px rgba(255,138,42,0.55), 0 0 40px rgba(255,138,42,0.25)` }}>
+            style={{ display: "inline-block", padding: "14px 32px", background: N.orange, border: "none", borderRadius: 8, color: N.white, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Mono', monospace", letterSpacing: "0.12em", textTransform: "uppercase", textDecoration: "none", boxShadow: `0 4px 18px rgba(34,197,94,0.55), 0 0 40px rgba(34,197,94,0.25)` }}>
             Apply for Nonprofit — $13/mo →
           </a>
         </div>
@@ -231,7 +231,7 @@ export default function NonprofitSeries() {
             $13/mo for verified 501(c)(3)s. Cancel anytime. Ask Kari answers real questions from real EDs and treasurers.
           </p>
           <a href="mailto:kari@caresmn.com?subject=CARES%20Works%20Nonprofit%20Series&body=Hi%20Kari%20%E2%80%94%20we%27re%20a%20501(c)(3)%20interested%20in%20the%20Nonprofit%20Series%20at%20%2413%2Fmo.%20Our%20org%20is%20%5BNAME%5D%20and%20our%20EIN%20is%20%5BEIN%5D.%20Send%20us%20a%20checkout%20link%3F"
-            style={{ display: "inline-block", padding: "14px 32px", background: N.orange, border: "none", borderRadius: 8, color: N.white, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Mono', monospace", letterSpacing: "0.12em", textTransform: "uppercase", textDecoration: "none", boxShadow: `0 4px 18px rgba(255,138,42,0.55), 0 0 40px rgba(255,138,42,0.25)` }}>
+            style={{ display: "inline-block", padding: "14px 32px", background: N.orange, border: "none", borderRadius: 8, color: N.white, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Mono', monospace", letterSpacing: "0.12em", textTransform: "uppercase", textDecoration: "none", boxShadow: `0 4px 18px rgba(34,197,94,0.55), 0 0 40px rgba(34,197,94,0.25)` }}>
             Apply for Nonprofit — $13/mo →
           </a>
         </div>

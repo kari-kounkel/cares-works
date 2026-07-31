@@ -203,8 +203,8 @@ function Preview() {
       {/* HERO */}
       <div style={{ background: '#f7f9fc', borderBottom: '1px solid #e2e8f0', padding: '44px 40px 32px' }}>
         <div style={{ maxWidth: '860px', margin: '0 auto' }}>
-          <div style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '.12em', textTransform: 'uppercase', color: '#ff8a2a', marginBottom: '10px' }}>CARES Works · Member Tool</div>
-          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '40px', lineHeight: 1.1, color: '#0a0a14', marginBottom: '8px' }}>Payroll <em style={{ fontStyle: 'italic', color: '#ff8a2a' }}>Stub Calculator</em></h1>
+          <div style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '.12em', textTransform: 'uppercase', color: '#22c55e', marginBottom: '10px' }}>CARES Works · Member Tool</div>
+          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '40px', lineHeight: 1.1, color: '#0a0a14', marginBottom: '8px' }}>Payroll <em style={{ fontStyle: 'italic', color: '#22c55e' }}>Stub Calculator</em></h1>
           <p style={{ fontSize: '15px', color: '#64748b', maxWidth: '560px', lineHeight: 1.6 }}>Calculate gross pay, federal and state withholding, FICA, and deductions for all 50 states. Print a clean pay stub every pay period.</p>
         </div>
       </div>
@@ -228,7 +228,7 @@ function Preview() {
 
         {/* BLURRED STUB PREVIEW */}
         <div style={{ position: 'relative', marginBottom: '48px' }}>
-          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: '11px', fontWeight: 600, letterSpacing: '.1em', textTransform: 'uppercase', color: '#ff8a2a', marginBottom: '12px' }}>Sample Pay Stub</div>
+          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: '11px', fontWeight: 600, letterSpacing: '.1em', textTransform: 'uppercase', color: '#22c55e', marginBottom: '12px' }}>Sample Pay Stub</div>
 
           {/* Stub — blurred */}
           <div style={{ filter: 'blur(5px)', pointerEvents: 'none', userSelect: 'none', background: '#fff', border: '2px solid #0a0a14', borderRadius: '10px', padding: '28px' }}>
@@ -289,7 +289,7 @@ function Preview() {
 // GATE — fallback if Preview is bypassed (shouldn't happen)
 // =============================================================================
 const S = {
-  navy: '#0a0a14', navy2: '#0052cc', gold: '#ff8a2a', gold2: '#ffc499',
+  navy: '#0a0a14', navy2: '#0052cc', gold: '#22c55e', gold2: '#ffc499',
   cream: '#ffffff', orange: '#0080ff', muted: '#64748b', ink: '#0a0a14',
   rule: '#e2e8f0', white: '#ffffff', green: '#22c55e',
 };
@@ -834,7 +834,7 @@ function PCStyles() {
   const css =
     '.pc-page { font-family: var(--pc-font); background: #ffffff; color: #0a0a14; min-height: 100vh; }' +
     '.pc-page * { box-sizing: border-box; margin: 0; padding: 0; }' +
-    ".pc-page { --pc-navy: #0a0a14; --pc-navy2: #0052cc; --pc-gold: #ff8a2a; --pc-gold2: #ffc499; --pc-orange: #0080ff; --pc-cream: #ffffff; --pc-rule: #e2e8f0; --pc-muted: #64748b; --pc-ink: #0a0a14; --pc-font: 'DM Sans', sans-serif; }" +
+    ".pc-page { --pc-navy: #0a0a14; --pc-navy2: #0052cc; --pc-gold: #22c55e; --pc-gold2: #ffc499; --pc-orange: #0080ff; --pc-cream: #ffffff; --pc-rule: #e2e8f0; --pc-muted: #64748b; --pc-ink: #0a0a14; --pc-font: 'DM Sans', sans-serif; }" +
 
     // Header
     '.pc-header { background: #fff; border-bottom: 1px solid var(--pc-rule); padding: 18px 40px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }' +
@@ -941,7 +941,7 @@ function PCStyles() {
     '.pc-upsell-desc { font-size: 14px; color: rgba(255,255,255,.6); line-height: 1.6; }' +
     '.pc-upsell-ctas { display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; min-width: 200px; }' +
     ".pc-upsell-btn-primary { display: block; text-align: center; background: var(--pc-orange); color: #fff; font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; padding: 13px 22px; border-radius: 7px; text-decoration: none; font-weight: 700; }" +
-    ".pc-upsell-btn-gold { display: block; text-align: center; background: linear-gradient(135deg,#ff8a2a,#f06d0a); color: #0a0a14; font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; padding: 13px 22px; border-radius: 7px; text-decoration: none; font-weight: 700; }" +
+    ".pc-upsell-btn-gold { display: block; text-align: center; background: linear-gradient(135deg,#22c55e,#16a34a); color: #0a0a14; font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; padding: 13px 22px; border-radius: 7px; text-decoration: none; font-weight: 700; }" +
 
     // Footer
     '.pc-footer { border-top: 1px solid var(--pc-rule); padding: 22px 40px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }' +

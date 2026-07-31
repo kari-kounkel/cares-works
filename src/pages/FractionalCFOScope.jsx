@@ -12,7 +12,7 @@ const S = {
   redLight: "#fff1f1",
   green: "#22c55e",
   greenLight: "#f0fdf4",
-  purple: "#ff2d8a",
+  purple: "#22c55e",
   purpleLight: "#fff0f7",
   blue: "#0052cc",
   blueLight: "#e6f0ff",
@@ -86,7 +86,7 @@ const NEVER_LIST = [
 const COL = {
   does: { label: "Does", bg: "#f0fdf4", color: "#0f172a", border: "#bbf7d0", icon: "✅" },
   doesnt: { label: "Doesn't", bg: "#fff1f1", color: "#ef4444", border: "#fecaca", icon: "🚫" },
-  advises: { label: "Advises — You Decide", bg: "#fff0f7", color: "#ff2d8a", border: "#ffc2dd", icon: "💬" },
+  advises: { label: "Advises — You Decide", bg: "#fff0f7", color: "#22c55e", border: "#ffc2dd", icon: "💬" },
 };
 
 export default function FractionalCFOScope({ session }) {

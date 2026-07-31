@@ -4,7 +4,7 @@ import { useState } from "react";
 const S = {
   slate: "#0a0a14", orange: "#0080ff", orangeLight: "#e6f0ff",
   paper: "#ffffff", cream: "#f7f9fc", ink: "#0a0a14",
-  rule: "#e2e8f0", muted: "#64748b", gold: "#ff8a2a",
+  rule: "#e2e8f0", muted: "#64748b", gold: "#22c55e",
   grad: "linear-gradient(135deg, #0080ff, #0052cc)",
 };
 

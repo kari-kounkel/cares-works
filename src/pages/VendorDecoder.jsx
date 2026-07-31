@@ -1092,7 +1092,7 @@ function Styles() {
     '--vd-ink: #0a0a14;' +
     '--vd-rule: #e2e8f0;' +
     '--vd-muted: #64748b;' +
-    '--vd-gold: #ff8a2a;' +
+    '--vd-gold: #22c55e;' +
     '--vd-green: #5a9a5a;' +
     '--vd-red: #0052cc;' +
     "font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;" +
@@ -1135,14 +1135,14 @@ function Styles() {
     ".vd-pm-online.vd-paymethod-active  { background: #0080ff; border-color: #0080ff; color: #fff; }" +
     ".vd-pm-check.vd-paymethod-active   { background: #0a0a14; border-color: #0a0a14; color: #fff; }" +
     ".vd-pm-amex.vd-paymethod-active    { background: #5a9a5a; border-color: #5a9a5a; color: #fff; }" +
-    ".vd-pm-ach.vd-paymethod-active     { background: #ff8a2a; border-color: #ff8a2a; color: #fff; }" +
+    ".vd-pm-ach.vd-paymethod-active     { background: #22c55e; border-color: #22c55e; color: #fff; }" +
     ".vd-pm-auto.vd-paymethod-active    { background: #9b7bb8; border-color: #9b7bb8; color: #fff; }" +
     ".vd-pm-other.vd-paymethod-active   { background: #64748b; border-color: #64748b; color: #fff; }" +
     /* Inactive hover hint of each color so user sees what they're picking */
     ".vd-pm-online:hover  { border-color: #0080ff; }" +
     ".vd-pm-check:hover   { border-color: #0a0a14; }" +
     ".vd-pm-amex:hover    { border-color: #5a9a5a; }" +
-    ".vd-pm-ach:hover     { border-color: #ff8a2a; }" +
+    ".vd-pm-ach:hover     { border-color: #22c55e; }" +
     ".vd-pm-auto:hover    { border-color: #9b7bb8; }" +
     ".vd-pm-other:hover   { border-color: #64748b; }" +
     ".vd-preview-conventions { background: var(--vd-cream); border-left: 3px solid var(--vd-gold); padding: 10px 14px; margin-bottom: 16px; border-radius: 4px; }" +

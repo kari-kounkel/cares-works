@@ -351,7 +351,7 @@ export default function Dashboard({ session }) {
                 ))}
               </div>
               <button onClick={() => setNewOnly(!newOnly)}
-                style={{ padding: "6px 16px", borderRadius: 100, border: newOnly ? "none" : "1.5px solid " + N.rule, background: newOnly ? N.orange : N.white, color: newOnly ? N.white : N.muted, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", textTransform: "uppercase", boxShadow: newOnly ? `0 3px 10px rgba(255,138,42,0.5)` : "none" }}>
+                style={{ padding: "6px 16px", borderRadius: 100, border: newOnly ? "none" : "1.5px solid " + N.rule, background: newOnly ? N.orange : N.white, color: newOnly ? N.white : N.muted, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", textTransform: "uppercase", boxShadow: newOnly ? `0 3px 10px rgba(34,197,94,0.5)` : "none" }}>
                 ✨ New only
               </button>
               {hasActiveFilters && (
@@ -543,7 +543,7 @@ export default function Dashboard({ session }) {
                         )}
                       </div>
                       {isOpen && (
-                        <div style={{ borderTop: "1px solid " + N.rule, padding: "24px 26px", background: "rgba(255,45,138,0.04)" }}>
+                        <div style={{ borderTop: "1px solid " + N.rule, padding: "24px 26px", background: "rgba(34,197,94,0.04)" }}>
                           {d.body && d.body.split("\n\n").map((para, i) => (
                             <p key={i} style={{ fontSize: 15, color: N.ink, lineHeight: 1.7, marginBottom: 14, whiteSpace: "pre-wrap" }}>{para}</p>
                           ))}
@@ -772,7 +772,7 @@ export default function Dashboard({ session }) {
         <div onClick={() => setShowHowToModal(false)}
           style={{ position: "fixed", inset: 0, background: "rgba(10,10,20,0.72)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 20 }}>
           <div onClick={e => e.stopPropagation()}
-            style={{ background: N.white, maxWidth: 680, width: "100%", borderRadius: 14, padding: "32px 40px", position: "relative", maxHeight: "90vh", overflowY: "auto", border: `2px solid ${N.pink}`, boxShadow: `0 0 40px rgba(255,45,138,0.4)` }}>
+            style={{ background: N.white, maxWidth: 680, width: "100%", borderRadius: 14, padding: "32px 40px", position: "relative", maxHeight: "90vh", overflowY: "auto", border: `2px solid ${N.pink}`, boxShadow: `0 0 40px rgba(34,197,94,0.4)` }}>
             <button onClick={() => setShowHowToModal(false)}
               style={{ position: "absolute", top: 12, right: 14, background: "transparent", border: "none", fontSize: 22, cursor: "pointer", color: N.muted }}>×</button>
             <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: N.pink, marginBottom: 8, fontWeight: 700 }}>HOW THIS WORKS</div>

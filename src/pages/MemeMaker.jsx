@@ -7,7 +7,7 @@ import { logToolSession } from "../toolSessions";
 const S = {
   slate: "#0a0a14", orange: "#0080ff", orangeDark: "#0052cc", orangeLight: "#e6f0ff",
   paper: "#ffffff", cream: "#f7f9fc", ink: "#0a0a14", rule: "#e2e8f0",
-  muted: "#64748b", gold: "#ff8a2a", green: "#5a9a5a", white: "#ffffff",
+  muted: "#64748b", gold: "#22c55e", green: "#5a9a5a", white: "#ffffff",
   grad: "linear-gradient(135deg, #0080ff, #0052cc)",
 };
 const MONTHLY_URL = "https://buy.stripe.com/7sY5kD7Nl2HgeLp1Q818c06";

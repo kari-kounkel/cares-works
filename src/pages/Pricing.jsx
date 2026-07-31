@@ -118,8 +118,8 @@ const MOBILE = `
 // Subtle multi-color radial wash on white — the "pizzazz without going dark" trick.
 const WASH_BG = `
   radial-gradient(ellipse at 15% 0%, rgba(0,128,255,0.10), transparent 55%),
-  radial-gradient(ellipse at 85% 0%, rgba(255,45,138,0.08), transparent 55%),
-  radial-gradient(ellipse at 50% 100%, rgba(255,138,42,0.06), transparent 60%),
+  radial-gradient(ellipse at 85% 0%, rgba(34,197,94,0.08), transparent 55%),
+  radial-gradient(ellipse at 50% 100%, rgba(34,197,94,0.06), transparent 60%),
   #ffffff
 `;
 

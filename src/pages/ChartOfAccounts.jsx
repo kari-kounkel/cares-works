@@ -47,7 +47,7 @@ const TYPES = [
   {
     type: "Equity",
     range: "3000–3999",
-    color: "#ff2d8a",
+    color: "#22c55e",
     bg: "#fff0f7",
     border: "#ffc2dd",
     what: "Owner's stake in the business — what's left after liabilities.",

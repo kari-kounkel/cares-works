@@ -11,7 +11,7 @@ const S = {
   ink: "#0a0a14",
   rule: "#e2e8f0",
   muted: "#64748b",
-  gold: "#ff8a2a",
+  gold: "#22c55e",
   grad: "linear-gradient(135deg, #0080ff, #0052cc)",
 };
 

@@ -17,10 +17,10 @@ const S = {
   greenLight: "#eef6ee",
   red: "#c44a3a",
   redLight: "#fbeeec",
-  gold: "#ff8a2a",
+  gold: "#22c55e",
 };
 
-const FUND_COLORS = ["#2F5233", "#ff8a2a", "#0a0a14", "#0080ff", "#7a5b8a", "#3a7d8a", "#c44a3a", "#5a9a5a"];
+const FUND_COLORS = ["#2F5233", "#22c55e", "#0a0a14", "#0080ff", "#7a5b8a", "#3a7d8a", "#c44a3a", "#5a9a5a"];
 const TABS = [
   { key: "ledger", label: "Ledger" },
   { key: "accounts", label: "Accounts" },
@@ -652,7 +652,7 @@ function MemberStatusDot({ member }) {
 
 function memberStatus(m) {
   if (!m.accepted_at) {
-    return { dot: "#ff8a2a", color: "#8C6927", bg: "#fdf6e3", border: "#e9d9a8", short: "invited", tooltip: "Invited but not yet signed in" };
+    return { dot: "#22c55e", color: "#8C6927", bg: "#fdf6e3", border: "#e9d9a8", short: "invited", tooltip: "Invited but not yet signed in" };
   }
   if (!m.last_seen_at) {
     return { dot: "#5a9a5a", color: "#2f5233", bg: "#eef6ee", border: "#bcdbbc", short: "joined", tooltip: `Joined ${m.accepted_at?.slice(0, 10)}` };

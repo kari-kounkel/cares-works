@@ -4,15 +4,19 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 
-// PALETTE — sampled from the CARES Works neon logo
+// PALETTE — dial-back to TWO-color system (blue + green only).
+// Kari's call: 'too many colors.. what happened to just two ..primarily blue
+// and some green neonish stuff? this is obscene'.
+// Semantic slot names kept (pink, orange) so no component code changes; the
+// VALUES now carry green + blue variants. Blue-heavy overall, green as accent.
 export const N = {
   blue:      "#0080ff",
   blueHot:   "#00b7ff",
   blueDark:  "#0052cc",
-  pink:      "#ff2d8a",
-  pinkDark:  "#d91d6d",
-  orange:    "#ff8a2a",
-  orangeDark:"#f06d0a",
+  pink:      "#22c55e",   // was hot pink → NEON GREEN (accent slot)
+  pinkDark:  "#16a34a",   // was pink-dark → deep green
+  orange:    "#00b7ff",   // was neon orange → BLUE-HOT (variant of blue)
+  orangeDark:"#0052cc",   // was orange-dark → blue-dark
   white:     "#ffffff",
   wall:      "#ffffff",
   ink:       "#0a0a14",
@@ -26,8 +30,8 @@ export const N = {
 
 export const N_RGB = {
   blue:   "0,128,255",
-  pink:   "255,45,138",
-  orange: "255,138,42",
+  pink:   "34,197,94",     // green (was 34,197,94 — pink)
+  orange: "0,183,255",     // blue-hot (was 34,197,94 — orange)
   ink:    "10,10,20",
 };
 
@@ -35,26 +39,25 @@ export const FONT_LINK = "https://fonts.googleapis.com/css2?family=DM+Serif+Disp
 
 // --- Pizzazz helpers (no black — subtle color energy on white) ---------------
 
-// Multi-color radial wash for the page background. Blue top-left, pink top-right,
-// orange bottom-center. All very low opacity so text stays black-on-white readable.
+// Two-color radial wash for the page background. Blue top-left, green top-right.
+// No pink, no orange. Low opacity so text stays black-on-white readable.
 export const WASH_BG = `
   radial-gradient(ellipse at 15% 0%, rgba(0,128,255,0.10), transparent 55%),
-  radial-gradient(ellipse at 85% 0%, rgba(255,45,138,0.08), transparent 55%),
-  radial-gradient(ellipse at 50% 100%, rgba(255,138,42,0.06), transparent 60%),
+  radial-gradient(ellipse at 85% 5%, rgba(34,197,94,0.07), transparent 55%),
   #ffffff
 `;
 
 // Subtler version — used for interior pages (Dashboard/tools). Less color, more air.
 export const WASH_BG_LITE = `
   radial-gradient(ellipse at 10% 0%, rgba(0,128,255,0.06), transparent 45%),
-  radial-gradient(ellipse at 90% 20%, rgba(255,45,138,0.04), transparent 50%),
+  radial-gradient(ellipse at 90% 20%, rgba(34,197,94,0.04), transparent 50%),
   #ffffff
 `;
 
 // Gradient-fill text — inline style for hero <h1> highlights.
-// Usage: <h1>Pricing that <span style={HERO_TEXT_GRAD}>respects the work.</span></h1>
+// Blue → green (was tri-color blue/pink/orange).
 export const HERO_TEXT_GRAD = {
-  background: `linear-gradient(90deg, ${N.blue} 0%, ${N.pink} 55%, ${N.orange} 100%)`,
+  background: `linear-gradient(90deg, ${N.blue} 0%, #16a34a 100%)`,
   WebkitBackgroundClip: "text",
   WebkitTextFillColor: "transparent",
   backgroundClip: "text",
@@ -71,8 +74,8 @@ export const HERO_TEXT_GRAD_BLUE = {
 // Bigger, more energetic glow for primary hero CTAs — used on Join/Start/Upgrade
 // buttons where you want the eye to land immediately.
 export const HERO_BTN_GLOW = `0 4px 18px rgba(0,128,255,0.55), 0 0 40px rgba(0,128,255,0.25)`;
-export const HERO_BTN_GLOW_PINK = `0 4px 18px rgba(255,45,138,0.55), 0 0 40px rgba(255,45,138,0.25)`;
-export const HERO_BTN_GLOW_ORANGE = `0 4px 18px rgba(255,138,42,0.55), 0 0 40px rgba(255,138,42,0.25)`;
+export const HERO_BTN_GLOW_PINK = `0 4px 18px rgba(34,197,94,0.55), 0 0 40px rgba(34,197,94,0.25)`;
+export const HERO_BTN_GLOW_ORANGE = `0 4px 18px rgba(34,197,94,0.55), 0 0 40px rgba(34,197,94,0.25)`;
 
 // --- Building blocks ---------------------------------------------------------
 
@@ -258,7 +261,7 @@ export function NeonNav({ tabs = [], right = null, hrefHome = "/dashboard" }) {
 export function SignatureFooter() {
   return (
     <div style={{ textAlign: "center", padding: "40px 24px 32px" }}>
-      <div style={{ display: "inline-block", padding: "10px 26px", background: `linear-gradient(135deg, ${N.orange}, ${N.pink}, ${N.blue})`, borderRadius: 100, fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.2em", color: N.white, fontWeight: 700, boxShadow: "0 6px 20px rgba(255,45,138,0.35)", marginBottom: 26 }}>
+      <div style={{ display: "inline-block", padding: "10px 26px", background: `linear-gradient(135deg, ${N.blue}, #16a34a)`, borderRadius: 100, fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.2em", color: N.white, fontWeight: 700, boxShadow: "0 6px 20px rgba(0,128,255,0.35)", marginBottom: 26 }}>
         BUILT FOR BUSINESS &nbsp;·&nbsp; BACKED BY CARES
       </div>
       <div style={{ maxWidth: 640, margin: "0 auto", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.06em", color: N.muted, lineHeight: 1.7 }}>

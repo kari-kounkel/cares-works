@@ -13,7 +13,7 @@ const S = {
   ink: "#0a0a14",
   rule: "#e2e8f0",
   muted: "#64748b",
-  gold: "#ff8a2a",
+  gold: "#22c55e",
   green: "#5a9a5a",
   red: "#0052cc",
   grad: "linear-gradient(135deg, #0080ff, #0052cc)",
@@ -995,7 +995,7 @@ function Circle({ state, onClick }) {
   const colors = {
     "": { bg: "#fff", border: "#64748b", fg: "transparent", char: "" },
     checked: { bg: "#5a9a5a", border: "#5a9a5a", fg: "#fff", char: "✓" },
-    partial: { bg: "#ff8a2a", border: "#ff8a2a", fg: "#fff", char: "~" },
+    partial: { bg: "#22c55e", border: "#22c55e", fg: "#fff", char: "~" },
     broken: { bg: "#0052cc", border: "#0052cc", fg: "#fff", char: "✗" },
   };
   const c = colors[state] || colors[""];
