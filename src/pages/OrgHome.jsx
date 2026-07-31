@@ -30,9 +30,12 @@ const SIDEBAR_SECTIONS = [
 ];
 
 const SIDEBAR_JUMP = [
-  { key: "library",  emoji: "🛠️", label: "Tool Library", href: "/dashboard" },
-  { key: "debrief",  emoji: "☕", label: "The Debrief",   href: "/dashboard" },
-  { key: "account",  emoji: "👤", label: "Account",       href: "/dashboard" },
+  { key: "library",   emoji: "🛠️", label: "Tool Library",     href: "/dashboard?tab=tools" },
+  { key: "workspace", emoji: "📂", label: "My Work",           href: "/dashboard?tab=workspace" },
+  { key: "debrief",   emoji: "☕", label: "The Debrief",       href: "/dashboard?tab=debrief" },
+  { key: "court",     emoji: "⚖️", label: "Court of Accounts", href: "/dashboard?tab=court" },
+  { key: "shop",      emoji: "🛒", label: "Shop",              href: "/dashboard?tab=shop" },
+  { key: "account",   emoji: "👤", label: "Account",           href: "/dashboard?tab=account" },
 ];
 
 function money(n) {
@@ -144,7 +147,7 @@ export default function OrgHome({ slug }) {
             </div>
           </div>
           <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-            <a href="/dashboard" style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: N.muted, textDecoration: "none", letterSpacing: "0.08em" }}>CARES Works →</a>
+            <a href="/dashboard?tab=tools" style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: N.muted, textDecoration: "none", letterSpacing: "0.08em" }}>CARES Works →</a>
             <button onClick={async () => { await supabase.auth.signOut(); window.location.href = "/"; }}
               style={{ padding: "5px 12px", borderRadius: 6, border: "1px solid " + N.rule, background: "transparent", color: N.muted, fontSize: 11, cursor: "pointer", fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>Log out</button>
           </div>

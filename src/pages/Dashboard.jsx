@@ -35,7 +35,12 @@ const COURT_CHAPTERS = [
 
 export default function Dashboard({ session }) {
   const [member, setMember] = useState(null);
-  const [activeTab, setActiveTab] = useState("tools");
+  const VALID_TABS = ["tools", "workspace", "debrief", "court", "shop", "account"];
+  const initialTab = (() => {
+    const t = new URLSearchParams(window.location.search).get("tab");
+    return VALID_TABS.includes(t) ? t : "tools";
+  })();
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [loading, setLoading] = useState(true);
   const [tools, setTools] = useState([]);
   const [toolsLoading, setToolsLoading] = useState(true);
