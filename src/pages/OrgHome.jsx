@@ -62,6 +62,10 @@ export default function OrgHome({ slug, session }) {
   const [ledger, setLedger] = useState(null);     // { funds:[], accounts:[], income_ytd, expenses_ytd, entry_count }
   const [invites, setInvites] = useState([]);
 
+  // Compose modal — one form used for meetings, newsletters, fundraisers
+  const [composeType, setComposeType] = useState(null); // 'meeting' | 'newsletter' | 'fundraiser' | null
+  const [composeRow, setComposeRow]   = useState(null); // null = new; row = edit
+
   // Invite modal state
   const [showInvite, setShowInvite] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
@@ -131,6 +135,35 @@ export default function OrgHome({ slug, session }) {
     setInviteEmail(""); setInviteName(""); setInviteTitle("Board Member");
     try { await navigator.clipboard.writeText(url); } catch (e) {}
   };
+
+  // --- COMPOSE (add / edit) ---------------------------------------
+  const TABLE_FOR = { meeting: "org_meetings", newsletter: "org_newsletters", fundraiser: "org_fundraisers" };
+  const openCompose = (type, row = null) => { setComposeType(type); setComposeRow(row); };
+  const closeCompose = () => { setComposeType(null); setComposeRow(null); };
+
+  const composeSave = async (fields) => {
+    if (!composeType || !org) return null;
+    const table = TABLE_FOR[composeType];
+    const payload = { ...fields, org_id: org.id, created_by: composeRow?.created_by || session.user.email };
+    let result;
+    if (composeRow) {
+      result = await supabase.from(table).update(payload).eq("id", composeRow.id).select().single();
+    } else {
+      result = await supabase.from(table).insert(payload).select().single();
+    }
+    if (result.error) { alert("Save failed: " + result.error.message); return null; }
+    // Refresh local state
+    const row = result.data;
+    if (composeType === "meeting")    setMeetings   (prev => composeRow ? prev.map(x => x.id === row.id ? row : x) : [row, ...prev].sort((a,b) => (b.meeting_date > a.meeting_date ? 1 : -1)));
+    if (composeType === "newsletter") setNewsletters(prev => composeRow ? prev.map(x => x.id === row.id ? row : x) : [row, ...prev]);
+    if (composeType === "fundraiser") setFundraisers(prev => composeRow ? prev.map(x => x.id === row.id ? row : x) : [row, ...prev]);
+    closeCompose();
+    return row;
+  };
+
+  // Share ONE link to the whole workspace. Use the existing invite (Invite button
+  // in the header) — this doesn't need per-document links. The board bookmarks the
+  // /view/:token URL once and sees everything, always.
 
   if (loading) {
     return (
@@ -348,22 +381,28 @@ export default function OrgHome({ slug, session }) {
 
           {section === "meetings" && (
             <div>
-              <div style={{ marginBottom: 20 }}>
-                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.16em", color: accent.color, fontWeight: 700, marginBottom: 8 }}>BOARD & TEAM</div>
-                <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 30, color: N.ink, marginBottom: 8 }}>Meetings & Minutes</h1>
-                <p style={{ color: N.muted, fontSize: 14 }}>Every meeting, every decision, every next step. Nothing falls off.</p>
+              <div style={{ marginBottom: 20, display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 20, flexWrap: "wrap" }}>
+                <div>
+                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.16em", color: accent.color, fontWeight: 700, marginBottom: 8 }}>BOARD & TEAM</div>
+                  <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 30, color: N.ink, marginBottom: 8 }}>Meetings & Minutes</h1>
+                  <p style={{ color: N.muted, fontSize: 14 }}>Every meeting, every decision, every next step. Nothing falls off.</p>
+                </div>
+                <NeonBtn color={accent.color} onClick={() => openCompose("meeting")}>+ Add meeting</NeonBtn>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 {meetings.length === 0 ? (
                   <NeonBox color={accent.color} rgb={accent.rgb} scale={0.7} style={{ padding: "28px 24px", textAlign: "center" }}>
                     <div style={{ color: N.muted, fontSize: 14, marginBottom: 12 }}>No meetings logged yet.</div>
-                    <NeonBtn color={accent.color}>+ Log your first meeting</NeonBtn>
+                    <NeonBtn color={accent.color} onClick={() => openCompose("meeting")}>+ Log your first meeting</NeonBtn>
                   </NeonBox>
                 ) : meetings.map(m => (
                   <NeonBox key={m.id} color={accent.color} rgb={accent.rgb} style={{ padding: "20px 22px" }}>
                     <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 8, gap: 10 }}>
                       <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: N.ink }}>{m.title || "Board Meeting"}</div>
-                      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.08em", color: accent.color, fontWeight: 700 }}>{fmtDate(m.meeting_date)}</div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.08em", color: accent.color, fontWeight: 700 }}>{fmtDate(m.meeting_date)}</div>
+                        <button onClick={() => openCompose("meeting", m)} style={{ background: "transparent", border: "none", color: N.muted, fontSize: 12, cursor: "pointer", fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", fontWeight: 700 }}>EDIT</button>
+                      </div>
                     </div>
                     {m.attendees && <div style={{ fontSize: 12, color: N.muted, marginBottom: 8 }}>👥 {m.attendees}</div>}
                     {m.agenda && (
@@ -392,22 +431,28 @@ export default function OrgHome({ slug, session }) {
 
           {section === "newsletter" && (
             <div>
-              <div style={{ marginBottom: 20 }}>
-                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.16em", color: accent.color, fontWeight: 700, marginBottom: 8 }}>DONORS & COMMUNITY</div>
-                <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 30, color: N.ink, marginBottom: 8 }}>Newsletter</h1>
-                <p style={{ color: N.muted, fontSize: 14 }}>Drafts, sent issues, and the running record of what you told your supporters.</p>
+              <div style={{ marginBottom: 20, display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 20, flexWrap: "wrap" }}>
+                <div>
+                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.16em", color: accent.color, fontWeight: 700, marginBottom: 8 }}>DONORS & COMMUNITY</div>
+                  <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 30, color: N.ink, marginBottom: 8 }}>Newsletter</h1>
+                  <p style={{ color: N.muted, fontSize: 14 }}>Drafts, sent issues, and the running record of what you told your supporters.</p>
+                </div>
+                <NeonBtn color={accent.color} onClick={() => openCompose("newsletter")}>+ New newsletter</NeonBtn>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 {newsletters.length === 0 ? (
                   <NeonBox color={accent.color} rgb={accent.rgb} scale={0.7} style={{ padding: "28px 24px", textAlign: "center" }}>
                     <div style={{ color: N.muted, fontSize: 14, marginBottom: 12 }}>No newsletter drafts yet.</div>
-                    <NeonBtn color={accent.color}>+ Start a draft</NeonBtn>
+                    <NeonBtn color={accent.color} onClick={() => openCompose("newsletter")}>+ Start a draft</NeonBtn>
                   </NeonBox>
                 ) : newsletters.map(n => (
                   <NeonBox key={n.id} color={accent.color} rgb={accent.rgb} style={{ padding: "20px 22px" }}>
                     <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 8, gap: 10 }}>
                       <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: N.ink }}>{n.title}</div>
-                      <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.08em", padding: "3px 10px", borderRadius: 100, background: n.status === "sent" ? `rgba(${N_RGB.blue},0.12)` : `rgba(${accent.rgb},0.15)`, color: n.status === "sent" ? N.blue : accent.color, fontWeight: 700 }}>{n.status.toUpperCase()}</span>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.08em", padding: "3px 10px", borderRadius: 100, background: n.status === "sent" ? `rgba(${N_RGB.blue},0.12)` : `rgba(${accent.rgb},0.15)`, color: n.status === "sent" ? N.blue : accent.color, fontWeight: 700 }}>{n.status.toUpperCase()}</span>
+                        <button onClick={() => openCompose("newsletter", n)} style={{ background: "transparent", border: "none", color: N.muted, fontSize: 12, cursor: "pointer", fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", fontWeight: 700 }}>EDIT</button>
+                      </div>
                     </div>
                     {n.issue_date && <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: N.muted, marginBottom: 10 }}>{fmtDate(n.issue_date)}</div>}
                     {n.body && <div style={{ whiteSpace: "pre-wrap", fontSize: 13.5, color: N.ink, lineHeight: 1.65 }}>{n.body}</div>}
@@ -419,16 +464,19 @@ export default function OrgHome({ slug, session }) {
 
           {section === "fundraisers" && (
             <div>
-              <div style={{ marginBottom: 20 }}>
-                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.16em", color: accent.color, fontWeight: 700, marginBottom: 8 }}>CAMPAIGNS</div>
-                <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 30, color: N.ink, marginBottom: 8 }}>Fundraisers</h1>
-                <p style={{ color: N.muted, fontSize: 14 }}>Active appeals, capital campaigns, matching grants. Track goal vs. raised, deadlines, and notes.</p>
+              <div style={{ marginBottom: 20, display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 20, flexWrap: "wrap" }}>
+                <div>
+                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.16em", color: accent.color, fontWeight: 700, marginBottom: 8 }}>CAMPAIGNS</div>
+                  <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 30, color: N.ink, marginBottom: 8 }}>Fundraisers</h1>
+                  <p style={{ color: N.muted, fontSize: 14 }}>Active appeals, capital campaigns, matching grants. Track goal vs. raised, deadlines, and notes.</p>
+                </div>
+                <NeonBtn color={accent.color} onClick={() => openCompose("fundraiser")}>+ New fundraiser</NeonBtn>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 {fundraisers.length === 0 ? (
                   <NeonBox color={accent.color} rgb={accent.rgb} scale={0.7} style={{ padding: "28px 24px", textAlign: "center" }}>
                     <div style={{ color: N.muted, fontSize: 14, marginBottom: 12 }}>No fundraisers tracked yet.</div>
-                    <NeonBtn color={accent.color}>+ New fundraiser</NeonBtn>
+                    <NeonBtn color={accent.color} onClick={() => openCompose("fundraiser")}>+ New fundraiser</NeonBtn>
                   </NeonBox>
                 ) : fundraisers.map(f => {
                   const pct = f.goal_amount ? Math.min(100, Math.round((Number(f.raised_amount || 0) / Number(f.goal_amount)) * 100)) : 0;
@@ -436,7 +484,10 @@ export default function OrgHome({ slug, session }) {
                     <NeonBox key={f.id} color={accent.color} rgb={accent.rgb} style={{ padding: "20px 22px" }}>
                       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 4, gap: 10 }}>
                         <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: N.ink }}>{f.name}</div>
-                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.08em", padding: "3px 10px", borderRadius: 100, background: f.status === "active" ? `rgba(${accent.rgb},0.15)` : "#eef0f6", color: f.status === "active" ? accent.color : N.muted, fontWeight: 700 }}>{f.status.toUpperCase()}</span>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.08em", padding: "3px 10px", borderRadius: 100, background: f.status === "active" ? `rgba(${accent.rgb},0.15)` : "#eef0f6", color: f.status === "active" ? accent.color : N.muted, fontWeight: 700 }}>{f.status.toUpperCase()}</span>
+                          <button onClick={() => openCompose("fundraiser", f)} style={{ background: "transparent", border: "none", color: N.muted, fontSize: 12, cursor: "pointer", fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", fontWeight: 700 }}>EDIT</button>
+                        </div>
                       </div>
                       <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: N.muted, marginBottom: 12 }}>
                         {f.campaign_type.replace(/_/g, " ").toUpperCase()}{f.ends_on ? " · ends " + fmtDate(f.ends_on) : ""}
@@ -482,6 +533,17 @@ export default function OrgHome({ slug, session }) {
 
         </main>
       </div>
+
+      {/* COMPOSE MODAL — same shape as FlowSuite's AddDeliveryModal, neon-styled */}
+      {composeType && (
+        <ComposeModal
+          type={composeType}
+          row={composeRow}
+          accent={accent}
+          onClose={closeCompose}
+          onSave={composeSave}
+        />
+      )}
 
       {/* INVITE MODAL */}
       {showInvite && (
@@ -554,5 +616,149 @@ export default function OrgHome({ slug, session }) {
 
       <SignatureFooter />
     </div>
+  );
+}
+
+// -----------------------------------------------------------------------------
+// ComposeModal — one modal that handles add/edit for meetings, newsletters,
+// fundraisers. Mirrors FlowSuite's AddDeliveryModal shape (overlay → modal →
+// header → body → footer). Type-specific fields via SCHEMAS below.
+// -----------------------------------------------------------------------------
+
+const SCHEMAS = {
+  meeting: {
+    labelAdd: "+ Add meeting",
+    labelEdit: "Edit meeting",
+    fields: [
+      { key: "meeting_date", label: "Meeting date *", type: "date", required: true },
+      { key: "title",        label: "Title",          type: "text", placeholder: "May Board Meeting" },
+      { key: "attendees",    label: "Attendees",      type: "textarea", rows: 3, placeholder: "Present: …\nAbsent: …\nOpened in prayer by…" },
+      { key: "agenda",       label: "Agenda",         type: "textarea", rows: 6 },
+      { key: "minutes",      label: "Minutes",        type: "textarea", rows: 10 },
+      { key: "next_steps",   label: "Next steps",     type: "textarea", rows: 4 },
+    ],
+  },
+  newsletter: {
+    labelAdd: "+ New newsletter",
+    labelEdit: "Edit newsletter",
+    fields: [
+      { key: "title",      label: "Title *",     type: "text", required: true, placeholder: "June Update — Doors Open, Beds Full" },
+      { key: "issue_date", label: "Issue date",  type: "date" },
+      { key: "status",     label: "Status",      type: "select", options: [["draft","Draft"],["scheduled","Scheduled"],["sent","Sent"]], default: "draft" },
+      { key: "body",       label: "Body",        type: "textarea", rows: 14, placeholder: "Dear friends,\n\n…" },
+    ],
+  },
+  fundraiser: {
+    labelAdd: "+ New fundraiser",
+    labelEdit: "Edit fundraiser",
+    fields: [
+      { key: "name",          label: "Name *",         type: "text", required: true, placeholder: "Q4 Year-End Appeal" },
+      { key: "campaign_type", label: "Type",           type: "select", options: [["year_end","Year-end"],["capital","Capital"],["matching","Matching"],["general","General"]], default: "general" },
+      { key: "goal_amount",   label: "Goal ($)",       type: "number" },
+      { key: "raised_amount", label: "Raised so far ($)", type: "number", default: 0 },
+      { key: "starts_on",     label: "Starts",         type: "date" },
+      { key: "ends_on",       label: "Ends",           type: "date" },
+      { key: "status",        label: "Status",         type: "select", options: [["planning","Planning"],["active","Active"],["closed","Closed"]], default: "active" },
+      { key: "notes",         label: "Notes",          type: "textarea", rows: 4 },
+    ],
+  },
+};
+
+function ComposeModal({ type, row, accent, onClose, onSave }) {
+  const schema = SCHEMAS[type];
+  const isEdit = !!row;
+  const [values, setValues] = useState(() => {
+    const v = {};
+    schema.fields.forEach(f => {
+      v[f.key] = row?.[f.key] ?? f.default ?? "";
+    });
+    return v;
+  });
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState("");
+
+  useEffect(() => {
+    function onKey(e) { if (e.key === "Escape" && !saving) onClose(); }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose, saving]);
+
+  const setField = (k, v) => setValues(prev => ({ ...prev, [k]: v }));
+
+  async function handleSave() {
+    setErr("");
+    for (const f of schema.fields) {
+      if (f.required && !String(values[f.key] ?? "").trim()) {
+        setErr(f.label.replace(" *", "") + " is required.");
+        return;
+      }
+    }
+    setSaving(true);
+    // Coerce empty strings to null so numeric/date columns don't choke
+    const payload = {};
+    schema.fields.forEach(f => {
+      let v = values[f.key];
+      if (v === "" || v === undefined) v = null;
+      if (f.type === "number" && v !== null) v = Number(v);
+      payload[f.key] = v;
+    });
+    await onSave(payload);
+    setSaving(false);
+  }
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(10,10,20,0.6)", zIndex: 1100, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "40px 16px", overflowY: "auto" }}>
+      <div style={{ width: "100%", maxWidth: 620, background: N.white, border: `2px solid ${accent.color}`, borderRadius: 14, boxShadow: `0 12px 40px rgba(0,0,0,0.35), 0 0 40px ${accent.color}44`, fontFamily: "'Figtree', sans-serif", color: N.ink }}>
+        <div style={{ padding: "16px 22px", borderBottom: `1px solid ${N.rule}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <h3 style={{ margin: 0, fontFamily: "'DM Serif Display', serif", fontSize: 20, color: N.ink }}>{isEdit ? schema.labelEdit : schema.labelAdd}</h3>
+          <button type="button" onClick={onClose} disabled={saving}
+            style={{ background: "transparent", border: "none", fontSize: 24, cursor: saving ? "default" : "pointer", color: N.muted, lineHeight: 1 }}>×</button>
+        </div>
+
+        <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 14 }}>
+          {schema.fields.map(f => (
+            <ComposeField key={f.key} field={f} value={values[f.key]} onChange={v => setField(f.key, v)} accent={accent} />
+          ))}
+          {err && (
+            <div style={{ padding: "8px 12px", background: "rgba(239,68,68,0.08)", border: `1px solid ${N.red}`, borderLeft: `4px solid ${N.red}`, borderRadius: 6, color: N.red, fontSize: 12, fontWeight: 600 }}>{err}</div>
+          )}
+        </div>
+
+        <div style={{ padding: "14px 22px", borderTop: `1px solid ${N.rule}`, display: "flex", justifyContent: "flex-end", gap: 10 }}>
+          <button type="button" onClick={onClose} disabled={saving}
+            style={{ background: "transparent", border: `1px solid ${N.rule}`, borderRadius: 8, padding: "9px 16px", fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.08em", fontWeight: 700, color: N.muted, cursor: saving ? "default" : "pointer", textTransform: "uppercase" }}>
+            Cancel
+          </button>
+          <button type="button" onClick={handleSave} disabled={saving}
+            style={{ background: accent.color, color: N.white, border: "none", borderRadius: 8, padding: "9px 18px", fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.08em", fontWeight: 700, cursor: saving ? "default" : "pointer", opacity: saving ? 0.6 : 1, textTransform: "uppercase", boxShadow: saving ? "none" : `0 3px 12px ${accent.color}66` }}>
+            {saving ? "Saving…" : isEdit ? "Save changes" : "Save"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ComposeField({ field, value, onChange, accent }) {
+  const inputBase = { width: "100%", padding: "10px 12px", background: N.white, border: `1.5px solid ${N.rule}`, borderRadius: 8, fontFamily: "'Figtree', sans-serif", fontSize: 14, color: N.ink, outline: "none", boxSizing: "border-box", transition: "border-color 0.15s, box-shadow 0.15s" };
+  const focus = e => { e.target.style.borderColor = accent.color; e.target.style.boxShadow = `0 0 0 3px ${accent.color}22`; };
+  const blur  = e => { e.target.style.borderColor = N.rule; e.target.style.boxShadow = "none"; };
+
+  return (
+    <label style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+      <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: N.muted, fontFamily: "'DM Mono', monospace" }}>{field.label}</span>
+      {field.type === "textarea" ? (
+        <textarea rows={field.rows || 4} value={value || ""} onChange={e => onChange(e.target.value)} placeholder={field.placeholder || ""}
+          style={{ ...inputBase, resize: "vertical", lineHeight: 1.55 }} onFocus={focus} onBlur={blur} />
+      ) : field.type === "select" ? (
+        <select value={value || field.default || ""} onChange={e => onChange(e.target.value)}
+          style={inputBase} onFocus={focus} onBlur={blur}>
+          {field.options.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+        </select>
+      ) : (
+        <input type={field.type} value={value || ""} onChange={e => onChange(e.target.value)} placeholder={field.placeholder || ""}
+          style={inputBase} onFocus={focus} onBlur={blur} />
+      )}
+    </label>
   );
 }
