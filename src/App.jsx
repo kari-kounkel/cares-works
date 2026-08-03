@@ -176,9 +176,15 @@ export default function App() {
   if (path === "/preview/neon-dark") return <PalettePreviewDark />;
   // ProGraphics ledger preview — public (no login) so it renders on sample data.
   // Component is entity-driven; this route just seeds it with SAMPLE_ENTITY.
-  if (path === "/prographics" || path === "/preview/prographics") return <LedgerWorkspace entityKey="prographics" session={session} />;
-  // Multi-tenant preview: /ledger/:key resolves to an entity in the registry (prographics, amy, matt, …).
-  if (path.startsWith("/ledger/")) return <LedgerWorkspace entityKey={path.replace("/ledger/", "").replace(/\/$/, "")} session={session} />;
+  if (path === "/prographics" || path === "/preview/prographics") {
+    if (!session) { navigate("/login"); return null; }
+    return <LedgerWorkspace entityKey="prographics" session={session} />;
+  }
+  // Multi-tenant: /ledger/:key resolves to an entity in the registry (prographics, amy, matt, …). Login required.
+  if (path.startsWith("/ledger/")) {
+    if (!session) { navigate("/login"); return null; }
+    return <LedgerWorkspace entityKey={path.replace("/ledger/", "").replace(/\/$/, "")} session={session} />;
+  }
   if (path === "/pricing") return <Pricing />;
   if (path === "/series/nonprofit" || path === "/series/nonprofits") return <NonprofitSeries />;
   if (path === "/tools/net-profit-ratios") return <NetProfitRatios session={session} />;

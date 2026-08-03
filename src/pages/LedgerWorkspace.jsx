@@ -206,8 +206,10 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, session
     let cancelled = false;
     (async () => {
       const { data: orgs } = await supabase.from("ledger_orgs").select("*").order("created_at", { ascending: true });
-      const org = (orgs || []).find(o => (o.name || "").toLowerCase().includes("prographics"))
-        || (orgs || []).find(o => o.org_type === "business") || (orgs || [])[0];
+      // Match the org to the entity this route asked for (by first word of its name).
+      // No match → stay on the sample/connect stub; never fall back to an arbitrary org.
+      const wantFirst = ((propEntity || ENTITIES[entityKey] || SAMPLE_ENTITY).name || "").toLowerCase().split(" ")[0];
+      const org = wantFirst ? (orgs || []).find(o => (o.name || "").toLowerCase().includes(wantFirst)) : null;
       if (!org || cancelled) return;
       const [a, c, e] = await Promise.all([
         supabase.from("ledger_accounts").select("*").eq("org_id", org.id).eq("archived", false).order("created_at", { ascending: true }),
@@ -218,7 +220,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, session
       setDbEntity(buildLiveEntity(org, a.data || [], c.data || [], e.data || [], session));
     })();
     return () => { cancelled = true; };
-  }, [session?.user?.id]);
+  }, [session?.user?.id, entityKey]);
 
   // Keep the notebook in sync when the data source changes (sample → live).
   useEffect(() => { setItems(entity.notebook); setCleared([]); }, [entity]);
