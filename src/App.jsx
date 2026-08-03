@@ -43,6 +43,7 @@ import BudgetBuilder from "./pages/BudgetBuilder";
 import Pricing from "./pages/Pricing";
 import NonprofitSeries from "./pages/NonprofitSeries";
 import OrgHome from "./pages/OrgHome";
+import LedgerWorkspace from "./pages/LedgerWorkspace";
 import { FRAME_COCKPITS, CLOUD_COCKPITS } from "./cockpits/registry";
 
 export function navigate(path) {
@@ -173,6 +174,11 @@ export default function App() {
   // Public palette preview (no auth) — Kari's vibe-check before we rebrand.
   if (path === "/preview/neon") return <PalettePreview />;
   if (path === "/preview/neon-dark") return <PalettePreviewDark />;
+  // ProGraphics ledger preview — public (no login) so it renders on sample data.
+  // Component is entity-driven; this route just seeds it with SAMPLE_ENTITY.
+  if (path === "/prographics" || path === "/preview/prographics") return <LedgerWorkspace entityKey="prographics" session={session} />;
+  // Multi-tenant preview: /ledger/:key resolves to an entity in the registry (prographics, amy, matt, …).
+  if (path.startsWith("/ledger/")) return <LedgerWorkspace entityKey={path.replace("/ledger/", "").replace(/\/$/, "")} session={session} />;
   if (path === "/pricing") return <Pricing />;
   if (path === "/series/nonprofit" || path === "/series/nonprofits") return <NonprofitSeries />;
   if (path === "/tools/net-profit-ratios") return <NetProfitRatios session={session} />;
