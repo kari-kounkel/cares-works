@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { supabase } from "../supabaseClient";
 import { navigate } from "../App";
 import { logToolSession } from "../toolSessions";
+import LedgerWorkspace from "./LedgerWorkspace";
 
 const S = {
   paper: "#ffffff",
@@ -282,6 +283,10 @@ export default function Ledger({ session }) {
   if (loading) {
     return <Shell><div style={{ padding: 60, textAlign: "center", color: S.muted }}>Loading your ledger…</div></Shell>;
   }
+
+  // Two interfaces, one streamlined set of tables: a business org opens the notebook
+  // workspace; a nonprofit / 501(c)(3) org gets the Funds/Donors ledger below. Switch on org_type.
+  if (org && org.org_type === "business") return <LedgerWorkspace orgId={org.id} session={session} />;
 
   return (
     <Shell>
