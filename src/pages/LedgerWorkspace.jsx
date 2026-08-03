@@ -153,6 +153,7 @@ function buildLiveEntity(org, accounts, categories, entries, session) {
     .filter(e => e.direction === "out" && !e.match_status)
     .map(e => ({
       id: e.id,
+      accountId: e.account_id || null,
       date: shortDate(e.entry_date),
       payee: e.description,
       amount: (e.amount_cents || 0) / 100,
@@ -179,6 +180,7 @@ function buildLiveEntity(org, accounts, categories, entries, session) {
     invoices: [],
     reports: SAMPLE_ENTITY.reports,
     salesTax: { quarter: "", taxable: 0, exempt: 0, collected: 0 },
+    accountList: accounts.map(a => ({ id: a.id, name: a.name, type: a.account_type })),
     categories: categories.map(c => c.name),
     changelog: [{ date: "Aug 2, 2026", items: ["Your ProGraphics workspace is live on your real ledger data.", "Balances, notebook, and categories all load from your account."] }],
   };
@@ -205,6 +207,12 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [dbEntity, setDbEntity] = useState(null);
   const entity = dbEntity || propEntity || ENTITIES[entityKey] || SAMPLE_ENTITY;
   const live = !!dbEntity;
+  // Accounts available for the "paid with?" picker and card payments. Live has real ids; sample uses names.
+  const accountList = entity.accountList || [
+    ...(entity.accounts?.banks || []).map(a => ({ id: a.name, name: a.name, type: "bank" })),
+    ...(entity.accounts?.cards || []).map(a => ({ id: a.name, name: a.name, type: "credit_card" })),
+    ...(entity.accounts?.loans || []).map(a => ({ id: a.name, name: a.name, type: "loan" })),
+  ];
 
   const [section, setSection] = useState(entity.users?.find(u => u.name === entity.currentUser)?.lands || "notebook");
   const [items, setItems] = useState(entity.notebook);
@@ -213,6 +221,10 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [whatsNew, setWhatsNew] = useState(false);
   const [query, setQuery] = useState("");
   const [catOpen, setCatOpen] = useState(null);
+  const [acctOpen, setAcctOpen] = useState(null);
+  const [showPayCard, setShowPayCard] = useState(false);
+  const blankPay = { amount: "", fromId: "", toId: "", date: new Date().toISOString().slice(0, 10) };
+  const [payDraft, setPayDraft] = useState(blankPay);
   const [invoices, setInvoices] = useState(entity.invoices || []);
   const [liveOrgId, setLiveOrgId] = useState(null);
   const [reloadTick, setReloadTick] = useState(0);
@@ -275,6 +287,33 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     if (live) supabase.from("ledger_entries").update({ category: cat }).eq("id", id).then(() => {});
   }
 
+  // "Paid with which card?" — set which account a transaction hit.
+  function setAccount(id, acctId, acctName) {
+    setItems(prev => prev.map(x => (x.id === id ? { ...x, accountId: acctId, source: acctName } : x)));
+    setAcctOpen(null);
+    if (live) supabase.from("ledger_entries").update({ account_id: acctId }).eq("id", id).then(() => {});
+  }
+
+  // Card payment = a TRANSFER (checking down, card down), NOT an expense.
+  // Records two entries tagged "Card payment" so reports exclude them from income/expense.
+  async function recordCardPayment() {
+    const cents = Math.round((parseFloat(payDraft.amount) || 0) * 100);
+    if (!cents || !payDraft.fromId || !payDraft.toId) return;
+    const fromName = accountList.find(a => a.id === payDraft.fromId)?.name || "checking";
+    const toName = accountList.find(a => a.id === payDraft.toId)?.name || "card";
+    const date = payDraft.date;
+    setShowPayCard(false);
+    setPayDraft(blankPay);
+    if (live && liveOrgId) {
+      const base = { org_id: liveOrgId, user_id: session.user.id, entry_date: date, amount_cents: cents, category: "Card payment", match_status: "noted" };
+      await supabase.from("ledger_entries").insert([
+        { ...base, direction: "out", account_id: payDraft.fromId, description: `Payment to ${toName}` },
+        { ...base, direction: "in", account_id: payDraft.toId, description: `Payment from ${fromName}` },
+      ]);
+      setReloadTick(t => t + 1);
+    }
+  }
+
   async function createInvoice() {
     const lines = invDraft.lines.filter(l => l.desc.trim());
     if (!invDraft.customer.trim() || lines.length === 0) return;
@@ -330,11 +369,34 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Look up any day, payee, amount"
                 style={{ border: "none", outline: "none", fontSize: 13, fontFamily: "'Figtree', sans-serif", width: 190, color: N.text }} />
             </div>
+            <button onClick={() => setShowPayCard(s => !s)} style={btnPaper(N.blue)}>{showPayCard ? "Close" : "Pay a card"}</button>
             <div style={{ fontSize: 12, fontWeight: 700, color: N.pinkDark, background: "#eafaf0", border: "1px solid #bff0d3", padding: "7px 12px", borderRadius: 100, whiteSpace: "nowrap" }}>
               {items.length} left to match
             </div>
           </div>
         </div>
+
+        {showPayCard && (
+          <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: 14, marginBottom: 12 }}>
+            <div style={{ fontSize: 13, color: N.ink, fontWeight: 600, marginBottom: 8 }}>Record a card payment — this is a transfer, not an expense.</div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+              <input placeholder="$ amount" value={payDraft.amount} onChange={e => setPayDraft(d => ({ ...d, amount: e.target.value }))} style={{ ...inputSt, width: 110 }} />
+              <span style={{ fontSize: 13, color: N.muted }}>from</span>
+              <select value={payDraft.fromId} onChange={e => setPayDraft(d => ({ ...d, fromId: e.target.value }))} style={{ ...inputSt, width: 168 }}>
+                <option value="">Which account…</option>
+                {accountList.filter(a => a.type === "bank").map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+              </select>
+              <span style={{ fontSize: 13, color: N.muted }}>to</span>
+              <select value={payDraft.toId} onChange={e => setPayDraft(d => ({ ...d, toId: e.target.value }))} style={{ ...inputSt, width: 168 }}>
+                <option value="">Which card…</option>
+                {accountList.filter(a => a.type === "credit_card").map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+              </select>
+              <input type="date" value={payDraft.date} onChange={e => setPayDraft(d => ({ ...d, date: e.target.value }))} style={{ ...inputSt, width: 150 }} />
+              <button onClick={recordCardPayment} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 16px" }}>Record payment</button>
+            </div>
+            <div style={{ fontSize: 11, color: N.muted, marginTop: 8 }}>Checking goes down and the card balance goes down — no double-counting, because the charges were already the expenses.</div>
+          </div>
+        )}
 
         {/* Steno pad */}
         <div style={{ position: "relative", background: "#e9f0e2", border: "1px solid #cdd8c2", borderRadius: 12, padding: "12px 16px 16px 52px", overflow: "hidden" }}>
@@ -359,9 +421,26 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontFamily: "'Caveat', cursive", fontSize: 21, color: "#26303f", lineHeight: 1.1 }}>{x.payee}</div>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 2, flexWrap: "wrap" }}>
-                      <span style={{ fontSize: 11, color: proposed ? N.blue : "#8aa07f", display: "flex", alignItems: "center", gap: 4 }}>
-                        {proposed ? <><Ico name="bank" size={13} />Bank says cleared · {x.cleared.bank} · {x.cleared.date}</> : x.source}
-                      </span>
+                      {proposed ? (
+                        <span style={{ fontSize: 11, color: N.blue, display: "flex", alignItems: "center", gap: 4 }}>
+                          <Ico name="bank" size={13} />Bank says cleared · {x.cleared.bank} · {x.cleared.date}
+                        </span>
+                      ) : (() => {
+                        const hasAcct = x.source && x.source !== "—";
+                        return (
+                          <button onClick={() => setAcctOpen(o => (o === x.id ? null : x.id))}
+                            title="Paid with which card or account?"
+                            style={{
+                              display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, padding: "3px 9px",
+                              borderRadius: 100, cursor: "pointer", fontFamily: "'Figtree', sans-serif",
+                              border: "1px solid " + (hasAcct ? "#cdd8c2" : "#f0d89a"),
+                              background: hasAcct ? "#f0f7f1" : "#fdf5e3",
+                              color: hasAcct ? "#5a7a63" : "#8a5a00",
+                            }}>
+                            <Ico name="bank" size={12} />{hasAcct ? x.source : "Paid with?"}<span style={{ fontSize: 9 }}>▾</span>
+                          </button>
+                        );
+                      })()}
                       {(() => {
                         const hasCat = !!x.category;
                         const isSug = !hasCat && !!x.suggested;
@@ -404,6 +483,19 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                         background: x.category === cat ? N.blue : N.white,
                         color: x.category === cat ? N.white : N.text,
                       }}>{cat}</button>
+                    ))}
+                  </div>
+                )}
+                {acctOpen === x.id && (
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6, padding: "0 0 12px" }}>
+                    <span style={{ fontSize: 11, color: N.muted, alignSelf: "center", marginRight: 2 }}>Paid with</span>
+                    {accountList.map(a => (
+                      <button key={a.id} onClick={() => setAccount(x.id, a.id, a.name)} style={{
+                        fontSize: 12, padding: "6px 12px", borderRadius: 100, cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontWeight: 500,
+                        border: "1px solid " + (x.source === a.name ? N.blue : N.rule),
+                        background: x.source === a.name ? N.blue : N.white,
+                        color: x.source === a.name ? N.white : N.text,
+                      }}>{a.name}</button>
                     ))}
                   </div>
                 )}
