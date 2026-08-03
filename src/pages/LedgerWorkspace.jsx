@@ -191,8 +191,10 @@ function mapInvoice(v) {
   const items = Array.isArray(v.line_items) ? v.line_items : [];
   const cap = s => (s ? s.charAt(0).toUpperCase() + s.slice(1) : "Draft");
   const d = v.issue_date ? new Date(v.issue_date + "T00:00:00") : null;
+  const numMatch = (items.map(l => l.desc).join(" ").match(/#(\d+)/) || [])[1];
   return {
     id: v.id,
+    number: v.invoice_number || numMatch || "",
     customer: v.customer_name || "—",
     email: v.customer_email || "",
     item: items.map(l => l.desc).filter(Boolean).join(", ") || "—",
@@ -601,36 +603,73 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         </div>
         <div style={{ fontSize: 12, color: N.muted, marginTop: 10 }}>Click any invoice to open it. Paid by check? Just hit <b style={{ color: N.pinkDark }}>Mark paid</b>. Sent invoices show <b style={{ color: N.blue }}>Viewed</b> when the customer opens them — the status QuickBooks took away.</div>
 
-        {openInv && (
-          <div onClick={() => setOpenInv(null)} style={{ position: "fixed", inset: 0, background: "rgba(10,10,20,0.4)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "60px 16px", zIndex: 200 }}>
-            <div onClick={e => e.stopPropagation()} style={{ background: N.white, borderRadius: 14, width: "100%", maxWidth: 520, boxShadow: "0 20px 60px rgba(10,10,20,0.3)", overflow: "hidden" }}>
-              <div style={{ padding: "18px 22px", borderBottom: "1px solid " + N.rule, display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
-                <div>
-                  <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>{openInv.customer}</div>
-                  <div style={{ fontSize: 12, color: N.muted }}>{openInv.date}{openInv.email ? " · " + openInv.email : ""}</div>
-                </div>
-                <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: STATUS_COLOR[openInv.status] || N.muted, background: (STATUS_COLOR[openInv.status] || N.muted) + "18", padding: "4px 10px", borderRadius: 100 }}>{openInv.status}</span>
-              </div>
-              <div style={{ padding: "16px 22px" }}>
-                {(openInv.lines && openInv.lines.length ? openInv.lines : [{ desc: openInv.item, qty: 1, price: openInv.amount }]).map((l, i) => (
-                  <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 10, padding: "7px 0", borderBottom: "1px solid " + N.rule, fontSize: 14 }}>
-                    <span style={{ color: N.text }}>{l.desc}{l.qty > 1 ? ` × ${l.qty}` : ""}</span>
-                    <span style={{ color: N.ink, fontWeight: 500 }}>{money((l.price || 0) * (l.qty || 1))}</span>
+        {openInv && (() => {
+          const invLines = openInv.lines && openInv.lines.length ? openInv.lines : [{ desc: openInv.item, qty: 1, price: openInv.subtotal || openInv.amount }];
+          const cleanDesc = d => (/^QuickBooks invoice #/.test(d || "") ? "Signs & graphics" : d);
+          const taxLabel = openInv.tax === "Taxable" ? "Taxable" : openInv.tax === "Shipped" ? "Shipped out of state — no sales tax" : "Tax-exempt (reseller)";
+          return (
+          <div onClick={() => setOpenInv(null)} style={{ position: "fixed", inset: 0, background: "rgba(10,10,20,0.45)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "44px 16px", zIndex: 200, overflowY: "auto" }}>
+            <div onClick={e => e.stopPropagation()} style={{ background: N.white, borderRadius: 12, width: "100%", maxWidth: 640, boxShadow: "0 24px 70px rgba(10,10,20,0.35)", overflow: "hidden" }}>
+              {/* The invoice document */}
+              <div style={{ padding: "34px 40px 26px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 20, marginBottom: 28 }}>
+                  <div>
+                    <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>{entity.name}</div>
+                    <div style={{ fontSize: 12, color: N.muted, marginTop: 3 }}>Minnesota{entity.fiscalYearEnd ? ` · fiscal year ends ${entity.fiscalYearEnd}` : ""}</div>
                   </div>
-                ))}
-                <div style={{ display: "flex", justifyContent: "space-between", marginTop: 10, fontSize: 13, color: N.muted }}><span>Subtotal</span><span>{money(openInv.subtotal || openInv.amount)}</span></div>
-                {openInv.taxAmt ? <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: N.muted }}><span>MN sales tax</span><span>{money(openInv.taxAmt)}</span></div> : null}
-                <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6, fontSize: 17, fontWeight: 700, color: N.ink }}><span>Total</span><span>{money(openInv.amount)}</span></div>
-                <div style={{ fontSize: 12, color: N.muted, marginTop: 6 }}>{openInv.tax === "Taxable" ? "Taxable sale" : openInv.tax === "Shipped" ? "Shipped — no sales tax" : "Tax-exempt (reseller)"}</div>
+                  <div style={{ textAlign: "right" }}>
+                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 24, letterSpacing: "0.16em", color: N.blue, fontWeight: 500 }}>INVOICE</div>
+                    {openInv.number && <div style={{ fontSize: 13, color: N.ink, marginTop: 5 }}>No. {openInv.number}</div>}
+                    <div style={{ fontSize: 12, color: N.muted, marginTop: 2 }}>Date: {openInv.date}</div>
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", color: N.muted, marginBottom: 4 }}>BILL TO</div>
+                  <div style={{ fontSize: 16, fontWeight: 600, color: N.ink }}>{openInv.customer}</div>
+                  {openInv.email && <div style={{ fontSize: 13, color: N.muted }}>{openInv.email}</div>}
+                </div>
+
+                <div style={{ border: "1px solid " + N.rule, borderRadius: 10, overflow: "hidden", marginBottom: 16 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 46px 86px 92px", gap: 8, padding: "10px 14px", background: "#f7fafd", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", color: N.muted }}>
+                    <span>DESCRIPTION</span><span style={{ textAlign: "center" }}>QTY</span><span style={{ textAlign: "right" }}>RATE</span><span style={{ textAlign: "right" }}>AMOUNT</span>
+                  </div>
+                  {invLines.map((l, i) => (
+                    <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 46px 86px 92px", gap: 8, padding: "11px 14px", borderTop: "1px solid " + N.rule, fontSize: 14, color: N.text }}>
+                      <span>{cleanDesc(l.desc)}</span>
+                      <span style={{ textAlign: "center", color: N.muted }}>{l.qty || 1}</span>
+                      <span style={{ textAlign: "right", color: N.muted }}>{money(l.price || 0)}</span>
+                      <span style={{ textAlign: "right", fontWeight: 500, color: N.ink }}>{money((l.price || 0) * (l.qty || 1))}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                  <div style={{ width: 250 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: N.muted, padding: "3px 0" }}><span>Subtotal</span><span>{money(openInv.subtotal || openInv.amount)}</span></div>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: N.muted, padding: "3px 0" }}><span>MN sales tax{openInv.tax === "Taxable" ? " (6.875%)" : ""}</span><span>{money(openInv.taxAmt)}</span></div>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 18, fontWeight: 700, color: N.ink, padding: "9px 0 0", marginTop: 5, borderTop: "2px solid " + N.ink }}><span>Total</span><span>{money(openInv.amount)}</span></div>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginTop: 7, fontWeight: 600, color: openInv.status === "Paid" ? N.green : N.blueDark }}>
+                      <span>{openInv.status === "Paid" ? "Paid — thank you" : "Balance due"}</span><span>{money(openInv.status === "Paid" ? 0 : openInv.amount)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ marginTop: 22, paddingTop: 16, borderTop: "1px solid " + N.rule, fontSize: 12, color: N.muted, lineHeight: 1.6 }}>
+                  {taxLabel}. Make checks payable to <b style={{ color: N.text }}>{entity.name}</b>. Thank you for your business.
+                </div>
               </div>
-              <div style={{ padding: "14px 22px", borderTop: "1px solid " + N.rule, display: "flex", gap: 8, justifyContent: "flex-end", flexWrap: "wrap" }}>
-                {openInv.status === "Draft" && <button onClick={() => { invoiceStatus(openInv.id, "sent"); setOpenInv(null); }} style={{ ...btnBlue, background: N.blue }}>Send</button>}
+
+              <div style={{ padding: "14px 22px", borderTop: "1px solid " + N.rule, background: "#f7fafd", display: "flex", gap: 8, justifyContent: "flex-end", alignItems: "center", flexWrap: "wrap" }}>
+                <span style={{ marginRight: "auto", fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: STATUS_COLOR[openInv.status] || N.muted }}>{openInv.status}</span>
+                {openInv.status === "Draft" && <button onClick={() => { invoiceStatus(openInv.id, "sent"); setOpenInv(null); }} style={{ ...btnBlue, background: N.blue }}>Send · View link</button>}
                 {openInv.status !== "Paid" && <button onClick={() => { invoiceStatus(openInv.id, "paid"); setOpenInv(null); }} style={btnPaper(N.pinkDark)}>Mark paid</button>}
                 <button onClick={() => setOpenInv(null)} style={btnPaper(N.muted)}>Close</button>
               </div>
             </div>
           </div>
-        )}
+          );
+        })()}
       </div>
     );
   }
