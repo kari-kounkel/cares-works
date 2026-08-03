@@ -194,8 +194,11 @@ function mapInvoice(v) {
   return {
     id: v.id,
     customer: v.customer_name || "—",
+    email: v.customer_email || "",
     item: items.map(l => l.desc).filter(Boolean).join(", ") || "—",
+    lines: items,
     amount: (v.total_cents || 0) / 100,
+    subtotal: (v.subtotal_cents || 0) / 100,
     tax: v.tax_status || "Exempt",
     taxAmt: (v.tax_cents || 0) / 100,
     status: cap(v.status),
@@ -229,6 +232,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [liveOrgId, setLiveOrgId] = useState(null);
   const [reloadTick, setReloadTick] = useState(0);
   const [showInvForm, setShowInvForm] = useState(false);
+  const [openInv, setOpenInv] = useState(null);
   const blankInvoice = { customer: "", email: "", taxStatus: "Exempt", lines: [{ desc: "", qty: "1", price: "" }] };
   const [invDraft, setInvDraft] = useState(blankInvoice);
 
@@ -542,8 +546,11 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
 
         {showInvForm && (
           <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: 16, marginBottom: 16 }}>
+            <datalist id="pg-customers">
+              {[...new Set(invoices.map(v => v.customer))].filter(c => c && c !== "—").sort().map(c => <option key={c} value={c} />)}
+            </datalist>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
-              <input placeholder="Customer name" value={invDraft.customer} onChange={e => setInvDraft(d => ({ ...d, customer: e.target.value }))} style={inputSt} />
+              <input placeholder="Customer — pick or type new" list="pg-customers" value={invDraft.customer} onChange={e => setInvDraft(d => ({ ...d, customer: e.target.value }))} style={inputSt} />
               <input placeholder="Customer email (optional)" value={invDraft.email} onChange={e => setInvDraft(d => ({ ...d, email: e.target.value }))} style={inputSt} />
             </div>
             {invDraft.lines.map((l, i) => (
@@ -574,7 +581,10 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           {invoices.length === 0 ? (
             <div style={{ padding: "30px 20px", textAlign: "center", color: N.muted, fontSize: 14 }}>No invoices yet. Click “New invoice” to make the first one.</div>
           ) : invoices.map((v, i) => (
-            <div key={v.id} style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", borderBottom: i === invoices.length - 1 ? "none" : "1px solid " + N.rule }}>
+            <div key={v.id} onClick={() => setOpenInv(v)} title="Open invoice"
+              style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", borderBottom: i === invoices.length - 1 ? "none" : "1px solid " + N.rule, cursor: "pointer" }}
+              onMouseEnter={e => (e.currentTarget.style.background = "#f7fafd")}
+              onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
               <div style={{ width: 50, fontSize: 12, color: N.muted }}>{v.date}</div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 15, color: N.ink, fontWeight: 600 }}>{v.customer}</div>
@@ -582,14 +592,45 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               </div>
               <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: STATUS_COLOR[v.status] || N.muted, background: (STATUS_COLOR[v.status] || N.muted) + "18", padding: "4px 10px", borderRadius: 100 }}>{v.status}</span>
               <div style={{ display: "flex", gap: 6 }}>
-                {v.status === "Draft" && <button onClick={() => invoiceStatus(v.id, "sent")} style={btnPaper(N.blue)}>Send</button>}
-                {v.status !== "Paid" && <button onClick={() => invoiceStatus(v.id, "paid")} style={btnPaper(N.pinkDark)}>Mark paid</button>}
+                {v.status === "Draft" && <button onClick={e => { e.stopPropagation(); invoiceStatus(v.id, "sent"); }} style={btnPaper(N.blue)}>Send</button>}
+                {v.status !== "Paid" && <button onClick={e => { e.stopPropagation(); invoiceStatus(v.id, "paid"); }} style={btnPaper(N.pinkDark)}>Mark paid</button>}
               </div>
               <div style={{ fontSize: 16, fontWeight: 600, color: N.ink, width: 90, textAlign: "right" }}>{money(v.amount)}</div>
             </div>
           ))}
         </div>
-        <div style={{ fontSize: 12, color: N.muted, marginTop: 10 }}>Paid by check? Just hit <b style={{ color: N.pinkDark }}>Mark paid</b>. Sent invoices will show <b style={{ color: N.blue }}>Viewed</b> when the customer opens them — the status QuickBooks took away.</div>
+        <div style={{ fontSize: 12, color: N.muted, marginTop: 10 }}>Click any invoice to open it. Paid by check? Just hit <b style={{ color: N.pinkDark }}>Mark paid</b>. Sent invoices show <b style={{ color: N.blue }}>Viewed</b> when the customer opens them — the status QuickBooks took away.</div>
+
+        {openInv && (
+          <div onClick={() => setOpenInv(null)} style={{ position: "fixed", inset: 0, background: "rgba(10,10,20,0.4)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "60px 16px", zIndex: 200 }}>
+            <div onClick={e => e.stopPropagation()} style={{ background: N.white, borderRadius: 14, width: "100%", maxWidth: 520, boxShadow: "0 20px 60px rgba(10,10,20,0.3)", overflow: "hidden" }}>
+              <div style={{ padding: "18px 22px", borderBottom: "1px solid " + N.rule, display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+                <div>
+                  <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>{openInv.customer}</div>
+                  <div style={{ fontSize: 12, color: N.muted }}>{openInv.date}{openInv.email ? " · " + openInv.email : ""}</div>
+                </div>
+                <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: STATUS_COLOR[openInv.status] || N.muted, background: (STATUS_COLOR[openInv.status] || N.muted) + "18", padding: "4px 10px", borderRadius: 100 }}>{openInv.status}</span>
+              </div>
+              <div style={{ padding: "16px 22px" }}>
+                {(openInv.lines && openInv.lines.length ? openInv.lines : [{ desc: openInv.item, qty: 1, price: openInv.amount }]).map((l, i) => (
+                  <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 10, padding: "7px 0", borderBottom: "1px solid " + N.rule, fontSize: 14 }}>
+                    <span style={{ color: N.text }}>{l.desc}{l.qty > 1 ? ` × ${l.qty}` : ""}</span>
+                    <span style={{ color: N.ink, fontWeight: 500 }}>{money((l.price || 0) * (l.qty || 1))}</span>
+                  </div>
+                ))}
+                <div style={{ display: "flex", justifyContent: "space-between", marginTop: 10, fontSize: 13, color: N.muted }}><span>Subtotal</span><span>{money(openInv.subtotal || openInv.amount)}</span></div>
+                {openInv.taxAmt ? <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: N.muted }}><span>MN sales tax</span><span>{money(openInv.taxAmt)}</span></div> : null}
+                <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6, fontSize: 17, fontWeight: 700, color: N.ink }}><span>Total</span><span>{money(openInv.amount)}</span></div>
+                <div style={{ fontSize: 12, color: N.muted, marginTop: 6 }}>{openInv.tax === "Taxable" ? "Taxable sale" : openInv.tax === "Shipped" ? "Shipped — no sales tax" : "Tax-exempt (reseller)"}</div>
+              </div>
+              <div style={{ padding: "14px 22px", borderTop: "1px solid " + N.rule, display: "flex", gap: 8, justifyContent: "flex-end", flexWrap: "wrap" }}>
+                {openInv.status === "Draft" && <button onClick={() => { invoiceStatus(openInv.id, "sent"); setOpenInv(null); }} style={{ ...btnBlue, background: N.blue }}>Send</button>}
+                {openInv.status !== "Paid" && <button onClick={() => { invoiceStatus(openInv.id, "paid"); setOpenInv(null); }} style={btnPaper(N.pinkDark)}>Mark paid</button>}
+                <button onClick={() => setOpenInv(null)} style={btnPaper(N.muted)}>Close</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
