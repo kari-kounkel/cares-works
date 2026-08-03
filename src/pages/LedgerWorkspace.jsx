@@ -503,13 +503,18 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   }
 
   function SalesTax() {
-    const s = entity.salesTax;
+    // Tallied live from invoices: taxable = pre-tax subtotal of taxable invoices;
+    // exempt = reseller-exempt + shipped-no-tax sales; collected = MN tax billed.
+    const taxable = invoices.filter(v => v.tax === "Taxable").reduce((s, v) => s + (v.amount - v.taxAmt), 0);
+    const exempt = invoices.filter(v => v.tax !== "Taxable").reduce((s, v) => s + v.amount, 0);
+    const collected = invoices.reduce((s, v) => s + v.taxAmt, 0);
+    const quarter = entity.salesTax?.quarter || "From your invoices";
     return (
       <div>
         <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink, marginBottom: 4 }}>Sales tax</div>
-        <div style={{ fontSize: 13, color: N.muted, marginBottom: 16 }}>Minnesota · quarterly · {s.quarter}</div>
+        <div style={{ fontSize: 13, color: N.muted, marginBottom: 16 }}>Minnesota · quarterly · {quarter}</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: 12, marginBottom: 16 }}>
-          {[["Taxable sales", money(s.taxable), N.ink], ["Tax-exempt sales", money(s.exempt), N.ink], ["Tax collected", money(s.collected), N.pinkDark]].map(([l, v, c]) => (
+          {[["Taxable sales", money(taxable), N.ink], ["Tax-exempt sales", money(exempt), N.ink], ["Tax collected", money(collected), N.pinkDark]].map(([l, v, c]) => (
             <div key={l} style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: 16 }}>
               <div style={{ fontSize: 12, color: N.muted, letterSpacing: "0.04em", marginBottom: 6 }}>{l.toUpperCase()}</div>
               <div style={{ fontSize: 24, fontWeight: 700, color: c }}>{v}</div>
