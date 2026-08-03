@@ -184,6 +184,23 @@ function buildLiveEntity(org, accounts, categories, entries, session) {
   };
 }
 
+// Map an invoices row into the shape the Invoices tab renders.
+function mapInvoice(v) {
+  const items = Array.isArray(v.line_items) ? v.line_items : [];
+  const cap = s => (s ? s.charAt(0).toUpperCase() + s.slice(1) : "Draft");
+  const d = v.issue_date ? new Date(v.issue_date + "T00:00:00") : null;
+  return {
+    id: v.id,
+    customer: v.customer_name || "—",
+    item: items.map(l => l.desc).filter(Boolean).join(", ") || "—",
+    amount: (v.total_cents || 0) / 100,
+    tax: v.tax_status || "Exempt",
+    taxAmt: (v.tax_cents || 0) / 100,
+    status: cap(v.status),
+    date: d ? d.toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "",
+  };
+}
+
 export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, session }) {
   const [dbEntity, setDbEntity] = useState(null);
   const entity = dbEntity || propEntity || ENTITIES[entityKey] || SAMPLE_ENTITY;
@@ -196,8 +213,15 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [whatsNew, setWhatsNew] = useState(false);
   const [query, setQuery] = useState("");
   const [catOpen, setCatOpen] = useState(null);
+  const [invoices, setInvoices] = useState(entity.invoices || []);
+  const [liveOrgId, setLiveOrgId] = useState(null);
+  const [reloadTick, setReloadTick] = useState(0);
+  const [showInvForm, setShowInvForm] = useState(false);
+  const blankInvoice = { customer: "", email: "", taxStatus: "Exempt", lines: [{ desc: "", qty: "1", price: "" }] };
+  const [invDraft, setInvDraft] = useState(blankInvoice);
 
   const latestUpdate = entity.changelog?.[0]?.date || "";
+  const MN_TAX_RATE = 0.06875;
 
   // Go live when someone's logged in: load their ProGraphics ledger org from Supabase.
   useEffect(() => {
@@ -213,19 +237,23 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         ? (orgs || []).find(o => o.id === orgId)
         : (wantFirst ? (orgs || []).find(o => (o.name || "").toLowerCase().includes(wantFirst)) : null);
       if (!org || cancelled) return;
-      const [a, c, e] = await Promise.all([
+      const [a, c, e, inv] = await Promise.all([
         supabase.from("ledger_accounts").select("*").eq("org_id", org.id).eq("archived", false).order("created_at", { ascending: true }),
         supabase.from("ledger_categories").select("*").eq("org_id", org.id).eq("archived", false).order("sort_order", { ascending: true }),
         supabase.from("ledger_entries").select("*").eq("org_id", org.id).order("entry_date", { ascending: false }).order("created_at", { ascending: false }),
+        supabase.from("invoices").select("*").eq("org_id", org.id).order("issue_date", { ascending: false }).order("created_at", { ascending: false }),
       ]);
       if (cancelled) return;
-      setDbEntity(buildLiveEntity(org, a.data || [], c.data || [], e.data || [], session));
+      setLiveOrgId(org.id);
+      const built = buildLiveEntity(org, a.data || [], c.data || [], e.data || [], session);
+      built.invoices = (inv.data || []).map(mapInvoice);
+      setDbEntity(built);
     })();
     return () => { cancelled = true; };
-  }, [session?.user?.id, entityKey, orgId]);
+  }, [session?.user?.id, entityKey, orgId, reloadTick]);
 
-  // Keep the notebook in sync when the data source changes (sample → live).
-  useEffect(() => { setItems(entity.notebook); setCleared([]); }, [entity]);
+  // Keep the notebook + invoices in sync when the data source changes (sample → live, or after a write).
+  useEffect(() => { setItems(entity.notebook); setCleared([]); setInvoices(entity.invoices || []); }, [entity]);
 
   function clearOne(id, how) {
     setItems(prev => {
@@ -245,6 +273,39 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     setItems(prev => prev.map(x => (x.id === id ? { ...x, category: cat, suggested: null } : x)));
     setCatOpen(null);
     if (live) supabase.from("ledger_entries").update({ category: cat }).eq("id", id).then(() => {});
+  }
+
+  async function createInvoice() {
+    const lines = invDraft.lines.filter(l => l.desc.trim());
+    if (!invDraft.customer.trim() || lines.length === 0) return;
+    const subtotal = lines.reduce((s, l) => s + Math.round((parseFloat(l.price) || 0) * 100) * (parseInt(l.qty) || 1), 0);
+    const tax = invDraft.taxStatus === "Taxable" ? Math.round(subtotal * MN_TAX_RATE) : 0;
+    const total = subtotal + tax;
+    const draft = invDraft;
+    setShowInvForm(false);
+    setInvDraft(blankInvoice);
+    if (live && liveOrgId) {
+      await supabase.from("invoices").insert({
+        org_id: liveOrgId, user_id: session.user.id,
+        customer_name: draft.customer.trim(), customer_email: draft.email.trim() || null,
+        line_items: lines.map(l => ({ desc: l.desc.trim(), qty: parseInt(l.qty) || 1, price: parseFloat(l.price) || 0 })),
+        tax_status: draft.taxStatus, subtotal_cents: subtotal, tax_cents: tax, total_cents: total, status: "draft",
+      });
+      setReloadTick(t => t + 1);
+    } else {
+      setInvoices(prev => [{ id: "inv-" + prev.length, customer: draft.customer, item: lines.map(l => l.desc).join(", "), amount: total / 100, tax: draft.taxStatus, taxAmt: tax / 100, status: "Draft", date: "today" }, ...prev]);
+    }
+  }
+
+  async function invoiceStatus(id, status) {
+    setInvoices(prev => prev.map(v => (v.id === id ? { ...v, status: status.charAt(0).toUpperCase() + status.slice(1) } : v)));
+    if (live) {
+      const patch = { status };
+      if (status === "sent") patch.sent_at = new Date().toISOString();
+      if (status === "paid") patch.paid_at = new Date().toISOString();
+      await supabase.from("invoices").update(patch).eq("id", id);
+      setReloadTick(t => t + 1);
+    }
   }
 
   const q = query.trim().toLowerCase();
@@ -376,26 +437,67 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   }
 
   function Invoices() {
+    const setLine = (i, patch) => setInvDraft(d => ({ ...d, lines: d.lines.map((l, j) => (j === i ? { ...l, ...patch } : l)) }));
+    const sub = invDraft.lines.reduce((s, l) => s + (parseFloat(l.price) || 0) * (parseInt(l.qty) || 1), 0);
+    const tax = invDraft.taxStatus === "Taxable" ? sub * MN_TAX_RATE : 0;
+    const TAX_LABEL = { Exempt: "Tax-exempt (reseller)", Taxable: "Taxable", Shipped: "Shipped — no tax" };
     return (
       <div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, flexWrap: "wrap", gap: 10 }}>
           <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>Invoices</div>
-          <button style={{ ...btnBlue, fontSize: 14, padding: "10px 18px", background: N.blue, boxShadow: "0 4px 14px rgba(0,128,255,0.4)" }}>+ New invoice</button>
+          <button onClick={() => setShowInvForm(s => !s)} style={{ ...btnBlue, fontSize: 14, padding: "10px 18px", background: N.blue, boxShadow: "0 4px 14px rgba(0,128,255,0.4)" }}>{showInvForm ? "Close" : "+ New invoice"}</button>
         </div>
+
+        {showInvForm && (
+          <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: 16, marginBottom: 16 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
+              <input placeholder="Customer name" value={invDraft.customer} onChange={e => setInvDraft(d => ({ ...d, customer: e.target.value }))} style={inputSt} />
+              <input placeholder="Customer email (optional)" value={invDraft.email} onChange={e => setInvDraft(d => ({ ...d, email: e.target.value }))} style={inputSt} />
+            </div>
+            {invDraft.lines.map((l, i) => (
+              <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 56px 96px 26px", gap: 8, marginBottom: 8 }}>
+                <input placeholder="What they ordered" value={l.desc} onChange={e => setLine(i, { desc: e.target.value })} style={inputSt} />
+                <input placeholder="Qty" value={l.qty} onChange={e => setLine(i, { qty: e.target.value })} style={{ ...inputSt, textAlign: "center" }} />
+                <input placeholder="$ each" value={l.price} onChange={e => setLine(i, { price: e.target.value })} style={{ ...inputSt, textAlign: "right" }} />
+                <button onClick={() => setInvDraft(d => ({ ...d, lines: d.lines.filter((_, j) => j !== i) }))} style={{ border: "none", background: "none", color: N.muted, cursor: "pointer", fontSize: 18 }} aria-label="Remove line">×</button>
+              </div>
+            ))}
+            <button onClick={() => setInvDraft(d => ({ ...d, lines: [...d.lines, { desc: "", qty: "1", price: "" }] }))} style={{ ...btnPaper(N.blue), marginBottom: 14 }}>+ Add line</button>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
+              <span style={{ fontSize: 12, color: N.muted, marginRight: 2 }}>Sales tax:</span>
+              {["Exempt", "Taxable", "Shipped"].map(t => (
+                <button key={t} onClick={() => setInvDraft(d => ({ ...d, taxStatus: t }))} style={{ fontSize: 12, padding: "6px 12px", borderRadius: 100, cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontWeight: 500, border: "1px solid " + (invDraft.taxStatus === t ? N.blue : N.rule), background: invDraft.taxStatus === t ? N.blue : N.white, color: invDraft.taxStatus === t ? N.white : N.text }}>{TAX_LABEL[t]}</button>
+              ))}
+            </div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: "1px solid " + N.rule, paddingTop: 12, gap: 12, flexWrap: "wrap" }}>
+              <div style={{ fontSize: 13, color: N.muted }}>
+                Subtotal {money(sub)}{invDraft.taxStatus === "Taxable" ? ` · MN tax (6.875%) ${money(tax)}` : ""} · <b style={{ color: N.ink }}>Total {money(sub + tax)}</b>
+              </div>
+              <button onClick={createInvoice} style={{ ...btnBlue, background: N.blue, fontSize: 14, padding: "10px 18px" }}>Save invoice</button>
+            </div>
+          </div>
+        )}
+
         <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, overflow: "hidden" }}>
-          {entity.invoices.map((v, i) => (
-            <div key={v.id} style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", borderBottom: i === entity.invoices.length - 1 ? "none" : "1px solid " + N.rule }}>
-              <div style={{ width: 54, fontSize: 12, color: N.muted }}>{v.date}</div>
+          {invoices.length === 0 ? (
+            <div style={{ padding: "30px 20px", textAlign: "center", color: N.muted, fontSize: 14 }}>No invoices yet. Click “New invoice” to make the first one.</div>
+          ) : invoices.map((v, i) => (
+            <div key={v.id} style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", borderBottom: i === invoices.length - 1 ? "none" : "1px solid " + N.rule }}>
+              <div style={{ width: 50, fontSize: 12, color: N.muted }}>{v.date}</div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 15, color: N.ink, fontWeight: 600 }}>{v.customer}</div>
                 <div style={{ fontSize: 12, color: N.muted }}>{v.item} · {v.tax}{v.taxAmt ? ` · MN tax ${money(v.taxAmt)}` : ""}</div>
               </div>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: STATUS_COLOR[v.status], background: STATUS_COLOR[v.status] + "18", padding: "4px 10px", borderRadius: 100 }}>{v.status}</div>
-              <div style={{ fontSize: 16, fontWeight: 600, color: N.ink, width: 92, textAlign: "right" }}>{money(v.amount)}</div>
+              <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: STATUS_COLOR[v.status] || N.muted, background: (STATUS_COLOR[v.status] || N.muted) + "18", padding: "4px 10px", borderRadius: 100 }}>{v.status}</span>
+              <div style={{ display: "flex", gap: 6 }}>
+                {v.status === "Draft" && <button onClick={() => invoiceStatus(v.id, "sent")} style={btnPaper(N.blue)}>Send</button>}
+                {v.status !== "Paid" && <button onClick={() => invoiceStatus(v.id, "paid")} style={btnPaper(N.pinkDark)}>Mark paid</button>}
+              </div>
+              <div style={{ fontSize: 16, fontWeight: 600, color: N.ink, width: 90, textAlign: "right" }}>{money(v.amount)}</div>
             </div>
           ))}
         </div>
-        <div style={{ fontSize: 12, color: N.muted, marginTop: 10 }}>Sent invoices show <b style={{ color: N.blue }}>Viewed</b> the moment the customer opens them — the status QuickBooks took away.</div>
+        <div style={{ fontSize: 12, color: N.muted, marginTop: 10 }}>Paid by check? Just hit <b style={{ color: N.pinkDark }}>Mark paid</b>. Sent invoices will show <b style={{ color: N.blue }}>Viewed</b> when the customer opens them — the status QuickBooks took away.</div>
       </div>
     );
   }
@@ -564,3 +666,8 @@ function btnPaper(color) {
     borderRadius: 8, cursor: "pointer", fontFamily: "'Figtree', sans-serif", whiteSpace: "nowrap",
   };
 }
+const inputSt = {
+  width: "100%", padding: "9px 11px", fontSize: 14, fontFamily: "'Figtree', sans-serif",
+  border: "1px solid " + N.rule, borderRadius: 8, outline: "none", color: N.text,
+  boxSizing: "border-box", background: N.white,
+};
