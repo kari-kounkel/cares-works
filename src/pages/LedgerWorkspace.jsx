@@ -290,7 +290,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, session
             return (
               <div key={x.id} style={{ borderBottom: last ? "none" : "1px solid #cfdcc4", background: proposed ? "#e2edf7" : "transparent", marginLeft: proposed ? -8 : 0, paddingLeft: proposed ? 8 : 0, borderRadius: proposed ? 6 : 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "9px 0" }}>
-                  <div style={{ width: 34, marginLeft: -38, textAlign: "right", paddingRight: 6, fontFamily: "'Caveat', cursive", fontSize: 18, color: "#b5563f" }}>{x.date}</div>
+                  <div style={{ width: 34, marginLeft: -38, textAlign: "right", paddingRight: 6, fontFamily: "'Caveat', cursive", fontSize: 18, color: "#8a8f9a" }}>{x.date}</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontFamily: "'Caveat', cursive", fontSize: 21, color: "#26303f", lineHeight: 1.1 }}>{x.payee}</div>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 2, flexWrap: "wrap" }}>
