@@ -226,12 +226,16 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [dbEntity, setDbEntity] = useState(null);
   const entity = dbEntity || propEntity || ENTITIES[entityKey] || SAMPLE_ENTITY;
   const live = !!dbEntity;
-  // Accounts available for the "paid with?" picker and card payments. Live has real ids; sample uses names.
-  const accountList = entity.accountList || [
+  // Accounts available for the "Pymt by" picker and card payments. Live has real ids; sample uses names.
+  // Always ordered: banks first, then cards, then loans/etc — and alphabetical within each type.
+  const ACCT_TYPE_ORDER = { bank: 0, credit_card: 1, loan: 2, cash: 3, other: 4 };
+  const accountList = (entity.accountList || [
     ...(entity.accounts?.banks || []).map(a => ({ id: a.name, name: a.name, type: "bank" })),
     ...(entity.accounts?.cards || []).map(a => ({ id: a.name, name: a.name, type: "credit_card" })),
     ...(entity.accounts?.loans || []).map(a => ({ id: a.name, name: a.name, type: "loan" })),
-  ];
+  ]).slice().sort((a, b) =>
+    (ACCT_TYPE_ORDER[a.type] ?? 9) - (ACCT_TYPE_ORDER[b.type] ?? 9) || (a.name || "").localeCompare(b.name || "")
+  );
 
   const [section, setSection] = useState(entity.users?.find(u => u.name === entity.currentUser)?.lands || "notebook");
   const [items, setItems] = useState(entity.notebook);
@@ -907,7 +911,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   function Accounts() {
     const rows = entity.rawAccounts || [];
     const typeLabel = t => (ACCOUNT_TYPES.find(x => x.value === t)?.label || t);
-    const grouped = ACCOUNT_TYPES.map(t => ({ ...t, rows: rows.filter(r => r.account_type === t.value) })).filter(g => g.rows.length);
+    const grouped = ACCOUNT_TYPES.map(t => ({ ...t, rows: rows.filter(r => r.account_type === t.value).slice().sort((a, b) => (a.name || "").localeCompare(b.name || "")) })).filter(g => g.rows.length);
     return (
       <div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, flexWrap: "wrap", gap: 10 }}>
