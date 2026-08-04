@@ -150,10 +150,11 @@ function buildLiveEntity(org, accounts, categories, entries, session) {
 
   const shortDate = d => { const p = (d || "").split("-"); return p.length === 3 ? `${+p[1]}/${+p[2]}` : d; };
   const notebook = entries
-    .filter(e => e.direction === "out" && !e.match_status)
+    .filter(e => !e.match_status)
     .map(e => ({
       id: e.id,
       accountId: e.account_id || null,
+      direction: e.direction || "out",
       date: shortDate(e.entry_date),
       payee: e.description,
       amount: (e.amount_cents || 0) / 100,
@@ -182,7 +183,10 @@ function buildLiveEntity(org, accounts, categories, entries, session) {
     salesTax: { quarter: "", taxable: 0, exempt: 0, collected: 0 },
     accountList: accounts.map(a => ({ id: a.id, name: a.name, type: a.account_type })),
     categories: categories.map(c => c.name),
-    changelog: [{ date: "Aug 2, 2026", items: ["Your ProGraphics workspace is live on your real ledger data.", "Balances, notebook, and categories all load from your account."] }],
+    changelog: [
+      { date: "Aug 4, 2026", items: ["You can now write a line straight into the notebook — a check, cash, or a deposit the bank feed won't catch. Look for “+ Add a line.”", "The notebook now shows money in as well as money out."] },
+      { date: "Aug 2, 2026", items: ["Your ProGraphics workspace is live on your real ledger data.", "Balances, notebook, and categories all load from your account."] },
+    ],
   };
 }
 
@@ -230,6 +234,9 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [showPayCard, setShowPayCard] = useState(false);
   const blankPay = { amount: "", fromId: "", toId: "", date: new Date().toISOString().slice(0, 10) };
   const [payDraft, setPayDraft] = useState(blankPay);
+  const [showAddLine, setShowAddLine] = useState(false);
+  const blankLine = { date: new Date().toISOString().slice(0, 10), payee: "", amount: "", direction: "out", accountId: "" };
+  const [lineDraft, setLineDraft] = useState(blankLine);
   const [invoices, setInvoices] = useState(entity.invoices || []);
   const [liveOrgId, setLiveOrgId] = useState(null);
   const [reloadTick, setReloadTick] = useState(0);
@@ -320,6 +327,25 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     }
   }
 
+  // Manually write a line into Betty's notebook — for when there's no bank feed yet,
+  // or a cash/check transaction the feed will never see. Lands unmatched in the notebook.
+  async function createLine() {
+    const cents = Math.round((parseFloat(lineDraft.amount) || 0) * 100);
+    if (!cents || !lineDraft.payee.trim()) return;
+    const draft = lineDraft;
+    setShowAddLine(false);
+    setLineDraft(blankLine);
+    if (live && liveOrgId) {
+      await supabase.from("ledger_entries").insert({
+        org_id: liveOrgId, user_id: session.user.id,
+        entry_date: draft.date, amount_cents: cents, direction: draft.direction,
+        description: draft.payee.trim(), account_id: draft.accountId || null,
+        match_status: null,
+      });
+      setReloadTick(t => t + 1);
+    }
+  }
+
   async function createInvoice() {
     const lines = invDraft.lines.filter(l => l.desc.trim());
     if (!invDraft.customer.trim() || lines.length === 0) return;
@@ -375,12 +401,34 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Look up any day, payee, amount"
                 style={{ border: "none", outline: "none", fontSize: 13, fontFamily: "'Figtree', sans-serif", width: 190, color: N.text }} />
             </div>
-            <button onClick={() => setShowPayCard(s => !s)} style={btnPaper(N.blue)}>{showPayCard ? "Close" : "Pay a card"}</button>
+            <button onClick={() => { setShowAddLine(s => !s); setShowPayCard(false); }} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 16px" }}>{showAddLine ? "Close" : "+ Add a line"}</button>
+            <button onClick={() => { setShowPayCard(s => !s); setShowAddLine(false); }} style={btnPaper(N.blue)}>{showPayCard ? "Close" : "Pay a card"}</button>
             <div style={{ fontSize: 12, fontWeight: 700, color: N.pinkDark, background: "#eafaf0", border: "1px solid #bff0d3", padding: "7px 12px", borderRadius: 100, whiteSpace: "nowrap" }}>
               {items.length} left to match
             </div>
           </div>
         </div>
+
+        {showAddLine && (
+          <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: 14, marginBottom: 12 }}>
+            <div style={{ fontSize: 13, color: N.ink, fontWeight: 600, marginBottom: 8 }}>Write a line in the notebook — a check, a cash payment, a deposit the bank feed won't catch.</div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+              <div style={{ display: "flex", border: "1px solid " + N.rule, borderRadius: 100, overflow: "hidden" }}>
+                <button onClick={() => setLineDraft(d => ({ ...d, direction: "out" }))} style={{ border: "none", cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontSize: 13, fontWeight: 600, padding: "8px 14px", background: lineDraft.direction === "out" ? N.pinkDark : N.white, color: lineDraft.direction === "out" ? N.white : N.muted }}>Money out</button>
+                <button onClick={() => setLineDraft(d => ({ ...d, direction: "in" }))} style={{ border: "none", cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontSize: 13, fontWeight: 600, padding: "8px 14px", background: lineDraft.direction === "in" ? N.green : N.white, color: lineDraft.direction === "in" ? N.white : N.muted }}>Money in</button>
+              </div>
+              <input type="date" value={lineDraft.date} onChange={e => setLineDraft(d => ({ ...d, date: e.target.value }))} style={{ ...inputSt, width: 150 }} />
+              <input placeholder={lineDraft.direction === "in" ? "From whom? (deposit, payment…)" : "Payee — who got paid?"} value={lineDraft.payee} onChange={e => setLineDraft(d => ({ ...d, payee: e.target.value }))} style={{ ...inputSt, flex: 1, minWidth: 200 }} />
+              <input placeholder="$ amount" value={lineDraft.amount} onChange={e => setLineDraft(d => ({ ...d, amount: e.target.value }))} style={{ ...inputSt, width: 120 }} />
+              <select value={lineDraft.accountId} onChange={e => setLineDraft(d => ({ ...d, accountId: e.target.value }))} style={{ ...inputSt, width: 168 }}>
+                <option value="">Which account… (optional)</option>
+                {accountList.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+              </select>
+              <button onClick={createLine} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 16px" }}>Add to notebook</button>
+            </div>
+            <div style={{ fontSize: 11, color: N.muted, marginTop: 8 }}>It lands as a line to match, just like a bank-fed one — code it and clear it the same way.</div>
+          </div>
+        )}
 
         {showPayCard && (
           <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: 14, marginBottom: 12 }}>
@@ -468,7 +516,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                       })()}
                     </div>
                   </div>
-                  <div style={{ fontFamily: "'Caveat', cursive", fontSize: 21, color: "#26303f", whiteSpace: "nowrap" }}>{money(-x.amount)}</div>
+                  <div style={{ fontFamily: "'Caveat', cursive", fontSize: 21, color: x.direction === "in" ? N.green : "#26303f", whiteSpace: "nowrap" }}>{x.direction === "in" ? "+" + money(x.amount) : money(-x.amount)}</div>
                   <div style={{ display: "flex", gap: 6 }}>
                     {proposed ? (
                       <button onClick={() => clearOne(x.id, "confirmed cleared")} style={btnBlue}><Ico name="check" size={14} /> Confirm cleared</button>
@@ -525,7 +573,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 <span style={{ color: N.green, display: "flex" }}><Ico name="check" size={16} /></span>
                 <div style={{ flex: 1, fontSize: 14, color: N.text }}>{c.payee}</div>
                 <div style={{ fontSize: 12, color: N.muted }}>{c.how}</div>
-                <div style={{ fontSize: 14, color: N.text, fontWeight: 600 }}>{money(-c.amount)}</div>
+                <div style={{ fontSize: 14, color: c.direction === "in" ? N.green : N.text, fontWeight: 600 }}>{c.direction === "in" ? "+" + money(c.amount) : money(-c.amount)}</div>
               </div>
             ))}
           </div>
