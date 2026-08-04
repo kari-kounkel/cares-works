@@ -788,14 +788,18 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     );
   }
 
-  const body = entity.needsConnect ? <Connect /> : {
-    notebook: <Notebook />,
-    invoices: <Invoices />,
-    salestax: <SalesTax />,
-    reports: <Reports />,
-    bills: <Stub title="Bills" note="Bills you owe — the real, verified list. Rebuilt from statements at the April 1 line." />,
-    documents: <Stub title="Documents" note="Statements, exemption certificates, and anything you attach lives here." />,
-  }[section];
+  // Render sections by CALLING the function (inline JSX), never as <Notebook/>.
+  // These functions close over parent state and use no hooks of their own; mounting
+  // them as elements makes React remount the subtree on every keystroke, which stole
+  // focus from the inputs (the "one letter at a time" bug). Inlining keeps focus.
+  let body;
+  if (entity.needsConnect) body = Connect();
+  else if (section === "notebook") body = Notebook();
+  else if (section === "invoices") body = Invoices();
+  else if (section === "salestax") body = SalesTax();
+  else if (section === "reports") body = Reports();
+  else if (section === "bills") body = <Stub title="Bills" note="Bills you owe — the real, verified list. Rebuilt from statements at the April 1 line." />;
+  else if (section === "documents") body = <Stub title="Documents" note="Statements, exemption certificates, and anything you attach lives here." />;
 
   return (
     <div style={{ minHeight: "100vh", background: N.white, fontFamily: "'Figtree', sans-serif", color: N.text }}>
