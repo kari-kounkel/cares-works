@@ -369,6 +369,13 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         description: draft.payee.trim(), account_id: draft.accountId || null,
         match_status: null,
       });
+      // Grow the vendor dropdown from what she actually types — a new payee
+      // becomes a vendor automatically. Duplicates are rejected by the unique
+      // index and the error is intentionally ignored.
+      const vname = draft.payee.trim();
+      if (vname && !(entity.vendors || []).some(v => v.toLowerCase() === vname.toLowerCase())) {
+        await supabase.from("ledger_vendors").insert({ org_id: liveOrgId, user_id: session.user.id, name: vname });
+      }
       setReloadTick(t => t + 1);
       setTimeout(() => payeeRef.current && payeeRef.current.focus(), 60);
     }
