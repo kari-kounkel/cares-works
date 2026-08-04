@@ -289,7 +289,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         ? (orgs || []).find(o => o.id === orgId)
         : (wantFirst ? (orgs || []).find(o => (o.name || "").toLowerCase().includes(wantFirst)) : null);
       if (!org || cancelled) return;
-      const [a, c, e, inv, ven] = await Promise.all([
+      const [a, c, e, inv, ven, cust, prod] = await Promise.all([
         supabase.from("ledger_accounts").select("*").eq("org_id", org.id).eq("archived", false).order("created_at", { ascending: true }),
         supabase.from("ledger_categories").select("*").eq("org_id", org.id).eq("archived", false).order("sort_order", { ascending: true }),
         supabase.from("ledger_entries").select("*").eq("org_id", org.id).order("entry_date", { ascending: false }).order("created_at", { ascending: false }),
