@@ -8,6 +8,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "../supabaseClient";
+import { navigate } from "../App";
 import { N } from "../design/neon";
 
 const FONTS = "https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&family=Caveat:wght@500;600&display=swap";
@@ -255,6 +256,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [editDraft, setEditDraft] = useState({ date: "", payee: "", amount: "", direction: "out" });
   const [addedCount, setAddedCount] = useState(0);
   const [sortBy, setSortBy] = useState("date-desc");
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const payeeRef = useRef(null);
   const amountRef = useRef(null);
   const blankAcct = { name: "", account_type: "bank", last_four: "", opening: "" };
@@ -293,6 +295,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         supabase.from("ledger_entries").select("*").eq("org_id", org.id).order("entry_date", { ascending: false }).order("created_at", { ascending: false }),
         supabase.from("invoices").select("*").eq("org_id", org.id).order("issue_date", { ascending: false }).order("created_at", { ascending: false }),
         supabase.from("ledger_vendors").select("name").eq("org_id", org.id).eq("archived", false).order("name", { ascending: true }),
+        supabase.from("ledger_customers").select("*").eq("org_id", org.id).eq("archived", false).order("name", { ascending: true }),
+        supabase.from("ledger_products").select("*").eq("org_id", org.id).eq("archived", false).order("name", { ascending: true }),
       ]);
       if (cancelled) return;
       setLiveOrgId(org.id);
@@ -300,6 +304,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       built.invoices = (inv.data || []).map(mapInvoice);
       built.vendors = (ven.data || []).map(v => v.name);
       built.rawAccounts = a.data || [];
+      built.customers = cust.data || [];
+      built.products = prod.data || [];
       setDbEntity(built);
     })();
     return () => { cancelled = true; };
@@ -418,6 +424,12 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   }
 
   // ---- Accounts the user manages themselves (nothing hardcoded) --------------
+  async function logout() {
+    setUserMenuOpen(false);
+    await supabase.auth.signOut();
+    navigate("/login");
+  }
+
   async function addAccount() {
     if (!newAcct.name.trim() || !liveOrgId) return;
     await supabase.from("ledger_accounts").insert({
@@ -1026,11 +1038,22 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.16em", color: N.blue }}>LEDGER</span>
             </div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, whiteSpace: "nowrap" }}>
-            <span style={{ width: 28, height: 28, borderRadius: 100, background: "#eef6ff", color: N.blueDark, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700 }}>
-              {entity.users.find(u => u.name === entity.currentUser)?.initials || "?"}
-            </span>
-            <span style={{ fontSize: 13, color: N.muted }}>{entity.currentUser}</span>
+          <div style={{ position: "relative", whiteSpace: "nowrap" }}>
+            <button onClick={() => setUserMenuOpen(o => !o)} title="Account" style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "1px solid " + N.rule, borderRadius: 100, padding: "3px 10px 3px 3px", cursor: "pointer", fontFamily: "'Figtree', sans-serif" }}>
+              <span style={{ width: 28, height: 28, borderRadius: 100, background: "#eef6ff", color: N.blueDark, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700 }}>
+                {entity.users.find(u => u.name === entity.currentUser)?.initials || (entity.currentUser?.[0] || "?").toUpperCase()}
+              </span>
+              <span style={{ fontSize: 13, color: N.muted }}>{entity.currentUser}</span>
+              <span style={{ fontSize: 9, color: N.muted }}>▾</span>
+            </button>
+            {userMenuOpen && (
+              <div style={{ position: "absolute", right: 0, top: "calc(100% + 6px)", background: N.white, border: "1px solid " + N.rule, borderRadius: 10, boxShadow: "0 8px 24px rgba(0,0,0,0.14)", padding: 8, minWidth: 220, zIndex: 200 }}>
+                <div style={{ fontSize: 12, color: N.muted, padding: "6px 8px 10px", borderBottom: "1px solid " + N.rule, marginBottom: 6 }}>
+                  Signed in as<br /><b style={{ color: N.ink, wordBreak: "break-all" }}>{session?.user?.email || entity.currentUser}</b>
+                </div>
+                <button onClick={logout} style={{ width: "100%", textAlign: "left", background: "none", border: "none", cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontSize: 13, fontWeight: 600, color: N.pinkDark, padding: "8px", borderRadius: 6 }}>Log out &amp; switch user →</button>
+              </div>
+            )}
           </div>
         </div>
 
