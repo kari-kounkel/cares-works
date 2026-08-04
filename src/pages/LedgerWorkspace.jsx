@@ -250,6 +250,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [editLineId, setEditLineId] = useState(null);
   const [editDraft, setEditDraft] = useState({ date: "", payee: "", amount: "", direction: "out" });
   const [addedCount, setAddedCount] = useState(0);
+  const [sortBy, setSortBy] = useState("date-desc");
   const payeeRef = useRef(null);
   const amountRef = useRef(null);
   const blankAcct = { name: "", account_type: "bank", last_four: "", opening: "" };
@@ -473,9 +474,15 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   }
 
   const q = query.trim().toLowerCase();
-  const visibleItems = q
+  const filteredItems = q
     ? items.filter(x => (x.payee + " " + x.amount + " " + x.date).toLowerCase().includes(q))
     : items;
+  const visibleItems = [...filteredItems].sort((a, b) => {
+    if (sortBy === "date-asc") return (a.dateISO || "").localeCompare(b.dateISO || "");
+    if (sortBy === "vendor") return (a.payee || "").localeCompare(b.payee || "");
+    if (sortBy === "account") return (a.source || "~").localeCompare(b.source || "~") || (b.dateISO || "").localeCompare(a.dateISO || "");
+    return (b.dateISO || "").localeCompare(a.dateISO || ""); // date-desc (default)
+  });
 
   const accentRail = N.blue;
 
@@ -496,6 +503,12 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             </div>
             <button onClick={() => { setShowAddLine(s => !s); setShowPayCard(false); setAddedCount(0); setTimeout(() => payeeRef.current && payeeRef.current.focus(), 40); }} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 16px" }}>{showAddLine ? "Close" : "+ Add a line"}</button>
             <button onClick={() => { setShowPayCard(s => !s); setShowAddLine(false); }} style={btnPaper(N.blue)}>{showPayCard ? "Close" : "Pay a card"}</button>
+            <select value={sortBy} onChange={e => setSortBy(e.target.value)} title="Sort the notebook" style={{ ...inputSt, padding: "8px 10px", fontSize: 12 }}>
+              <option value="date-desc">Sort: Date (newest)</option>
+              <option value="date-asc">Sort: Date (oldest)</option>
+              <option value="vendor">Sort: Vendor (A–Z)</option>
+              <option value="account">Sort: Pymt by</option>
+            </select>
             <div style={{ fontSize: 12, fontWeight: 700, color: N.pinkDark, background: "#eafaf0", border: "1px solid #bff0d3", padding: "7px 12px", borderRadius: 100, whiteSpace: "nowrap" }}>
               {items.length} left to match
             </div>
