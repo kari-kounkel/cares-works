@@ -6,7 +6,7 @@
 // Layout mirrors the NLIC org shell: left nav + big work area, blue-dominant neon.
 // Betty lands on her stenographer Notebook; Dave lands on Invoices.
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "../supabaseClient";
 import { N } from "../design/neon";
 
@@ -240,6 +240,9 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [lineDraft, setLineDraft] = useState(blankLine);
   const [editLineId, setEditLineId] = useState(null);
   const [editDraft, setEditDraft] = useState({ date: "", payee: "", amount: "", direction: "out" });
+  const [addedCount, setAddedCount] = useState(0);
+  const payeeRef = useRef(null);
+  const amountRef = useRef(null);
   const [invoices, setInvoices] = useState(entity.invoices || []);
   const [liveOrgId, setLiveOrgId] = useState(null);
   const [reloadTick, setReloadTick] = useState(0);
@@ -336,8 +339,12 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     const cents = Math.round((parseFloat(lineDraft.amount) || 0) * 100);
     if (!cents || !lineDraft.payee.trim()) return;
     const draft = lineDraft;
-    setShowAddLine(false);
-    setLineDraft(blankLine);
+    // Continuous entry: keep the form open, keep date / in-out / account for the next
+    // line, clear only payee + amount, bump the counter, and jump focus back to payee
+    // so Betty can rip through a stack without touching the mouse.
+    setLineDraft(d => ({ ...d, payee: "", amount: "" }));
+    setAddedCount(c => c + 1);
+    if (payeeRef.current) payeeRef.current.focus();
     if (live && liveOrgId) {
       await supabase.from("ledger_entries").insert({
         org_id: liveOrgId, user_id: session.user.id,
@@ -346,6 +353,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         match_status: null,
       });
       setReloadTick(t => t + 1);
+      setTimeout(() => payeeRef.current && payeeRef.current.focus(), 60);
     }
   }
 
@@ -435,7 +443,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Look up any day, payee, amount"
                 style={{ border: "none", outline: "none", fontSize: 13, fontFamily: "'Figtree', sans-serif", width: 190, color: N.text }} />
             </div>
-            <button onClick={() => { setShowAddLine(s => !s); setShowPayCard(false); }} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 16px" }}>{showAddLine ? "Close" : "+ Add a line"}</button>
+            <button onClick={() => { setShowAddLine(s => !s); setShowPayCard(false); setAddedCount(0); setTimeout(() => payeeRef.current && payeeRef.current.focus(), 40); }} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 16px" }}>{showAddLine ? "Close" : "+ Add a line"}</button>
             <button onClick={() => { setShowPayCard(s => !s); setShowAddLine(false); }} style={btnPaper(N.blue)}>{showPayCard ? "Close" : "Pay a card"}</button>
             <div style={{ fontSize: 12, fontWeight: 700, color: N.pinkDark, background: "#eafaf0", border: "1px solid #bff0d3", padding: "7px 12px", borderRadius: 100, whiteSpace: "nowrap" }}>
               {items.length} left to match
@@ -445,22 +453,26 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
 
         {showAddLine && (
           <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: 14, marginBottom: 12 }}>
-            <div style={{ fontSize: 13, color: N.ink, fontWeight: 600, marginBottom: 8 }}>Write a line in the notebook — a check, a cash payment, a deposit the bank feed won't catch.</div>
+            <div style={{ fontSize: 13, color: N.ink, fontWeight: 600, marginBottom: 8, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+              <span>Write lines in the notebook — a check, a cash payment, a deposit the bank feed won't catch.</span>
+              {addedCount > 0 && <span style={{ fontSize: 12, fontWeight: 700, color: N.green, background: "#eafaf0", border: "1px solid #bff0d3", padding: "3px 10px", borderRadius: 100 }}>✓ {addedCount} added</span>}
+            </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
               <div style={{ display: "flex", border: "1px solid " + N.rule, borderRadius: 100, overflow: "hidden" }}>
                 <button onClick={() => setLineDraft(d => ({ ...d, direction: "out" }))} style={{ border: "none", cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontSize: 13, fontWeight: 600, padding: "8px 14px", background: lineDraft.direction === "out" ? N.pinkDark : N.white, color: lineDraft.direction === "out" ? N.white : N.muted }}>Money out</button>
                 <button onClick={() => setLineDraft(d => ({ ...d, direction: "in" }))} style={{ border: "none", cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontSize: 13, fontWeight: 600, padding: "8px 14px", background: lineDraft.direction === "in" ? N.green : N.white, color: lineDraft.direction === "in" ? N.white : N.muted }}>Money in</button>
               </div>
               <input type="date" value={lineDraft.date} onChange={e => setLineDraft(d => ({ ...d, date: e.target.value }))} style={{ ...inputSt, width: 150 }} />
-              <input placeholder={lineDraft.direction === "in" ? "From whom? (deposit, payment…)" : "Payee — who got paid?"} value={lineDraft.payee} onChange={e => setLineDraft(d => ({ ...d, payee: e.target.value }))} style={{ ...inputSt, flex: 1, minWidth: 200 }} />
-              <input placeholder="$ amount" value={lineDraft.amount} onChange={e => setLineDraft(d => ({ ...d, amount: e.target.value }))} style={{ ...inputSt, width: 120 }} />
+              <input ref={payeeRef} placeholder={lineDraft.direction === "in" ? "From whom? (deposit, payment…)" : "Payee — who got paid?"} value={lineDraft.payee} onChange={e => setLineDraft(d => ({ ...d, payee: e.target.value }))} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); amountRef.current && amountRef.current.focus(); } }} style={{ ...inputSt, flex: 1, minWidth: 200 }} />
+              <input ref={amountRef} placeholder="$ amount" value={lineDraft.amount} onChange={e => setLineDraft(d => ({ ...d, amount: e.target.value }))} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); createLine(); } }} style={{ ...inputSt, width: 120 }} />
               <select value={lineDraft.accountId} onChange={e => setLineDraft(d => ({ ...d, accountId: e.target.value }))} style={{ ...inputSt, width: 168 }}>
                 <option value="">Which account… (optional)</option>
                 {accountList.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
               </select>
-              <button onClick={createLine} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 16px" }}>Add to notebook</button>
+              <button onClick={createLine} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 16px" }}>Add &amp; next ↵</button>
+              <button onClick={() => setShowAddLine(false)} style={btnPaper(N.muted)}>Done</button>
             </div>
-            <div style={{ fontSize: 11, color: N.muted, marginTop: 8 }}>It lands as a line to match, just like a bank-fed one — code it and clear it the same way.</div>
+            <div style={{ fontSize: 11, color: N.muted, marginTop: 8 }}>Type payee → <b>Enter</b> → amount → <b>Enter</b> saves and jumps to the next line. Date, in/out, and account carry over. Hit <b>Done</b> when you're finished.</div>
           </div>
         )}
 
