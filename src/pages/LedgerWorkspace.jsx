@@ -96,6 +96,15 @@ const SECTIONS = [
   { key: "salestax", label: "Sales tax" },
   { key: "reports", label: "Reports" },
   { key: "documents", label: "Documents" },
+  { key: "accounts", label: "Accounts" },
+];
+
+const ACCOUNT_TYPES = [
+  { value: "bank", label: "Bank / working capital" },
+  { value: "credit_card", label: "Credit card" },
+  { value: "loan", label: "Loan / mortgage" },
+  { value: "cash", label: "Cash" },
+  { value: "other", label: "Other" },
 ];
 
 const STATUS_COLOR = {
@@ -243,6 +252,11 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [addedCount, setAddedCount] = useState(0);
   const payeeRef = useRef(null);
   const amountRef = useRef(null);
+  const blankAcct = { name: "", account_type: "bank", last_four: "", opening: "" };
+  const [acctEditId, setAcctEditId] = useState(null);
+  const [acctDraft, setAcctDraft] = useState(blankAcct);
+  const [showAddAcct, setShowAddAcct] = useState(false);
+  const [newAcct, setNewAcct] = useState(blankAcct);
   const [invoices, setInvoices] = useState(entity.invoices || []);
   const [liveOrgId, setLiveOrgId] = useState(null);
   const [reloadTick, setReloadTick] = useState(0);
@@ -280,6 +294,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       const built = buildLiveEntity(org, a.data || [], c.data || [], e.data || [], session);
       built.invoices = (inv.data || []).map(mapInvoice);
       built.vendors = (ven.data || []).map(v => v.name);
+      built.rawAccounts = a.data || [];
       setDbEntity(built);
     })();
     return () => { cancelled = true; };
@@ -388,6 +403,33 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       await supabase.from("ledger_entries").delete().eq("id", id);
       setReloadTick(t => t + 1);
     }
+  }
+
+  // ---- Accounts the user manages themselves (nothing hardcoded) --------------
+  async function addAccount() {
+    if (!newAcct.name.trim() || !liveOrgId) return;
+    await supabase.from("ledger_accounts").insert({
+      org_id: liveOrgId, user_id: session.user.id,
+      name: newAcct.name.trim(), account_type: newAcct.account_type,
+      last_four: newAcct.last_four.trim() || null,
+      opening_balance_cents: Math.round((parseFloat(newAcct.opening) || 0) * 100),
+    });
+    setShowAddAcct(false); setNewAcct(blankAcct); setReloadTick(t => t + 1);
+  }
+  async function saveAccount() {
+    const id = acctEditId;
+    if (!id || !acctDraft.name.trim()) return;
+    await supabase.from("ledger_accounts").update({
+      name: acctDraft.name.trim(), account_type: acctDraft.account_type,
+      last_four: acctDraft.last_four.trim() || null,
+      opening_balance_cents: Math.round((parseFloat(acctDraft.opening) || 0) * 100),
+    }).eq("id", id);
+    setAcctEditId(null); setReloadTick(t => t + 1);
+  }
+  async function archiveAccount(id) {
+    if (!window.confirm("Archive this account? Past entries keep it, but it won't show in the pickers.")) return;
+    await supabase.from("ledger_accounts").update({ archived: true }).eq("id", id);
+    setReloadTick(t => t + 1);
   }
 
   async function createInvoice() {
@@ -842,6 +884,73 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     );
   }
 
+  function Accounts() {
+    const rows = entity.rawAccounts || [];
+    const typeLabel = t => (ACCOUNT_TYPES.find(x => x.value === t)?.label || t);
+    const grouped = ACCOUNT_TYPES.map(t => ({ ...t, rows: rows.filter(r => r.account_type === t.value) })).filter(g => g.rows.length);
+    return (
+      <div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, flexWrap: "wrap", gap: 10 }}>
+          <div>
+            <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>Accounts</div>
+            <div style={{ fontSize: 13, color: N.muted }}>Your banks, cards, and loans. You set these — add the last four when you have it, and real opening balances from each statement.</div>
+          </div>
+          <button onClick={() => { setShowAddAcct(s => !s); setNewAcct(blankAcct); }} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 16px" }}>{showAddAcct ? "Close" : "+ Add account"}</button>
+        </div>
+
+        {showAddAcct && (
+          <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: 14, marginBottom: 14, display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+            <input placeholder="Account name (e.g. Citibank 4)" value={newAcct.name} onChange={e => setNewAcct(d => ({ ...d, name: e.target.value }))} style={{ ...inputSt, flex: 1, minWidth: 200 }} />
+            <select value={newAcct.account_type} onChange={e => setNewAcct(d => ({ ...d, account_type: e.target.value }))} style={{ ...inputSt, width: 190 }}>
+              {ACCOUNT_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+            </select>
+            <input placeholder="Last 4" maxLength={4} value={newAcct.last_four} onChange={e => setNewAcct(d => ({ ...d, last_four: e.target.value.replace(/\D/g, "") }))} style={{ ...inputSt, width: 90 }} />
+            <input placeholder="Opening balance $" value={newAcct.opening} onChange={e => setNewAcct(d => ({ ...d, opening: e.target.value }))} style={{ ...inputSt, width: 150 }} />
+            <button onClick={addAccount} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 16px" }}>Save</button>
+          </div>
+        )}
+
+        {grouped.length === 0 && <div style={{ background: N.white, border: "1px dashed " + N.rule, borderRadius: 12, padding: "40px 20px", textAlign: "center", color: N.muted, fontSize: 14 }}>No accounts yet — add your first above.</div>}
+
+        {grouped.map(g => (
+          <div key={g.value} style={{ marginBottom: 18 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: N.muted, marginBottom: 6 }}>{g.label}</div>
+            <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, overflow: "hidden" }}>
+              {g.rows.map((a, i) => {
+                const editing = acctEditId === a.id;
+                return (
+                  <div key={a.id} style={{ padding: "12px 16px", borderTop: i === 0 ? "none" : "1px solid " + N.rule }}>
+                    {editing ? (
+                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                        <input value={acctDraft.name} onChange={e => setAcctDraft(d => ({ ...d, name: e.target.value }))} style={{ ...inputSt, flex: 1, minWidth: 180 }} />
+                        <select value={acctDraft.account_type} onChange={e => setAcctDraft(d => ({ ...d, account_type: e.target.value }))} style={{ ...inputSt, width: 190 }}>
+                          {ACCOUNT_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                        </select>
+                        <input placeholder="Last 4" maxLength={4} value={acctDraft.last_four} onChange={e => setAcctDraft(d => ({ ...d, last_four: e.target.value.replace(/\D/g, "") }))} style={{ ...inputSt, width: 90 }} />
+                        <input placeholder="Opening $" value={acctDraft.opening} onChange={e => setAcctDraft(d => ({ ...d, opening: e.target.value }))} style={{ ...inputSt, width: 140 }} />
+                        <button onClick={saveAccount} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 14px" }}>Save</button>
+                        <button onClick={() => setAcctEditId(null)} style={btnPaper(N.muted)}>Cancel</button>
+                      </div>
+                    ) : (
+                      <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 15, fontWeight: 600, color: N.ink }}>{a.name}{a.last_four && <span style={{ color: N.muted, fontWeight: 400 }}> ••{a.last_four}</span>}</div>
+                          <div style={{ fontSize: 12, color: N.muted }}>{typeLabel(a.account_type)} · opening {money((a.opening_balance_cents || 0) / 100)}</div>
+                        </div>
+                        <button onClick={() => { setAcctEditId(a.id); setAcctDraft({ name: a.name, account_type: a.account_type, last_four: a.last_four || "", opening: String((a.opening_balance_cents || 0) / 100) }); }} style={{ ...btnPaper(N.muted), padding: "6px 12px" }}>Edit</button>
+                        <button onClick={() => archiveAccount(a.id)} title="Archive" style={{ background: "none", border: "1px solid " + N.rule, borderRadius: 100, cursor: "pointer", color: N.muted, fontFamily: "'Figtree', sans-serif", fontSize: 12, fontWeight: 600, padding: "6px 12px" }}>Archive</button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   function Connect() {
     return (
       <div style={{ maxWidth: 560, margin: "40px auto 0", textAlign: "center" }}>
@@ -864,6 +973,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   else if (section === "invoices") body = Invoices();
   else if (section === "salestax") body = SalesTax();
   else if (section === "reports") body = Reports();
+  else if (section === "accounts") body = Accounts();
   else if (section === "bills") body = <Stub title="Bills" note="Bills you owe — the real, verified list. Rebuilt from statements at the April 1 line." />;
   else if (section === "documents") body = <Stub title="Documents" note="Statements, exemption certificates, and anything you attach lives here." />;
 
