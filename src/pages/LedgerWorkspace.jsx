@@ -156,6 +156,7 @@ function buildLiveEntity(org, accounts, categories, entries, session) {
       accountId: e.account_id || null,
       direction: e.direction || "out",
       date: shortDate(e.entry_date),
+      dateISO: e.entry_date,
       payee: e.description,
       amount: (e.amount_cents || 0) / 100,
       source: e.account_id ? acctName[e.account_id] : "—",
@@ -237,6 +238,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [showAddLine, setShowAddLine] = useState(false);
   const blankLine = { date: new Date().toISOString().slice(0, 10), payee: "", amount: "", direction: "out", accountId: "" };
   const [lineDraft, setLineDraft] = useState(blankLine);
+  const [editLineId, setEditLineId] = useState(null);
+  const [editDraft, setEditDraft] = useState({ date: "", payee: "", amount: "", direction: "out" });
   const [invoices, setInvoices] = useState(entity.invoices || []);
   const [liveOrgId, setLiveOrgId] = useState(null);
   const [reloadTick, setReloadTick] = useState(0);
@@ -342,6 +345,37 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         description: draft.payee.trim(), account_id: draft.accountId || null,
         match_status: null,
       });
+      setReloadTick(t => t + 1);
+    }
+  }
+
+  // Edit an existing notebook line in place — fix a typo, wrong amount, wrong date, in/out.
+  async function saveLine() {
+    const id = editLineId;
+    const cents = Math.round((parseFloat(editDraft.amount) || 0) * 100);
+    if (!id || !cents || !editDraft.payee.trim()) return;
+    const p = (editDraft.date || "").split("-");
+    const shortD = p.length === 3 ? `${+p[1]}/${+p[2]}` : editDraft.date;
+    setItems(prev => prev.map(it => it.id === id
+      ? { ...it, date: shortD, dateISO: editDraft.date, payee: editDraft.payee.trim(), amount: cents / 100, direction: editDraft.direction }
+      : it));
+    setEditLineId(null);
+    if (live) {
+      await supabase.from("ledger_entries").update({
+        entry_date: editDraft.date, description: editDraft.payee.trim(),
+        amount_cents: cents, direction: editDraft.direction,
+      }).eq("id", id);
+      setReloadTick(t => t + 1);
+    }
+  }
+
+  // Delete a notebook line for good — a mistake, a duplicate, something that shouldn't be here.
+  async function deleteLine(id) {
+    if (!window.confirm("Delete this line? It's removed from the notebook for good.")) return;
+    setItems(prev => prev.filter(it => it.id !== id));
+    if (editLineId === id) setEditLineId(null);
+    if (live) {
+      await supabase.from("ledger_entries").delete().eq("id", id);
       setReloadTick(t => t + 1);
     }
   }
@@ -517,7 +551,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                     </div>
                   </div>
                   <div style={{ fontFamily: "'Caveat', cursive", fontSize: 21, color: x.direction === "in" ? N.green : "#26303f", whiteSpace: "nowrap" }}>{x.direction === "in" ? "+" + money(x.amount) : money(-x.amount)}</div>
-                  <div style={{ display: "flex", gap: 6 }}>
+                  <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                     {proposed ? (
                       <button onClick={() => clearOne(x.id, "confirmed cleared")} style={btnBlue}><Ico name="check" size={14} /> Confirm cleared</button>
                     ) : (
@@ -526,6 +560,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                         <button onClick={() => clearOne(x.id, "has it")} style={btnPaper(N.muted)}><Ico name="check" size={14} /> I've got it</button>
                       </>
                     )}
+                    <button onClick={() => { setEditLineId(x.id); setEditDraft({ date: x.dateISO || "", payee: x.payee, amount: String(x.amount), direction: x.direction || "out" }); setCatOpen(null); setAcctOpen(null); }} title="Edit this line" style={{ ...btnPaper(N.muted), padding: "6px 10px" }}>Edit</button>
+                    <button onClick={() => deleteLine(x.id)} title="Delete this line" style={{ background: "none", border: "1px solid " + N.rule, borderRadius: 100, cursor: "pointer", color: N.pinkDark, fontFamily: "'Figtree', sans-serif", fontSize: 15, fontWeight: 700, lineHeight: 1, padding: "5px 10px" }}>✕</button>
                   </div>
                 </div>
                 {catOpen === x.id && (
@@ -551,6 +587,19 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                         color: x.source === a.name ? N.white : N.text,
                       }}>{a.name}</button>
                     ))}
+                  </div>
+                )}
+                {editLineId === x.id && (
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", padding: "4px 0 14px" }}>
+                    <div style={{ display: "flex", border: "1px solid " + N.rule, borderRadius: 100, overflow: "hidden" }}>
+                      <button onClick={() => setEditDraft(d => ({ ...d, direction: "out" }))} style={{ border: "none", cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontSize: 12, fontWeight: 600, padding: "7px 12px", background: editDraft.direction === "out" ? N.pinkDark : N.white, color: editDraft.direction === "out" ? N.white : N.muted }}>Out</button>
+                      <button onClick={() => setEditDraft(d => ({ ...d, direction: "in" }))} style={{ border: "none", cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontSize: 12, fontWeight: 600, padding: "7px 12px", background: editDraft.direction === "in" ? N.green : N.white, color: editDraft.direction === "in" ? N.white : N.muted }}>In</button>
+                    </div>
+                    <input type="date" value={editDraft.date} onChange={e => setEditDraft(d => ({ ...d, date: e.target.value }))} style={{ ...inputSt, width: 150 }} />
+                    <input value={editDraft.payee} onChange={e => setEditDraft(d => ({ ...d, payee: e.target.value }))} placeholder="Payee" style={{ ...inputSt, flex: 1, minWidth: 180 }} />
+                    <input value={editDraft.amount} onChange={e => setEditDraft(d => ({ ...d, amount: e.target.value }))} placeholder="$ amount" style={{ ...inputSt, width: 120 }} />
+                    <button onClick={saveLine} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 16px" }}>Save</button>
+                    <button onClick={() => setEditLineId(null)} style={btnPaper(N.muted)}>Cancel</button>
                   </div>
                 )}
               </div>
