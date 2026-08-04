@@ -82,14 +82,16 @@ export default function App() {
         .maybeSingle();
       if (!cancelled) setMemberStatus(data ? "member" : "none");
 
-      // Check for a primary org membership — routes org members straight to their workspace on login
+      // Check for a client-workspace membership — routes those users straight to their
+      // workspace (e.g. ProGraphics) instead of the paid member dashboard or the paywall.
       const { data: mem } = await supabase
-        .from("organization_members")
-        .select("is_primary, organizations(slug)")
-        .eq("user_email", session.user.email)
-        .eq("is_primary", true)
+        .from("ledger_org_members")
+        .select("ledger_orgs(name)")
+        .ilike("member_email", session.user.email)
+        .limit(1)
         .maybeSingle();
-      if (!cancelled) setPrimaryOrg(mem?.organizations?.slug || null);
+      const orgName = mem?.ledger_orgs?.name || "";
+      if (!cancelled) setPrimaryOrg(orgName ? orgName.toLowerCase().split(" ")[0] : null);
     })();
     return () => { cancelled = true; };
   }, [session?.user?.email]);
@@ -109,6 +111,12 @@ export default function App() {
 
   if (path === "/dashboard") {
     if (!session) { navigate("/login"); return null; }
+    if (memberStatus === null || primaryOrg === undefined) {
+      return <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#ffffff", fontFamily: "'Figtree', sans-serif", color: "#64748b", fontSize: 15 }}>Loading...</div>;
+    }
+    // Client-workspace users (not paid members) never see the tool library or paywall —
+    // send them to their workspace instead.
+    if (memberStatus !== "member" && primaryOrg) { navigate("/" + primaryOrg); return null; }
     return <Dashboard session={session} />;
   }
 
@@ -237,13 +245,18 @@ export default function App() {
   const isPublicView = params.get("public") === "1";
 
   if (session && !isPublicView) {
-    if (memberStatus === null) {
+    if (memberStatus === null || primaryOrg === undefined) {
       return (
         <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#ffffff", fontFamily: "'Figtree', sans-serif", color: "#64748b", fontSize: 15 }}>Loading...</div>
       );
     }
     if (memberStatus === "member") {
       navigate("/dashboard");
+      return null;
+    }
+    // Non-member who belongs to a client workspace → drop them into it, not the marketing page.
+    if (primaryOrg) {
+      navigate("/" + primaryOrg);
       return null;
     }
   }
