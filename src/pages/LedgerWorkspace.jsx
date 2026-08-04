@@ -268,16 +268,18 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         ? (orgs || []).find(o => o.id === orgId)
         : (wantFirst ? (orgs || []).find(o => (o.name || "").toLowerCase().includes(wantFirst)) : null);
       if (!org || cancelled) return;
-      const [a, c, e, inv] = await Promise.all([
+      const [a, c, e, inv, ven] = await Promise.all([
         supabase.from("ledger_accounts").select("*").eq("org_id", org.id).eq("archived", false).order("created_at", { ascending: true }),
         supabase.from("ledger_categories").select("*").eq("org_id", org.id).eq("archived", false).order("sort_order", { ascending: true }),
         supabase.from("ledger_entries").select("*").eq("org_id", org.id).order("entry_date", { ascending: false }).order("created_at", { ascending: false }),
         supabase.from("invoices").select("*").eq("org_id", org.id).order("issue_date", { ascending: false }).order("created_at", { ascending: false }),
+        supabase.from("ledger_vendors").select("name").eq("org_id", org.id).eq("archived", false).order("name", { ascending: true }),
       ]);
       if (cancelled) return;
       setLiveOrgId(org.id);
       const built = buildLiveEntity(org, a.data || [], c.data || [], e.data || [], session);
       built.invoices = (inv.data || []).map(mapInvoice);
+      built.vendors = (ven.data || []).map(v => v.name);
       setDbEntity(built);
     })();
     return () => { cancelled = true; };
@@ -463,7 +465,10 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 <button onClick={() => setLineDraft(d => ({ ...d, direction: "in" }))} style={{ border: "none", cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontSize: 13, fontWeight: 600, padding: "8px 14px", background: lineDraft.direction === "in" ? N.green : N.white, color: lineDraft.direction === "in" ? N.white : N.muted }}>Money in</button>
               </div>
               <input type="date" value={lineDraft.date} onChange={e => setLineDraft(d => ({ ...d, date: e.target.value }))} style={{ ...inputSt, width: 150 }} />
-              <input ref={payeeRef} placeholder={lineDraft.direction === "in" ? "From whom? (deposit, payment…)" : "Payee — who got paid?"} value={lineDraft.payee} onChange={e => setLineDraft(d => ({ ...d, payee: e.target.value }))} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); amountRef.current && amountRef.current.focus(); } }} style={{ ...inputSt, flex: 1, minWidth: 200 }} />
+              <input ref={payeeRef} list="pg-vendor-list" placeholder={lineDraft.direction === "in" ? "From whom? (deposit, payment…)" : "Payee / vendor — start typing"} value={lineDraft.payee} onChange={e => setLineDraft(d => ({ ...d, payee: e.target.value }))} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); amountRef.current && amountRef.current.focus(); } }} style={{ ...inputSt, flex: 1, minWidth: 200 }} />
+              <datalist id="pg-vendor-list">
+                {(entity.vendors || []).map(v => <option key={v} value={v} />)}
+              </datalist>
               <input ref={amountRef} placeholder="$ amount" value={lineDraft.amount} onChange={e => setLineDraft(d => ({ ...d, amount: e.target.value }))} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); createLine(); } }} style={{ ...inputSt, width: 120 }} />
               <select value={lineDraft.accountId} onChange={e => setLineDraft(d => ({ ...d, accountId: e.target.value }))} style={{ ...inputSt, width: 168 }}>
                 <option value="">Which account… (optional)</option>
@@ -608,7 +613,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                       <button onClick={() => setEditDraft(d => ({ ...d, direction: "in" }))} style={{ border: "none", cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontSize: 12, fontWeight: 600, padding: "7px 12px", background: editDraft.direction === "in" ? N.green : N.white, color: editDraft.direction === "in" ? N.white : N.muted }}>In</button>
                     </div>
                     <input type="date" value={editDraft.date} onChange={e => setEditDraft(d => ({ ...d, date: e.target.value }))} style={{ ...inputSt, width: 150 }} />
-                    <input value={editDraft.payee} onChange={e => setEditDraft(d => ({ ...d, payee: e.target.value }))} placeholder="Payee" style={{ ...inputSt, flex: 1, minWidth: 180 }} />
+                    <input list="pg-vendor-list" value={editDraft.payee} onChange={e => setEditDraft(d => ({ ...d, payee: e.target.value }))} placeholder="Payee" style={{ ...inputSt, flex: 1, minWidth: 180 }} />
                     <input value={editDraft.amount} onChange={e => setEditDraft(d => ({ ...d, amount: e.target.value }))} placeholder="$ amount" style={{ ...inputSt, width: 120 }} />
                     <button onClick={saveLine} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 16px" }}>Save</button>
                     <button onClick={() => setEditLineId(null)} style={btnPaper(N.muted)}>Cancel</button>
