@@ -599,17 +599,18 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                       ) : (() => {
                         const hasAcct = x.source && x.source !== "—";
                         return (
-                          <button onClick={() => setAcctOpen(o => (o === x.id ? null : x.id))}
+                          <select value={x.accountId || ""}
                             title="Payment by which bank or card?"
+                            onChange={e => { const id = e.target.value; const nm = accountList.find(a => a.id === id)?.name || "—"; setAccount(x.id, id || null, nm); }}
                             style={{
-                              display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, padding: "3px 9px",
-                              borderRadius: 100, cursor: "pointer", fontFamily: "'Figtree', sans-serif",
+                              fontSize: 11, fontWeight: 600, padding: "4px 8px", borderRadius: 100, cursor: "pointer", fontFamily: "'Figtree', sans-serif",
                               border: "1px solid " + (hasAcct ? "#cdd8c2" : "#f0d89a"),
                               background: hasAcct ? "#f0f7f1" : "#fdf5e3",
                               color: hasAcct ? "#5a7a63" : "#8a5a00",
                             }}>
-                            <Ico name="bank" size={12} />{hasAcct ? x.source : "Pymt by?"}<span style={{ fontSize: 9 }}>▾</span>
-                          </button>
+                            <option value="">Pymt by?</option>
+                            {accountList.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                          </select>
                         );
                       })()}
                       {(() => {
@@ -656,19 +657,6 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                         background: x.category === cat ? N.blue : N.white,
                         color: x.category === cat ? N.white : N.text,
                       }}>{cat}</button>
-                    ))}
-                  </div>
-                )}
-                {acctOpen === x.id && (
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6, padding: "0 0 12px" }}>
-                    <span style={{ fontSize: 11, color: N.muted, alignSelf: "center", marginRight: 2 }}>Pymt by</span>
-                    {accountList.map(a => (
-                      <button key={a.id} onClick={() => setAccount(x.id, a.id, a.name)} style={{
-                        fontSize: 12, padding: "6px 12px", borderRadius: 100, cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontWeight: 500,
-                        border: "1px solid " + (x.source === a.name ? N.blue : N.rule),
-                        background: x.source === a.name ? N.blue : N.white,
-                        color: x.source === a.name ? N.white : N.text,
-                      }}>{a.name}</button>
                     ))}
                   </div>
                 )}
