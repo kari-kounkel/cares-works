@@ -196,11 +196,19 @@
   });
   host.appendChild(tbl);
 
-  // persist checkboxes + ratings in this browser
-  function load(el){ try{ var v = localStorage.getItem("ibk-"+el.dataset.k); if(v===null) return;
-    if(el.type==="checkbox") el.checked = v==="1"; else el.value = v; }catch(e){} }
-  function save(el){ try{ localStorage.setItem("ibk-"+el.dataset.k, el.type==="checkbox" ? (el.checked?"1":"0") : el.value); }catch(e){} }
+  // persist checkboxes + ratings: locally AND to the shared server,
+  // so Tanya, Tim, and Kari all see the same checkmarks from any computer.
+  function apply(el, v){ if(v===undefined||v===null) return; if(el.type==="checkbox") el.checked = v==="1"; else el.value = v; }
+  function load(el){ try{ apply(el, localStorage.getItem("ibk-"+el.dataset.k)); }catch(e){} }
+  function save(el){
+    var v = el.type==="checkbox" ? (el.checked?"1":"0") : el.value;
+    try{ localStorage.setItem("ibk-"+el.dataset.k, v); }catch(e){}
+    fetch("/api/itabelkoo-progress", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ k: el.dataset.k, v: v }) }).catch(function(){});
+  }
   document.querySelectorAll("[data-k]").forEach(function(el){ load(el); el.addEventListener("change", function(){ save(el); }); });
+  fetch("/api/itabelkoo-progress").then(function(r){ return r.json(); }).then(function(m){
+    document.querySelectorAll("[data-k]").forEach(function(el){ apply(el, m[el.dataset.k]); });
+  }).catch(function(){});
 })();
 </script>
 </body>

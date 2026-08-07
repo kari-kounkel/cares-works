@@ -182,7 +182,31 @@
   function ready(){ return dirty && signer.value.trim().length>1; }
   function upd(){ var ok=ready(); document.getElementById("dl").disabled=!ok; document.getElementById("note").textContent = ok ? "Download or print your signed copy, then pay the $179 by check or via the invoice." : "Sign and add your name to continue."; }
 
-  document.getElementById("dl").addEventListener("click", function(){ if(!ready()) return; window.print(); });
+  document.getElementById("dl").addEventListener("click", async function(){
+    if(!ready()) return;
+    var note = document.getElementById("note");
+    var rows = [];
+    document.querySelectorAll(".focus table tr").forEach(function(tr){
+      var ins = tr.querySelectorAll("input");
+      if(ins.length === 3){
+        var r = { task: ins[0].value.trim(), link: ins[1].value.trim(), notes: ins[2].value.trim() };
+        if(r.task || r.link || r.notes) rows.push(r);
+      }
+    });
+    note.textContent = "Delivering your signed copy to CARES…";
+    try {
+      var resp = await fetch("/api/itabelkoo-sign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ signer: signer.value.trim(), signature: canvas.toDataURL("image/png"), items: rows })
+      });
+      if(!resp.ok) throw new Error("send failed");
+      note.textContent = "✓ Signed copy and your focus links delivered to CARES automatically. Now save or print your own copy.";
+    } catch(e) {
+      note.textContent = "Couldn't auto-deliver just now — please also email your saved copy to kari@caresmn.com.";
+    }
+    window.print();
+  });
 })();
 </script>
 </body>
