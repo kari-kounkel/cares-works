@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Training Agreement · CARES Consulting Inc &amp; ITA BEL KOO DAC</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=Caveat:wght@600&display=swap" rel="stylesheet" />
+<style>
+  :root{ --blue:#0b84ff; --blueDeep:#0057d8; --green:#00c853; --greenBright:#2fe57f; --blueSoft:#e9f5ff; --greenSoft:#e7fbef; --ink:#202632; --inkSoft:#49515f; --muted:#828a98; --rule:#e4e2dd; --paper:#f5f7fb; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'Inter',system-ui,sans-serif;line-height:1.6}
+  a{color:var(--blue)}
+  header{background:linear-gradient(150deg,var(--blue),var(--blueDeep) 55%,var(--green));color:#fff;padding:30px 24px}
+  .wrap{max-width:760px;margin:0 auto;padding:0 24px}
+  header .eyebrow{font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.8)}
+  header h1{font-family:'Fraunces',serif;font-size:28px;margin:6px 0 4px}
+  header p{margin:0;font-size:14px;color:rgba(255,255,255,.85)}
+  .glowline{height:5px;background:linear-gradient(90deg,var(--blue),var(--greenBright),var(--blue));box-shadow:0 2px 12px rgba(0,200,83,.45)}
+  main{padding:30px 0 80px}
+  .parties{font-size:15px;margin-bottom:16px}
+  .parties b{color:var(--ink)}
+  .welcome{background:var(--greenSoft);border:1px solid #bdeecd;border-radius:13px;padding:16px 20px;margin:6px 0 26px;box-shadow:0 0 18px rgba(47,229,127,.18)}
+  .welcome .wlbl{font-size:11.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--green);margin-bottom:6px}
+  .welcome p{font-size:14.5px;color:var(--inkSoft);margin:0;max-width:66ch;line-height:1.62}
+  h2{font-family:'Fraunces',serif;font-size:18px;color:var(--blue);margin:26px 0 6px}
+  h2 .num{color:var(--muted);font-size:15px;margin-right:6px}
+  p.cl{font-size:14.5px;color:var(--inkSoft);margin:0 0 8px;max-width:66ch}
+  ul.cl{margin:0 0 10px;padding-left:20px}
+  ul.cl li{font-size:14.5px;color:var(--inkSoft);margin-bottom:5px}
+  .price{background:#fff;border:1px solid var(--rule);border-left:4px solid var(--green);border-radius:13px;box-shadow:0 1px 2px rgba(28,36,34,.04),0 8px 24px rgba(0,200,83,.10);padding:6px 20px;margin:10px 0 6px}
+  .prow{display:flex;justify-content:space-between;gap:16px;padding:11px 0;border-top:1px solid #f0f1f4;font-size:14.5px}
+  .prow:first-child{border-top:none}
+  .prow b{color:var(--ink)}
+  .prow.total{font-size:16px} .prow.total b{color:var(--green);font-family:'Fraunces',serif}
+  .focus{background:#fff;border:1px solid var(--rule);border-radius:13px;box-shadow:0 1px 2px rgba(28,36,34,.04),0 8px 24px rgba(11,132,255,.08);padding:14px 18px;margin:10px 0 6px}
+  .focus table{width:100%;border-collapse:collapse}
+  .focus th{text-align:left;font-size:10.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);padding:6px 6px;border-bottom:1.5px solid var(--rule)}
+  .focus td{padding:4px 4px;border-bottom:1px solid #f0f1f4}
+  .focus input{width:100%;box-sizing:border-box;font-family:inherit;font-size:13.5px;padding:7px 9px;border:1px solid transparent;border-radius:7px;background:transparent}
+  .focus input:hover{border-color:var(--rule)} .focus input:focus{outline:none;border-color:var(--blue);background:#fff}
+  .sign{background:#fff;border:1px solid var(--rule);border-radius:14px;box-shadow:0 1px 2px rgba(28,36,34,.04),0 8px 24px rgba(28,36,34,.06);padding:22px 24px;margin-top:30px}
+  .sgrid{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:8px}
+  @media (max-width:640px){ .sgrid{grid-template-columns:1fr} }
+  label{display:block;font-size:11.5px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--inkSoft);margin:12px 0 5px}
+  input.big{width:100%;box-sizing:border-box;font-family:inherit;font-size:14.5px;padding:9px 12px;border:1.5px solid var(--rule);border-radius:9px}
+  input.big:focus{outline:none;border-color:var(--blue)}
+  .pad{width:100%;height:120px;background:#fff;border:1.5px dashed var(--rule);border-radius:10px;touch-action:none;cursor:crosshair;display:block}
+  .presig{height:120px;background:#fff;border:1.5px solid var(--rule);border-radius:10px;display:flex;align-items:center;justify-content:center;text-align:center}
+  .sig-script{font-family:'Caveat',cursive;font-size:38px;color:#16203a}
+  .clear{margin-top:6px;cursor:pointer;font-size:12px;font-weight:600;color:var(--blue);background:none;border:none;text-decoration:underline;padding:0}
+  .cap{font-size:12px;color:var(--muted);margin-top:6px}
+  .btn{cursor:pointer;font-family:inherit;font-weight:700;border:none;border-radius:11px;padding:14px 18px;font-size:15px;width:100%}
+  .pay{background:linear-gradient(120deg,var(--blue),var(--green));color:#fff;margin-top:20px;box-shadow:0 4px 18px rgba(0,200,83,.3)}
+  .pay:disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
+  .fine{font-size:12.5px;color:var(--muted);text-align:center;margin-top:12px}
+  footer{padding:30px 0;text-align:center}
+  .cares-mark{font-family:'Fraunces',serif;font-weight:700;font-size:22px;color:var(--blue)}
+  .cares-mark span{font-size:14px;color:var(--inkSoft);font-weight:600}
+  @media print{
+    body{background:#fff}
+    header{background:#fff!important;color:var(--ink)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;border-bottom:2px solid var(--blue)}
+    header .eyebrow,header p{color:var(--inkSoft)!important} header h1{color:var(--blue)!important}
+    .btn,.clear,.fine,.backlink{display:none!important}
+    .sign,.price,.focus,.welcome{box-shadow:none}
+    .focus input{border-color:transparent!important;background:transparent!important}
+    h2{break-after:avoid} .sign{break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap" style="padding:0;max-width:760px">
+    <div class="eyebrow">Training Services Agreement</div>
+    <h1>Office Skills &amp; Workplace Systems Training</h1>
+    <p>Between CARES Consulting Inc and ITA BEL KOO DAC · dated <span id="today"></span> &nbsp; <a class="backlink" href="./" style="color:#fff;text-decoration:underline">↩ proposal</a></p>
+  </div>
+</header>
+<div class="glowline"></div>
+<main class="wrap">
+  <p class="parties">This Training Services Agreement (the "Agreement") is made between <b>CARES Consulting Inc</b> ("CARES") and <b>ITA BEL KOO DAC</b>, Attn: Tim Stanoch, Executive Director ("Client"), effective on the date signed below.</p>
+
+  <div class="welcome">
+    <div class="wlbl">A note from Kari — before the terms</div>
+    <p>Tim — my goal here isn't paperwork, it's a Site Manager who runs her corner of the DAC with confidence: documents that get done, spreadsheets that get used, one task list instead of forty sticky notes, and communication that lands during business hours. Three Friday mornings, real work the whole time. The terms below just put it on paper so we both feel safe — read them as a <b>starting point, not a fence</b>. If anything needs to flex, say so and we'll sort it out together.</p>
+    <p style="font-family:'Caveat',cursive;font-size:27px;color:#16203a;margin:10px 0 0">— Kari</p>
+  </div>
+
+  <h2><span class="num">1.</span>The work</h2>
+  <p class="cl">CARES will deliver a three-session, on-site staff training series for one participant designated by Client — <b>Fridays, August 7, 14 &amp; 21, 2026, 8:30–10:30 a.m.</b> — covering Microsoft Word &amp; Excel foundations; Google Docs, Sheets &amp; Forms; and organization, scheduling &amp; workplace ownership. Includes the full curriculum, printed participant materials, weekly homework assignments, a 30-day independent practice plan, and a written progress summary suitable for board review.</p>
+
+  <h2><span class="num">2.</span>Fees &amp; payment</h2>
+  <div class="price">
+    <div class="prow"><span>Three-session training series — six instruction hours, all materials included (flat)</span><b>$179</b></div>
+    <div class="prow total"><span>Total due at or before Session 1</span><b>$179</b></div>
+  </div>
+  <p class="cl">Paid by <b>check payable to CARES Consulting Inc</b> or electronically — <a href="invoice.html">view / download invoice #2026080713</a>. <b>This pricing is locked</b> for the series. Additional participants, sessions, or follow-up coaching are quoted and agreed in writing before any additional work begins. No surprises.</p>
+
+  <h2><span class="num">3.</span>Your focus list</h2>
+  <p class="cl">List the specific systems, sites, and tasks you want demonstrated hands-on during the sessions — they're folded into the curriculum at no extra charge. Type right here, then print or send. <b>Login credentials go directly to the trainer at the session — never written here.</b></p>
+  <div class="focus">
+    <table>
+      <tr><th style="width:34%">System / task</th><th style="width:38%">Link (website / URL)</th><th style="width:28%">Notes / login ready?</th></tr>
+      <tr><td><input placeholder="1." /></td><td><input placeholder="https://" /></td><td><input placeholder="" /></td></tr>
+      <tr><td><input placeholder="2." /></td><td><input placeholder="https://" /></td><td><input placeholder="" /></td></tr>
+      <tr><td><input placeholder="3." /></td><td><input placeholder="https://" /></td><td><input placeholder="" /></td></tr>
+      <tr><td><input placeholder="4." /></td><td><input placeholder="https://" /></td><td><input placeholder="" /></td></tr>
+      <tr><td><input placeholder="5." /></td><td><input placeholder="https://" /></td><td><input placeholder="" /></td></tr>
+      <tr><td><input placeholder="6." /></td><td><input placeholder="https://" /></td><td><input placeholder="" /></td></tr>
+      <tr><td><input placeholder="7." /></td><td><input placeholder="https://" /></td><td><input placeholder="" /></td></tr>
+      <tr><td><input placeholder="8." /></td><td><input placeholder="https://" /></td><td><input placeholder="" /></td></tr>
+    </table>
+  </div>
+  <p class="cl" style="font-size:12.5px;color:var(--muted)">Items involving payroll, banking, or client-confidential records are demonstrated with appropriate access controls and only as authorized by the Executive Director.</p>
+
+  <h2><span class="num">4.</span>What Client provides</h2>
+  <p class="cl">A workspace, a computer with Microsoft Office installed, working Google account credentials for the participant, logins for the focus-list items above, and the participant's release from other duties during session hours.</p>
+
+  <h2><span class="num">5.</span>Scheduling &amp; cancellation</h2>
+  <p class="cl">Either party may reschedule a session with at least 48 hours' notice; a rescheduled session is completed within two weeks of the original date. If Client cancels the series before the first session, no fee is owed. If Client cancels after the series has begun, the flat rate remains due — materials and preparation are delivered in full from Session 1.</p>
+
+  <h2><span class="num">6.</span>Confidentiality</h2>
+  <p class="cl">CARES treats the participant's individual performance with discretion. Progress reporting is limited to the skills checklist summary and work products, shared with the Executive Director and, at Client's choice, the board. Each party keeps the other's non-public information confidential; this obligation continues after the Agreement ends.</p>
+
+  <h2><span class="num">7.</span>Independent contractor</h2>
+  <p class="cl">CARES is an independent contractor, not an employee of Client. Nothing in this Agreement creates an employment, agency, or partnership relationship.</p>
+
+  <h2><span class="num">8.</span>General</h2>
+  <p class="cl">CARES will perform professionally and in good faith. Total liability under this Agreement is limited to the fees paid. This Agreement is the full understanding between the parties, may be changed only in writing, and is governed by the laws of the State of Minnesota.</p>
+
+  <div class="sign">
+    <h2 style="margin-top:0"><span class="num">9.</span>Signatures</h2>
+    <p class="cl">By signing, each party agrees to the terms above.</p>
+    <div class="sgrid">
+      <div>
+        <label>CARES Consulting Inc · Kari Hoglund Kounkel</label>
+        <div class="presig">
+          <img src="kari-signature.png" alt="Kari Hoglund Kounkel" style="max-height:92px;max-width:90%;display:none" onload="this.style.display='inline';var s=this.nextElementSibling; if(s){s.style.display='none';}" />
+          <span class="sig-script">Kari Hoglund Kounkel</span>
+        </div>
+        <div class="cap">CARES Consulting Inc · <span id="cares-date"></span></div>
+      </div>
+      <div>
+        <label>ITA BEL KOO DAC · authorized signer</label>
+        <canvas class="pad" id="pad"></canvas>
+        <button class="clear" id="clear">Clear signature</button>
+        <div class="cap">Sign above</div>
+      </div>
+    </div>
+    <label>ITA BEL KOO DAC signer — name &amp; title</label>
+    <input class="big" id="signer" placeholder="Tim Stanoch, Executive Director" />
+
+    <button class="btn pay" id="dl" disabled>Sign, then download / print your copy →</button>
+    <p class="fine" id="note">Sign and add your name to continue.</p>
+    <p class="fine">Then pay by <b>check payable to CARES Consulting Inc</b> for $179 — or see <a href="invoice.html">invoice #2026080713</a> for electronic payment.</p>
+  </div>
+</main>
+<footer>
+  <div class="cares-mark">CARES <span>Consulting Inc</span></div>
+  <p style="font-size:12px;color:var(--muted);margin-top:6px">Clarity · Accountability · Repair · Expectations · Support</p>
+</footer>
+<script>
+(function(){
+  var d = new Date();
+  var ds = d.toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"});
+  document.getElementById("today").textContent = ds;
+  document.getElementById("cares-date").textContent = ds;
+
+  var canvas = document.getElementById("pad"), ctx = canvas.getContext("2d"), drawing=false, dirty=false;
+  function resize(){ var r=canvas.getBoundingClientRect(), dpr=window.devicePixelRatio||1; canvas.width=r.width*dpr; canvas.height=120*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); ctx.lineWidth=2.2; ctx.lineCap="round"; ctx.lineJoin="round"; ctx.strokeStyle="#16203a"; dirty=false; }
+  resize(); window.addEventListener("resize", resize);
+  function pos(e){ var r=canvas.getBoundingClientRect(), t=e.touches?e.touches[0]:e; return {x:t.clientX-r.left,y:t.clientY-r.top}; }
+  function start(e){ drawing=true; var p=pos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); e.preventDefault(); }
+  function move(e){ if(!drawing)return; var p=pos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); dirty=true; upd(); e.preventDefault(); }
+  function end(){ drawing=false; }
+  canvas.addEventListener("mousedown",start); canvas.addEventListener("mousemove",move); window.addEventListener("mouseup",end);
+  canvas.addEventListener("touchstart",start,{passive:false}); canvas.addEventListener("touchmove",move,{passive:false}); canvas.addEventListener("touchend",end);
+  document.getElementById("clear").addEventListener("click", function(){ ctx.clearRect(0,0,canvas.width,canvas.height); dirty=false; upd(); });
+
+  var signer = document.getElementById("signer");
+  signer.addEventListener("input", upd);
+  function ready(){ return dirty && signer.value.trim().length>1; }
+  function upd(){ var ok=ready(); document.getElementById("dl").disabled=!ok; document.getElementById("note").textContent = ok ? "Download or print your signed copy, then pay the $179 by check or via the invoice." : "Sign and add your name to continue."; }
+
+  document.getElementById("dl").addEventListener("click", function(){ if(!ready()) return; window.print(); });
+})();
+</script>
+</body>
+</html>
