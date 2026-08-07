@@ -1006,13 +1006,51 @@ function loadXlsxLib(ok,fail){
 let budParsed=null;
 function budNum(v){ if(v==null)return 0; if(typeof v==='number')return v; let s=String(v).replace(/[$,]/g,'').trim(); if(!s||s==='N/A'||s==='-')return 0; const n=parseFloat(s); return isNaN(n)?0:n; }
 function prettyMinistry(s){ return String(s).replace(/\s*FY\s*\d+\s*$/i,'').trim().toLowerCase().replace(/\b\w/g,c=>c.toUpperCase()); }
+function detectBudgetCol(grid){
+  // Priority-ordered header patterns. Whichever we find first wins.
+  const PRIORITY=[
+    /^f\d{2,4}\s+budget$/i,          // "F27 Budget"
+    /^proposed(\s+\d{4})?$/i,        // "Proposed 2027" or "Proposed"
+    /^f\d{2,4}\s+proposed$/i,        // "F27 Proposed"
+    /^approved(\s+\d{4})?$/i,        // "Approved 2027"
+    /^budget$/i,                     // "Budget"
+    /^total$/i,                      // "Total" — last resort
+  ];
+  for(const pat of PRIORITY){
+    for(let i=0;i<Math.min(15,grid.length);i++){
+      const r=grid[i]||[];
+      for(let c=0;c<r.length;c++){
+        const cell=String(r[c]||'').trim();
+        // Skip "Project/Item Total" — that's line-level detail, not the budget column
+        if(/project.*total|item.*total/i.test(cell)) continue;
+        if(pat.test(cell)) return c;
+      }
+    }
+  }
+  return 5; // legacy default: column F
+}
+function detectPriorCol(grid){
+  const PATTERNS=[/^prior/i,/^actual/i,/^last\s+year/i,/^previous/i,/^f\d{2,4}\s+actual/i];
+  for(const pat of PATTERNS){
+    for(let i=0;i<Math.min(15,grid.length);i++){
+      const r=grid[i]||[];
+      for(let c=0;c<r.length;c++){
+        const cell=String(r[c]||'').trim();
+        if(pat.test(cell)) return c;
+      }
+    }
+  }
+  return -1;
+}
 function parseBudget(wb){
   const teams=[];
   wb.SheetNames.forEach(sheet=>{
     const grid=XLSX.utils.sheet_to_json(wb.Sheets[sheet],{header:1,raw:true,defval:''});
+    const budgetCol=detectBudgetCol(grid);
+    const priorCol=detectPriorCol(grid);
     const lines=[];
     grid.forEach(row=>{ const a=String(row[0]==null?'':row[0]).trim();
-      if(/^\d{6,7}$/.test(a)) lines.push({acct:a,name:String(row[1]||'').trim(),budget:budNum(row[5]),prior:budNum(row[6])}); });
+      if(/^\d{6,7}$/.test(a)) lines.push({acct:a,name:String(row[1]||'').trim(),budget:budNum(row[budgetCol]),prior:priorCol>=0?budNum(row[priorCol]):0}); });
     // drop subtotal/parent rows: an account ending "00" whose amount equals the sum of its sibling detail lines (avoids double-counting)
     const grp={}; lines.forEach(l=>{ const k=l.acct.slice(0,5); (grp[k]=grp[k]||[]).push(l); });
     const parents=new Set();
