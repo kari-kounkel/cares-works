@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Training Curriculum · Office Skills &amp; Workplace Systems · CARES Consulting Inc</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=Caveat:wght@600&display=swap" rel="stylesheet" />
+<style>
+  :root{ --blue:#0b84ff; --blueDeep:#0057d8; --green:#00c853; --greenBright:#2fe57f; --blueSoft:#e9f5ff; --greenSoft:#e7fbef; --ink:#202632; --inkSoft:#49515f; --muted:#828a98; --rule:#e4e2dd; --paper:#f5f7fb; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'Inter',system-ui,sans-serif;line-height:1.6}
+  a{color:var(--blue)}
+  header{background:linear-gradient(150deg,var(--blue),var(--blueDeep) 55%,var(--green));color:#fff;padding:38px 24px 32px}
+  .wrap{max-width:840px;margin:0 auto;padding:0 24px}
+  header .eyebrow{font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.85)}
+  header h1{font-family:'Fraunces',serif;font-size:32px;margin:8px 0 6px;line-height:1.15}
+  header p{margin:0;font-size:15px;color:rgba(255,255,255,.9);max-width:64ch}
+  .glowline{height:5px;background:linear-gradient(90deg,var(--blue),var(--greenBright),var(--blue));box-shadow:0 2px 14px rgba(0,200,83,.5)}
+  .bar{background:#fff;border-bottom:1px solid var(--rule)}
+  .bar .in{max-width:840px;margin:0 auto;padding:12px 24px;display:flex;gap:24px;flex-wrap:wrap;font-size:13.5px;font-weight:600;color:var(--inkSoft)}
+  main{padding:30px 0 70px}
+  h2{font-family:'Fraunces',serif;font-size:24px;color:var(--blue);margin:40px 0 4px}
+  h2 .tag{font-size:13px;font-family:'Inter',sans-serif;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--green);display:block;margin-bottom:4px}
+  h3{font-family:'Fraunces',serif;font-size:17px;color:var(--ink);margin:20px 0 8px}
+  p.lead{font-size:15px;color:var(--inkSoft);max-width:72ch;margin:6px 0 10px}
+  table.agenda{width:100%;border-collapse:collapse;font-size:13.5px;background:#fff;border:1px solid var(--rule);border-radius:12px;overflow:hidden;box-shadow:0 6px 20px rgba(11,132,255,.06)}
+  table.agenda th{background:var(--blue);color:#fff;text-align:left;font-size:11.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:9px 14px}
+  table.agenda td{padding:10px 14px;border-bottom:1px solid #f0f1f4;color:var(--inkSoft);vertical-align:top}
+  table.agenda td.t{white-space:nowrap;font-weight:600;color:var(--ink);width:110px}
+  table.agenda td.s{font-weight:600;color:var(--blue);width:220px}
+  .hw{background:#fff;border:1px solid var(--rule);border-left:4px solid var(--green);border-radius:12px;box-shadow:0 6px 20px rgba(0,200,83,.08);padding:16px 20px;margin:14px 0}
+  .hw .lbl{font-size:11.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--green);margin-bottom:8px}
+  .ck{display:flex;align-items:flex-start;gap:10px;padding:6px 0;font-size:14px;color:var(--inkSoft)}
+  .ck input{width:17px;height:17px;margin-top:3px;accent-color:var(--green);flex:0 0 auto}
+  .exbox{background:var(--blueSoft);border:1px solid #cfe2fb;border-radius:12px;padding:14px 18px;margin:14px 0;font-size:14px;color:var(--inkSoft)}
+  .exbox b{color:var(--blue)}
+  .skills{width:100%;border-collapse:collapse;font-size:13.5px;background:#fff;border:1px solid var(--rule);border-radius:12px;overflow:hidden;box-shadow:0 6px 20px rgba(11,132,255,.06)}
+  .skills th{background:var(--green);color:#fff;text-align:left;font-size:11.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:9px 12px}
+  .skills td{padding:8px 12px;border-bottom:1px solid #f0f1f4;color:var(--inkSoft)}
+  .skills td.n{width:34px;color:var(--muted)}
+  .skills select{font-family:inherit;font-size:13px;padding:4px 6px;border:1px solid var(--rule);border-radius:7px;background:#fff}
+  .note{background:var(--greenSoft);border:1px solid #bdeecd;border-radius:12px;box-shadow:0 0 16px rgba(47,229,127,.14);padding:14px 20px;margin:16px 0;font-size:14px;color:var(--inkSoft)}
+  .note b{color:var(--green)}
+  .week{background:#fff;border:1px solid var(--rule);border-radius:12px;padding:14px 20px;margin:10px 0;box-shadow:0 4px 14px rgba(28,36,34,.04)}
+  .week h3{margin:0 0 6px}
+  .topnav{display:flex;gap:14px;flex-wrap:wrap;margin-top:6px}
+  .topnav a{font-size:13px;font-weight:600;text-decoration:none;background:rgba(255,255,255,.16);color:#fff;border-radius:8px;padding:6px 12px}
+  footer{padding:30px 0;text-align:center}
+  .cares-mark{font-family:'Fraunces',serif;font-weight:700;font-size:22px;color:var(--blue)}
+  .cares-mark span{font-size:14px;color:var(--inkSoft);font-weight:600}
+  .backlink{font-size:13px}
+  @media print{ header{-webkit-print-color-adjust:exact;print-color-adjust:exact} .topnav{display:none} }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap" style="padding:0;max-width:840px">
+    <div class="eyebrow">ITA BEL KOO DAC · Staff Professional Development · <a href="./" style="color:#fff">↩ proposal</a></div>
+    <h1>Training Curriculum &amp; Practice Plan</h1>
+    <p>Three Friday mornings, hands-on with real work — then a 30-day solo plan so the skills keep running. Check things off right on this page as you go.</p>
+    <div class="topnav">
+      <a href="#s1">Session 1 · Aug 7</a>
+      <a href="#s2">Session 2 · Aug 14</a>
+      <a href="#s3">Session 3 · Aug 21</a>
+      <a href="#skills">Skills check</a>
+      <a href="#plan">30-day plan</a>
+    </div>
+  </div>
+</header>
+<div class="glowline"></div>
+<div class="bar"><div class="in">
+  <span>Fridays · Aug 7, 14 &amp; 21, 2026</span>
+  <span>8:30 – 10:30 a.m. · on-site</span>
+  <span>Presented by CARES Consulting Inc</span>
+</div></div>
+<main class="wrap">
+
+  <h2 id="skills"><span class="tag">Start &amp; finish here</span>The 13-skill self-check</h2>
+  <p class="lead">Rate each skill twice — in the first ten minutes of Session 1, and again at the end of the 30-day plan. 1 = can't do it yet · 2 = can do it with help · 3 = can do it alone. Thirteen skills, because a baker's dozen is a more generous measure than a plain ten.</p>
+  <table class="skills">
+    <tr><th style="width:34px">#</th><th>Skill</th><th style="width:110px">Before</th><th style="width:110px">After</th></tr>
+  </table>
+  <div id="skillrows"></div>
+
+  <h2 id="s1"><span class="tag">Session 1 · Friday, August 7</span>Email First — Gmail, then Word &amp; Excel</h2>
+  <p class="lead">Goal: leave able to send professional email with attachments, save what you receive to Drive, and create, save, and find documents and basic spreadsheets.</p>
+  <table class="agenda">
+    <tr><th>Time</th><th>Segment</th><th>What happens</th></tr>
+    <tr><td class="t">8:30–8:40</td><td class="s">Welcome &amp; skills self-check</td><td>Series roadmap; fill in the "Before" column above. This is investment, not punishment.</td></tr>
+    <tr><td class="t">8:40–9:10</td><td class="s">Gmail — send &amp; live in the inbox</td><td>Compose and send; To / CC and when to use each; reply vs. reply-all; subject lines that say what the email is; finding anything with search; archive vs. delete; keeping the inbox workable.</td></tr>
+    <tr><td class="t">9:10–9:25</td><td class="s">Attachments &amp; saving to Drive</td><td>Attach a file to an email (and check it actually attached); open attachments you receive; save an attachment straight to Google Drive and find it again afterward.</td></tr>
+    <tr><td class="t">9:25–9:30</td><td class="s">Stretch</td><td>Stand up. Five minutes.</td></tr>
+    <tr><td class="t">9:30–9:55</td><td class="s">Word &amp; Excel foundations</td><td>New document, Save vs. Save As, file names that make sense (2026-08-07_MemoTopic); the copy-paste clinic (Ctrl+C / Ctrl+X / Ctrl+V) drilled until boring; spreadsheet basics — cells, sorting, SUM.</td></tr>
+    <tr><td class="t">9:55–10:20</td><td class="s">Practice lab</td><td>Send a real email with a properly named attachment; save one received attachment to Drive; build the Provider Contact List spreadsheet from scratch.</td></tr>
+    <tr><td class="t">10:20–10:30</td><td class="s">Wrap-up</td><td>Homework 1 assigned; confirm next Friday.</td></tr>
+  </table>
+  <div class="exbox"><b>In-class exercises:</b> the Attachment Round-Trip (send one, receive one, save it to Drive); the Copy-Paste Relay (five items moved between email, Word, and a spreadsheet using only keyboard shortcuts); the Provider Contact List, sorted and saved with a proper filename.</div>
+  <div class="hw">
+    <div class="lbl">Homework 1 — due Friday, August 14</div>
+    <label class="ck"><input type="checkbox" data-k="h1a"><span>Each workday, send your supervisor one email with a subject line that says what it is and one properly named attachment</span></label>
+    <label class="ck"><input type="checkbox" data-k="h1b"><span>Save three attachments you receive this week into a Google Drive folder you create and name yourself</span></label>
+    <label class="ck"><input type="checkbox" data-k="h1c"><span>Retype three handwritten notes or post-its as one Word memo, saved with the naming convention, and email it as an attachment</span></label>
+    <label class="ck"><input type="checkbox" data-k="h1d"><span>Build a Supply Inventory spreadsheet — 13 items, columns for Item / Quantity / Reorder? / Notes, with a SUM total</span></label>
+    <label class="ck"><input type="checkbox" data-k="h1e"><span>On the company phone: open Settings, adjust your notification sounds, and note one thing you changed</span></label>
+  </div>
+
+  <h2 id="s2"><span class="tag">Session 2 · Friday, August 14</span>Google Drive, Docs, Sheets &amp; Forms</h2>
+  <p class="lead">Goal: leave able to organize Drive, create and share Docs and Sheets with the right permissions, and build a working Google Form whose responses land in a spreadsheet automatically.</p>
+  <table class="agenda">
+    <tr><th>Time</th><th>Segment</th><th>What happens</th></tr>
+    <tr><td class="t">8:30–8:45</td><td class="s">Homework review</td><td>Open the memo, the Drive folder, and the inventory sheet together. Celebrate what worked; fix one thing live.</td></tr>
+    <tr><td class="t">8:45–9:10</td><td class="s">Drive &amp; Docs</td><td>My Drive, folders, the search bar; create a Doc, watch it autosave, rename it, find it again; comments and suggesting mode.</td></tr>
+    <tr><td class="t">9:10–9:35</td><td class="s">Sheets &amp; sharing</td><td>Move the supply inventory into Sheets; then the big one — the Share button: view vs. comment vs. edit, and why it matters who gets which.</td></tr>
+    <tr><td class="t">9:35–9:40</td><td class="s">Stretch</td><td>Five minutes.</td></tr>
+    <tr><td class="t">9:40–10:05</td><td class="s">Google Forms</td><td>Build a Maintenance Request form together — short answer, multiple choice, required questions — submit test entries, and watch responses appear in the linked Sheet.</td></tr>
+    <tr><td class="t">10:05–10:20</td><td class="s">Practice lab</td><td>Two cursors, one Doc: live co-editing with comments and suggestions. Collaboration stops being scary once you've seen both cursors moving.</td></tr>
+    <tr><td class="t">10:20–10:30</td><td class="s">Wrap-up</td><td>Homework 2 assigned, including the Post-it Amnesty instructions.</td></tr>
+  </table>
+  <div class="hw">
+    <div class="lbl">Homework 2 — due Friday, August 21</div>
+    <label class="ck"><input type="checkbox" data-k="h2a"><span>Create a Weekly Site Log as a Google Doc (date, what happened, follow-ups) — fill it across the week and share it with your supervisor with comment access</span></label>
+    <label class="ck"><input type="checkbox" data-k="h2b"><span>Move the Supply Inventory into Google Sheets and share it with edit access</span></label>
+    <label class="ck"><input type="checkbox" data-k="h2c"><span>Build one Google Form for a real site need, send the link to your supervisor, and check the responses Sheet at week's end</span></label>
+    <label class="ck"><input type="checkbox" data-k="h2d"><span>The Post-it Amnesty: collect every sticky note and scrap-paper reminder from your desk, monitor, wall, and bag. Don't sort or toss — bring the whole glorious pile to Session 3</span></label>
+  </div>
+
+  <h2 id="s3"><span class="tag">Session 3 · Friday, August 21</span>Organization, Scheduling &amp; Ownership</h2>
+  <p class="lead">Goal: leave with one trusted task system instead of forty sticky squares, a ten-minute daily planning routine, and a clear map of what to run with and what to ask about.</p>
+  <table class="agenda">
+    <tr><th>Time</th><th>Segment</th><th>What happens</th></tr>
+    <tr><td class="t">8:30–8:40</td><td class="s">Homework review</td><td>Open the site log, the shared Sheet, and the Form responses. Three weeks ago, none of this existed.</td></tr>
+    <tr><td class="t">8:40–9:05</td><td class="s">The Post-it Amnesty</td><td>Every note on the table. Three piles: Do (real tasks), Reference (file it), Done/Dead (recycle with ceremony). Real tasks move into one Master Task List — a Google Sheet with Task / For Whom / Due / Status.</td></tr>
+    <tr><td class="t">9:05–9:25</td><td class="s">Daily &amp; weekly rhythm</td><td>The 10-Minute Morning: open the master list, pick today's top three, check the calendar. The Friday Fifteen: weekly review — update statuses, clear finished items, set up next week.</td></tr>
+    <tr><td class="t">9:25–9:30</td><td class="s">Stretch</td><td>Five minutes.</td></tr>
+    <tr><td class="t">9:30–9:50</td><td class="s">Now / Next / Later</td><td>Sort the real master list together. Urgent-and-important goes Now; important-not-urgent goes Next with a date; everything else is Later. Practice saying when things will happen instead of hoping.</td></tr>
+    <tr><td class="t">9:50–10:10</td><td class="s">The Ownership Map</td><td>A personal decision guide, three columns: Run With It (just do it) · Do It &amp; Report (handle it, note it in the log) · Ask First (spending, policy, personnel, anything affecting clients or houses). Real examples, her own words, printed for the desk.</td></tr>
+    <tr><td class="t">10:10–10:20</td><td class="s">Communication rhythm</td><td>Batching: collect non-urgent questions in one running note; send as one email during work hours. What counts as a true after-hours emergency — and what waits for morning.</td></tr>
+    <tr><td class="t">10:20–10:30</td><td class="s">Graduation wrap</td><td>Walk the 30-day plan below; schedule the 30-day check-in.</td></tr>
+  </table>
+
+  <h2 id="plan"><span class="tag">On your own · Aug 24 – Sep 18</span>The 30-Day Independent Plan</h2>
+  <p class="lead">Four weeks of solo practice, one focus per week. Each Friday: do the Friday Fifteen and send the Weekly Site Log with a one-line note on how the week's focus went.</p>
+  <div class="week"><h3>Week 1 (Aug 24–28) — Live in the system</h3>
+    <label class="ck"><input type="checkbox" data-k="w1a"><span>10-Minute Morning every workday</span></label>
+    <label class="ck"><input type="checkbox" data-k="w1b"><span>Every new task straight into the Master Task List — zero new post-its (one that survives overnight is contraband)</span></label>
+    <label class="ck"><input type="checkbox" data-k="w1c"><span>Friday Fifteen + Weekly Site Log</span></label>
+  </div>
+  <div class="week"><h3>Week 2 (Aug 31–Sep 4) — Batch and build</h3>
+    <label class="ck"><input type="checkbox" data-k="w2a"><span>One running note of non-urgent questions, sent as a single email each afternoon</span></label>
+    <label class="ck"><input type="checkbox" data-k="w2b"><span>Create one new spreadsheet for something currently tracked on paper or in memory</span></label>
+    <label class="ck"><input type="checkbox" data-k="w2c"><span>Friday Fifteen + Weekly Site Log</span></label>
+  </div>
+  <div class="week"><h3>Week 3 (Sep 7–11) — Put a form to work</h3>
+    <label class="ck"><input type="checkbox" data-k="w3a"><span>Launch one Google Form for a real recurring request, and tell the people who should use it</span></label>
+    <label class="ck"><input type="checkbox" data-k="w3b"><span>Check the responses Sheet twice and act on what's there</span></label>
+    <label class="ck"><input type="checkbox" data-k="w3c"><span>Friday Fifteen + Weekly Site Log</span></label>
+  </div>
+  <div class="week"><h3>Week 4 (Sep 14–18) — Run the whole show</h3>
+    <label class="ck"><input type="checkbox" data-k="w4a"><span>An entire week run from the system: morning planning, master list, batched communication, logs current</span></label>
+    <label class="ck"><input type="checkbox" data-k="w4b"><span>Retake the 13-skill self-check ("After" column, top of this page)</span></label>
+    <label class="ck"><input type="checkbox" data-k="w4c"><span>30-day check-in with your supervisor: before/after checklist + Ownership Map together</span></label>
+  </div>
+  <div class="note"><b>What happens with all this:</b> the before/after skills checklist plus the site log, the form, and the master list become the written progress summary for the Executive Director and board. The numbers do the talking.</div>
+
+</main>
+<footer>
+  <div class="cares-mark">CARES <span>Consulting Inc</span></div>
+  <p style="font-size:12px;color:var(--muted);margin-top:6px">Clarity · Accountability · Repair · Expectations · Support · kari@caresmn.com</p>
+</footer>
+<script>
+(function(){
+  var SKILLS = [
+    "Send a professional email with a clear subject line",
+    "Attach a file to an email — and confirm it attached",
+    "Save an email attachment to Google Drive and find it again",
+    "Create, name, and save a Word document where it can be found again",
+    "Copy and paste between programs (email → document → spreadsheet)",
+    "Build a spreadsheet with labeled columns and rows",
+    "Use SUM and basic sorting in a spreadsheet",
+    "Create and edit a Google Doc",
+    "Share a Google file with the right permission level (view / comment / edit)",
+    "Build a Google Form and find its responses",
+    "Keep every task on one master list (no orphan post-its)",
+    "Plan the workday in ten minutes each morning",
+    "Batch non-urgent questions into one message during business hours"
+  ];
+  var host = document.getElementById("skillrows");
+  var tbl = document.createElement("table"); tbl.className = "skills";
+  SKILLS.forEach(function(s,i){
+    var tr = document.createElement("tr");
+    tr.innerHTML = '<td class="n" style="width:34px">'+(i+1)+'</td><td>'+s+'</td>'+
+      '<td style="width:110px"><select data-k="sb'+i+'"><option value="">–</option><option>1</option><option>2</option><option>3</option></select></td>'+
+      '<td style="width:110px"><select data-k="sa'+i+'"><option value="">–</option><option>1</option><option>2</option><option>3</option></select></td>';
+    tbl.appendChild(tr);
+  });
+  host.appendChild(tbl);
+
+  // persist checkboxes + ratings in this browser
+  function load(el){ try{ var v = localStorage.getItem("ibk-"+el.dataset.k); if(v===null) return;
+    if(el.type==="checkbox") el.checked = v==="1"; else el.value = v; }catch(e){} }
+  function save(el){ try{ localStorage.setItem("ibk-"+el.dataset.k, el.type==="checkbox" ? (el.checked?"1":"0") : el.value); }catch(e){} }
+  document.querySelectorAll("[data-k]").forEach(function(el){ load(el); el.addEventListener("change", function(){ save(el); }); });
+})();
+</script>
+</body>
+</html>
