@@ -181,7 +181,10 @@ function buildLiveEntity(org, accounts, categories, entries, session) {
     short,
     remitAddress: org.remit_address || "",
     customerNote: org.customer_note || "",
-    ach: { bank: org.ach_bank_name || "", routing: org.ach_routing || "", account: org.ach_account || "" },
+    ach: { bank: org.ach_bank_name || "", routing: org.ach_routing || "", account: org.ach_account || "", notify: org.ach_notify || "" },
+    nextCheckNumber: org.next_check_number || 1001,
+    logoUrl: org.logo_url || "",
+    brandColor: org.brand_color || "#0080ff",
     currentUser: userName,
     fiscalYearEnd: org.fiscal_year_end_month ? `${MONTHS[org.fiscal_year_end_month]} ${org.fiscal_year_end_day || ""}`.trim() : "",
     today: new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" }),
@@ -299,7 +302,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         supabase.from("ledger_categories").select("*").eq("org_id", org.id).eq("archived", false).order("sort_order", { ascending: true }),
         supabase.from("ledger_entries").select("*").eq("org_id", org.id).order("entry_date", { ascending: false }).order("created_at", { ascending: false }),
         supabase.from("invoices").select("*").eq("org_id", org.id).order("issue_date", { ascending: false }).order("created_at", { ascending: false }),
-        supabase.from("ledger_vendors").select("name").eq("org_id", org.id).eq("archived", false).order("name", { ascending: true }),
+        supabase.from("ledger_vendors").select("*").eq("org_id", org.id).eq("archived", false).order("name", { ascending: true }),
         supabase.from("ledger_customers").select("*").eq("org_id", org.id).eq("archived", false).order("name", { ascending: true }),
         supabase.from("ledger_products").select("*").eq("org_id", org.id).eq("archived", false).order("name", { ascending: true }),
       ]);
@@ -308,6 +311,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       const built = buildLiveEntity(org, a.data || [], c.data || [], e.data || [], session);
       built.invoices = (inv.data || []).map(mapInvoice);
       built.vendors = (ven.data || []).map(v => v.name);
+      built.vendorList = ven.data || [];
       built.rawAccounts = a.data || [];
       built.customers = cust.data || [];
       built.products = prod.data || [];
@@ -813,6 +817,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           const cleanDesc = d => (/^QuickBooks invoice #/.test(d || "") ? "Signs & graphics" : d);
           const taxLabel = openInv.tax === "Taxable" ? "Taxable" : openInv.tax === "Shipped" ? "Shipped out of state — no sales tax" : "Tax-exempt (reseller)";
           const bc = (entity.customers || []).find(c => (c.name || "").toLowerCase() === (openInv.customer || "").toLowerCase()) || {};
+          const brand = entity.brandColor || N.blue;
+          const logo = entity.logoUrl;
           return (
           <div onClick={() => setOpenInv(null)} style={{ position: "fixed", inset: 0, background: "rgba(10,10,20,0.45)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "44px 16px", zIndex: 200, overflowY: "auto" }}>
             <div onClick={e => e.stopPropagation()} style={{ background: N.white, borderRadius: 12, width: "100%", maxWidth: 640, boxShadow: "0 24px 70px rgba(10,10,20,0.35)", overflow: "hidden" }}>
@@ -820,11 +826,11 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               <div style={{ padding: "34px 40px 26px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 20, marginBottom: 28 }}>
                   <div>
-                    <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>{entity.name}</div>
+                    {logo ? <img src={logo} alt={entity.name} style={{ maxHeight: 56, maxWidth: 280, display: "block", marginBottom: 4 }} /> : <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>{entity.name}</div>}
                     <div style={{ fontSize: 12, color: N.muted, marginTop: 3 }}>Minnesota{entity.fiscalYearEnd ? ` · fiscal year ends ${entity.fiscalYearEnd}` : ""}</div>
                   </div>
                   <div style={{ textAlign: "right" }}>
-                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 24, letterSpacing: "0.16em", color: N.blue, fontWeight: 500 }}>INVOICE</div>
+                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 24, letterSpacing: "0.16em", color: brand, fontWeight: 500 }}>INVOICE</div>
                     {openInv.number && <div style={{ fontSize: 13, color: N.ink, marginTop: 5 }}>No. {openInv.number}</div>}
                     <div style={{ fontSize: 12, color: N.muted, marginTop: 2 }}>Date: {openInv.date}</div>
                   </div>
@@ -875,7 +881,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   <div>Please send checks to:</div>
                   <div style={{ whiteSpace: "pre-line", color: N.text }}>{entity.remitAddress || entity.name}</div>
                   {entity.ach && (entity.ach.routing || entity.ach.bank) ? (
-                    <div style={{ marginTop: 6 }}>Prefer to pay by bank? ACH to {entity.ach.bank || "our bank"}{entity.ach.routing ? ` · routing ${entity.ach.routing}` : ""}{entity.ach.account ? ` · account ${entity.ach.account}` : ""}. (Please cover any bank fee.)</div>
+                    <div style={{ marginTop: 6 }}>Prefer to pay by bank? ACH to {entity.ach.bank || "our bank"}{entity.ach.routing ? ` · routing ${entity.ach.routing}` : ""}{entity.ach.account ? ` · account ${entity.ach.account}` : ""}. (Please cover any bank fee.){entity.ach.notify ? ` If you pay by ACH, please email ${entity.ach.notify} so we can record it.` : ""}</div>
                   ) : null}
                   {entity.customerNote ? <div style={{ marginTop: 10, fontStyle: "italic", color: N.text }}>{entity.customerNote}</div> : null}
                 </div>
@@ -883,7 +889,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
 
               <div style={{ padding: "14px 22px", borderTop: "1px solid " + N.rule, background: "#f7fafd", display: "flex", gap: 8, justifyContent: "flex-end", alignItems: "center", flexWrap: "wrap" }}>
                 <span style={{ marginRight: "auto", fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: STATUS_COLOR[openInv.status] || N.muted }}>{openInv.status}</span>
-                {(openInv.status === "Draft" || openInv.status === "Sent" || openInv.status === "Viewed") && <button onClick={() => sendInvoice(openInv)} style={{ ...btnBlue, background: N.blue }}>{openInv.status === "Draft" ? "Send · get link" : "Copy link"}</button>}
+                <button onClick={() => sendInvoice(openInv)} style={{ ...btnBlue, background: N.blue }}>{openInv.status === "Draft" ? "Send · get link" : "Copy / resend link"}</button>
                 {openInv.status !== "Paid" && <button onClick={() => { invoiceStatus(openInv.id, "paid"); setOpenInv(null); }} style={btnPaper(N.pinkDark)}>Mark paid</button>}
                 {openInv.status === "Paid" && <button onClick={() => { invoiceStatus(openInv.id, "sent"); setOpenInv(null); }} style={btnPaper(N.muted)}>Unmark paid</button>}
                 {(openInv.status === "Sent" || openInv.status === "Viewed") && <button onClick={() => { invoiceStatus(openInv.id, "draft"); setOpenInv(null); }} style={btnPaper(N.muted)}>← Back to draft</button>}

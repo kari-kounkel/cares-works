@@ -38,6 +38,7 @@ export default function InvoicePublic({ token }) {
 
   const lines = Array.isArray(inv.line_items) ? inv.line_items : [];
   const taxable = inv.tax_status === "Taxable";
+  const brand = inv.brand_color || BLUE;
 
   return (
     <div style={{ minHeight: "100vh", background: "#f4f7fb", fontFamily: "'Figtree', sans-serif", color: INK, padding: "32px 16px" }}>
@@ -53,11 +54,11 @@ export default function InvoicePublic({ token }) {
           <div style={{ padding: "36px 44px 30px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 20, marginBottom: 30 }}>
               <div>
-                <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 26, color: INK }}>{inv.org_name}</div>
+                {inv.logo_url ? <img src={inv.logo_url} alt={inv.org_name} style={{ maxHeight: 60, maxWidth: 300, display: "block", marginBottom: 4 }} /> : <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 26, color: INK }}>{inv.org_name}</div>}
                 <div style={{ fontSize: 12, color: MUTED, marginTop: 3 }}>Minnesota</div>
               </div>
               <div style={{ textAlign: "right" }}>
-                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 26, letterSpacing: "0.16em", color: BLUE, fontWeight: 500 }}>INVOICE</div>
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 26, letterSpacing: "0.16em", color: brand, fontWeight: 500 }}>INVOICE</div>
                 {inv.invoice_number ? <div style={{ fontSize: 13, marginTop: 5 }}>No. {inv.invoice_number}</div> : null}
                 <div style={{ fontSize: 12, color: MUTED, marginTop: 2 }}>Date: {fmtDate(inv.issue_date)}</div>
               </div>
@@ -101,7 +102,7 @@ export default function InvoicePublic({ token }) {
               <div>Please send checks to:</div>
               <div style={{ whiteSpace: "pre-line", color: INK }}>{inv.remit_address || inv.org_name}</div>
               {inv.ach_routing || inv.ach_bank ? (
-                <div style={{ marginTop: 6 }}>Prefer to pay by bank? ACH to {inv.ach_bank || "our bank"}{inv.ach_routing ? ` · routing ${inv.ach_routing}` : ""}{inv.ach_account ? ` · account ${inv.ach_account}` : ""}. (Please cover any bank fee.)</div>
+                <div style={{ marginTop: 6 }}>Prefer to pay by bank? ACH to {inv.ach_bank || "our bank"}{inv.ach_routing ? ` · routing ${inv.ach_routing}` : ""}{inv.ach_account ? ` · account ${inv.ach_account}` : ""}. (Please cover any bank fee.){inv.ach_notify ? ` If you pay by ACH, please email ${inv.ach_notify} so we can record it.` : ""}</div>
               ) : null}
               {inv.customer_note ? <div style={{ marginTop: 10, fontStyle: "italic", color: INK }}>{inv.customer_note}</div> : null}
             </div>
