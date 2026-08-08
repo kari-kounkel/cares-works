@@ -179,6 +179,9 @@ function buildLiveEntity(org, accounts, categories, entries, session) {
   return {
     name: org.name,
     short,
+    remitAddress: org.remit_address || "",
+    customerNote: org.customer_note || "",
+    ach: { bank: org.ach_bank_name || "", routing: org.ach_routing || "", account: org.ach_account || "" },
     currentUser: userName,
     fiscalYearEnd: org.fiscal_year_end_month ? `${MONTHS[org.fiscal_year_end_month]} ${org.fiscal_year_end_day || ""}`.trim() : "",
     today: new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" }),
@@ -273,7 +276,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [invDraft, setInvDraft] = useState(blankInvoice);
 
   const latestUpdate = entity.changelog?.[0]?.date || "";
-  const MN_TAX_RATE = 0.06875;
+  const MN_TAX_RATE = 0.0925;
 
   // Go live when someone's logged in: load their ProGraphics ledger org from Supabase.
   useEffect(() => {
@@ -482,8 +485,9 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     setInvoices(prev => prev.map(v => (v.id === id ? { ...v, status: status.charAt(0).toUpperCase() + status.slice(1) } : v)));
     if (live) {
       const patch = { status };
+      patch.paid_at = status === "paid" ? new Date().toISOString() : null;
       if (status === "sent") patch.sent_at = new Date().toISOString();
-      if (status === "paid") patch.paid_at = new Date().toISOString();
+      if (status === "draft") patch.sent_at = null;
       await supabase.from("invoices").update(patch).eq("id", id);
       setReloadTick(t => t + 1);
     }
@@ -762,7 +766,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             </div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: "1px solid " + N.rule, paddingTop: 12, gap: 12, flexWrap: "wrap" }}>
               <div style={{ fontSize: 13, color: N.muted }}>
-                Subtotal {money(sub)}{invDraft.taxStatus === "Taxable" ? ` · MN tax (6.875%) ${money(tax)}` : ""} · <b style={{ color: N.ink }}>Total {money(sub + tax)}</b>
+                Subtotal {money(sub)}{invDraft.taxStatus === "Taxable" ? ` · MN tax (9.25%) ${money(tax)}` : ""} · <b style={{ color: N.ink }}>Total {money(sub + tax)}</b>
               </div>
               <button onClick={createInvoice} style={{ ...btnBlue, background: N.blue, fontSize: 14, padding: "10px 18px" }}>Save invoice</button>
             </div>
@@ -815,12 +819,19 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   </div>
                 </div>
 
-                <div style={{ marginBottom: 20 }}>
-                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", color: N.muted, marginBottom: 4 }}>BILL TO</div>
-                  <div style={{ fontSize: 16, fontWeight: 600, color: N.ink }}>{openInv.customer}</div>
-                  {bc.billing_address ? <div style={{ fontSize: 13, color: N.muted, whiteSpace: "pre-line" }}>{bc.billing_address}</div> : null}
-                  {(openInv.email || bc.email) ? <div style={{ fontSize: 13, color: N.muted }}>{openInv.email || bc.email}</div> : null}
-                  {bc.phone ? <div style={{ fontSize: 13, color: N.muted }}>{bc.phone}</div> : null}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 }}>
+                  <div>
+                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", color: N.muted, marginBottom: 4 }}>BILL TO</div>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: N.ink }}>{openInv.customer}</div>
+                    {bc.billing_address ? <div style={{ fontSize: 13, color: N.muted, whiteSpace: "pre-line" }}>{bc.billing_address}</div> : null}
+                    {(openInv.email || bc.email) ? <div style={{ fontSize: 13, color: N.muted }}>{openInv.email || bc.email}</div> : null}
+                    {bc.phone ? <div style={{ fontSize: 13, color: N.muted }}>{bc.phone}</div> : null}
+                  </div>
+                  <div>
+                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", color: N.muted, marginBottom: 4 }}>SHIP TO</div>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: N.ink }}>{openInv.customer}</div>
+                    {bc.billing_address ? <div style={{ fontSize: 13, color: N.muted, whiteSpace: "pre-line" }}>{bc.billing_address}</div> : <div style={{ fontSize: 12, color: N.mutedLite, fontStyle: "italic" }}>Same as billing</div>}
+                  </div>
                 </div>
 
                 <div style={{ border: "1px solid " + N.rule, borderRadius: 10, overflow: "hidden", marginBottom: 16 }}>
@@ -840,7 +851,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 <div style={{ display: "flex", justifyContent: "flex-end" }}>
                   <div style={{ width: 250 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: N.muted, padding: "3px 0" }}><span>Subtotal</span><span>{money(openInv.subtotal || openInv.amount)}</span></div>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: N.muted, padding: "3px 0" }}><span>MN sales tax{openInv.tax === "Taxable" ? " (6.875%)" : ""}</span><span>{money(openInv.taxAmt)}</span></div>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: N.muted, padding: "3px 0" }}><span>MN sales tax{openInv.tax === "Taxable" ? " (9.25%)" : ""}</span><span>{money(openInv.taxAmt)}</span></div>
                     <div style={{ display: "flex", justifyContent: "space-between", fontSize: 18, fontWeight: 700, color: N.ink, padding: "9px 0 0", marginTop: 5, borderTop: "2px solid " + N.ink }}><span>Total</span><span>{money(openInv.amount)}</span></div>
                     <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginTop: 7, fontWeight: 600, color: openInv.status === "Paid" ? N.green : N.blueDark }}>
                       <span>{openInv.status === "Paid" ? "Paid — thank you" : "Balance due"}</span><span>{money(openInv.status === "Paid" ? 0 : openInv.amount)}</span>
@@ -849,7 +860,13 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 </div>
 
                 <div style={{ marginTop: 22, paddingTop: 16, borderTop: "1px solid " + N.rule, fontSize: 12, color: N.muted, lineHeight: 1.6 }}>
-                  {taxLabel}. Make checks payable to <b style={{ color: N.text }}>{entity.name}</b>. Thank you for your business.
+                  <div style={{ fontWeight: 700, color: N.text, marginBottom: 2 }}>Payment instructions</div>
+                  <div>Please send checks to:</div>
+                  <div style={{ whiteSpace: "pre-line", color: N.text }}>{entity.remitAddress || entity.name}</div>
+                  {entity.ach && (entity.ach.routing || entity.ach.bank) ? (
+                    <div style={{ marginTop: 6 }}>Prefer to pay by bank? ACH to {entity.ach.bank || "our bank"}{entity.ach.routing ? ` · routing ${entity.ach.routing}` : ""}{entity.ach.account ? ` · account ${entity.ach.account}` : ""}. (Please cover any bank fee.)</div>
+                  ) : null}
+                  {entity.customerNote ? <div style={{ marginTop: 10, fontStyle: "italic", color: N.text }}>{entity.customerNote}</div> : null}
                 </div>
               </div>
 
@@ -857,6 +874,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 <span style={{ marginRight: "auto", fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: STATUS_COLOR[openInv.status] || N.muted }}>{openInv.status}</span>
                 {openInv.status === "Draft" && <button onClick={() => { invoiceStatus(openInv.id, "sent"); setOpenInv(null); }} style={{ ...btnBlue, background: N.blue }}>Send · View link</button>}
                 {openInv.status !== "Paid" && <button onClick={() => { invoiceStatus(openInv.id, "paid"); setOpenInv(null); }} style={btnPaper(N.pinkDark)}>Mark paid</button>}
+                {openInv.status === "Paid" && <button onClick={() => { invoiceStatus(openInv.id, "sent"); setOpenInv(null); }} style={btnPaper(N.muted)}>Unmark paid</button>}
+                {(openInv.status === "Sent" || openInv.status === "Viewed") && <button onClick={() => { invoiceStatus(openInv.id, "draft"); setOpenInv(null); }} style={btnPaper(N.muted)}>← Back to draft</button>}
                 <button onClick={() => setOpenInv(null)} style={btnPaper(N.muted)}>Close</button>
               </div>
             </div>
