@@ -729,15 +729,25 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         {showInvForm && (
           <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: 16, marginBottom: 16 }}>
             <datalist id="pg-customers">
-              {[...new Set(invoices.map(v => v.customer))].filter(c => c && c !== "—").sort().map(c => <option key={c} value={c} />)}
+              {(entity.customers || []).map(c => <option key={c.id} value={c.name} />)}
+            </datalist>
+            <datalist id="pg-items">
+              {(entity.products || []).map(p => <option key={p.id} value={p.name} />)}
             </datalist>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
-              <input placeholder="Customer — pick or type new" list="pg-customers" value={invDraft.customer} onChange={e => setInvDraft(d => ({ ...d, customer: e.target.value }))} style={inputSt} />
+              <div style={{ position: "relative" }}>
+                <input placeholder="Customer — pick from QuickBooks or type new" list="pg-customers" value={invDraft.customer}
+                  onChange={e => { const val = e.target.value; const c = (entity.customers || []).find(x => x.name === val); setInvDraft(d => ({ ...d, customer: val, email: c && c.email ? c.email : d.email })); }} style={{ ...inputSt, paddingRight: 26 }} />
+                <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: N.muted, fontSize: 10 }}>▼</span>
+              </div>
               <input placeholder="Customer email (optional)" value={invDraft.email} onChange={e => setInvDraft(d => ({ ...d, email: e.target.value }))} style={inputSt} />
             </div>
             {invDraft.lines.map((l, i) => (
               <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 56px 96px 26px", gap: 8, marginBottom: 8 }}>
-                <input placeholder="What they ordered" value={l.desc} onChange={e => setLine(i, { desc: e.target.value })} style={inputSt} />
+                <div style={{ position: "relative" }}>
+                  <input placeholder="What they ordered" list="pg-items" value={l.desc} onChange={e => setLine(i, { desc: e.target.value })} style={{ ...inputSt, paddingRight: 22 }} />
+                  <span style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: N.muted, fontSize: 9 }}>▼</span>
+                </div>
                 <input placeholder="Qty" value={l.qty} onChange={e => setLine(i, { qty: e.target.value })} style={{ ...inputSt, textAlign: "center" }} />
                 <input placeholder="$ each" value={l.price} onChange={e => setLine(i, { price: e.target.value })} style={{ ...inputSt, textAlign: "right" }} />
                 <button onClick={() => setInvDraft(d => ({ ...d, lines: d.lines.filter((_, j) => j !== i) }))} style={{ border: "none", background: "none", color: N.muted, cursor: "pointer", fontSize: 18 }} aria-label="Remove line">×</button>
@@ -787,6 +797,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           const invLines = openInv.lines && openInv.lines.length ? openInv.lines : [{ desc: openInv.item, qty: 1, price: openInv.subtotal || openInv.amount }];
           const cleanDesc = d => (/^QuickBooks invoice #/.test(d || "") ? "Signs & graphics" : d);
           const taxLabel = openInv.tax === "Taxable" ? "Taxable" : openInv.tax === "Shipped" ? "Shipped out of state — no sales tax" : "Tax-exempt (reseller)";
+          const bc = (entity.customers || []).find(c => (c.name || "").toLowerCase() === (openInv.customer || "").toLowerCase()) || {};
           return (
           <div onClick={() => setOpenInv(null)} style={{ position: "fixed", inset: 0, background: "rgba(10,10,20,0.45)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "44px 16px", zIndex: 200, overflowY: "auto" }}>
             <div onClick={e => e.stopPropagation()} style={{ background: N.white, borderRadius: 12, width: "100%", maxWidth: 640, boxShadow: "0 24px 70px rgba(10,10,20,0.35)", overflow: "hidden" }}>
@@ -807,7 +818,9 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 <div style={{ marginBottom: 20 }}>
                   <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", color: N.muted, marginBottom: 4 }}>BILL TO</div>
                   <div style={{ fontSize: 16, fontWeight: 600, color: N.ink }}>{openInv.customer}</div>
-                  {openInv.email && <div style={{ fontSize: 13, color: N.muted }}>{openInv.email}</div>}
+                  {bc.billing_address ? <div style={{ fontSize: 13, color: N.muted, whiteSpace: "pre-line" }}>{bc.billing_address}</div> : null}
+                  {(openInv.email || bc.email) ? <div style={{ fontSize: 13, color: N.muted }}>{openInv.email || bc.email}</div> : null}
+                  {bc.phone ? <div style={{ fontSize: 13, color: N.muted }}>{bc.phone}</div> : null}
                 </div>
 
                 <div style={{ border: "1px solid " + N.rule, borderRadius: 10, overflow: "hidden", marginBottom: 16 }}>
