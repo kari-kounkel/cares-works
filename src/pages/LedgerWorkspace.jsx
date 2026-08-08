@@ -99,6 +99,7 @@ const SECTIONS = [
   { key: "reports", label: "Reports" },
   { key: "documents", label: "Documents" },
   { key: "accounts", label: "Accounts" },
+  { key: "items", label: "Items" },
   { key: "admin", label: "Admin" },
 ];
 
@@ -144,6 +145,8 @@ function Ico({ name, size = 18 }) {
     case "documents": return <svg {...p}><path d="M4 5a2 2 0 0 1 2-2h5l2 2h5a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z" /></svg>;
     case "orders": return <svg {...p}><path d="M6 3h9l3 3v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" /><path d="M9 8h6M9 12h6M9 16h3" /></svg>;
     case "admin": return <svg {...p}><path d="M12 3l7 4v5c0 4-3 7-7 9-4-2-7-5-7-9V7Z" /><path d="M9 12l2 2 4-4" /></svg>;
+    case "items": return <svg {...p}><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0l-7-7A2 2 0 0 1 3 12V4h8a2 2 0 0 1 1.4.6l8.2 8.2a2 2 0 0 1 0 2.6Z" /><circle cx="7.5" cy="7.5" r="1.2" /></svg>;
+    case "accounts": return <svg {...p}><path d="M3 10 12 4l9 6" /><path d="M5 10v8M19 10v8M9 10v8M15 10v8M3 20h18" /></svg>;
     case "clip": return <svg {...p}><path d="M21 10 11.5 19.5a4 4 0 0 1-6-6L14 5a2.5 2.5 0 0 1 4 4l-8 8a1 1 0 0 1-1.5-1.5L16 8" /></svg>;
     case "check": return <svg {...p}><path d="M5 12l5 5L20 6" /></svg>;
     case "search": return <svg {...p}><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>;
@@ -293,6 +296,11 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [acctDraft, setAcctDraft] = useState(blankAcct);
   const [showAddAcct, setShowAddAcct] = useState(false);
   const [newAcct, setNewAcct] = useState(blankAcct);
+  const blankItem = { name: "", description: "", price: "", taxable: true, income_account: "" };
+  const [itemEditId, setItemEditId] = useState(null);
+  const [itemDraft, setItemDraft] = useState(blankItem);
+  const [showAddItem, setShowAddItem] = useState(false);
+  const [newItem, setNewItem] = useState(blankItem);
   const [invoices, setInvoices] = useState(entity.invoices || []);
   const [liveOrgId, setLiveOrgId] = useState(null);
   const [reloadTick, setReloadTick] = useState(0);
@@ -492,6 +500,34 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   async function archiveAccount(id) {
     if (!window.confirm("Archive this account? Past entries keep it, but it won't show in the pickers.")) return;
     await supabase.from("ledger_accounts").update({ archived: true }).eq("id", id);
+    setReloadTick(t => t + 1);
+  }
+
+  async function addItem() {
+    if (!newItem.name.trim() || !liveOrgId) return;
+    await supabase.from("ledger_products").insert({
+      org_id: liveOrgId, user_id: session.user.id,
+      name: newItem.name.trim(), description: newItem.description.trim() || null,
+      price_cents: Math.round((parseFloat(newItem.price) || 0) * 100),
+      taxable: !!newItem.taxable, kind: "non-inventory",
+      income_account: newItem.income_account.trim() || null,
+    });
+    setShowAddItem(false); setNewItem(blankItem); setReloadTick(t => t + 1);
+  }
+  async function saveItem() {
+    const id = itemEditId;
+    if (!id || !itemDraft.name.trim()) return;
+    await supabase.from("ledger_products").update({
+      name: itemDraft.name.trim(), description: itemDraft.description.trim() || null,
+      price_cents: Math.round((parseFloat(itemDraft.price) || 0) * 100),
+      taxable: !!itemDraft.taxable,
+      income_account: itemDraft.income_account.trim() || null,
+    }).eq("id", id);
+    setItemEditId(null); setReloadTick(t => t + 1);
+  }
+  async function deleteItem(id) {
+    if (!window.confirm("Remove this item from the list? It won't change any past invoice or order.")) return;
+    await supabase.from("ledger_products").delete().eq("id", id);
     setReloadTick(t => t + 1);
   }
 
@@ -1323,6 +1359,78 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     );
   }
 
+  function Items() {
+    const rows = (entity.products || []).slice().sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+    const cell = { ...inputSt };
+    return (
+      <div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, flexWrap: "wrap", gap: 10 }}>
+          <div>
+            <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>Items &amp; services</div>
+            <div style={{ fontSize: 13, color: N.muted }}>{rows.length} items — the list Dave picks from on orders and invoices. Add, rename, price, or remove any of them here.</div>
+          </div>
+          <button onClick={() => { setShowAddItem(s => !s); setNewItem(blankItem); }} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 16px" }}>{showAddItem ? "Close" : "+ Add item"}</button>
+        </div>
+
+        {showAddItem && (
+          <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: 14, marginBottom: 14, display: "grid", gridTemplateColumns: "1.2fr 1.6fr 90px 1fr auto", gap: 8, alignItems: "center" }}>
+            <input placeholder="Item name" value={newItem.name} onChange={e => setNewItem(d => ({ ...d, name: e.target.value }))} style={cell} />
+            <input placeholder="Description (size, color — for reorders)" value={newItem.description} onChange={e => setNewItem(d => ({ ...d, description: e.target.value }))} style={cell} />
+            <input placeholder="$ price" inputMode="decimal" value={newItem.price} onChange={e => setNewItem(d => ({ ...d, price: e.target.value }))} style={{ ...cell, textAlign: "right" }} />
+            <input placeholder="Income account" list="item-income" value={newItem.income_account} onChange={e => setNewItem(d => ({ ...d, income_account: e.target.value }))} style={cell} />
+            <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: N.muted, whiteSpace: "nowrap" }}>
+              <input type="checkbox" checked={newItem.taxable} onChange={e => setNewItem(d => ({ ...d, taxable: e.target.checked }))} /> Taxable
+            </label>
+            <button onClick={addItem} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 16px", gridColumn: "1 / -1", justifySelf: "start" }}>Save item</button>
+          </div>
+        )}
+
+        <datalist id="item-income">{[...new Set((entity.products || []).map(p => p.income_account).filter(Boolean))].map(a => <option key={a} value={a} />)}</datalist>
+
+        <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, overflow: "hidden" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1.6fr 90px 1fr 140px", gap: 8, padding: "10px 16px", background: "#f7fafd", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.08em", color: N.muted }}>
+            <span>ITEM</span><span>DESCRIPTION</span><span style={{ textAlign: "right" }}>PRICE</span><span>INCOME ACCOUNT</span><span></span>
+          </div>
+          {rows.length === 0 && <div style={{ padding: "30px 16px", textAlign: "center", color: N.muted, fontSize: 14 }}>No items yet — add your first above.</div>}
+          {rows.map((p, i) => {
+            const editing = itemEditId === p.id;
+            return (
+              <div key={p.id} style={{ padding: "10px 16px", borderTop: i === 0 ? "none" : "1px solid " + N.rule }}>
+                {editing ? (
+                  <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1.6fr 90px 1fr auto", gap: 8, alignItems: "center" }}>
+                    <input value={itemDraft.name} onChange={e => setItemDraft(d => ({ ...d, name: e.target.value }))} style={cell} />
+                    <input placeholder="Description" value={itemDraft.description} onChange={e => setItemDraft(d => ({ ...d, description: e.target.value }))} style={cell} />
+                    <input placeholder="$" inputMode="decimal" value={itemDraft.price} onChange={e => setItemDraft(d => ({ ...d, price: e.target.value }))} style={{ ...cell, textAlign: "right" }} />
+                    <input placeholder="Income account" list="item-income" value={itemDraft.income_account} onChange={e => setItemDraft(d => ({ ...d, income_account: e.target.value }))} style={cell} />
+                    <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                      <label style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: N.muted, whiteSpace: "nowrap" }}>
+                        <input type="checkbox" checked={itemDraft.taxable} onChange={e => setItemDraft(d => ({ ...d, taxable: e.target.checked }))} /> Tax
+                      </label>
+                      <button onClick={saveItem} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "8px 12px" }}>Save</button>
+                      <button onClick={() => setItemEditId(null)} style={btnPaper(N.muted)}>Cancel</button>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1.6fr 90px 1fr 140px", gap: 8, alignItems: "center" }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: N.ink }}>{p.name}{!p.taxable && <span style={{ fontSize: 10, fontWeight: 700, color: N.muted, marginLeft: 6, letterSpacing: "0.04em" }}>EXEMPT</span>}</div>
+                    <div style={{ fontSize: 13, color: p.description ? N.text : N.mutedLite, fontStyle: p.description ? "normal" : "italic" }}>{p.description || "no description"}</div>
+                    <div style={{ fontSize: 13, color: (p.price_cents || 0) > 0 ? N.ink : N.mutedLite, textAlign: "right" }}>{(p.price_cents || 0) > 0 ? money(p.price_cents / 100) : "per job"}</div>
+                    <div style={{ fontSize: 13, color: N.muted }}>{p.income_account || "—"}</div>
+                    <div style={{ display: "flex", gap: 6, justifyContent: "flex-end" }}>
+                      <button onClick={() => { setItemEditId(p.id); setItemDraft({ name: p.name || "", description: p.description || "", price: (p.price_cents || 0) > 0 ? String(p.price_cents / 100) : "", taxable: p.taxable !== false, income_account: p.income_account || "" }); }} style={{ ...btnPaper(N.muted), padding: "6px 12px" }}>Edit</button>
+                      <button onClick={() => deleteItem(p.id)} title="Remove" style={{ background: "none", border: "1px solid " + N.rule, borderRadius: 100, cursor: "pointer", color: N.muted, fontFamily: "'Figtree', sans-serif", fontSize: 12, fontWeight: 600, padding: "6px 12px" }}>Remove</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        <div style={{ fontSize: 12, color: N.muted, marginTop: 10 }}>Most items came over from QuickBooks without a description — that's why the description column is mostly blank. Add specs here (size, color, stock) and they'll be right there when Dave reorders.</div>
+      </div>
+    );
+  }
+
   function Connect() {
     return (
       <div style={{ maxWidth: 560, margin: "40px auto 0", textAlign: "center" }}>
@@ -1347,6 +1455,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   else if (section === "salestax") body = SalesTax();
   else if (section === "reports") body = Reports();
   else if (section === "accounts") body = Accounts();
+  else if (section === "items") body = Items();
   else if (section === "admin") body = <Stub title="Admin" note="Users & roles, entity settings, logo & branding, sales-tax rate — coming here." />;
   else if (section === "bills") body = Bills();
   else if (section === "documents") body = <Stub title="Documents" note="Statements, exemption certificates, and anything you attach lives here." />;
