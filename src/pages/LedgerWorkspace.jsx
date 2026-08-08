@@ -125,8 +125,12 @@ const ACCOUNT_TYPES = [
 ];
 
 const STATUS_COLOR = {
-  Paid: N.green, Viewed: N.blue, Sent: N.blueHot, Draft: N.muted,
+  Paid: N.green, Viewed: N.blue, Sent: N.blueHot, Draft: N.muted, Void: N.mutedLite,
 };
+
+// "Still being polished" accent — Kari wants checkboxes/checks amber, not green,
+// while the tool is being finished ("nothing is working perfectly yet").
+const AMBER = "#eab308";
 
 function money(n) {
   const s = Math.abs(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -310,6 +314,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [showOrderForm, setShowOrderForm] = useState(false);
   const blankOrder = { mode: "invoice", customer: "", vendor: "", email: "", taxStatus: "Exempt", lines: [{ item: "", desc: "", qty: "1", cost: "", price: "" }] };
   const [orderDraft, setOrderDraft] = useState(blankOrder);
+  const [editingOrder, setEditingOrder] = useState(null);
   const [showBillForm, setShowBillForm] = useState(false);
   const blankBill = { vendor: "", amount: "", due: "", category: "", memo: "" };
   const [billDraft, setBillDraft] = useState(blankBill);
@@ -340,7 +345,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         supabase.from("invoices").select("*").eq("org_id", org.id).order("issue_date", { ascending: false }).order("created_at", { ascending: false }),
         supabase.from("ledger_vendors").select("*").eq("org_id", org.id).eq("archived", false).order("name", { ascending: true }),
         supabase.from("ledger_customers").select("*").eq("org_id", org.id).eq("archived", false).order("name", { ascending: true }),
-        supabase.from("ledger_products").select("*").eq("org_id", org.id).eq("archived", false).order("name", { ascending: true }),
+        supabase.from("ledger_products").select("*").eq("org_id", org.id).order("name", { ascending: true }),
         supabase.from("ledger_bills").select("*").eq("org_id", org.id).order("due_date", { ascending: true }).order("created_at", { ascending: false }),
       ]);
       if (cancelled) return;
@@ -525,8 +530,12 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     }).eq("id", id);
     setItemEditId(null); setReloadTick(t => t + 1);
   }
+  async function archiveItem(id, val) {
+    await supabase.from("ledger_products").update({ archived: val }).eq("id", id);
+    setReloadTick(t => t + 1);
+  }
   async function deleteItem(id) {
-    if (!window.confirm("Remove this item from the list? It won't change any past invoice or order.")) return;
+    if (!window.confirm("Delete this item for good? Only do this if it's never been used. If it's been on an invoice, make it inactive instead so history stays intact.")) return;
     await supabase.from("ledger_products").delete().eq("id", id);
     setReloadTick(t => t + 1);
   }
@@ -582,26 +591,63 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     const total = subtotal + tax;
     const draft = orderDraft;
     const asPo = draft.mode === "po";
-    const po = entity.nextPoNumber || 2133;
+    const editing = editingOrder;
+    const po = editing ? (editing.poNumber || entity.nextPoNumber || 2133) : (entity.nextPoNumber || 2133);
     setShowOrderForm(false);
     setOrderDraft(blankOrder);
+    setEditingOrder(null);
     if (live && liveOrgId) {
       const known = (entity.customers || []).some(c => (c.name || "").toLowerCase() === draft.customer.trim().toLowerCase());
       if (!known && draft.customer.trim()) {
         await supabase.from("ledger_customers").insert({ org_id: liveOrgId, user_id: session.user.id, name: draft.customer.trim(), email: draft.email.trim() || null });
       }
-      await supabase.from("invoices").insert({
-        org_id: liveOrgId, user_id: session.user.id,
+      const row = {
         doc_type: asPo ? "order" : "invoice", status: asPo ? "order" : "draft",
         customer_name: draft.customer.trim(), customer_email: draft.email.trim() || null,
         vendor_name: asPo ? (draft.vendor.trim() || null) : null, po_number: asPo ? String(po) : null,
         line_items: lines.map(l => ({ item: (l.item || "").trim(), desc: (l.desc || "").trim(), qty: parseInt(l.qty) || 1, cost: parseFloat(l.cost) || 0, price: parseFloat(l.price) || 0 })),
         tax_status: draft.taxStatus, subtotal_cents: subtotal, tax_cents: tax, total_cents: total,
-      });
-      if (asPo) await supabase.from("ledger_orgs").update({ next_po_number: po + 1 }).eq("id", liveOrgId);
+      };
+      if (editing) {
+        await supabase.from("invoices").update(row).eq("id", editing.id);
+      } else {
+        await supabase.from("invoices").insert({ org_id: liveOrgId, user_id: session.user.id, ...row });
+        if (asPo) await supabase.from("ledger_orgs").update({ next_po_number: po + 1 }).eq("id", liveOrgId);
+      }
       setReloadTick(t => t + 1);
     }
     if (!asPo) setSection("invoices");
+  }
+
+  function editOrder(v) {
+    setEditingOrder(v);
+    setOrderDraft({
+      mode: v.poNumber ? "po" : "invoice",
+      customer: v.customer === "—" ? "" : v.customer, vendor: v.vendor || "", email: v.email || "",
+      taxStatus: v.tax || "Exempt",
+      lines: (v.lines && v.lines.length ? v.lines : [{}]).map(l => ({
+        item: l.item || "", desc: l.desc || "", qty: String(l.qty || 1),
+        cost: l.cost ? String(l.cost) : "", price: l.price ? String(l.price) : "",
+      })),
+    });
+    setShowOrderForm(true);
+  }
+
+  async function deleteOrder(id) {
+    if (!window.confirm("Delete this order? This can't be undone.")) return;
+    if (live) { await supabase.from("invoices").delete().eq("id", id); setReloadTick(t => t + 1); }
+  }
+
+  async function voidInvoice(v) {
+    if (!window.confirm(`Void invoice ${v.number ? "#" + v.number : ""}? It stays on record marked VOID but no longer counts toward what's owed or sales tax.`)) return;
+    setOpenInv(null);
+    await invoiceStatus(v.id, "void");
+  }
+
+  async function deleteInvoice(v) {
+    if (!window.confirm(`Delete invoice ${v.number ? "#" + v.number : ""} for good? This can't be undone — use Void if you just want to cancel it but keep the record.`)) return;
+    setOpenInv(null);
+    if (live) { await supabase.from("invoices").delete().eq("id", v.id); setReloadTick(t => t + 1); }
   }
 
   async function convertToInvoice(v) {
@@ -878,7 +924,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               {(entity.customers || []).map(c => <option key={c.id} value={c.name} />)}
             </datalist>
             <datalist id="pg-items">
-              {(entity.products || []).map(p => <option key={p.id} value={p.name} />)}
+              {(entity.products || []).filter(p => !p.archived).map(p => <option key={p.id} value={p.name} />)}
             </datalist>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
               <div style={{ position: "relative" }}>
@@ -918,24 +964,27 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, overflow: "hidden" }}>
           {invoices.length === 0 ? (
             <div style={{ padding: "30px 20px", textAlign: "center", color: N.muted, fontSize: 14 }}>No invoices yet. Click “New invoice” to make the first one.</div>
-          ) : invoices.filter(v => v.docType !== "order").sort((a, b) => (a.status === "Paid" ? 1 : 0) - (b.status === "Paid" ? 1 : 0)).map((v, i) => (
+          ) : invoices.filter(v => v.docType !== "order").sort((a, b) => (a.status === "Void" ? 2 : a.status === "Paid" ? 1 : 0) - (b.status === "Void" ? 2 : b.status === "Paid" ? 1 : 0)).map((v, i) => {
+            const voided = v.status === "Void";
+            return (
             <div key={v.id} onClick={() => setOpenInv(v)} title="Open invoice"
-              style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", borderBottom: i === invoices.length - 1 ? "none" : "1px solid " + N.rule, cursor: "pointer" }}
+              style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", borderBottom: i === invoices.length - 1 ? "none" : "1px solid " + N.rule, cursor: "pointer", opacity: voided ? 0.55 : 1 }}
               onMouseEnter={e => (e.currentTarget.style.background = "#f7fafd")}
               onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
               <div style={{ width: 50, fontSize: 12, color: N.muted }}>{v.date}</div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 15, color: N.ink, fontWeight: 600 }}>{v.customer}</div>
+                <div style={{ fontSize: 15, color: N.ink, fontWeight: 600, textDecoration: voided ? "line-through" : "none" }}>{v.customer}</div>
                 <div style={{ fontSize: 12, color: N.muted }}>{v.item} · {v.tax}{v.taxAmt ? ` · MN tax ${money(v.taxAmt)}` : ""}</div>
               </div>
               <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: STATUS_COLOR[v.status] || N.muted, background: (STATUS_COLOR[v.status] || N.muted) + "18", padding: "4px 10px", borderRadius: 100 }}>{v.status}</span>
               <div style={{ display: "flex", gap: 6 }}>
                 {v.status === "Draft" && <button onClick={e => { e.stopPropagation(); invoiceStatus(v.id, "sent"); }} style={btnPaper(N.blue)}>Send</button>}
-                {v.status !== "Paid" && <button onClick={e => { e.stopPropagation(); invoiceStatus(v.id, "paid"); }} style={btnPaper(N.pinkDark)}>Mark paid</button>}
+                {v.status !== "Paid" && !voided && <button onClick={e => { e.stopPropagation(); invoiceStatus(v.id, "paid"); }} style={btnPaper(N.pinkDark)}>Mark paid</button>}
               </div>
-              <div style={{ fontSize: 16, fontWeight: 600, color: N.ink, width: 90, textAlign: "right" }}>{money(v.amount)}</div>
+              <div style={{ fontSize: 16, fontWeight: 600, color: voided ? N.mutedLite : N.ink, width: 90, textAlign: "right", textDecoration: voided ? "line-through" : "none" }}>{money(v.amount)}</div>
             </div>
-          ))}
+            );
+          })}
         </div>
         <div style={{ fontSize: 12, color: N.muted, marginTop: 10 }}>Click any invoice to open it. Paid by check? Just hit <b style={{ color: N.pinkDark }}>Mark paid</b>. Sent invoices show <b style={{ color: N.blue }}>Viewed</b> when the customer opens them — the status QuickBooks took away.</div>
 
@@ -951,7 +1000,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           const docSub = invLines.reduce((s, l) => s + rateOf(l) * (l.qty || 1), 0);
           return (
           <div onClick={() => setOpenInv(null)} style={{ position: "fixed", inset: 0, background: "rgba(10,10,20,0.45)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "44px 16px", zIndex: 200, overflowY: "auto" }}>
-            <div onClick={e => e.stopPropagation()} style={{ background: N.white, borderRadius: 12, width: "100%", maxWidth: 640, boxShadow: "0 24px 70px rgba(10,10,20,0.35)", overflow: "hidden" }}>
+            <div onClick={e => e.stopPropagation()} className="print-doc" style={{ background: N.white, borderRadius: 12, width: "100%", maxWidth: 640, boxShadow: "0 24px 70px rgba(10,10,20,0.35)", overflow: "hidden" }}>
               {/* The invoice document */}
               <div style={{ padding: "34px 40px 26px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 20, marginBottom: 28 }}>
@@ -1053,12 +1102,25 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 )}
               </div>
 
-              <div style={{ padding: "14px 22px", borderTop: "1px solid " + N.rule, background: "#f7fafd", display: "flex", gap: 8, justifyContent: "flex-end", alignItems: "center", flexWrap: "wrap" }}>
+              <div className="no-print" style={{ padding: "14px 22px", borderTop: "1px solid " + N.rule, background: "#f7fafd", display: "flex", gap: 8, justifyContent: "flex-end", alignItems: "center", flexWrap: "wrap" }}>
                 <span style={{ marginRight: "auto", fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: STATUS_COLOR[openInv.status] || N.muted }}>{openInv.status}</span>
-                <button onClick={() => sendInvoice(openInv)} style={{ ...btnBlue, background: N.blue }}>{openInv.status === "Draft" ? "Send · get link" : "Copy / resend link"}</button>
-                {openInv.status !== "Paid" && <button onClick={() => { invoiceStatus(openInv.id, "paid"); setOpenInv(null); }} style={btnPaper(N.pinkDark)}>Mark paid</button>}
-                {openInv.status === "Paid" && <button onClick={() => { invoiceStatus(openInv.id, "sent"); setOpenInv(null); }} style={btnPaper(N.muted)}>Unmark paid</button>}
-                {(openInv.status === "Sent" || openInv.status === "Viewed") && <button onClick={() => { invoiceStatus(openInv.id, "draft"); setOpenInv(null); }} style={btnPaper(N.muted)}>← Back to draft</button>}
+                <button onClick={() => window.print()} style={btnPaper(N.text)}>Print</button>
+                {isPo ? (
+                  <>
+                    <button onClick={() => { const v = openInv; setOpenInv(null); editOrder(v); }} style={btnPaper(N.muted)}>Edit</button>
+                    <button onClick={() => { const v = openInv; setOpenInv(null); convertToInvoice(v); }} style={{ ...btnBlue, background: N.blue }}>Convert to invoice →</button>
+                    <button onClick={() => { const id = openInv.id; setOpenInv(null); deleteOrder(id); }} style={btnPaper(N.pinkDark)}>Delete</button>
+                  </>
+                ) : (
+                  <>
+                    {openInv.status !== "Void" && <button onClick={() => sendInvoice(openInv)} style={{ ...btnBlue, background: N.blue }}>{openInv.status === "Draft" ? "Send · get link" : "Copy / resend link"}</button>}
+                    {openInv.status !== "Paid" && openInv.status !== "Void" && <button onClick={() => { invoiceStatus(openInv.id, "paid"); setOpenInv(null); }} style={btnPaper(N.pinkDark)}>Mark paid</button>}
+                    {openInv.status === "Paid" && <button onClick={() => { invoiceStatus(openInv.id, "sent"); setOpenInv(null); }} style={btnPaper(N.muted)}>Unmark paid</button>}
+                    {(openInv.status === "Sent" || openInv.status === "Viewed") && <button onClick={() => { invoiceStatus(openInv.id, "draft"); setOpenInv(null); }} style={btnPaper(N.muted)}>← Back to draft</button>}
+                    {openInv.status !== "Void" && <button onClick={() => voidInvoice(openInv)} style={btnPaper(N.muted)}>Void</button>}
+                    <button onClick={() => deleteInvoice(openInv)} style={btnPaper(N.pinkDark)}>Delete</button>
+                  </>
+                )}
                 <button onClick={() => setOpenInv(null)} style={btnPaper(N.muted)}>Close</button>
               </div>
             </div>
@@ -1104,14 +1166,14 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>New Orders</div>
             <div style={{ fontSize: 13, color: N.muted }}>Take an order and invoice it directly — or, if a vendor makes it, send a PO first and convert it later.</div>
           </div>
-          <button onClick={() => setShowOrderForm(s => !s)} style={{ ...btnBlue, background: N.blue, fontSize: 14, padding: "10px 18px" }}>{showOrderForm ? "Close" : "+ New order"}</button>
+          <button onClick={() => { if (showOrderForm) { setShowOrderForm(false); setEditingOrder(null); setOrderDraft(blankOrder); } else { setShowOrderForm(true); } }} style={{ ...btnBlue, background: N.blue, fontSize: 14, padding: "10px 18px" }}>{showOrderForm ? "Close" : "+ New order"}</button>
         </div>
 
         {showOrderForm && (
           <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: 16, marginBottom: 16 }}>
             <datalist id="po-customers">{(entity.customers || []).map(c => <option key={c.id} value={c.name} />)}</datalist>
             <datalist id="po-vendors">{(entity.vendors || []).map(v => <option key={v} value={v} />)}</datalist>
-            <datalist id="po-items">{(entity.products || []).map(p => <option key={p.id} value={p.name} />)}</datalist>
+            <datalist id="po-items">{(entity.products || []).filter(p => !p.archived).map(p => <option key={p.id} value={p.name} />)}</datalist>
             <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
               {[["invoice", "Invoice only"], ["po", "Send a PO to a vendor first"]].map(([m, label]) => (
                 <button key={m} onClick={() => setOrderDraft(d => ({ ...d, mode: m }))} style={{ fontSize: 12.5, padding: "7px 14px", borderRadius: 100, cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontWeight: 500, border: "1px solid " + (orderDraft.mode === m ? N.blue : N.rule), background: orderDraft.mode === m ? N.blue : N.white, color: orderDraft.mode === m ? N.white : N.text }}>{label}</button>
@@ -1158,10 +1220,10 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             </div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: "1px solid " + N.rule, paddingTop: 12, gap: 12, flexWrap: "wrap" }}>
               <div style={{ fontSize: 13, color: N.muted }}>
-                {poMode && <span style={{ color: N.blueDark }}>PO #{entity.nextPoNumber} to vendor: <b>{money(costSub)}</b> &nbsp;·&nbsp; </span>}
+                {poMode && <span style={{ color: N.blueDark }}>PO #{(editingOrder && editingOrder.poNumber) || entity.nextPoNumber} to vendor: <b>{money(costSub)}</b> &nbsp;·&nbsp; </span>}
                 <span style={{ color: poMode ? "#5a7a63" : N.muted }}>{poMode ? "Invoice to customer: " : "Subtotal "}{money(sub)}{orderDraft.taxStatus === "Taxable" ? ` + MN tax ${money(tax)}` : ""} · <b style={{ color: N.ink }}>{money(sub + tax)}</b></span>
               </div>
-              <button onClick={createOrder} style={{ ...btnBlue, background: N.blue, fontSize: 14, padding: "10px 18px" }}>{poMode ? "Save order · send PO" : "Save as invoice →"}</button>
+              <button onClick={createOrder} style={{ ...btnBlue, background: N.blue, fontSize: 14, padding: "10px 18px" }}>{editingOrder ? "Update order" : (poMode ? "Save order · send PO" : "Save as invoice →")}</button>
             </div>
           </div>
         )}
@@ -1170,15 +1232,26 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           {orderList.length === 0 ? (
             <div style={{ padding: "30px 20px", textAlign: "center", color: N.muted, fontSize: 14 }}>No open orders. Click “New order” to start one.</div>
           ) : orderList.map((v, i) => (
-            <div key={v.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 16px", borderBottom: i === orderList.length - 1 ? "none" : "1px solid " + N.rule, flexWrap: "wrap" }}>
-              <div style={{ width: 70, fontSize: 12, color: N.muted }}>PO #{v.poNumber}</div>
-              <div style={{ flex: 1, minWidth: 160 }}>
+            <div key={v.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 16px", borderBottom: i === orderList.length - 1 ? "none" : "1px solid " + N.rule, flexWrap: "wrap" }}>
+              <div style={{ width: 64, fontSize: 12, color: N.muted }}>{v.poNumber ? `PO #${v.poNumber}` : "Order"}</div>
+              <div style={{ flex: 1, minWidth: 150 }}>
                 <div style={{ fontSize: 15, color: N.ink, fontWeight: 600 }}>{v.customer}</div>
                 <div style={{ fontSize: 12, color: N.muted }}>{v.item}{v.vendor ? ` · vendor: ${v.vendor}` : ""}</div>
               </div>
-              <button onClick={() => setOpenInv(v)} style={btnPaper(N.text)}>View / print PO</button>
+              {(() => {
+                const costTot = (v.lines || []).reduce((s, l) => s + (l.cost || 0) * (l.qty || 1), 0);
+                const priceTot = (v.lines || []).reduce((s, l) => s + (l.price || 0) * (l.qty || 1), 0);
+                return (
+                  <div style={{ textAlign: "right", width: 150, fontSize: 12, lineHeight: 1.4 }}>
+                    {v.poNumber ? <div style={{ color: N.blueDark }}>PO cost <b>{money(costTot)}</b></div> : null}
+                    <div style={{ color: "#5a7a63" }}>Invoice <b>{money(priceTot)}</b></div>
+                  </div>
+                );
+              })()}
+              <button onClick={() => editOrder(v)} style={btnPaper(N.muted)}>Edit</button>
+              <button onClick={() => setOpenInv(v)} style={btnPaper(N.text)}>View / print</button>
               <button onClick={() => convertToInvoice(v)} style={{ ...btnBlue, background: N.blue }}>Convert to invoice →</button>
-              <div style={{ fontSize: 16, fontWeight: 600, color: N.ink, width: 90, textAlign: "right" }}>{money(v.amount)}</div>
+              <button onClick={() => deleteOrder(v.id)} title="Delete order" style={{ border: "1px solid " + N.rule, background: "none", color: N.muted, cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontSize: 12, fontWeight: 600, borderRadius: 100, padding: "6px 12px" }}>Delete</button>
             </div>
           ))}
         </div>
@@ -1241,9 +1314,10 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   function SalesTax() {
     // Tallied live from invoices: taxable = pre-tax subtotal of taxable invoices;
     // exempt = reseller-exempt + shipped-no-tax sales; collected = MN tax billed.
-    const taxable = invoices.filter(v => v.tax === "Taxable").reduce((s, v) => s + (v.amount - v.taxAmt), 0);
-    const exempt = invoices.filter(v => v.tax !== "Taxable").reduce((s, v) => s + v.amount, 0);
-    const collected = invoices.reduce((s, v) => s + v.taxAmt, 0);
+    const billed = invoices.filter(v => v.docType !== "order" && v.status !== "Void");
+    const taxable = billed.filter(v => v.tax === "Taxable").reduce((s, v) => s + (v.amount - v.taxAmt), 0);
+    const exempt = billed.filter(v => v.tax !== "Taxable").reduce((s, v) => s + v.amount, 0);
+    const collected = billed.reduce((s, v) => s + v.taxAmt, 0);
     const quarter = entity.salesTax?.quarter || "From your invoices";
     return (
       <div>
@@ -1360,14 +1434,15 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   }
 
   function Items() {
-    const rows = (entity.products || []).slice().sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+    const rows = (entity.products || []).slice().sort((a, b) => (a.archived ? 1 : 0) - (b.archived ? 1 : 0) || (a.name || "").localeCompare(b.name || ""));
+    const activeCount = rows.filter(p => !p.archived).length;
     const cell = { ...inputSt };
     return (
       <div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, flexWrap: "wrap", gap: 10 }}>
           <div>
             <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>Items &amp; services</div>
-            <div style={{ fontSize: 13, color: N.muted }}>{rows.length} items — the list Dave picks from on orders and invoices. Add, rename, price, or remove any of them here.</div>
+            <div style={{ fontSize: 13, color: N.muted }}>{activeCount} active item{activeCount === 1 ? "" : "s"} — the list Dave picks from on orders and invoices. Edit any of them, make one inactive to hide it from the pickers, or delete if it was never used.</div>
           </div>
           <button onClick={() => { setShowAddItem(s => !s); setNewItem(blankItem); }} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 16px" }}>{showAddItem ? "Close" : "+ Add item"}</button>
         </div>
@@ -1379,7 +1454,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             <input placeholder="$ price" inputMode="decimal" value={newItem.price} onChange={e => setNewItem(d => ({ ...d, price: e.target.value }))} style={{ ...cell, textAlign: "right" }} />
             <input placeholder="Income account" list="item-income" value={newItem.income_account} onChange={e => setNewItem(d => ({ ...d, income_account: e.target.value }))} style={cell} />
             <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: N.muted, whiteSpace: "nowrap" }}>
-              <input type="checkbox" checked={newItem.taxable} onChange={e => setNewItem(d => ({ ...d, taxable: e.target.checked }))} /> Taxable
+              <input type="checkbox" checked={newItem.taxable} onChange={e => setNewItem(d => ({ ...d, taxable: e.target.checked }))} style={{ accentColor: AMBER }} /> Taxable
             </label>
             <button onClick={addItem} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 16px", gridColumn: "1 / -1", justifySelf: "start" }}>Save item</button>
           </div>
@@ -1404,21 +1479,22 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                     <input placeholder="Income account" list="item-income" value={itemDraft.income_account} onChange={e => setItemDraft(d => ({ ...d, income_account: e.target.value }))} style={cell} />
                     <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                       <label style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: N.muted, whiteSpace: "nowrap" }}>
-                        <input type="checkbox" checked={itemDraft.taxable} onChange={e => setItemDraft(d => ({ ...d, taxable: e.target.checked }))} /> Tax
+                        <input type="checkbox" checked={itemDraft.taxable} onChange={e => setItemDraft(d => ({ ...d, taxable: e.target.checked }))} style={{ accentColor: AMBER }} /> Tax
                       </label>
                       <button onClick={saveItem} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "8px 12px" }}>Save</button>
                       <button onClick={() => setItemEditId(null)} style={btnPaper(N.muted)}>Cancel</button>
                     </div>
                   </div>
                 ) : (
-                  <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1.6fr 90px 1fr 140px", gap: 8, alignItems: "center" }}>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: N.ink }}>{p.name}{!p.taxable && <span style={{ fontSize: 10, fontWeight: 700, color: N.muted, marginLeft: 6, letterSpacing: "0.04em" }}>EXEMPT</span>}</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1.6fr 90px 1fr 210px", gap: 8, alignItems: "center", opacity: p.archived ? 0.5 : 1 }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: N.ink }}>{p.name}{p.archived && <span style={{ fontSize: 10, fontWeight: 700, color: AMBER, marginLeft: 6, letterSpacing: "0.04em" }}>INACTIVE</span>}{!p.taxable && <span style={{ fontSize: 10, fontWeight: 700, color: N.muted, marginLeft: 6, letterSpacing: "0.04em" }}>EXEMPT</span>}</div>
                     <div style={{ fontSize: 13, color: p.description ? N.text : N.mutedLite, fontStyle: p.description ? "normal" : "italic" }}>{p.description || "no description"}</div>
                     <div style={{ fontSize: 13, color: (p.price_cents || 0) > 0 ? N.ink : N.mutedLite, textAlign: "right" }}>{(p.price_cents || 0) > 0 ? money(p.price_cents / 100) : "per job"}</div>
                     <div style={{ fontSize: 13, color: N.muted }}>{p.income_account || "—"}</div>
                     <div style={{ display: "flex", gap: 6, justifyContent: "flex-end" }}>
                       <button onClick={() => { setItemEditId(p.id); setItemDraft({ name: p.name || "", description: p.description || "", price: (p.price_cents || 0) > 0 ? String(p.price_cents / 100) : "", taxable: p.taxable !== false, income_account: p.income_account || "" }); }} style={{ ...btnPaper(N.muted), padding: "6px 12px" }}>Edit</button>
-                      <button onClick={() => deleteItem(p.id)} title="Remove" style={{ background: "none", border: "1px solid " + N.rule, borderRadius: 100, cursor: "pointer", color: N.muted, fontFamily: "'Figtree', sans-serif", fontSize: 12, fontWeight: 600, padding: "6px 12px" }}>Remove</button>
+                      <button onClick={() => archiveItem(p.id, !p.archived)} title={p.archived ? "Reactivate" : "Make inactive"} style={{ background: "none", border: "1px solid " + N.rule, borderRadius: 100, cursor: "pointer", color: N.muted, fontFamily: "'Figtree', sans-serif", fontSize: 12, fontWeight: 600, padding: "6px 12px" }}>{p.archived ? "Reactivate" : "Make inactive"}</button>
+                      <button onClick={() => deleteItem(p.id)} title="Delete permanently" style={{ background: "none", border: "1px solid " + N.rule, borderRadius: 100, cursor: "pointer", color: N.pinkDark, fontFamily: "'Figtree', sans-serif", fontSize: 12, fontWeight: 600, padding: "6px 12px" }}>Delete</button>
                     </div>
                   </div>
                 )}
@@ -1463,6 +1539,15 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   return (
     <div style={{ minHeight: "100vh", background: N.white, fontFamily: "'Figtree', sans-serif", color: N.text }}>
       <link href={FONTS} rel="stylesheet" />
+      <style>{`
+        input[type="checkbox"] { accent-color: ${AMBER}; }
+        @media print {
+          body * { visibility: hidden !important; }
+          .print-doc, .print-doc * { visibility: visible !important; }
+          .print-doc { position: absolute !important; left: 0; top: 0; width: 100% !important; max-width: 100% !important; box-shadow: none !important; border-radius: 0 !important; }
+          .no-print { display: none !important; }
+        }
+      `}</style>
 
       {/* Header */}
       <header style={{ position: "sticky", top: 0, zIndex: 50, background: N.white, borderBottom: "1px solid " + N.rule }}>
@@ -1549,7 +1634,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9.5, letterSpacing: "0.12em", color: N.muted, marginBottom: 8, paddingLeft: 4 }}>BUILD PROGRESS</div>
             {BUILD_PROGRESS.map(([label, st]) => (
               <div key={label} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12.5, color: st === "done" ? N.ink : N.mutedLite, padding: "4px 4px" }}>
-                <span style={{ width: 15, height: 15, borderRadius: 4, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: st === "done" ? N.green : "transparent", border: st === "done" ? "none" : "1.5px solid " + N.rule, color: "#fff", fontSize: 10, fontWeight: 700 }}>{st === "done" ? "✓" : ""}</span>
+                <span style={{ width: 15, height: 15, borderRadius: 4, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: st === "done" ? AMBER : "transparent", border: st === "done" ? "none" : "1.5px solid " + N.rule, color: N.ink, fontSize: 10, fontWeight: 700 }}>{st === "done" ? "✓" : ""}</span>
                 {label}
               </div>
             ))}
