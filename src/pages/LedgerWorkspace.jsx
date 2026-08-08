@@ -300,7 +300,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [openInv, setOpenInv] = useState(null);
   const [sentLink, setSentLink] = useState(null);
   const [showOrderForm, setShowOrderForm] = useState(false);
-  const blankOrder = { mode: "invoice", customer: "", vendor: "", email: "", taxStatus: "Exempt", lines: [{ desc: "", qty: "1", price: "" }] };
+  const blankOrder = { mode: "invoice", customer: "", vendor: "", email: "", taxStatus: "Exempt", lines: [{ item: "", desc: "", qty: "1", cost: "", price: "" }] };
   const [orderDraft, setOrderDraft] = useState(blankOrder);
   const [showBillForm, setShowBillForm] = useState(false);
   const blankBill = { vendor: "", amount: "", due: "", category: "", memo: "" };
@@ -559,7 +559,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         doc_type: asPo ? "order" : "invoice", status: asPo ? "order" : "draft",
         customer_name: draft.customer.trim(), customer_email: draft.email.trim() || null,
         vendor_name: asPo ? (draft.vendor.trim() || null) : null, po_number: asPo ? String(po) : null,
-        line_items: lines.map(l => ({ item: (l.item || "").trim(), desc: (l.desc || "").trim(), qty: parseInt(l.qty) || 1, price: parseFloat(l.price) || 0 })),
+        line_items: lines.map(l => ({ item: (l.item || "").trim(), desc: (l.desc || "").trim(), qty: parseInt(l.qty) || 1, cost: parseFloat(l.cost) || 0, price: parseFloat(l.price) || 0 })),
         tax_status: draft.taxStatus, subtotal_cents: subtotal, tax_cents: tax, total_cents: total,
       });
       if (asPo) await supabase.from("ledger_orgs").update({ next_po_number: po + 1 }).eq("id", liveOrgId);
@@ -910,6 +910,9 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           const bc = (entity.customers || []).find(c => (c.name || "").toLowerCase() === (openInv.customer || "").toLowerCase()) || {};
           const brand = entity.brandColor || N.blue;
           const logo = entity.logoUrl;
+          const isPo = openInv.docType === "order";
+          const rateOf = l => (isPo ? (l.cost || 0) : (l.price || 0));
+          const docSub = invLines.reduce((s, l) => s + rateOf(l) * (l.qty || 1), 0);
           return (
           <div onClick={() => setOpenInv(null)} style={{ position: "fixed", inset: 0, background: "rgba(10,10,20,0.45)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "44px 16px", zIndex: 200, overflowY: "auto" }}>
             <div onClick={e => e.stopPropagation()} style={{ background: N.white, borderRadius: 12, width: "100%", maxWidth: 640, boxShadow: "0 24px 70px rgba(10,10,20,0.35)", overflow: "hidden" }}>
@@ -921,12 +924,32 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                     <div style={{ fontSize: 12, color: N.muted, marginTop: 3 }}>Minnesota{entity.fiscalYearEnd ? ` · fiscal year ends ${entity.fiscalYearEnd}` : ""}</div>
                   </div>
                   <div style={{ textAlign: "right" }}>
-                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 24, letterSpacing: "0.16em", color: brand, fontWeight: 500 }}>INVOICE</div>
-                    {openInv.number && <div style={{ fontSize: 13, color: N.ink, marginTop: 5 }}>No. {openInv.number}</div>}
+                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 24, letterSpacing: "0.16em", color: brand, fontWeight: 500 }}>{isPo ? "PURCHASE ORDER" : "INVOICE"}</div>
+                    {isPo ? (openInv.poNumber && <div style={{ fontSize: 13, color: N.ink, marginTop: 5 }}>PO #{openInv.poNumber}</div>) : (openInv.number && <div style={{ fontSize: 13, color: N.ink, marginTop: 5 }}>No. {openInv.number}</div>)}
                     <div style={{ fontSize: 12, color: N.muted, marginTop: 2 }}>Date: {openInv.date}</div>
                   </div>
                 </div>
 
+                {isPo ? (() => {
+                  const vd = (entity.vendorList || []).find(v => (v.name || "").toLowerCase() === (openInv.vendor || "").toLowerCase()) || {};
+                  return (
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 }}>
+                    <div>
+                      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", color: N.muted, marginBottom: 4 }}>VENDOR</div>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: N.ink }}>{openInv.vendor || "—"}</div>
+                      {vd.billing_address ? <div style={{ fontSize: 13, color: N.muted, whiteSpace: "pre-line" }}>{vd.billing_address}</div> : null}
+                      {vd.email ? <div style={{ fontSize: 13, color: N.muted }}>{vd.email}</div> : null}
+                      {vd.phone ? <div style={{ fontSize: 13, color: N.muted }}>{vd.phone}</div> : null}
+                    </div>
+                    <div>
+                      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", color: N.muted, marginBottom: 4 }}>SHIP TO</div>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: N.ink }}>{entity.name}</div>
+                      {entity.remitAddress ? <div style={{ fontSize: 13, color: N.muted, whiteSpace: "pre-line" }}>{entity.remitAddress}</div> : null}
+                      <div style={{ fontSize: 12, color: N.mutedLite, marginTop: 4 }}>For customer: {openInv.customer}</div>
+                    </div>
+                  </div>
+                  );
+                })() : (
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 }}>
                   <div>
                     <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", color: N.muted, marginBottom: 4 }}>BILL TO</div>
@@ -941,6 +964,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                     {bc.billing_address ? <div style={{ fontSize: 13, color: N.muted, whiteSpace: "pre-line" }}>{bc.billing_address}</div> : <div style={{ fontSize: 12, color: N.mutedLite, fontStyle: "italic" }}>Same as billing</div>}
                   </div>
                 </div>
+                )}
 
                 <div style={{ border: "1px solid " + N.rule, borderRadius: 10, overflow: "hidden", marginBottom: 16 }}>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 46px 86px 92px", gap: 8, padding: "10px 14px", background: "#f7fafd", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", color: N.muted }}>
@@ -948,15 +972,21 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   </div>
                   {invLines.map((l, i) => (
                     <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 46px 86px 92px", gap: 8, padding: "11px 14px", borderTop: "1px solid " + N.rule, fontSize: 14, color: N.text }}>
-                      <span>{cleanDesc(l.desc)}</span>
+                      <span>{cleanDesc(l.desc)}{isPo && l.item ? <span style={{ color: N.mutedLite }}> · {l.item}</span> : null}</span>
                       <span style={{ textAlign: "center", color: N.muted }}>{l.qty || 1}</span>
-                      <span style={{ textAlign: "right", color: N.muted }}>{money(l.price || 0)}</span>
-                      <span style={{ textAlign: "right", fontWeight: 500, color: N.ink }}>{money((l.price || 0) * (l.qty || 1))}</span>
+                      <span style={{ textAlign: "right", color: N.muted }}>{money(rateOf(l))}</span>
+                      <span style={{ textAlign: "right", fontWeight: 500, color: N.ink }}>{money(rateOf(l) * (l.qty || 1))}</span>
                     </div>
                   ))}
                 </div>
 
                 <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                  {isPo ? (
+                  <div style={{ width: 250 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 18, fontWeight: 700, color: N.ink, padding: "9px 0 0", borderTop: "2px solid " + N.ink }}><span>PO total</span><span>{money(docSub)}</span></div>
+                    <div style={{ fontSize: 12, color: N.mutedLite, marginTop: 4 }}>What you pay the vendor for this job.</div>
+                  </div>
+                  ) : (
                   <div style={{ width: 250 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: N.muted, padding: "3px 0" }}><span>Subtotal</span><span>{money(openInv.subtotal || openInv.amount)}</span></div>
                     <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: N.muted, padding: "3px 0" }}><span>MN sales tax{openInv.tax === "Taxable" ? " (9.25%)" : ""}</span><span>{money(openInv.taxAmt)}</span></div>
@@ -965,8 +995,16 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                       <span>{openInv.status === "Paid" ? "Paid — thank you" : "Balance due"}</span><span>{money(openInv.status === "Paid" ? 0 : openInv.amount)}</span>
                     </div>
                   </div>
+                  )}
                 </div>
 
+                {isPo ? (
+                <div style={{ marginTop: 22, paddingTop: 16, borderTop: "1px solid " + N.rule, fontSize: 12, color: N.muted, lineHeight: 1.6 }}>
+                  <div style={{ fontWeight: 700, color: N.text, marginBottom: 2 }}>Ship to</div>
+                  <div style={{ whiteSpace: "pre-line", color: N.text }}>{entity.remitAddress || entity.name}</div>
+                  <div style={{ marginTop: 6 }}>Please produce the items above and ship to us. Reference PO #{openInv.poNumber} on your invoice.</div>
+                </div>
+                ) : (
                 <div style={{ marginTop: 22, paddingTop: 16, borderTop: "1px solid " + N.rule, fontSize: 12, color: N.muted, lineHeight: 1.6 }}>
                   <div style={{ fontWeight: 700, color: N.text, marginBottom: 2 }}>Payment instructions</div>
                   <div>Please send checks to:</div>
@@ -976,6 +1014,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   ) : null}
                   {entity.customerNote ? <div style={{ marginTop: 10, fontStyle: "italic", color: N.text }}>{entity.customerNote}</div> : null}
                 </div>
+                )}
               </div>
 
               <div style={{ padding: "14px 22px", borderTop: "1px solid " + N.rule, background: "#f7fafd", display: "flex", gap: 8, justifyContent: "flex-end", alignItems: "center", flexWrap: "wrap" }}>
@@ -1017,8 +1056,11 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   function Orders() {
     const orderList = invoices.filter(v => v.docType === "order");
     const setLine = (i, patch) => setOrderDraft(d => ({ ...d, lines: d.lines.map((l, j) => (j === i ? { ...l, ...patch } : l)) }));
+    const poMode = orderDraft.mode === "po";
     const sub = orderDraft.lines.reduce((s, l) => s + (parseFloat(l.price) || 0) * (parseInt(l.qty) || 1), 0);
+    const costSub = orderDraft.lines.reduce((s, l) => s + (parseFloat(l.cost) || 0) * (parseInt(l.qty) || 1), 0);
     const tax = orderDraft.taxStatus === "Taxable" ? sub * MN_TAX_RATE : 0;
+    const cols = poMode ? "120px 1fr 40px 86px 86px 22px" : "140px 1fr 46px 82px 22px";
     return (
       <div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, flexWrap: "wrap", gap: 10 }}>
@@ -1051,22 +1093,27 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               </div>
               )}
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "140px 1fr 46px 82px 22px", gap: 8, marginBottom: 4, fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", color: N.muted }}>
-              <span>ITEM</span><span>DESCRIPTION (for reorders)</span><span style={{ textAlign: "center" }}>QTY</span><span style={{ textAlign: "right" }}>RATE</span><span></span>
+            <div style={{ display: "grid", gridTemplateColumns: cols, gap: 8, marginBottom: 4, fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", color: N.muted }}>
+              <span>ITEM</span><span>DESCRIPTION (for reorders)</span><span style={{ textAlign: "center" }}>QTY</span>
+              {poMode && <span style={{ textAlign: "right", color: N.blueDark }}>COST → PO</span>}
+              <span style={{ textAlign: "right", color: poMode ? "#5a7a63" : N.muted }}>{poMode ? "PRICE → INVOICE" : "PRICE EACH"}</span>
+              <span></span>
             </div>
             {orderDraft.lines.map((l, i) => (
-              <div key={i} style={{ display: "grid", gridTemplateColumns: "140px 1fr 46px 82px 22px", gap: 8, marginBottom: 8, alignItems: "center" }}>
+              <div key={i} style={{ display: "grid", gridTemplateColumns: cols, gap: 8, marginBottom: 8, alignItems: "center" }}>
                 <div style={{ position: "relative" }}>
-                  <input placeholder="Category" list="po-items" value={l.item || ""} onChange={e => setLine(i, { item: e.target.value })} style={{ ...inputSt, paddingRight: 18 }} />
+                  <input placeholder="Item" list="po-items" value={l.item || ""} onChange={e => setLine(i, { item: e.target.value })} style={{ ...inputSt, paddingRight: 18 }} />
                   <span style={{ position: "absolute", right: 7, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: N.muted, fontSize: 9 }}>▼</span>
                 </div>
                 <input placeholder="Full spec — size, color, text, so it can be reordered" value={l.desc} onChange={e => setLine(i, { desc: e.target.value })} style={inputSt} />
-                <input placeholder="Qty" value={l.qty} onChange={e => setLine(i, { qty: e.target.value })} style={{ ...inputSt, textAlign: "center" }} />
-                <input placeholder="$" value={l.price} onChange={e => setLine(i, { price: e.target.value })} style={{ ...inputSt, textAlign: "right" }} />
+                <input placeholder="Qty" inputMode="numeric" value={l.qty} onChange={e => setLine(i, { qty: e.target.value })} style={{ ...inputSt, textAlign: "center" }} />
+                {poMode && <input placeholder="cost" inputMode="decimal" value={l.cost || ""} onChange={e => setLine(i, { cost: e.target.value })} style={{ ...inputSt, textAlign: "right", borderColor: "#cfe4ff" }} />}
+                <input placeholder="price" inputMode="decimal" value={l.price} onChange={e => setLine(i, { price: e.target.value })} style={{ ...inputSt, textAlign: "right", borderColor: poMode ? "#cfe9d6" : N.rule }} />
                 <button onClick={() => setOrderDraft(d => ({ ...d, lines: d.lines.filter((_, j) => j !== i) }))} style={{ border: "none", background: "none", color: N.muted, cursor: "pointer", fontSize: 18 }}>×</button>
               </div>
             ))}
-            <button onClick={() => setOrderDraft(d => ({ ...d, lines: [...d.lines, { item: "", desc: "", qty: "1", price: "" }] }))} style={{ ...btnPaper(N.blue), marginBottom: 14 }}>+ Add line</button>
+            <button onClick={() => setOrderDraft(d => ({ ...d, lines: [...d.lines, { item: "", desc: "", qty: "1", cost: "", price: "" }] }))} style={{ ...btnPaper(N.blue), marginBottom: 14 }}>+ Add line</button>
+            {poMode && <div style={{ fontSize: 12, color: N.muted, marginTop: -6, marginBottom: 12 }}><b style={{ color: N.blueDark }}>Cost</b> is what you pay the vendor — it prints on the PO. <b style={{ color: "#5a7a63" }}>Price</b> is what you charge the customer — it becomes the invoice.</div>}
             <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
               <span style={{ fontSize: 12, color: N.muted }}>Sales tax:</span>
               {["Exempt", "Taxable", "Shipped"].map(t => (
@@ -1074,8 +1121,11 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               ))}
             </div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: "1px solid " + N.rule, paddingTop: 12, gap: 12, flexWrap: "wrap" }}>
-              <div style={{ fontSize: 13, color: N.muted }}>{orderDraft.mode === "po" ? `PO #${entity.nextPoNumber} · ` : ""}Subtotal {money(sub)}{orderDraft.taxStatus === "Taxable" ? ` · MN tax ${money(tax)}` : ""} · <b style={{ color: N.ink }}>Total {money(sub + tax)}</b></div>
-              <button onClick={createOrder} style={{ ...btnBlue, background: N.blue, fontSize: 14, padding: "10px 18px" }}>{orderDraft.mode === "po" ? "Save order" : "Save as invoice →"}</button>
+              <div style={{ fontSize: 13, color: N.muted }}>
+                {poMode && <span style={{ color: N.blueDark }}>PO #{entity.nextPoNumber} to vendor: <b>{money(costSub)}</b> &nbsp;·&nbsp; </span>}
+                <span style={{ color: poMode ? "#5a7a63" : N.muted }}>{poMode ? "Invoice to customer: " : "Subtotal "}{money(sub)}{orderDraft.taxStatus === "Taxable" ? ` + MN tax ${money(tax)}` : ""} · <b style={{ color: N.ink }}>{money(sub + tax)}</b></span>
+              </div>
+              <button onClick={createOrder} style={{ ...btnBlue, background: N.blue, fontSize: 14, padding: "10px 18px" }}>{poMode ? "Save order · send PO" : "Save as invoice →"}</button>
             </div>
           </div>
         )}
