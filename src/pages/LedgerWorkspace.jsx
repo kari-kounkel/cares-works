@@ -92,13 +92,27 @@ export const ENTITIES = {
 
 const SECTIONS = [
   { key: "orders", label: "New Orders" },
-  { key: "notebook", label: "Notebook" },
   { key: "invoices", label: "Invoices" },
-  { key: "bills", label: "Bills" },
   { key: "salestax", label: "Sales tax" },
+  { key: "notebook", label: "Notebook" },
+  { key: "bills", label: "Bills" },
   { key: "reports", label: "Reports" },
   { key: "documents", label: "Documents" },
   { key: "accounts", label: "Accounts" },
+  { key: "admin", label: "Admin" },
+];
+
+const BUILD_PROGRESS = [
+  ["Purchase Orders", "done"],
+  ["Invoicing", "done"],
+  ["Bank & card setup", "done"],
+  ["Notebook", "done"],
+  ["Bills", "done"],
+  ["Sales tax", "done"],
+  ["Reports", "todo"],
+  ["Documents", "todo"],
+  ["Year-end for Gary", "todo"],
+  ["Admin panel", "todo"],
 ];
 
 const ACCOUNT_TYPES = [
@@ -129,6 +143,7 @@ function Ico({ name, size = 18 }) {
     case "reports": return <svg {...p}><path d="M4 20V10M10 20V4M16 20v-8M22 20H2" /></svg>;
     case "documents": return <svg {...p}><path d="M4 5a2 2 0 0 1 2-2h5l2 2h5a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z" /></svg>;
     case "orders": return <svg {...p}><path d="M6 3h9l3 3v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" /><path d="M9 8h6M9 12h6M9 16h3" /></svg>;
+    case "admin": return <svg {...p}><path d="M12 3l7 4v5c0 4-3 7-7 9-4-2-7-5-7-9V7Z" /><path d="M9 12l2 2 4-4" /></svg>;
     case "clip": return <svg {...p}><path d="M21 10 11.5 19.5a4 4 0 0 1-6-6L14 5a2.5 2.5 0 0 1 4 4l-8 8a1 1 0 0 1-1.5-1.5L16 8" /></svg>;
     case "check": return <svg {...p}><path d="M5 12l5 5L20 6" /></svg>;
     case "search": return <svg {...p}><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>;
@@ -287,6 +302,9 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [showOrderForm, setShowOrderForm] = useState(false);
   const blankOrder = { customer: "", vendor: "", email: "", taxStatus: "Exempt", lines: [{ desc: "", qty: "1", price: "" }] };
   const [orderDraft, setOrderDraft] = useState(blankOrder);
+  const [showBillForm, setShowBillForm] = useState(false);
+  const blankBill = { vendor: "", amount: "", due: "", category: "", memo: "" };
+  const [billDraft, setBillDraft] = useState(blankBill);
   const blankInvoice = { customer: "", email: "", taxStatus: "Exempt", lines: [{ desc: "", qty: "1", price: "" }] };
   const [invDraft, setInvDraft] = useState(blankInvoice);
 
@@ -307,7 +325,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         ? (orgs || []).find(o => o.id === orgId)
         : (wantFirst ? (orgs || []).find(o => (o.name || "").toLowerCase().includes(wantFirst)) : null);
       if (!org || cancelled) return;
-      const [a, c, e, inv, ven, cust, prod] = await Promise.all([
+      const [a, c, e, inv, ven, cust, prod, bil] = await Promise.all([
         supabase.from("ledger_accounts").select("*").eq("org_id", org.id).eq("archived", false).order("created_at", { ascending: true }),
         supabase.from("ledger_categories").select("*").eq("org_id", org.id).eq("archived", false).order("sort_order", { ascending: true }),
         supabase.from("ledger_entries").select("*").eq("org_id", org.id).order("entry_date", { ascending: false }).order("created_at", { ascending: false }),
@@ -315,6 +333,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         supabase.from("ledger_vendors").select("*").eq("org_id", org.id).eq("archived", false).order("name", { ascending: true }),
         supabase.from("ledger_customers").select("*").eq("org_id", org.id).eq("archived", false).order("name", { ascending: true }),
         supabase.from("ledger_products").select("*").eq("org_id", org.id).eq("archived", false).order("name", { ascending: true }),
+        supabase.from("ledger_bills").select("*").eq("org_id", org.id).order("due_date", { ascending: true }).order("created_at", { ascending: false }),
       ]);
       if (cancelled) return;
       setLiveOrgId(org.id);
@@ -325,6 +344,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       built.rawAccounts = a.data || [];
       built.customers = cust.data || [];
       built.products = prod.data || [];
+      built.bills = bil.data || [];
       setDbEntity(built);
     })();
     return () => { cancelled = true; };
@@ -553,6 +573,29 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     setSection("invoices");
   }
 
+  async function recordBill() {
+    const cents = Math.round((parseFloat(billDraft.amount) || 0) * 100);
+    if (!cents || !billDraft.vendor.trim()) return;
+    const draft = billDraft;
+    setShowBillForm(false);
+    setBillDraft(blankBill);
+    if (live && liveOrgId) {
+      await supabase.from("ledger_bills").insert({
+        org_id: liveOrgId, user_id: session.user.id, vendor_name: draft.vendor.trim(),
+        amount_cents: cents, due_date: draft.due || null, category: draft.category || null,
+        memo: draft.memo.trim() || null, status: "unpaid",
+      });
+      setReloadTick(t => t + 1);
+    }
+  }
+
+  async function markBillPaid(id, paid) {
+    if (live) {
+      await supabase.from("ledger_bills").update({ status: paid ? "paid" : "unpaid", paid_at: paid ? new Date().toISOString() : null }).eq("id", id);
+      setReloadTick(t => t + 1);
+    }
+  }
+
   const q = query.trim().toLowerCase();
   const filteredItems = q
     ? items.filter(x => (x.payee + " " + x.amount + " " + x.date).toLowerCase().includes(q))
@@ -653,7 +696,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           </div>
 
           {visibleItems.length === 0 && (
-            <div style={{ padding: "26px 0", textAlign: "center", fontFamily: "'Caveat', cursive", fontSize: 22, color: "#5a6b52" }}>
+            <div style={{ padding: "26px 0", textAlign: "center", fontFamily: "'Figtree', sans-serif", fontSize: 22, color: "#5a6b52" }}>
               {q ? "Nothing matches that." : "All caught up — every line matched. 🎉"}
             </div>
           )}
@@ -664,9 +707,9 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             return (
               <div key={x.id} style={{ borderBottom: last ? "none" : "1px solid #cfdcc4", background: proposed ? "#e2edf7" : "transparent", marginLeft: proposed ? -8 : 0, paddingLeft: proposed ? 8 : 0, borderRadius: proposed ? 6 : 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "9px 0" }}>
-                  <div style={{ width: 34, marginLeft: -38, textAlign: "right", paddingRight: 6, fontFamily: "'Caveat', cursive", fontSize: 18, color: "#8a8f9a" }}>{x.date}</div>
+                  <div style={{ width: 34, marginLeft: -38, textAlign: "right", paddingRight: 6, fontFamily: "'Figtree', sans-serif", fontSize: 18, color: "#8a8f9a" }}>{x.date}</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontFamily: "'Caveat', cursive", fontSize: 21, color: "#26303f", lineHeight: 1.1 }}>{x.payee}</div>
+                    <div style={{ fontFamily: "'Figtree', sans-serif", fontSize: 21, color: "#26303f", lineHeight: 1.1 }}>{x.payee}</div>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 2, flexWrap: "wrap" }}>
                       {proposed ? (
                         <span style={{ fontSize: 11, color: N.blue, display: "flex", alignItems: "center", gap: 4 }}>
@@ -710,7 +753,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                       })()}
                     </div>
                   </div>
-                  <div style={{ fontFamily: "'Caveat', cursive", fontSize: 21, color: x.direction === "in" ? N.green : "#26303f", whiteSpace: "nowrap" }}>{x.direction === "in" ? "+" + money(x.amount) : money(-x.amount)}</div>
+                  <div style={{ fontFamily: "'Figtree', sans-serif", fontSize: 21, color: x.direction === "in" ? N.green : "#26303f", whiteSpace: "nowrap" }}>{x.direction === "in" ? "+" + money(x.amount) : money(-x.amount)}</div>
                   <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                     {proposed ? (
                       <button onClick={() => clearOne(x.id, "confirmed cleared")} style={btnBlue}><Ico name="check" size={14} /> Confirm cleared</button>
@@ -836,7 +879,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, overflow: "hidden" }}>
           {invoices.length === 0 ? (
             <div style={{ padding: "30px 20px", textAlign: "center", color: N.muted, fontSize: 14 }}>No invoices yet. Click “New invoice” to make the first one.</div>
-          ) : invoices.filter(v => v.docType !== "order").map((v, i) => (
+          ) : invoices.filter(v => v.docType !== "order").sort((a, b) => (a.status === "Paid" ? 1 : 0) - (b.status === "Paid" ? 1 : 0)).map((v, i) => (
             <div key={v.id} onClick={() => setOpenInv(v)} title="Open invoice"
               style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", borderBottom: i === invoices.length - 1 ? "none" : "1px solid " + N.rule, cursor: "pointer" }}
               onMouseEnter={e => (e.currentTarget.style.background = "#f7fafd")}
@@ -1048,6 +1091,57 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     );
   }
 
+  function Bills() {
+    const bills = entity.bills || [];
+    const unpaid = bills.filter(b => b.status !== "paid");
+    const owed = unpaid.reduce((s, b) => s + (b.amount_cents || 0), 0);
+    return (
+      <div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, flexWrap: "wrap", gap: 10 }}>
+          <div>
+            <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>Bills</div>
+            <div style={{ fontSize: 13, color: N.muted }}>What you owe vendors. {unpaid.length} unpaid · {money(owed / 100)} outstanding.</div>
+          </div>
+          <button onClick={() => setShowBillForm(s => !s)} style={{ ...btnBlue, background: N.blue, fontSize: 14, padding: "10px 18px" }}>{showBillForm ? "Close" : "+ Record a bill"}</button>
+        </div>
+        {showBillForm && (
+          <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: 16, marginBottom: 16 }}>
+            <datalist id="bill-vendors">{(entity.vendors || []).map(v => <option key={v} value={v} />)}</datalist>
+            <datalist id="bill-cats">{(entity.categories || []).map(c => <option key={c} value={c} />)}</datalist>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 110px 150px", gap: 10, marginBottom: 10 }}>
+              <input placeholder="Vendor" list="bill-vendors" value={billDraft.vendor} onChange={e => setBillDraft(d => ({ ...d, vendor: e.target.value }))} style={inputSt} />
+              <input placeholder="$ amount" value={billDraft.amount} onChange={e => setBillDraft(d => ({ ...d, amount: e.target.value }))} style={{ ...inputSt, textAlign: "right" }} />
+              <input type="date" value={billDraft.due} onChange={e => setBillDraft(d => ({ ...d, due: e.target.value }))} style={inputSt} />
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
+              <input placeholder="Which account? (category)" list="bill-cats" value={billDraft.category} onChange={e => setBillDraft(d => ({ ...d, category: e.target.value }))} style={inputSt} />
+              <input placeholder="Memo (optional)" value={billDraft.memo} onChange={e => setBillDraft(d => ({ ...d, memo: e.target.value }))} style={inputSt} />
+            </div>
+            <div style={{ display: "flex", justifyContent: "flex-end" }}><button onClick={recordBill} style={{ ...btnBlue, background: N.blue, fontSize: 14, padding: "10px 18px" }}>Save bill</button></div>
+          </div>
+        )}
+        <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, overflow: "hidden" }}>
+          {bills.length === 0 ? (
+            <div style={{ padding: "30px 20px", textAlign: "center", color: N.muted, fontSize: 14 }}>No bills yet. Record what you owe a vendor, then mark it paid (or pay it by check).</div>
+          ) : bills.map((b, i) => {
+            const paid = b.status === "paid";
+            return (
+              <div key={b.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 16px", borderBottom: i === bills.length - 1 ? "none" : "1px solid " + N.rule, opacity: paid ? 0.6 : 1 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: N.ink }}>{b.vendor_name || "—"}</div>
+                  <div style={{ fontSize: 12, color: N.muted }}>{b.category || "Uncategorized"}{b.due_date ? ` · due ${b.due_date}` : ""}{b.memo ? ` · ${b.memo}` : ""}</div>
+                </div>
+                <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: paid ? N.green : N.red, background: (paid ? N.green : N.red) + "18", padding: "4px 10px", borderRadius: 100 }}>{paid ? "Paid" : "Unpaid"}</span>
+                <button onClick={() => markBillPaid(b.id, !paid)} style={btnPaper(paid ? N.muted : N.pinkDark)}>{paid ? "Unmark" : "Mark paid"}</button>
+                <div style={{ fontSize: 16, fontWeight: 600, color: N.ink, width: 90, textAlign: "right" }}>{money((b.amount_cents || 0) / 100)}</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
   function SalesTax() {
     // Tallied live from invoices: taxable = pre-tax subtotal of taxable invoices;
     // exempt = reseller-exempt + shipped-no-tax sales; collected = MN tax billed.
@@ -1193,7 +1287,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   else if (section === "salestax") body = SalesTax();
   else if (section === "reports") body = Reports();
   else if (section === "accounts") body = Accounts();
-  else if (section === "bills") body = <Stub title="Bills" note="Bills you owe — the real, verified list. Rebuilt from statements at the April 1 line." />;
+  else if (section === "admin") body = <Stub title="Admin" note="Users & roles, entity settings, logo & branding, sales-tax rate — coming here." />;
+  else if (section === "bills") body = Bills();
   else if (section === "documents") body = <Stub title="Documents" note="Statements, exemption certificates, and anything you attach lives here." />;
 
   return (
@@ -1281,6 +1376,15 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               </button>
             );
           })}
+          <div style={{ marginTop: 20, borderTop: "1px solid " + N.rule, paddingTop: 14 }}>
+            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9.5, letterSpacing: "0.12em", color: N.muted, marginBottom: 8, paddingLeft: 4 }}>BUILD PROGRESS</div>
+            {BUILD_PROGRESS.map(([label, st]) => (
+              <div key={label} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12.5, color: st === "done" ? N.ink : N.mutedLite, padding: "4px 4px" }}>
+                <span style={{ width: 15, height: 15, borderRadius: 4, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: st === "done" ? N.green : "transparent", border: st === "done" ? "none" : "1.5px solid " + N.rule, color: "#fff", fontSize: 10, fontWeight: 700 }}>{st === "done" ? "✓" : ""}</span>
+                {label}
+              </div>
+            ))}
+          </div>
         </nav>
 
         <main style={{ flex: 1, minWidth: 0, padding: "18px 24px 80px" }}>{body}</main>
