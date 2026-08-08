@@ -127,7 +127,7 @@ const ACCOUNT_TYPES = [
 ];
 
 const STATUS_COLOR = {
-  Paid: N.green, Viewed: N.blue, Sent: N.blueHot, Draft: N.muted, Void: N.mutedLite,
+  Paid: N.green, Partial: "#eab308", Viewed: N.blue, Sent: N.blueHot, Draft: N.muted, Void: N.mutedLite,
 };
 
 // "Still being polished" accent — Kari wants checkboxes/checks amber, not green,
@@ -262,6 +262,30 @@ function mapInvoice(v) {
   };
 }
 
+// Fold an invoice's payment records into its display shape: how much has been
+// paid, what's left, and a Partial/Paid status derived from the money in.
+function attachPayments(m, payments) {
+  const totalCents = Math.round((m.amount || 0) * 100);
+  const summed = payments.reduce((s, p) => s + (p.amount_cents || 0), 0);
+  // A quick "Mark paid" (status Paid, no check recorded) still counts as paid in full.
+  const paidCents = payments.length ? summed : (m.status === "Paid" ? totalCents : 0);
+  const balanceCents = Math.max(0, totalCents - paidCents);
+  let status = m.status;
+  if (m.status !== "Void" && m.docType !== "order") {
+    if (totalCents > 0 && paidCents >= totalCents) status = "Paid";
+    else if (paidCents > 0) status = "Partial";
+  }
+  return { ...m, payments, paidCents, balanceCents, paid: paidCents / 100, balance: balanceCents / 100, status };
+}
+
+function fmtPay(p) {
+  const label = p.method === "check" ? (p.check_number ? `Check #${p.check_number}` : "Check")
+    : p.method === "ach" ? "ACH" : p.method === "cash" ? "Cash" : p.method === "card" ? "Card" : "Payment";
+  const d = p.paid_on ? String(p.paid_on).split("-") : null;
+  const date = d && d.length === 3 ? `${+d[1]}/${+d[2]}/${d[0].slice(2)}` : "";
+  return `${label}${date ? " · " + date : ""}`;
+}
+
 export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, session }) {
   const [dbEntity, setDbEntity] = useState(null);
   const entity = dbEntity || propEntity || ENTITIES[entityKey] || SAMPLE_ENTITY;
@@ -320,6 +344,9 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [showInvForm, setShowInvForm] = useState(false);
   const [openInv, setOpenInv] = useState(null);
   const [sentLink, setSentLink] = useState(null);
+  const blankInvPay = { amount: "", method: "check", check_number: "", paid_on: "", memo: "" };
+  const [payFor, setPayFor] = useState(null);
+  const [invPay, setInvPay] = useState(blankInvPay);
   const [showOrderForm, setShowOrderForm] = useState(false);
   const blankOrder = { mode: "invoice", customer: "", vendor: "", email: "", taxStatus: "Exempt", lines: [{ item: "", desc: "", qty: "1", cost: "", price: "" }] };
   const [orderDraft, setOrderDraft] = useState(blankOrder);
@@ -347,7 +374,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         ? (orgs || []).find(o => o.id === orgId)
         : (wantFirst ? (orgs || []).find(o => (o.name || "").toLowerCase().includes(wantFirst)) : null);
       if (!org || cancelled) return;
-      const [a, c, e, inv, ven, cust, prod, bil] = await Promise.all([
+      const [a, c, e, inv, ven, cust, prod, bil, pay] = await Promise.all([
         supabase.from("ledger_accounts").select("*").eq("org_id", org.id).eq("archived", false).order("created_at", { ascending: true }),
         supabase.from("ledger_categories").select("*").eq("org_id", org.id).eq("archived", false).order("sort_order", { ascending: true }),
         supabase.from("ledger_entries").select("*").eq("org_id", org.id).order("entry_date", { ascending: false }).order("created_at", { ascending: false }),
@@ -356,11 +383,14 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         supabase.from("ledger_customers").select("*").eq("org_id", org.id).eq("archived", false).order("name", { ascending: true }),
         supabase.from("ledger_products").select("*").eq("org_id", org.id).order("name", { ascending: true }),
         supabase.from("ledger_bills").select("*").eq("org_id", org.id).order("due_date", { ascending: true }).order("created_at", { ascending: false }),
+        supabase.from("ledger_payments").select("*").eq("org_id", org.id).order("paid_on", { ascending: true }),
       ]);
       if (cancelled) return;
       setLiveOrgId(org.id);
       const built = buildLiveEntity(org, a.data || [], c.data || [], e.data || [], session);
-      built.invoices = (inv.data || []).map(mapInvoice);
+      const payByInv = {};
+      (pay.data || []).forEach(p => { (payByInv[p.invoice_id] = payByInv[p.invoice_id] || []).push(p); });
+      built.invoices = (inv.data || []).map(v => attachPayments(mapInvoice(v), payByInv[v.id] || []));
       built.vendors = (ven.data || []).map(v => v.name);
       built.vendorList = ven.data || [];
       built.rawAccounts = a.data || [];
@@ -602,6 +632,42 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       await supabase.from("invoices").update(patch).eq("id", id);
       setReloadTick(t => t + 1);
     }
+  }
+
+  function openPayment(v) {
+    setInvPay({ ...blankInvPay, amount: v.balance != null ? String(v.balance) : String(v.amount || ""), paid_on: new Date().toISOString().slice(0, 10) });
+    setPayFor(v);
+  }
+  async function recordPayment() {
+    const inv = payFor;
+    const cents = Math.round((parseFloat(invPay.amount) || 0) * 100);
+    if (!inv || cents <= 0 || !liveOrgId) return;
+    const paidOn = invPay.paid_on || new Date().toISOString().slice(0, 10);
+    setPayFor(null); setInvPay(blankInvPay); setOpenInv(null);
+    await supabase.from("ledger_payments").insert({
+      org_id: liveOrgId, user_id: session.user.id, invoice_id: inv.id,
+      amount_cents: cents, method: invPay.method,
+      check_number: invPay.method === "check" ? (invPay.check_number.trim() || null) : null,
+      paid_on: paidOn, memo: invPay.memo.trim() || null,
+    });
+    const newPaid = (inv.paidCents || 0) + cents;
+    const totalCents = Math.round((inv.amount || 0) * 100);
+    if (totalCents > 0 && newPaid >= totalCents) {
+      await supabase.from("invoices").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", inv.id);
+    }
+    setReloadTick(t => t + 1);
+  }
+  async function deletePaymentRec(p, inv) {
+    if (!window.confirm(`Remove this ${money((p.amount_cents || 0) / 100)} payment?`)) return;
+    setOpenInv(null);
+    await supabase.from("ledger_payments").delete().eq("id", p.id);
+    // If the invoice was marked paid and this drops it below the total, reopen it.
+    const remaining = (inv.paidCents || 0) - (p.amount_cents || 0);
+    const totalCents = Math.round((inv.amount || 0) * 100);
+    if (inv.status === "Paid" && remaining < totalCents) {
+      await supabase.from("invoices").update({ status: "sent", paid_at: null }).eq("id", inv.id);
+    }
+    setReloadTick(t => t + 1);
   }
 
   function sendInvoice(v) {
@@ -1004,12 +1070,12 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               <div style={{ width: 50, fontSize: 12, color: N.muted }}>{v.date}</div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 15, color: N.ink, fontWeight: 600, textDecoration: voided ? "line-through" : "none" }}>{v.customer}</div>
-                <div style={{ fontSize: 12, color: N.muted }}>{v.item} · {v.tax}{v.taxAmt ? ` · MN tax ${money(v.taxAmt)}` : ""}</div>
+                <div style={{ fontSize: 12, color: N.muted }}>{v.item} · {v.tax}{v.taxAmt ? ` · MN tax ${money(v.taxAmt)}` : ""}{v.paidCents > 0 && v.balanceCents > 0 ? <span style={{ color: "#a16207" }}> · paid {money(v.paid)}, balance {money(v.balance)}</span> : ""}</div>
               </div>
               <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: STATUS_COLOR[v.status] || N.muted, background: (STATUS_COLOR[v.status] || N.muted) + "18", padding: "4px 10px", borderRadius: 100 }}>{v.status}</span>
               <div style={{ display: "flex", gap: 6 }}>
                 {v.status === "Draft" && <button onClick={e => { e.stopPropagation(); invoiceStatus(v.id, "sent"); }} style={btnPaper(N.blue)}>Send</button>}
-                {v.status !== "Paid" && !voided && <button onClick={e => { e.stopPropagation(); invoiceStatus(v.id, "paid"); }} style={btnPaper(N.pinkDark)}>Mark paid</button>}
+                {v.status !== "Paid" && !voided && <button onClick={e => { e.stopPropagation(); openPayment(v); }} style={btnPaper(N.pinkDark)}>Record payment</button>}
               </div>
               <div style={{ fontSize: 16, fontWeight: 600, color: voided ? N.mutedLite : N.ink, width: 90, textAlign: "right", textDecoration: voided ? "line-through" : "none" }}>{money(v.amount)}</div>
             </div>
@@ -1102,13 +1168,25 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                     <div style={{ fontSize: 12, color: N.mutedLite, marginTop: 4 }}>What you pay the vendor for this job.</div>
                   </div>
                   ) : (
-                  <div style={{ width: 250 }}>
+                  <div style={{ width: 260 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: N.muted, padding: "3px 0" }}><span>Subtotal</span><span>{money(openInv.subtotal || openInv.amount)}</span></div>
                     <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: N.muted, padding: "3px 0" }}><span>MN sales tax{openInv.tax === "Taxable" ? " (9.25%)" : ""}</span><span>{money(openInv.taxAmt)}</span></div>
                     <div style={{ display: "flex", justifyContent: "space-between", fontSize: 18, fontWeight: 700, color: N.ink, padding: "9px 0 0", marginTop: 5, borderTop: "2px solid " + N.ink }}><span>Total</span><span>{money(openInv.amount)}</span></div>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginTop: 7, fontWeight: 600, color: openInv.status === "Paid" ? N.green : N.red }}>
-                      <span>{openInv.status === "Paid" ? "Paid — thank you" : "Balance due"}</span><span>{money(openInv.status === "Paid" ? 0 : openInv.amount)}</span>
-                    </div>
+                    {(openInv.payments || []).map((p, pi) => (
+                      <div key={p.id || pi} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12, color: "#a16207", padding: "2px 0" }}>
+                        <span>{fmtPay(p)}</span>
+                        <span style={{ display: "flex", gap: 6, alignItems: "center" }}>−{money((p.amount_cents || 0) / 100)}<button className="no-print" onClick={() => deletePaymentRec(p, openInv)} title="Remove payment" style={{ border: "none", background: "none", color: N.mutedLite, cursor: "pointer", fontSize: 15, lineHeight: 1, padding: 0 }}>×</button></span>
+                      </div>
+                    ))}
+                    {(() => {
+                      const bal = openInv.balanceCents != null ? openInv.balanceCents / 100 : (openInv.status === "Paid" ? 0 : openInv.amount);
+                      const paidInFull = bal <= 0 && openInv.amount > 0;
+                      return (
+                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, marginTop: 7, paddingTop: 6, borderTop: "1px solid " + N.rule, fontWeight: 700, color: paidInFull ? N.green : N.red }}>
+                          <span>{paidInFull ? "Paid in full — thank you" : "Balance due"}</span><span>{money(bal)}</span>
+                        </div>
+                      );
+                    })()}
                   </div>
                   )}
                 </div>
@@ -1144,8 +1222,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 ) : (
                   <>
                     {openInv.status !== "Void" && <button onClick={() => sendInvoice(openInv)} style={{ ...btnBlue, background: N.blue }}>{openInv.status === "Draft" ? "Send · get link" : "Copy / resend link"}</button>}
-                    {openInv.status !== "Paid" && openInv.status !== "Void" && <button onClick={() => { invoiceStatus(openInv.id, "paid"); setOpenInv(null); }} style={btnPaper(N.pinkDark)}>Mark paid</button>}
-                    {openInv.status === "Paid" && <button onClick={() => { invoiceStatus(openInv.id, "sent"); setOpenInv(null); }} style={btnPaper(N.muted)}>Unmark paid</button>}
+                    {openInv.status !== "Paid" && openInv.status !== "Void" && <button onClick={() => openPayment(openInv)} style={{ ...btnBlue, background: N.pinkDark }}>Record payment / check</button>}
+                    {openInv.status === "Paid" && (openInv.payments || []).length === 0 && <button onClick={() => { invoiceStatus(openInv.id, "sent"); setOpenInv(null); }} style={btnPaper(N.muted)}>Unmark paid</button>}
                     {(openInv.status === "Sent" || openInv.status === "Viewed") && <button onClick={() => { invoiceStatus(openInv.id, "draft"); setOpenInv(null); }} style={btnPaper(N.muted)}>← Back to draft</button>}
                     {openInv.status !== "Void" && <button onClick={() => voidInvoice(openInv)} style={btnPaper(N.muted)}>Void</button>}
                     <button onClick={() => deleteInvoice(openInv)} style={btnPaper(N.pinkDark)}>Delete</button>
@@ -1177,6 +1255,48 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             </div>
           </div>
         )}
+
+        {payFor && (() => {
+          const lbl = { display: "block", fontSize: 11, color: N.muted, marginBottom: 4, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" };
+          return (
+          <div onClick={() => setPayFor(null)} style={{ position: "fixed", inset: 0, background: "rgba(10,10,20,0.45)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "56px 16px", zIndex: 220 }}>
+            <div onClick={e => e.stopPropagation()} style={{ background: N.white, borderRadius: 12, width: "100%", maxWidth: 460, boxShadow: "0 24px 70px rgba(10,10,20,0.35)", padding: 22 }}>
+              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: N.ink, marginBottom: 2 }}>Record a payment</div>
+              <div style={{ fontSize: 13, color: N.muted, marginBottom: 16 }}>{payFor.customer}{payFor.number ? ` · No. ${payFor.number}` : ""} — total {money(payFor.amount)}{payFor.paidCents > 0 ? `, ${money(payFor.balance)} still due` : ""}.</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
+                <div>
+                  <label style={lbl}>AMOUNT RECEIVED</label>
+                  <input inputMode="decimal" value={invPay.amount} onChange={e => setInvPay(d => ({ ...d, amount: e.target.value }))} style={inputSt} />
+                </div>
+                <div>
+                  <label style={lbl}>DATE RECEIVED</label>
+                  <input type="date" value={invPay.paid_on} onChange={e => setInvPay(d => ({ ...d, paid_on: e.target.value }))} style={inputSt} />
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap", alignItems: "center" }}>
+                <span style={{ fontSize: 12, color: N.muted }}>Paid by:</span>
+                {[["check", "Check"], ["ach", "ACH / bank"], ["cash", "Cash"], ["card", "Card"]].map(([m, label]) => (
+                  <button key={m} onClick={() => setInvPay(d => ({ ...d, method: m }))} style={{ fontSize: 12, padding: "6px 12px", borderRadius: 100, cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontWeight: 500, border: "1px solid " + (invPay.method === m ? N.blue : N.rule), background: invPay.method === m ? N.blue : N.white, color: invPay.method === m ? N.white : N.text }}>{label}</button>
+                ))}
+              </div>
+              {invPay.method === "check" && (
+                <div style={{ marginBottom: 12 }}>
+                  <label style={lbl}>CHECK NUMBER</label>
+                  <input value={invPay.check_number} onChange={e => setInvPay(d => ({ ...d, check_number: e.target.value }))} placeholder="e.g. 4021" style={inputSt} />
+                </div>
+              )}
+              <div style={{ marginBottom: 16 }}>
+                <label style={lbl}>MEMO (OPTIONAL)</label>
+                <input value={invPay.memo} onChange={e => setInvPay(d => ({ ...d, memo: e.target.value }))} style={inputSt} />
+              </div>
+              <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                <button onClick={() => setPayFor(null)} style={btnPaper(N.muted)}>Cancel</button>
+                <button onClick={recordPayment} style={{ ...btnBlue, background: N.pinkDark }}>Record {money(parseFloat(invPay.amount) || 0)}</button>
+              </div>
+            </div>
+          </div>
+          );
+        })()}
       </div>
     );
   }
