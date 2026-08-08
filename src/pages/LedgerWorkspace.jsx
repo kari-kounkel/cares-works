@@ -919,17 +919,17 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                         const bd = hasCat ? "#bff0d3" : isSug ? "#f0d89a" : "#cfe4ff";
                         const bg = hasCat ? "#eafaf0" : isSug ? "#fdf5e3" : "#eef6ff";
                         const fg = hasCat ? N.pinkDark : isSug ? "#8a5a00" : N.blueDark;
-                        const label = hasCat ? x.category : isSug ? `${x.suggested} ?` : "Which account?";
                         return (
-                          <button onClick={() => setCatOpen(o => (o === x.id ? null : x.id))}
-                            title={isSug ? "Remembered from a past entry — tap to confirm or change" : undefined}
+                          <select value={x.category || ""} onChange={e => setCategory(x.id, e.target.value)}
+                            title={isSug ? "Remembered from a past entry — confirm or change" : "Which account does this go to?"}
                             style={{
-                              display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, padding: "3px 9px",
+                              fontSize: 11, fontWeight: 600, padding: "4px 8px", maxWidth: 200,
                               borderRadius: 100, cursor: "pointer", fontFamily: "'Figtree', sans-serif",
                               border: "1px solid " + bd, background: bg, color: fg,
                             }}>
-                            <Ico name="documents" size={12} />{label}<span style={{ fontSize: 9 }}>▾</span>
-                          </button>
+                            <option value="">{isSug ? `${x.suggested}?` : "Which account?"}</option>
+                            {(entity.categories || []).map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                          </select>
                         );
                       })()}
                     </div>
@@ -948,18 +948,6 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                     <button onClick={() => deleteLine(x.id)} title="Delete this line" style={{ background: "none", border: "1px solid " + N.rule, borderRadius: 100, cursor: "pointer", color: N.pinkDark, fontFamily: "'Figtree', sans-serif", fontSize: 15, fontWeight: 700, lineHeight: 1, padding: "5px 10px" }}>✕</button>
                   </div>
                 </div>
-                {catOpen === x.id && (
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6, padding: "0 0 12px" }}>
-                    {(entity.categories || []).map(cat => (
-                      <button key={cat} onClick={() => setCategory(x.id, cat)} style={{
-                        fontSize: 12, padding: "6px 12px", borderRadius: 100, cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontWeight: 500,
-                        border: "1px solid " + (x.category === cat ? N.blue : N.rule),
-                        background: x.category === cat ? N.blue : N.white,
-                        color: x.category === cat ? N.white : N.text,
-                      }}>{cat}</button>
-                    ))}
-                  </div>
-                )}
                 {editLineId === x.id && (
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", padding: "4px 0 14px" }}>
                     <div style={{ display: "flex", border: "1px solid " + N.rule, borderRadius: 100, overflow: "hidden" }}>
