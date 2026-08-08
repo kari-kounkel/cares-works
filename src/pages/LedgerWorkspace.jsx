@@ -991,7 +991,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                     <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: N.muted, padding: "3px 0" }}><span>Subtotal</span><span>{money(openInv.subtotal || openInv.amount)}</span></div>
                     <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: N.muted, padding: "3px 0" }}><span>MN sales tax{openInv.tax === "Taxable" ? " (9.25%)" : ""}</span><span>{money(openInv.taxAmt)}</span></div>
                     <div style={{ display: "flex", justifyContent: "space-between", fontSize: 18, fontWeight: 700, color: N.ink, padding: "9px 0 0", marginTop: 5, borderTop: "2px solid " + N.ink }}><span>Total</span><span>{money(openInv.amount)}</span></div>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginTop: 7, fontWeight: 600, color: openInv.status === "Paid" ? N.green : N.blueDark }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginTop: 7, fontWeight: 600, color: openInv.status === "Paid" ? N.green : N.red }}>
                       <span>{openInv.status === "Paid" ? "Paid — thank you" : "Balance due"}</span><span>{money(openInv.status === "Paid" ? 0 : openInv.amount)}</span>
                     </div>
                   </div>

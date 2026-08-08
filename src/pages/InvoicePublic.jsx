@@ -91,7 +91,7 @@ export default function InvoicePublic({ token }) {
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: MUTED, padding: "3px 0" }}><span>Subtotal</span><span>{money(inv.subtotal_cents)}</span></div>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: MUTED, padding: "3px 0" }}><span>MN sales tax{taxable ? " (9.25%)" : ""}</span><span>{money(inv.tax_cents)}</span></div>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 18, fontWeight: 700, padding: "9px 0 0", marginTop: 5, borderTop: "2px solid " + INK }}><span>Total</span><span>{money(inv.total_cents)}</span></div>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginTop: 7, fontWeight: 600, color: inv.status === "paid" ? "#22c55e" : BLUE }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginTop: 7, fontWeight: 600, color: inv.status === "paid" ? "#22c55e" : "#e0322f" }}>
                   <span>{inv.status === "paid" ? "Paid — thank you" : "Balance due"}</span><span>{money(inv.status === "paid" ? 0 : inv.total_cents)}</span>
                 </div>
               </div>
