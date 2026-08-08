@@ -98,6 +98,8 @@ const SECTIONS = [
   { key: "bills", label: "Bills" },
   { key: "reports", label: "Reports" },
   { key: "documents", label: "Documents" },
+  { key: "customers", label: "Customers" },
+  { key: "vendors", label: "Vendors" },
   { key: "accounts", label: "Accounts" },
   { key: "items", label: "Items" },
   { key: "admin", label: "Admin" },
@@ -151,6 +153,8 @@ function Ico({ name, size = 18 }) {
     case "admin": return <svg {...p}><path d="M12 3l7 4v5c0 4-3 7-7 9-4-2-7-5-7-9V7Z" /><path d="M9 12l2 2 4-4" /></svg>;
     case "items": return <svg {...p}><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0l-7-7A2 2 0 0 1 3 12V4h8a2 2 0 0 1 1.4.6l8.2 8.2a2 2 0 0 1 0 2.6Z" /><circle cx="7.5" cy="7.5" r="1.2" /></svg>;
     case "accounts": return <svg {...p}><path d="M3 10 12 4l9 6" /><path d="M5 10v8M19 10v8M9 10v8M15 10v8M3 20h18" /></svg>;
+    case "customers": return <svg {...p}><circle cx="9" cy="8" r="3.2" /><path d="M3.5 20a5.5 5.5 0 0 1 11 0" /><path d="M16 5.5a3 3 0 0 1 0 5.6M17.5 20a5.5 5.5 0 0 0-3-4.9" /></svg>;
+    case "vendors": return <svg {...p}><path d="M3 7h11v9H3Z" /><path d="M14 10h4l3 3v3h-7Z" /><circle cx="7" cy="18" r="1.6" /><circle cx="17" cy="18" r="1.6" /></svg>;
     case "clip": return <svg {...p}><path d="M21 10 11.5 19.5a4 4 0 0 1-6-6L14 5a2.5 2.5 0 0 1 4 4l-8 8a1 1 0 0 1-1.5-1.5L16 8" /></svg>;
     case "check": return <svg {...p}><path d="M5 12l5 5L20 6" /></svg>;
     case "search": return <svg {...p}><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>;
@@ -305,6 +309,11 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [itemDraft, setItemDraft] = useState(blankItem);
   const [showAddItem, setShowAddItem] = useState(false);
   const [newItem, setNewItem] = useState(blankItem);
+  const blankContact = { name: "", company: "", email: "", phone: "", billing_address: "", tax_status: "Taxable", notes: "" };
+  const [contactEditId, setContactEditId] = useState(null);
+  const [contactDraft, setContactDraft] = useState(blankContact);
+  const [showAddContact, setShowAddContact] = useState(false);
+  const [newContact, setNewContact] = useState(blankContact);
   const [invoices, setInvoices] = useState(entity.invoices || []);
   const [liveOrgId, setLiveOrgId] = useState(null);
   const [reloadTick, setReloadTick] = useState(0);
@@ -540,6 +549,27 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     setReloadTick(t => t + 1);
   }
 
+  async function saveContact(table, isNew) {
+    const src = isNew ? newContact : contactDraft;
+    if (!src.name.trim() || !liveOrgId) return;
+    const row = table === "ledger_customers"
+      ? { name: src.name.trim(), company: (src.company || "").trim() || null, email: (src.email || "").trim() || null, phone: (src.phone || "").trim() || null, billing_address: (src.billing_address || "").trim() || null, tax_status: src.tax_status || null, notes: (src.notes || "").trim() || null }
+      : { name: src.name.trim(), email: (src.email || "").trim() || null, phone: (src.phone || "").trim() || null, billing_address: (src.billing_address || "").trim() || null };
+    if (isNew) {
+      await supabase.from(table).insert({ org_id: liveOrgId, user_id: session.user.id, ...row });
+      setShowAddContact(false); setNewContact(blankContact);
+    } else {
+      await supabase.from(table).update(row).eq("id", contactEditId);
+      setContactEditId(null);
+    }
+    setReloadTick(t => t + 1);
+  }
+  async function deleteContact(table, id, name) {
+    if (!window.confirm(`Remove ${name || "this"} from the list? Past invoices and orders keep the name.`)) return;
+    await supabase.from(table).delete().eq("id", id);
+    setReloadTick(t => t + 1);
+  }
+
   async function createInvoice() {
     const lines = invDraft.lines.filter(l => l.desc.trim());
     if (!invDraft.customer.trim() || lines.length === 0) return;
@@ -727,7 +757,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: 14, marginBottom: 12 }}>
             <div style={{ fontSize: 13, color: N.ink, fontWeight: 600, marginBottom: 8, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
               <span>Write lines in the notebook — a check, a cash payment, a deposit the bank feed won't catch.</span>
-              {addedCount > 0 && <span style={{ fontSize: 12, fontWeight: 700, color: N.green, background: "#eafaf0", border: "1px solid #bff0d3", padding: "3px 10px", borderRadius: 100 }}>✓ {addedCount} added</span>}
+              {addedCount > 0 && <span style={{ fontSize: 12, fontWeight: 700, color: "#a16207", background: "#fef9c3", border: "1px solid #fde68a", padding: "3px 10px", borderRadius: 100 }}>✓ {addedCount} added</span>}
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
               <div style={{ display: "flex", border: "1px solid " + N.rule, borderRadius: 100, overflow: "hidden" }}>
@@ -894,7 +924,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             {cleared.length === 0 && <div style={{ fontSize: 13, color: N.muted, padding: "10px 0" }}>Nothing cleared yet — match a line above and it lands here.</div>}
             {cleared.map(c => (
               <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "1px solid " + N.rule }}>
-                <span style={{ color: N.green, display: "flex" }}><Ico name="check" size={16} /></span>
+                <span style={{ color: AMBER, display: "flex" }}><Ico name="check" size={16} /></span>
                 <div style={{ flex: 1, fontSize: 14, color: N.text }}>{c.payee}</div>
                 <div style={{ fontSize: 12, color: N.muted }}>{c.how}</div>
                 <div style={{ fontSize: 14, color: c.direction === "in" ? N.green : N.text, fontWeight: 600 }}>{c.direction === "in" ? "+" + money(c.amount) : money(-c.amount)}</div>
@@ -1507,6 +1537,76 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     );
   }
 
+  function ContactList(kind) {
+    const isCust = kind === "customer";
+    const table = isCust ? "ledger_customers" : "ledger_vendors";
+    const rows = ((isCust ? entity.customers : entity.vendorList) || []).slice().sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+    const title = isCust ? "Customers" : "Vendors";
+    const cell = { ...inputSt };
+    const startEdit = c => { setContactEditId(c.id); setContactDraft({ name: c.name || "", company: c.company || "", email: c.email || "", phone: c.phone || "", billing_address: c.billing_address || "", tax_status: c.tax_status || "Taxable", notes: c.notes || "" }); };
+    const Editor = (src, set, onSave, onCancel, saveLabel) => (
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+        <input placeholder="Name" value={src.name} onChange={e => set(d => ({ ...d, name: e.target.value }))} style={cell} />
+        {isCust ? <input placeholder="Business name (optional)" value={src.company} onChange={e => set(d => ({ ...d, company: e.target.value }))} style={cell} /> : <div />}
+        <input placeholder="Email" value={src.email} onChange={e => set(d => ({ ...d, email: e.target.value }))} style={cell} />
+        <input placeholder="Phone" value={src.phone} onChange={e => set(d => ({ ...d, phone: e.target.value }))} style={cell} />
+        <textarea placeholder="Billing address" value={src.billing_address} onChange={e => set(d => ({ ...d, billing_address: e.target.value }))} rows={2} style={{ ...cell, gridColumn: "1 / -1", resize: "vertical" }} />
+        {isCust && (
+          <div style={{ gridColumn: "1 / -1", display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            <span style={{ fontSize: 12, color: N.muted }}>Default tax:</span>
+            {["Taxable", "Exempt", "Shipped"].map(t => (
+              <button key={t} onClick={() => set(d => ({ ...d, tax_status: t }))} style={{ fontSize: 12, padding: "6px 12px", borderRadius: 100, cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontWeight: 500, border: "1px solid " + (src.tax_status === t ? N.blue : N.rule), background: src.tax_status === t ? N.blue : N.white, color: src.tax_status === t ? N.white : N.text }}>{t}</button>
+            ))}
+            <input placeholder="Notes (optional)" value={src.notes} onChange={e => set(d => ({ ...d, notes: e.target.value }))} style={{ ...cell, flex: 1, minWidth: 160 }} />
+          </div>
+        )}
+        <div style={{ gridColumn: "1 / -1", display: "flex", gap: 8 }}>
+          <button onClick={onSave} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 16px" }}>{saveLabel}</button>
+          {onCancel && <button onClick={onCancel} style={btnPaper(N.muted)}>Cancel</button>}
+        </div>
+      </div>
+    );
+    return (
+      <div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, flexWrap: "wrap", gap: 10 }}>
+          <div>
+            <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>{title}</div>
+            <div style={{ fontSize: 13, color: N.muted }}>{rows.length} {isCust ? "customers" : "vendors"} — {isCust ? "who you bill" : "who you buy from and send POs to"}. Click Edit to add an address, phone, or email.</div>
+          </div>
+          <button onClick={() => { setShowAddContact(s => !s); setNewContact(blankContact); }} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 16px" }}>{showAddContact ? "Close" : "+ Add " + (isCust ? "customer" : "vendor")}</button>
+        </div>
+
+        {showAddContact && (
+          <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: 14, marginBottom: 14 }}>
+            {Editor(newContact, setNewContact, () => saveContact(table, true), null, "Save " + (isCust ? "customer" : "vendor"))}
+          </div>
+        )}
+
+        <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, overflow: "hidden" }}>
+          {rows.length === 0 && <div style={{ padding: "30px 16px", textAlign: "center", color: N.muted, fontSize: 14 }}>None yet — add your first above.</div>}
+          {rows.map((c, i) => (
+            <div key={c.id} style={{ padding: "12px 16px", borderTop: i === 0 ? "none" : "1px solid " + N.rule }}>
+              {contactEditId === c.id ? Editor(contactDraft, setContactDraft, () => saveContact(table, false), () => setContactEditId(null), "Save") : (
+                <div style={{ display: "flex", gap: 12, alignItems: "flex-start", flexWrap: "wrap" }}>
+                  <div style={{ flex: 1, minWidth: 200 }}>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: N.ink }}>{c.name}{c.company ? <span style={{ color: N.muted, fontWeight: 400 }}> · {c.company}</span> : ""}{isCust && c.tax_status && c.tax_status !== "Taxable" && <span style={{ fontSize: 10, fontWeight: 700, color: N.muted, marginLeft: 6, letterSpacing: "0.04em" }}>{(c.tax_status || "").toUpperCase()}</span>}</div>
+                    <div style={{ fontSize: 12, color: N.muted }}>{[c.email, c.phone].filter(Boolean).join(" · ") || <span style={{ color: N.mutedLite, fontStyle: "italic" }}>no email or phone yet</span>}</div>
+                    {c.billing_address ? <div style={{ fontSize: 12, color: N.muted, whiteSpace: "pre-line", marginTop: 2 }}>{c.billing_address}</div> : null}
+                  </div>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    <button onClick={() => startEdit(c)} style={{ ...btnPaper(N.muted), padding: "6px 12px" }}>Edit</button>
+                    <button onClick={() => deleteContact(table, c.id, c.name)} style={{ background: "none", border: "1px solid " + N.rule, borderRadius: 100, cursor: "pointer", color: N.pinkDark, fontFamily: "'Figtree', sans-serif", fontSize: 12, fontWeight: 600, padding: "6px 12px" }}>Remove</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        {isCust && <div style={{ fontSize: 12, color: N.muted, marginTop: 10 }}>QuickBooks came over with names only — most addresses are blank. Fill them in here and they'll auto-fill on the invoice's Bill To.</div>}
+      </div>
+    );
+  }
+
   function Connect() {
     return (
       <div style={{ maxWidth: 560, margin: "40px auto 0", textAlign: "center" }}>
@@ -1531,6 +1631,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   else if (section === "salestax") body = SalesTax();
   else if (section === "reports") body = Reports();
   else if (section === "accounts") body = Accounts();
+  else if (section === "customers") body = ContactList("customer");
+  else if (section === "vendors") body = ContactList("vendor");
   else if (section === "items") body = Items();
   else if (section === "admin") body = <Stub title="Admin" note="Users & roles, entity settings, logo & branding, sales-tax rate — coming here." />;
   else if (section === "bills") body = Bills();
