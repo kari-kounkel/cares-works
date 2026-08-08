@@ -300,7 +300,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [openInv, setOpenInv] = useState(null);
   const [sentLink, setSentLink] = useState(null);
   const [showOrderForm, setShowOrderForm] = useState(false);
-  const blankOrder = { customer: "", vendor: "", email: "", taxStatus: "Exempt", lines: [{ desc: "", qty: "1", price: "" }] };
+  const blankOrder = { mode: "invoice", customer: "", vendor: "", email: "", taxStatus: "Exempt", lines: [{ desc: "", qty: "1", price: "" }] };
   const [orderDraft, setOrderDraft] = useState(blankOrder);
   const [showBillForm, setShowBillForm] = useState(false);
   const blankBill = { vendor: "", amount: "", due: "", category: "", memo: "" };
@@ -545,6 +545,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     const tax = orderDraft.taxStatus === "Taxable" ? Math.round(subtotal * MN_TAX_RATE) : 0;
     const total = subtotal + tax;
     const draft = orderDraft;
+    const asPo = draft.mode === "po";
     const po = entity.nextPoNumber || 2133;
     setShowOrderForm(false);
     setOrderDraft(blankOrder);
@@ -554,15 +555,17 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         await supabase.from("ledger_customers").insert({ org_id: liveOrgId, user_id: session.user.id, name: draft.customer.trim(), email: draft.email.trim() || null });
       }
       await supabase.from("invoices").insert({
-        org_id: liveOrgId, user_id: session.user.id, doc_type: "order", status: "order",
+        org_id: liveOrgId, user_id: session.user.id,
+        doc_type: asPo ? "order" : "invoice", status: asPo ? "order" : "draft",
         customer_name: draft.customer.trim(), customer_email: draft.email.trim() || null,
-        vendor_name: draft.vendor.trim() || null, po_number: String(po),
+        vendor_name: asPo ? (draft.vendor.trim() || null) : null, po_number: asPo ? String(po) : null,
         line_items: lines.map(l => ({ item: (l.item || "").trim(), desc: (l.desc || "").trim(), qty: parseInt(l.qty) || 1, price: parseFloat(l.price) || 0 })),
         tax_status: draft.taxStatus, subtotal_cents: subtotal, tax_cents: tax, total_cents: total,
       });
-      await supabase.from("ledger_orgs").update({ next_po_number: po + 1 }).eq("id", liveOrgId);
+      if (asPo) await supabase.from("ledger_orgs").update({ next_po_number: po + 1 }).eq("id", liveOrgId);
       setReloadTick(t => t + 1);
     }
+    if (!asPo) setSection("invoices");
   }
 
   async function convertToInvoice(v) {
@@ -1021,7 +1024,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, flexWrap: "wrap", gap: 10 }}>
           <div>
             <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>New Orders</div>
-            <div style={{ fontSize: 13, color: N.muted }}>Take an order, send the PO to your vendor, then convert it to a customer invoice.</div>
+            <div style={{ fontSize: 13, color: N.muted }}>Take an order and invoice it directly — or, if a vendor makes it, send a PO first and convert it later.</div>
           </div>
           <button onClick={() => setShowOrderForm(s => !s)} style={{ ...btnBlue, background: N.blue, fontSize: 14, padding: "10px 18px" }}>{showOrderForm ? "Close" : "+ New order"}</button>
         </div>
@@ -1031,15 +1034,22 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             <datalist id="po-customers">{(entity.customers || []).map(c => <option key={c.id} value={c.name} />)}</datalist>
             <datalist id="po-vendors">{(entity.vendors || []).map(v => <option key={v} value={v} />)}</datalist>
             <datalist id="po-items">{(entity.products || []).map(p => <option key={p.id} value={p.name} />)}</datalist>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
+            <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+              {[["invoice", "Invoice only"], ["po", "Send a PO to a vendor first"]].map(([m, label]) => (
+                <button key={m} onClick={() => setOrderDraft(d => ({ ...d, mode: m }))} style={{ fontSize: 12.5, padding: "7px 14px", borderRadius: 100, cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontWeight: 500, border: "1px solid " + (orderDraft.mode === m ? N.blue : N.rule), background: orderDraft.mode === m ? N.blue : N.white, color: orderDraft.mode === m ? N.white : N.text }}>{label}</button>
+              ))}
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: orderDraft.mode === "po" ? "1fr 1fr" : "1fr", gap: 10, marginBottom: 12 }}>
               <div style={{ position: "relative" }}>
                 <input placeholder="Customer" list="po-customers" value={orderDraft.customer} onChange={e => { const val = e.target.value; const c = (entity.customers || []).find(x => x.name === val); setOrderDraft(d => ({ ...d, customer: val, email: c && c.email ? c.email : d.email })); }} style={{ ...inputSt, paddingRight: 26 }} />
                 <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: N.muted, fontSize: 10 }}>▼</span>
               </div>
+              {orderDraft.mode === "po" && (
               <div style={{ position: "relative" }}>
                 <input placeholder="Vendor who makes it" list="po-vendors" value={orderDraft.vendor} onChange={e => setOrderDraft(d => ({ ...d, vendor: e.target.value }))} style={{ ...inputSt, paddingRight: 26 }} />
                 <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: N.muted, fontSize: 10 }}>▼</span>
               </div>
+              )}
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "140px 1fr 46px 82px 22px", gap: 8, marginBottom: 4, fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", color: N.muted }}>
               <span>ITEM</span><span>DESCRIPTION (for reorders)</span><span style={{ textAlign: "center" }}>QTY</span><span style={{ textAlign: "right" }}>RATE</span><span></span>
@@ -1064,8 +1074,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               ))}
             </div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: "1px solid " + N.rule, paddingTop: 12, gap: 12, flexWrap: "wrap" }}>
-              <div style={{ fontSize: 13, color: N.muted }}>PO #{entity.nextPoNumber} · Subtotal {money(sub)}{orderDraft.taxStatus === "Taxable" ? ` · MN tax ${money(tax)}` : ""} · <b style={{ color: N.ink }}>Total {money(sub + tax)}</b></div>
-              <button onClick={createOrder} style={{ ...btnBlue, background: N.blue, fontSize: 14, padding: "10px 18px" }}>Save order</button>
+              <div style={{ fontSize: 13, color: N.muted }}>{orderDraft.mode === "po" ? `PO #${entity.nextPoNumber} · ` : ""}Subtotal {money(sub)}{orderDraft.taxStatus === "Taxable" ? ` · MN tax ${money(tax)}` : ""} · <b style={{ color: N.ink }}>Total {money(sub + tax)}</b></div>
+              <button onClick={createOrder} style={{ ...btnBlue, background: N.blue, fontSize: 14, padding: "10px 18px" }}>{orderDraft.mode === "po" ? "Save order" : "Save as invoice →"}</button>
             </div>
           </div>
         )}
