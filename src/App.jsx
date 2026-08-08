@@ -44,6 +44,7 @@ import Pricing from "./pages/Pricing";
 import NonprofitSeries from "./pages/NonprofitSeries";
 import OrgHome from "./pages/OrgHome";
 import LedgerWorkspace from "./pages/LedgerWorkspace";
+import InvoicePublic from "./pages/InvoicePublic";
 import { FRAME_COCKPITS, CLOUD_COCKPITS } from "./cockpits/registry";
 
 export function navigate(path) {
@@ -95,6 +96,9 @@ export default function App() {
     })();
     return () => { cancelled = true; };
   }, [session?.user?.email]);
+
+  // Public, no-login customer invoice view: /i/<token>. Must be reachable before any auth gate.
+  if (path.startsWith("/i/")) return <InvoicePublic token={path.slice(3).replace(/\/$/, "")} />;
 
   if (loading) return (
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#ffffff", fontFamily: "'Figtree', sans-serif", color: "#64748b", fontSize: 15 }}>Loading...</div>

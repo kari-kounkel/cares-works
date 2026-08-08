@@ -212,6 +212,7 @@ function mapInvoice(v) {
   const numMatch = (items.map(l => l.desc).join(" ").match(/#(\d+)/) || [])[1];
   return {
     id: v.id,
+    token: v.public_token,
     number: v.invoice_number || numMatch || "",
     customer: v.customer_name || "—",
     email: v.customer_email || "",
@@ -272,6 +273,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [reloadTick, setReloadTick] = useState(0);
   const [showInvForm, setShowInvForm] = useState(false);
   const [openInv, setOpenInv] = useState(null);
+  const [sentLink, setSentLink] = useState(null);
   const blankInvoice = { customer: "", email: "", taxStatus: "Exempt", lines: [{ desc: "", qty: "1", price: "" }] };
   const [invDraft, setInvDraft] = useState(blankInvoice);
 
@@ -491,6 +493,15 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       await supabase.from("invoices").update(patch).eq("id", id);
       setReloadTick(t => t + 1);
     }
+  }
+
+  function sendInvoice(v) {
+    const url = window.location.origin + "/i/" + v.token;
+    const emailText = `Hi ${v.customer},\n\nHere's your invoice from ${entity.name}${v.number ? " (No. " + v.number + ")" : ""} for ${money(v.amount)}.\n\nView it here: ${url}\n\n${entity.customerNote || "Thank you for your business."}`;
+    if (v.status === "Draft") invoiceStatus(v.id, "sent");
+    try { navigator.clipboard && navigator.clipboard.writeText(url); } catch (e) { /* clipboard may be blocked */ }
+    setSentLink({ url, emailText, customer: v.customer });
+    setOpenInv(null);
   }
 
   const q = query.trim().toLowerCase();
@@ -872,7 +883,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
 
               <div style={{ padding: "14px 22px", borderTop: "1px solid " + N.rule, background: "#f7fafd", display: "flex", gap: 8, justifyContent: "flex-end", alignItems: "center", flexWrap: "wrap" }}>
                 <span style={{ marginRight: "auto", fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: STATUS_COLOR[openInv.status] || N.muted }}>{openInv.status}</span>
-                {openInv.status === "Draft" && <button onClick={() => { invoiceStatus(openInv.id, "sent"); setOpenInv(null); }} style={{ ...btnBlue, background: N.blue }}>Send · View link</button>}
+                {(openInv.status === "Draft" || openInv.status === "Sent" || openInv.status === "Viewed") && <button onClick={() => sendInvoice(openInv)} style={{ ...btnBlue, background: N.blue }}>{openInv.status === "Draft" ? "Send · get link" : "Copy link"}</button>}
                 {openInv.status !== "Paid" && <button onClick={() => { invoiceStatus(openInv.id, "paid"); setOpenInv(null); }} style={btnPaper(N.pinkDark)}>Mark paid</button>}
                 {openInv.status === "Paid" && <button onClick={() => { invoiceStatus(openInv.id, "sent"); setOpenInv(null); }} style={btnPaper(N.muted)}>Unmark paid</button>}
                 {(openInv.status === "Sent" || openInv.status === "Viewed") && <button onClick={() => { invoiceStatus(openInv.id, "draft"); setOpenInv(null); }} style={btnPaper(N.muted)}>← Back to draft</button>}
@@ -882,6 +893,26 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           </div>
           );
         })()}
+
+        {sentLink && (
+          <div onClick={() => setSentLink(null)} style={{ position: "fixed", inset: 0, background: "rgba(10,10,20,0.45)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "60px 16px", zIndex: 210 }}>
+            <div onClick={e => e.stopPropagation()} style={{ background: N.white, borderRadius: 12, width: "100%", maxWidth: 520, boxShadow: "0 24px 70px rgba(10,10,20,0.35)", padding: 22 }}>
+              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: N.ink, marginBottom: 4 }}>Ready to send</div>
+              <div style={{ fontSize: 13, color: N.muted, marginBottom: 14 }}>Link copied. Paste it into an email to {sentLink.customer} — when they open it, this invoice flips to <b style={{ color: N.blue }}>Viewed</b>.</div>
+              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", color: N.muted, marginBottom: 3 }}>INVOICE LINK</div>
+              <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+                <input readOnly value={sentLink.url} onFocus={e => e.target.select()} style={{ ...inputSt, fontSize: 13 }} />
+                <button onClick={() => { try { navigator.clipboard.writeText(sentLink.url); } catch (e) {} }} style={{ ...btnBlue, background: N.blue }}>Copy</button>
+              </div>
+              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", color: N.muted, marginBottom: 3 }}>READY-TO-PASTE EMAIL</div>
+              <textarea readOnly value={sentLink.emailText} rows={6} onFocus={e => e.target.select()} style={{ ...inputSt, fontSize: 13, lineHeight: 1.5, resize: "vertical", marginBottom: 14 }} />
+              <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                <button onClick={() => { try { navigator.clipboard.writeText(sentLink.emailText); } catch (e) {} }} style={btnPaper(N.blue)}>Copy email</button>
+                <button onClick={() => setSentLink(null)} style={btnPaper(N.muted)}>Done</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
