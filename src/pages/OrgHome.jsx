@@ -69,6 +69,8 @@ export default function OrgHome({ slug, session }) {
   const [rentals, setRentals] = useState([]);
   const [rentalRequests, setRentalRequests] = useState([]);
   const [selectedSpaceId, setSelectedSpaceId] = useState(null);
+  const [rentalFilter, setRentalFilter] = useState("upcoming"); // upcoming | past | all
+  const [roomRentalFilter, setRoomRentalFilter] = useState("upcoming");
 
   // Compose modal — one form used for meetings, newsletters, fundraisers
   const [composeType, setComposeType] = useState(null); // 'meeting' | 'newsletter' | 'fundraiser' | null
