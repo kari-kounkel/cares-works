@@ -175,10 +175,10 @@
 <body>
 <div id="app"></div>
 
-<script src="./vendor/preact.umd.js"></script>
-<script src="./vendor/hooks.umd.js"></script>
-<script src="./vendor/htm.umd.js"></script>
-<script src="./data.js"></script>
+<script src="./vendor/preact.umd.js?v=3"></script>
+<script src="./vendor/hooks.umd.js?v=3"></script>
+<script src="./vendor/htm.umd.js?v=3"></script>
+<script src="./data.js?v=3"></script>
 <script>
 (function(){
   var h = preact.h, render = preact.render;
@@ -604,9 +604,9 @@
             <div class="rev">
               <div class="colh">Your first-review call</div>
               <div class="yn">
-                <button class=${"y"+(f.status==="ok"?" on":"")} onClick=${function(){ setSec(sec.n,{status:"ok"}); }}>✓ Looks good</button>
-                <button class=${"na"+(f.status==="suggest"?" on":"")} style=${f.status==="suggest"?"background:var(--goldSoft);border-color:var(--gold);color:var(--gold)":""} onClick=${function(){ setSec(sec.n,{status:"suggest"}); }}>◐ Suggestion</button>
-                <button class=${"n"+(f.status==="needs"?" on":"")} onClick=${function(){ setSec(sec.n,{status:"needs"}); }}>↩ Needs more</button>
+                <button class=${"y"+(f.status==="ok"?" on":"")} onClick=${function(){ setSec(sec.n,{status:"ok"}); }}>✓ Meets criteria</button>
+                <button class=${"na"+(f.status==="suggest"?" on":"")} style=${f.status==="suggest"?"background:var(--goldSoft);border-color:var(--gold);color:var(--gold)":""} onClick=${function(){ setSec(sec.n,{status:"suggest"}); }}>◐ Suggestion to strengthen</button>
+                <button class=${"n"+(f.status==="needs"?" on":"")} onClick=${function(){ setSec(sec.n,{status:"needs"}); }}>✗ Doesn't meet — needs more</button>
               </div>
               ${(f.status==="needs"||f.status==="suggest") && html`<div>
                 <div class="flabel">Note to the applicant</div>
