@@ -19,8 +19,53 @@ const MOBILE_CSS = `
     .fm-bumps { justify-content: space-between !important; flex-wrap: wrap; }
     .fm-tooltip { position: static !important; margin-top: 12px; max-width: 100% !important; }
     .fm-legend { justify-content: flex-start !important; }
+    .fm-timeline { font-size: 10px !important; }
+    .fm-timeline-label { width: 90px !important; font-size: 10px !important; }
   }
 `;
+
+// Day-view helpers
+const DAY_START_HOUR = 6;   // 6am
+const DAY_END_HOUR   = 22;  // 10pm
+const DAY_HOURS = DAY_END_HOUR - DAY_START_HOUR;
+
+// For a rental on a specific date, compute its start/end hours (as decimal, e.g. 8.5 = 8:30am)
+// within DAY_START_HOUR..DAY_END_HOUR. Handles recurrence.
+function rentalHoursOnDay(rental, dateStr) {
+  const dayStart = new Date(dateStr + "T00:00:00");
+  const dayEnd   = new Date(dateStr + "T23:59:59");
+  const startTs = new Date(rental.starts_at).getTime();
+  const endTs   = new Date(rental.ends_at).getTime();
+  // One-off
+  if (!rental.recurs_weekdays || rental.recurs_weekdays.length === 0) {
+    if (endTs < dayStart.getTime() || startTs > dayEnd.getTime()) return null;
+    return timeSlice(rental.starts_at, rental.ends_at, dateStr);
+  }
+  // Recurring
+  const untilOK = !rental.recurs_until || new Date(rental.recurs_until + "T23:59:59").getTime() >= dayStart.getTime();
+  const startedOK = startTs <= dayEnd.getTime();
+  if (!untilOK || !startedOK) return null;
+  const weekdays = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  const dow = weekdays[dayStart.getDay()];
+  if (!rental.recurs_weekdays.includes(dow)) return null;
+  // Use the recurring time-of-day mapped onto this specific date
+  const startDate = new Date(rental.starts_at);
+  const endDate   = new Date(rental.ends_at);
+  const s = new Date(dateStr + "T" + pad(startDate.getHours()) + ":" + pad(startDate.getMinutes()));
+  const e = new Date(dateStr + "T" + pad(endDate.getHours())   + ":" + pad(endDate.getMinutes()));
+  return timeSlice(s.toISOString(), e.toISOString(), dateStr);
+}
+function pad(n) { return String(n).padStart(2,"0"); }
+function timeSlice(startIso, endIso, dateStr) {
+  const s = new Date(startIso);
+  const e = new Date(endIso);
+  const dayStart = new Date(dateStr + "T00:00:00");
+  const dayEnd   = new Date(dateStr + "T23:59:59");
+  const sh = Math.max(DAY_START_HOUR, (s.getTime() >= dayStart.getTime() ? s.getHours() + s.getMinutes()/60 : DAY_START_HOUR));
+  const eh = Math.min(DAY_END_HOUR,   (e.getTime() <= dayEnd.getTime()   ? e.getHours() + e.getMinutes()/60 : DAY_END_HOUR));
+  if (eh <= sh) return null;
+  return { startH: sh, endH: eh, startLabel: s.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }), endLabel: e.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) };
+}
 
 // Color rotator so different renters get visually distinct colors on the map
 const RENTER_COLORS = ["#0080ff", "#22c55e", "#ff8a2a", "#a855f7", "#ec4899", "#14b8a6", "#f59e0b"];
@@ -178,6 +223,80 @@ export default function FacilitiesMap({ spaces = [], rentals = [], accent = { co
           );
         })()}
       </div>
+
+      {/* DAY VIEW — see the whole day at a glance */}
+      {(() => {
+        const dayStr = when.toISOString().slice(0, 10);
+        const rentableSpaces = spaces.filter(s => s.rentable);
+        // Compute renter color same way as map
+        const idxByRental = new Map();
+        rentals.forEach((r, i) => idxByRental.set(r.id, i));
+        // Collect bars per space
+        const barsBySpace = new Map();
+        rentableSpaces.forEach(s => barsBySpace.set(s.id, []));
+        rentals.forEach(r => {
+          const slice = rentalHoursOnDay(r, dayStr);
+          if (!slice) return;
+          const color = RENTER_COLORS[idxByRental.get(r.id) % RENTER_COLORS.length];
+          (r.space_ids || []).forEach(sid => {
+            if (barsBySpace.has(sid)) barsBySpace.get(sid).push({ ...slice, rental: r, color });
+          });
+        });
+        return (
+          <div style={{ background: N.white, border: `1.5px solid ${N.rule}`, borderRadius: 12, padding: "14px 16px" }}>
+            <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 10, flexWrap: "wrap", gap: 8 }}>
+              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", color: N.muted, fontWeight: 700 }}>DAY VIEW · {when.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric", year: "numeric" })}</div>
+              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: N.muted }}>{DAY_START_HOUR}am — {DAY_END_HOUR === 24 ? "midnight" : (DAY_END_HOUR - 12) + "pm"}</div>
+            </div>
+            <div className="fm-timeline" style={{ fontSize: 11 }}>
+              {/* Hour markers header */}
+              <div style={{ display: "flex", marginBottom: 6, marginLeft: 130 }}>
+                {Array.from({ length: DAY_HOURS + 1 }, (_, i) => {
+                  const h = DAY_START_HOUR + i;
+                  const label = h === 12 ? "12p" : (h > 12 ? (h - 12) + "p" : h + "a");
+                  return (
+                    <div key={h} style={{ flex: 1, textAlign: "left", fontFamily: "'DM Mono', monospace", fontSize: 9, color: N.muted, borderLeft: `1px solid ${N.rule}`, paddingLeft: 4 }}>{label}</div>
+                  );
+                })}
+              </div>
+              {/* Rows: one per rentable space */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 3, maxHeight: 480, overflowY: "auto" }}>
+                {rentableSpaces.map(s => {
+                  const bars = barsBySpace.get(s.id) || [];
+                  const isSelected = false;
+                  return (
+                    <div key={s.id} style={{ display: "flex", alignItems: "stretch", minHeight: 26 }}>
+                      <button
+                        className="fm-timeline-label"
+                        onClick={() => onSpaceClick && s.rentable && onSpaceClick(s)}
+                        style={{ width: 130, padding: "3px 8px", fontFamily: "'Figtree', sans-serif", fontSize: 11, color: N.ink, background: "transparent", border: "none", textAlign: "left", cursor: onSpaceClick ? "pointer" : "default", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
+                        title={s.name}>{s.name}</button>
+                      <div style={{ flex: 1, position: "relative", background: `repeating-linear-gradient(to right, transparent, transparent calc(${100 / DAY_HOURS}% - 1px), ${N.rule} calc(${100 / DAY_HOURS}% - 1px), ${N.rule} calc(${100 / DAY_HOURS}%))`, borderRadius: 4, minHeight: 22 }}>
+                        {bars.map((b, i) => {
+                          const leftPct  = ((b.startH - DAY_START_HOUR) / DAY_HOURS) * 100;
+                          const widthPct = ((b.endH - b.startH) / DAY_HOURS) * 100;
+                          return (
+                            <div key={i} title={`${b.rental.renter_name} · ${b.startLabel} – ${b.endLabel}${b.rental.purpose ? " · " + b.rental.purpose : ""}`}
+                              onClick={() => onSpaceClick && onSpaceClick(s)}
+                              style={{ position: "absolute", left: leftPct + "%", width: widthPct + "%", top: 2, bottom: 2, background: b.color, borderRadius: 3, boxShadow: `0 0 6px ${b.color}80`, cursor: onSpaceClick ? "pointer" : "default", padding: "1px 6px", fontSize: 10, color: "#fff", fontWeight: 700, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis", lineHeight: "18px" }}>
+                              {b.rental.renter_name}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              {rentableSpaces.every(s => (barsBySpace.get(s.id) || []).length === 0) && (
+                <div style={{ padding: "16px 12px", textAlign: "center", color: N.muted, fontSize: 12, fontStyle: "italic" }}>
+                  Nothing booked on {when.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}. The whole day is open.
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* LEGEND — current rentals */}
       {activeMap.size > 0 && (
