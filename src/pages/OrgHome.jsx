@@ -68,6 +68,7 @@ export default function OrgHome({ slug, session }) {
   const [spaces, setSpaces] = useState([]);
   const [rentals, setRentals] = useState([]);
   const [rentalRequests, setRentalRequests] = useState([]);
+  const [selectedSpaceId, setSelectedSpaceId] = useState(null);
 
   // Compose modal — one form used for meetings, newsletters, fundraisers
   const [composeType, setComposeType] = useState(null); // 'meeting' | 'newsletter' | 'fundraiser' | null
@@ -444,8 +445,65 @@ export default function OrgHome({ slug, session }) {
                   <p style={{ color: N.muted, fontSize: 14 }}>Add spaces via SQL or the admin console for now.</p>
                 </NeonBox>
               ) : (
-                <FacilitiesMap spaces={spaces} rentals={rentals} accent={accent} />
+                <FacilitiesMap spaces={spaces} rentals={rentals} accent={accent} onSpaceClick={s => setSelectedSpaceId(prev => prev === s.id ? null : s.id)} />
               )}
+
+              {/* CLICK-A-ROOM PANEL */}
+              {selectedSpaceId && (() => {
+                const s = spaces.find(x => x.id === selectedSpaceId);
+                if (!s) return null;
+                const roomRentals = rentals
+                  .filter(r => (r.space_ids || []).includes(s.id))
+                  .filter(r => {
+                    const endTs = new Date(r.ends_at).getTime();
+                    const untilTs = r.recurs_until ? new Date(r.recurs_until + "T23:59:59").getTime() : Infinity;
+                    return endTs >= Date.now() || untilTs >= Date.now();
+                  })
+                  .sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at));
+                return (
+                  <NeonBox color={accent.color} rgb={accent.rgb} style={{ padding: "20px 24px", marginTop: 20 }}>
+                    <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 10, flexWrap: "wrap", gap: 10 }}>
+                      <div>
+                        <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", color: accent.color, fontWeight: 700 }}>SELECTED ROOM</div>
+                        <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>{s.name}</div>
+                        <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: N.muted, textTransform: "uppercase", letterSpacing: "0.08em" }}>{s.category}{s.capacity ? ` · ${s.capacity} capacity` : ""}{!s.rentable ? " · INTERNAL ONLY" : ""}</div>
+                      </div>
+                      <button onClick={() => setSelectedSpaceId(null)}
+                        style={{ background: "transparent", border: `1px solid ${N.rule}`, color: N.muted, padding: "6px 14px", borderRadius: 6, fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", cursor: "pointer", fontWeight: 700 }}>CLOSE ×</button>
+                    </div>
+                    {(s.hourly_rate || s.daily_rate || s.member_rate) && (
+                      <div style={{ padding: "10px 14px", background: `rgba(${accent.rgb},0.05)`, borderRadius: 8, marginBottom: 12, display: "flex", gap: 16, flexWrap: "wrap" }}>
+                        {s.hourly_rate && <div><span style={{ fontSize: 11, color: N.muted, fontFamily: "'DM Mono', monospace" }}>HOURLY </span><strong>${Number(s.hourly_rate).toFixed(2)}</strong></div>}
+                        {s.member_rate && <div><span style={{ fontSize: 11, color: N.muted, fontFamily: "'DM Mono', monospace" }}>MEMBER </span><strong>${Number(s.member_rate).toFixed(2)}</strong></div>}
+                        {s.daily_rate && <div><span style={{ fontSize: 11, color: N.muted, fontFamily: "'DM Mono', monospace" }}>DAILY </span><strong>${Number(s.daily_rate).toFixed(2)}</strong></div>}
+                      </div>
+                    )}
+                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.12em", color: N.muted, fontWeight: 700, marginBottom: 10 }}>UPCOMING RENTALS IN THIS ROOM · {roomRentals.length}</div>
+                    {roomRentals.length === 0 ? (
+                      <div style={{ padding: "16px", background: N.white, border: `1px dashed ${N.rule}`, borderRadius: 8, textAlign: "center", color: N.muted, fontSize: 13 }}>No upcoming rentals for this room.</div>
+                    ) : (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                        {roomRentals.map(r => (
+                          <div key={r.id} style={{ padding: "10px 14px", background: N.white, border: `1px solid ${N.rule}`, borderRadius: 8 }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+                              <div>
+                                <div style={{ fontSize: 14, color: N.ink, fontWeight: 700 }}>{r.renter_name}{r.renter_org ? " · " + r.renter_org : ""}</div>
+                                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: N.muted }}>
+                                  {r.recurs_weekdays?.length ? r.recurs_weekdays.join(",") + " · " : ""}
+                                  {new Date(r.starts_at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })} → {new Date(r.ends_at).toLocaleString("en-US", { hour: "numeric", minute: "2-digit" })}
+                                  {r.recurs_until ? " · until " + fmtDate(r.recurs_until) : ""}
+                                </div>
+                                {r.purpose && <div style={{ fontSize: 12, color: N.muted, marginTop: 4, fontStyle: "italic" }}>{r.purpose}</div>}
+                              </div>
+                              <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", padding: "3px 10px", borderRadius: 100, background: r.status === "confirmed" ? `rgba(${accent.rgb},0.15)` : "#eef0f6", color: r.status === "confirmed" ? accent.color : N.muted, fontWeight: 700, height: "fit-content" }}>{r.status.toUpperCase()}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </NeonBox>
+                );
+              })()}
 
               {/* Requests inbox */}
               {rentalRequests.filter(r => r.status === "pending").length > 0 && (
@@ -472,27 +530,54 @@ export default function OrgHome({ slug, session }) {
                 </div>
               )}
 
-              {/* Rentals list */}
-              {rentals.length > 0 && (
-                <div style={{ marginTop: 24 }}>
-                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", color: N.muted, fontWeight: 700, marginBottom: 10 }}>ALL RENTALS · {rentals.length}</div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                    {rentals.map(r => (
-                      <div key={r.id} style={{ padding: "10px 14px", background: N.white, border: `1px solid ${N.rule}`, borderRadius: 8, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-                        <div style={{ flex: 1, minWidth: 200 }}>
-                          <div style={{ fontSize: 14, color: N.ink, fontWeight: 700 }}>{r.renter_name}{r.renter_org ? " · " + r.renter_org : ""}</div>
-                          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: N.muted }}>
-                            {r.recurs_weekdays?.length ? r.recurs_weekdays.join(",") + " · " : ""}
-                            {new Date(r.starts_at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })} → {new Date(r.ends_at).toLocaleString("en-US", { hour: "numeric", minute: "2-digit" })}
-                            {r.recurs_until ? " · until " + fmtDate(r.recurs_until) : ""}
+              {/* UPCOMING RENTALS — chronological, future + still-active recurring */}
+              {(() => {
+                const upcoming = rentals
+                  .filter(r => r.status !== "cancelled")
+                  .filter(r => {
+                    const endTs = new Date(r.ends_at).getTime();
+                    const untilTs = r.recurs_until ? new Date(r.recurs_until + "T23:59:59").getTime() : Infinity;
+                    return endTs >= Date.now() || untilTs >= Date.now();
+                  })
+                  .sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at));
+                if (upcoming.length === 0) {
+                  return (
+                    <div style={{ marginTop: 24 }}>
+                      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", color: N.muted, fontWeight: 700, marginBottom: 10 }}>UPCOMING RENTALS</div>
+                      <div style={{ padding: 20, textAlign: "center", color: N.muted, fontSize: 13, background: N.white, border: `1px dashed ${N.rule}`, borderRadius: 8 }}>Nothing on the schedule yet. Standing rentals + one-offs will show here.</div>
+                    </div>
+                  );
+                }
+                return (
+                  <div style={{ marginTop: 24 }}>
+                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", color: N.muted, fontWeight: 700, marginBottom: 10 }}>UPCOMING RENTALS · {upcoming.length}</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      {upcoming.map(r => {
+                        const roomNames = (r.space_ids || []).map(id => spaces.find(s => s.id === id)?.name).filter(Boolean);
+                        return (
+                          <div key={r.id} style={{ padding: "10px 14px", background: N.white, border: `1px solid ${N.rule}`, borderRadius: 8, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", cursor: "pointer" }}
+                               onClick={() => { if (r.space_ids?.[0]) setSelectedSpaceId(r.space_ids[0]); }}>
+                            <div style={{ flex: 1, minWidth: 200 }}>
+                              <div style={{ fontSize: 14, color: N.ink, fontWeight: 700 }}>{r.renter_name}{r.renter_org ? " · " + r.renter_org : ""}</div>
+                              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: N.muted }}>
+                                {r.recurs_weekdays?.length ? r.recurs_weekdays.join(",") + " · " : ""}
+                                {new Date(r.starts_at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })} → {new Date(r.ends_at).toLocaleString("en-US", { hour: "numeric", minute: "2-digit" })}
+                                {r.recurs_until ? " · until " + fmtDate(r.recurs_until) : ""}
+                              </div>
+                              {roomNames.length > 0 && (
+                                <div style={{ fontSize: 11, color: accent.color, fontFamily: "'DM Mono', monospace", marginTop: 2, letterSpacing: "0.04em" }}>
+                                  🏛 {roomNames.join(" · ")}
+                                </div>
+                              )}
+                            </div>
+                            <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", padding: "3px 10px", borderRadius: 100, background: r.status === "confirmed" ? `rgba(${accent.rgb},0.15)` : "#eef0f6", color: r.status === "confirmed" ? accent.color : N.muted, fontWeight: 700 }}>{r.status.toUpperCase()}</span>
                           </div>
-                        </div>
-                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", padding: "3px 10px", borderRadius: 100, background: r.status === "confirmed" ? `rgba(${accent.rgb},0.15)` : "#eef0f6", color: r.status === "confirmed" ? accent.color : N.muted, fontWeight: 700 }}>{r.status.toUpperCase()}</span>
-                      </div>
-                    ))}
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
             </div>
           )}
 
