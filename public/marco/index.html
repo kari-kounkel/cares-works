@@ -174,15 +174,27 @@
 <body>
 <div id="app"></div>
 
-<script src="https://unpkg.com/preact@10.19.3/dist/preact.umd.js"></script>
-<script src="https://unpkg.com/preact@10.19.3/hooks/dist/hooks.umd.js"></script>
-<script src="https://unpkg.com/htm@3.1.1/dist/htm.umd.js"></script>
+<script src="./vendor/preact.umd.js"></script>
+<script src="./vendor/hooks.umd.js"></script>
+<script src="./vendor/htm.umd.js"></script>
 <script src="./data.js"></script>
 <script>
 (function(){
   var h = preact.h, render = preact.render;
   var useState = preactHooks.useState, useEffect = preactHooks.useEffect, useRef = preactHooks.useRef, useMemo = preactHooks.useMemo;
   var html = htm.bind(h);
+
+  /* ---------------- theming ---------------- */
+  var PALETTES = [
+    {name:"Teal",     v:{teal:"#12716b",tealDeep:"#0c5651",tealSoft:"#e6f2f0",gold:"#c2922a",goldSoft:"#faf1da"}},
+    {name:"Navy",     v:{teal:"#1f3d63",tealDeep:"#152a45",tealSoft:"#e9eef5",gold:"#c2922a",goldSoft:"#faf1da"}},
+    {name:"Plum",     v:{teal:"#6d2f74",tealDeep:"#4f2155",tealSoft:"#f3e9f4",gold:"#c2922a",goldSoft:"#faf1da"}},
+    {name:"Forest",   v:{teal:"#2f6b41",tealDeep:"#20492d",tealSoft:"#e7f1ea",gold:"#c2922a",goldSoft:"#faf1da"}},
+    {name:"Slate",    v:{teal:"#3a4a57",tealDeep:"#28343d",tealSoft:"#eceff2",gold:"#b8862f",goldSoft:"#f7efe0"}},
+    {name:"Burgundy", v:{teal:"#8a2f3b",tealDeep:"#66222c",tealSoft:"#f6e8ea",gold:"#c2922a",goldSoft:"#faf1da"}}
+  ];
+  function applyTheme(p){ var r=document.documentElement.style; r.setProperty("--teal",p.v.teal); r.setProperty("--tealDeep",p.v.tealDeep); r.setProperty("--tealSoft",p.v.tealSoft); r.setProperty("--gold",p.v.gold); r.setProperty("--goldSoft",p.v.goldSoft); try{ localStorage.setItem("marco_theme",p.name); }catch(e){} }
+  (function(){ try{ var s=localStorage.getItem("marco_theme"); var p=PALETTES.filter(function(x){return x.name===s;})[0]; if(p) applyTheme(p); }catch(e){} })();
 
   /* ---------------- backend ---------------- */
   var SUPA = "https://qcikhcnclduakriextsz.supabase.co";
@@ -281,6 +293,7 @@
          : st.role==="board" ? html`<${BoardView} ...${ctx} />`
          : html`<${ApplicantView} ...${ctx} />` }
       </div>
+      <${ThemePicker} />
     </div>`;
   }
 
@@ -318,7 +331,7 @@
       <input class="inp" placeholder="e.g. Jennifer O'Byrne" value=${name} onInput=${function(ev){setName(ev.target.value);}} />
       <button class="btn" style="width:100%;margin-top:18px" disabled=${!role||name.trim().length<2}
         onClick=${function(){ props.onPick(role, name.trim()); }}>Enter the console →</button>
-    </div></div>`;
+    </div><${ThemePicker} /></div>`;
   }
 
   /* ---------------- header ---------------- */
@@ -867,6 +880,25 @@
         ${acts.length===0 && html`<div style="font-size:12.5px;color:var(--muted)">Actions across the console show up here as they happen.</div>`}
         ${acts.map(function(a){ return html`<div class="f"><span class="who">${a.actor||"someone"}</span><span>${a.text}</span><span class="tm">${timeAgo(a.created_at)}</span></div>`; })}
       </div>
+    </div>`;
+  }
+
+  /* ---------------- theme picker (floating) ---------------- */
+  function ThemePicker(){
+    var o=useState(false), open=o[0], setOpen=o[1];
+    var c=useState((function(){ try{ return localStorage.getItem("marco_theme")||"Teal"; }catch(e){ return "Teal"; } })()), cur=c[0], setCur=c[1];
+    return html`<div style="position:fixed;right:16px;bottom:16px;z-index:80">
+      ${open && html`<div class="card" style="padding:13px 14px;margin-bottom:9px;width:224px;box-shadow:0 12px 34px rgba(0,0,0,.22)">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:10px">Theme color</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+          ${PALETTES.map(function(p){ return html`<div onClick=${function(){ applyTheme(p); setCur(p.name); }} style="cursor:pointer;text-align:center">
+            <div style=${"height:34px;border-radius:9px;background:"+p.v.teal+";border:2.5px solid "+(cur===p.name?p.v.gold:"transparent")}></div>
+            <div style="font-size:10.5px;margin-top:4px;color:var(--inkSoft)">${p.name}</div>
+          </div>`; })}
+        </div>
+        <div style="font-size:10.5px;color:var(--muted);margin-top:11px;line-height:1.45">Your colors — pick what fits MARCO's brand. We can drop in your exact palette and logo.</div>
+      </div>`}
+      <button class="btn sm" style="border-radius:30px;box-shadow:0 6px 20px rgba(0,0,0,.2)" onClick=${function(){ setOpen(!open); }}>🎨 Theme</button>
     </div>`;
   }
 
