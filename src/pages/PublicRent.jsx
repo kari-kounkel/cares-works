@@ -3,6 +3,16 @@ import { supabase } from "../supabaseClient";
 import { N, N_RGB, FONT_LINK, NeonBox, SignatureFooter, WASH_BG_LITE } from "../design/neon";
 import FacilitiesMap from "../components/FacilitiesMap";
 
+const MOBILE_RENT = `
+  @media (max-width: 700px) {
+    .pr-form-grid { grid-template-columns: 1fr !important; }
+    .pr-page { padding: 20px 16px 40px !important; }
+    .pr-hero h1 { font-size: 26px !important; }
+    .pr-tier-row { flex-direction: column !important; }
+    .pr-tier-row button { width: 100% !important; }
+  }
+`;
+
 // PUBLIC rental page. No login.
 // - Interactive map + calendar (FacilitiesMap)
 // - Tier picker (personal / ministry outside / non-ministry outside)
@@ -48,6 +58,23 @@ export default function PublicRent() {
       const { data, error } = await supabase.rpc("get_public_rental_bundle", { p_slug: slug });
       if (error || !data || !data.org) { setState({ loading: false, error: "Rental page not found." }); return; }
       setState({ loading: false, org: data.org, spaces: data.spaces || [], rentals: data.rentals || [] });
+
+      // Hash deep-link: /rent/river-of-life#CMP → auto-select that space and scroll to it.
+      // Multiple codes with commas: #CMP,CR03 → both selected.
+      const hash = window.location.hash.replace(/^#/, "").trim();
+      if (hash && data.spaces) {
+        const codes = hash.toUpperCase().split(",").map(c => c.trim()).filter(Boolean);
+        const matched = (data.spaces || []).filter(s => codes.includes((s.code || "").toUpperCase()));
+        if (matched.length) {
+          setSelectedSpaceIds(matched.map(s => s.id));
+          // Open the request form if the hash includes '=request' or ',request'
+          if (codes.includes("REQUEST")) setShowForm(true);
+          setTimeout(() => {
+            const el = document.getElementById("space-picker");
+            if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+          }, 200);
+        }
+      }
     })();
   }, [slug]);
 
@@ -143,9 +170,10 @@ export default function PublicRent() {
         </div>
       </header>
 
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "28px 24px 40px" }}>
+      <style>{MOBILE_RENT}</style>
+      <div className="pr-page" style={{ maxWidth: 1200, margin: "0 auto", padding: "28px 24px 40px" }}>
 
-        <div style={{ marginBottom: 22 }}>
+        <div className="pr-hero" style={{ marginBottom: 22 }}>
           <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, color: N.ink, marginBottom: 8, lineHeight: 1.15 }}>Rent space at {org.short_name || org.name}</h1>
           <p style={{ color: N.muted, fontSize: 15, maxWidth: 720, lineHeight: 1.55 }}>
             Pick a date, then rooms. Your invoice previews live. Agree to the rules and submit — someone from {org.short_name || org.name} will confirm and send payment info.
@@ -157,7 +185,7 @@ export default function PublicRent() {
         {/* Tier picker */}
         <div style={{ marginTop: 24 }}>
           <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", color: accent.color, fontWeight: 700, marginBottom: 10 }}>YOUR RATE TIER</div>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <div className="pr-tier-row" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {TIERS.map(t => (
               <button key={t.key} onClick={() => setTier(t.key)}
                 style={{ padding: "10px 16px", background: tier === t.key ? accent.color : N.white, color: tier === t.key ? N.white : N.ink, border: tier === t.key ? "none" : `1.5px solid ${N.rule}`, borderRadius: 10, cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontSize: 13, fontWeight: tier === t.key ? 700 : 500, boxShadow: tier === t.key ? `0 4px 14px ${accent.color}66` : "none" }}>
@@ -168,7 +196,7 @@ export default function PublicRent() {
         </div>
 
         {/* Room list with tier-specific rates */}
-        <div style={{ marginTop: 20 }}>
+        <div id="space-picker" style={{ marginTop: 20 }}>
           <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink, marginBottom: 12 }}>Available Spaces</h2>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12 }}>
             {spaces.filter(s => s.rentable).map(s => {

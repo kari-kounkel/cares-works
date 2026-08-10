@@ -6,11 +6,19 @@ import FacilitiesMap from "../components/FacilitiesMap";
 
 const MOBILE = `
   @media (max-width: 900px) {
-    .oh-frame { flex-direction: column !important; }
-    .oh-sidebar { width: 100% !important; position: static !important; padding-bottom: 20px !important; }
-    .oh-sidebar-nav { display: grid !important; grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
-    .oh-main { padding: 20px !important; }
-    .oh-stat-row { grid-template-columns: 1fr 1fr !important; }
+    .oh-frame { flex-direction: column !important; padding: 16px !important; gap: 16px !important; }
+    .oh-sidebar { width: 100% !important; position: static !important; padding-bottom: 0 !important; }
+    .oh-sidebar-nav { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 6px !important; }
+    .oh-sidebar-nav button, .oh-sidebar-nav a { padding: 8px 4px !important; font-size: 11px !important; text-align: center !important; justify-content: center !important; flex-direction: column !important; gap: 4px !important; }
+    .oh-main { padding: 0 !important; }
+    .oh-stat-row { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+    .oh-stat-row > div { padding: 14px 14px !important; }
+    h1 { font-size: 26px !important; }
+    h2 { font-size: 20px !important; }
+  }
+  @media (max-width: 500px) {
+    .oh-sidebar-nav { grid-template-columns: repeat(2, 1fr) !important; }
+    .oh-stat-row { grid-template-columns: 1fr !important; }
   }
 `;
 
@@ -55,7 +63,21 @@ export default function OrgHome({ slug, session }) {
   const [me, setMe] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [section, setSection] = useState("home");
+  // Section from URL hash — /org/river-of-life#facilities lands directly on Facilities
+  const VALID_SECTIONS = ["home","financials","facilities","meetings","newsletter","fundraisers","documents"];
+  const initialSection = (() => {
+    const h = window.location.hash.replace(/^#/, "").toLowerCase();
+    return VALID_SECTIONS.includes(h) ? h : "home";
+  })();
+  const [section, setSection] = useState(initialSection);
+
+  // Keep URL hash in sync when section changes so links stay bookmarkable
+  useEffect(() => {
+    const desired = section === "home" ? "" : "#" + section;
+    if (window.location.hash !== desired) {
+      history.replaceState(null, "", window.location.pathname + desired);
+    }
+  }, [section]);
 
   const [meetings, setMeetings] = useState([]);
   const [newsletters, setNewsletters] = useState([]);

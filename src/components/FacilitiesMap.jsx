@@ -9,8 +9,18 @@
 //   accent  — { color, rgb } from the parent
 //   onSpaceClick(space) — optional click handler
 //
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { N } from "../design/neon";
+
+const MOBILE_CSS = `
+  @media (max-width: 700px) {
+    .fm-slider-row { flex-direction: column !important; align-items: stretch !important; }
+    .fm-slider-row > * { width: 100%; }
+    .fm-bumps { justify-content: space-between !important; flex-wrap: wrap; }
+    .fm-tooltip { position: static !important; margin-top: 12px; max-width: 100% !important; }
+    .fm-legend { justify-content: flex-start !important; }
+  }
+`;
 
 // Color rotator so different renters get visually distinct colors on the map
 const RENTER_COLORS = ["#0080ff", "#22c55e", "#ff8a2a", "#a855f7", "#ec4899", "#14b8a6", "#f59e0b"];
@@ -87,13 +97,14 @@ export default function FacilitiesMap({ spaces = [], rentals = [], accent = { co
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <style>{MOBILE_CSS}</style>
 
       {/* DATE/TIME SLIDER */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", background: N.white, border: `1.5px solid ${N.rule}`, borderRadius: 10, flexWrap: "wrap" }}>
+      <div className="fm-slider-row" style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", background: N.white, border: `1.5px solid ${N.rule}`, borderRadius: 10, flexWrap: "wrap" }}>
         <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", color: N.muted, fontWeight: 700 }}>SHOWING</div>
         <input type="datetime-local" value={fmtDT(when).slice(0,16)} onChange={e => setWhen(new Date(e.target.value))}
           style={{ padding: "8px 12px", background: N.white, border: `1.5px solid ${N.rule}`, borderRadius: 8, fontFamily: "'Figtree', sans-serif", fontSize: 13, color: N.ink, outline: "none" }} />
-        <div style={{ display: "flex", gap: 4 }}>
+        <div className="fm-bumps" style={{ display: "flex", gap: 4 }}>
           <button onClick={() => bump(-60)}   style={btnMini(accent)}>−1h</button>
           <button onClick={() => bump(-30)}   style={btnMini(accent)}>−30m</button>
           <button onClick={() => setWhen(new Date())} style={{ ...btnMini(accent), background: accent.color, color: N.white, borderColor: accent.color }}>Now</button>
@@ -145,13 +156,13 @@ export default function FacilitiesMap({ spaces = [], rentals = [], accent = { co
           })}
         </svg>
 
-        {/* Hover tooltip */}
+        {/* Hover / tap tooltip — mobile-friendly (position:static via CSS on small) */}
         {hoverSpace && (() => {
           const s = spaces.find(x => x.id === hoverSpace);
           if (!s) return null;
           const uses = activeMap.get(s.id) || [];
           return (
-            <div style={{ position: "absolute", top: 20, right: 20, background: N.white, border: `1.5px solid ${accent.color}`, borderRadius: 8, padding: "10px 14px", boxShadow: `0 4px 20px ${accent.color}44`, maxWidth: 280 }}>
+            <div className="fm-tooltip" style={{ position: "absolute", top: 20, right: 20, background: N.white, border: `1.5px solid ${accent.color}`, borderRadius: 8, padding: "10px 14px", boxShadow: `0 4px 20px ${accent.color}44`, maxWidth: 280 }}>
               <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 15, color: N.ink }}>{s.name}</div>
               {s.category && <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.1em", color: N.muted, textTransform: "uppercase", marginTop: 2 }}>{s.category}{s.capacity ? ` · ${s.capacity} capacity` : ""}</div>}
               {!s.rentable && <div style={{ marginTop: 6, fontSize: 11, color: N.muted, fontStyle: "italic" }}>Not rentable — internal use only</div>}
@@ -170,7 +181,7 @@ export default function FacilitiesMap({ spaces = [], rentals = [], accent = { co
 
       {/* LEGEND — current rentals */}
       {activeMap.size > 0 && (
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", padding: "10px 14px", background: N.white, border: `1px solid ${N.rule}`, borderRadius: 10 }}>
+        <div className="fm-legend" style={{ display: "flex", gap: 10, flexWrap: "wrap", padding: "10px 14px", background: N.white, border: `1px solid ${N.rule}`, borderRadius: 10 }}>
           {[...new Set([...activeMap.values()].flat().map(r => r.id))].map(rid => {
             const r = [...activeMap.values()].flat().find(x => x.id === rid);
             return (
