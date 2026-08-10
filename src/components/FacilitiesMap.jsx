@@ -29,17 +29,19 @@ const DAY_START_HOUR = 6;   // 6am
 const DAY_END_HOUR   = 22;  // 10pm
 const DAY_HOURS = DAY_END_HOUR - DAY_START_HOUR;
 
-// For a rental on a specific date, compute its start/end hours (as decimal, e.g. 8.5 = 8:30am)
-// within DAY_START_HOUR..DAY_END_HOUR. Handles recurrence.
-function rentalHoursOnDay(rental, dateStr) {
+// For a rental on a specific date, compute its actual time + block-boundary
+// (starts_at → ends_at) AND the released_at (when room becomes free) so the day
+// view can render both the block AND the inner pill for actual event time.
+function rentalHoursOnDay(rental, dateStr, blockHours = 4) {
   const dayStart = new Date(dateStr + "T00:00:00");
   const dayEnd   = new Date(dateStr + "T23:59:59");
   const startTs = new Date(rental.starts_at).getTime();
   const endTs   = new Date(rental.ends_at).getTime();
+  const releasedIso = rental.released_at || rental.ends_at;
   // One-off
   if (!rental.recurs_weekdays || rental.recurs_weekdays.length === 0) {
-    if (endTs < dayStart.getTime() || startTs > dayEnd.getTime()) return null;
-    return timeSlice(rental.starts_at, rental.ends_at, dateStr);
+    if (new Date(releasedIso).getTime() < dayStart.getTime() || startTs > dayEnd.getTime()) return null;
+    return timeSliceWithBlock(rental.starts_at, rental.ends_at, releasedIso, dateStr, blockHours);
   }
   // Recurring
   const untilOK = !rental.recurs_until || new Date(rental.recurs_until + "T23:59:59").getTime() >= dayStart.getTime();
@@ -48,23 +50,39 @@ function rentalHoursOnDay(rental, dateStr) {
   const weekdays = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
   const dow = weekdays[dayStart.getDay()];
   if (!rental.recurs_weekdays.includes(dow)) return null;
-  // Use the recurring time-of-day mapped onto this specific date
   const startDate = new Date(rental.starts_at);
   const endDate   = new Date(rental.ends_at);
+  const rDate     = new Date(releasedIso);
   const s = new Date(dateStr + "T" + pad(startDate.getHours()) + ":" + pad(startDate.getMinutes()));
   const e = new Date(dateStr + "T" + pad(endDate.getHours())   + ":" + pad(endDate.getMinutes()));
-  return timeSlice(s.toISOString(), e.toISOString(), dateStr);
+  const r = new Date(dateStr + "T" + pad(rDate.getHours())     + ":" + pad(rDate.getMinutes()));
+  return timeSliceWithBlock(s.toISOString(), e.toISOString(), r.toISOString(), dateStr, blockHours);
 }
 function pad(n) { return String(n).padStart(2,"0"); }
-function timeSlice(startIso, endIso, dateStr) {
+// Returns: { startH, endH, blockStartH, blockEndH, releasedH, actualLabel, blockLabel }
+// startH/endH = actual event time (the pill)
+// blockStartH/blockEndH = block boundary (rounded up to blockHours)
+// releasedH = when the room actually becomes free (Laurie's per-rental override)
+function timeSliceWithBlock(startIso, endIso, releasedIso, dateStr, blockHours) {
   const s = new Date(startIso);
   const e = new Date(endIso);
+  const r = new Date(releasedIso);
   const dayStart = new Date(dateStr + "T00:00:00");
   const dayEnd   = new Date(dateStr + "T23:59:59");
   const sh = Math.max(DAY_START_HOUR, (s.getTime() >= dayStart.getTime() ? s.getHours() + s.getMinutes()/60 : DAY_START_HOUR));
   const eh = Math.min(DAY_END_HOUR,   (e.getTime() <= dayEnd.getTime()   ? e.getHours() + e.getMinutes()/60 : DAY_END_HOUR));
   if (eh <= sh) return null;
-  return { startH: sh, endH: eh, startLabel: s.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }), endLabel: e.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) };
+  const durationH = eh - sh;
+  const blocksNeeded = Math.max(1, Math.ceil(durationH / blockHours));
+  const blockStartH = sh;
+  const blockEndH   = Math.min(DAY_END_HOUR, sh + (blocksNeeded * blockHours));
+  const releasedH   = Math.min(DAY_END_HOUR, r.getTime() >= dayStart.getTime() && r.getTime() <= dayEnd.getTime() ? r.getHours() + r.getMinutes()/60 : blockEndH);
+  return {
+    startH: sh, endH: eh,
+    blockStartH, blockEndH, releasedH,
+    actualLabel: s.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) + " – " + e.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }),
+    blockLabel: blocksNeeded + " × " + blockHours + "hr block" + (blocksNeeded === 1 ? "" : "s"),
+  };
 }
 
 // Color rotator so different renters get visually distinct colors on the map
@@ -235,7 +253,7 @@ export default function FacilitiesMap({ spaces = [], rentals = [], accent = { co
         const barsBySpace = new Map();
         rentableSpaces.forEach(s => barsBySpace.set(s.id, []));
         rentals.forEach(r => {
-          const slice = rentalHoursOnDay(r, dayStr);
+          const slice = rentalHoursOnDay(r, dayStr, 4);
           if (!slice) return;
           const color = RENTER_COLORS[idxByRental.get(r.id) % RENTER_COLORS.length];
           (r.space_ids || []).forEach(sid => {
@@ -273,13 +291,21 @@ export default function FacilitiesMap({ spaces = [], rentals = [], accent = { co
                         title={s.name}>{s.name}</button>
                       <div style={{ flex: 1, position: "relative", background: `repeating-linear-gradient(to right, transparent, transparent calc(${100 / DAY_HOURS}% - 1px), ${N.rule} calc(${100 / DAY_HOURS}% - 1px), ${N.rule} calc(${100 / DAY_HOURS}%))`, borderRadius: 4, minHeight: 22 }}>
                         {bars.map((b, i) => {
-                          const leftPct  = ((b.startH - DAY_START_HOUR) / DAY_HOURS) * 100;
-                          const widthPct = ((b.endH - b.startH) / DAY_HOURS) * 100;
+                          // OUTER = full reserved period (block + cleaning until released)
+                          const blockLeftPct  = ((b.blockStartH - DAY_START_HOUR) / DAY_HOURS) * 100;
+                          const blockWidthPct = ((b.releasedH - b.blockStartH) / DAY_HOURS) * 100;
+                          // INNER pill = actual event time within the block
+                          const innerLeftPct  = ((b.startH - b.blockStartH) / (b.releasedH - b.blockStartH)) * 100;
+                          const innerWidthPct = ((b.endH - b.startH) / (b.releasedH - b.blockStartH)) * 100;
                           return (
-                            <div key={i} title={`${b.rental.renter_name} · ${b.startLabel} – ${b.endLabel}${b.rental.purpose ? " · " + b.rental.purpose : ""}`}
+                            <div key={i}
+                              title={`${b.rental.renter_name}\nActual: ${b.actualLabel}\nBlock: ${b.blockLabel}${b.rental.purpose ? "\nPurpose: " + b.rental.purpose : ""}`}
                               onClick={() => onSpaceClick && onSpaceClick(s)}
-                              style={{ position: "absolute", left: leftPct + "%", width: widthPct + "%", top: 2, bottom: 2, background: b.color, borderRadius: 3, boxShadow: `0 0 6px ${b.color}80`, cursor: onSpaceClick ? "pointer" : "default", padding: "1px 6px", fontSize: 10, color: "#fff", fontWeight: 700, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis", lineHeight: "18px" }}>
-                              {b.rental.renter_name}
+                              style={{ position: "absolute", left: blockLeftPct + "%", width: blockWidthPct + "%", top: 2, bottom: 2, background: b.color + "55", border: `1.5px dashed ${b.color}`, borderRadius: 4, cursor: onSpaceClick ? "pointer" : "default", overflow: "hidden" }}>
+                              {/* Inner pill = actual event time */}
+                              <div style={{ position: "absolute", left: innerLeftPct + "%", width: innerWidthPct + "%", top: 2, bottom: 2, background: b.color, borderRadius: 999, boxShadow: `0 0 8px ${b.color}`, padding: "0 8px", fontSize: 10, color: "#fff", fontWeight: 700, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis", lineHeight: "16px", display: "flex", alignItems: "center" }}>
+                                {b.rental.renter_name}
+                              </div>
                             </div>
                           );
                         })}
@@ -293,6 +319,18 @@ export default function FacilitiesMap({ spaces = [], rentals = [], accent = { co
                   Nothing booked on {when.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}. The whole day is open.
                 </div>
               )}
+              {/* Legend: block vs actual */}
+              <div style={{ marginTop: 10, display: "flex", gap: 14, alignItems: "center", fontSize: 10, color: N.muted, fontFamily: "'DM Mono', monospace", flexWrap: "wrap" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ display: "inline-block", width: 24, height: 12, background: accent.color + "55", border: `1.5px dashed ${accent.color}`, borderRadius: 3 }} />
+                  <span>4-hr block reserved</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ display: "inline-block", width: 20, height: 10, background: accent.color, borderRadius: 999 }} />
+                  <span>Actual event time</span>
+                </div>
+                <div style={{ opacity: 0.7 }}>Cleaning padding = the empty space between the inner pill and the block edge (Laurie sets per rental).</div>
+              </div>
             </div>
           </div>
         );
