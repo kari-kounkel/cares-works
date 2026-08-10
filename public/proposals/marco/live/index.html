@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MARCO · RCO Certification Console</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --teal:#12716b; --tealDeep:#0c5651; --tealSoft:#e6f2f0; --gold:#c2922a; --goldSoft:#faf1da;
+    --ink:#1b2733; --inkSoft:#4a5563; --muted:#8a93a0; --line:#e6e8ec; --paper:#f4f6f7; --card:#ffffff;
+    --ok:#2f8f5b; --okSoft:#e4f1ea; --warn:#c2410c; --warnSoft:#fbeee6; --info:#1a7af0;
+    --shadow:0 6px 26px rgba(20,40,45,.09);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--paper);color:var(--ink);font-family:'Inter',system-ui,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased}
+  a{color:var(--teal)}
+  .serif{font-family:'Fraunces',serif}
+  button{font-family:inherit}
+  input,textarea,select{font-family:inherit;font-size:14px}
+  ::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:#d3d8dc;border-radius:6px}
+
+  /* ---- shell ---- */
+  .top{position:sticky;top:0;z-index:40;background:var(--tealDeep);color:#fff;display:flex;align-items:center;gap:14px;padding:10px 18px;box-shadow:0 2px 10px rgba(0,0,0,.12)}
+  .top .logo{height:34px;width:34px;border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:center;color:var(--tealDeep);font-weight:700;font-family:'Fraunces',serif;font-size:17px;overflow:hidden}
+  .top .logo img{height:34px;width:34px;object-fit:contain}
+  .top h1{font-size:15px;font-weight:600;margin:0;letter-spacing:.2px}
+  .top .sub{font-size:11.5px;opacity:.8;margin-top:-2px}
+  .top .spacer{flex:1}
+  .whoami{display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.12);border-radius:30px;padding:4px 6px 4px 12px;font-size:12.5px}
+  .whoami b{font-weight:600}
+  .whoami .rl{background:var(--gold);color:#3a2c05;font-weight:700;border-radius:20px;padding:2px 9px;font-size:11px}
+  .whoami button{background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:20px;padding:4px 10px;font-size:11.5px;cursor:pointer}
+  .live{display:flex;align-items:center;gap:6px;font-size:11px;opacity:.85}
+  .dot{width:8px;height:8px;border-radius:50%;background:#7ee0a0;box-shadow:0 0 0 0 rgba(126,224,160,.7);animation:pulse 2s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(126,224,160,.6)}70%{box-shadow:0 0 0 7px rgba(126,224,160,0)}100%{box-shadow:0 0 0 0 rgba(126,224,160,0)}}
+
+  .wrap{max-width:1200px;margin:0 auto;padding:22px 20px 80px}
+  .page-h{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin:2px 0 18px;flex-wrap:wrap}
+  .page-h h2{font-size:23px;margin:0;font-weight:600}
+  .page-h p{margin:3px 0 0;color:var(--inkSoft);font-size:14px}
+
+  .btn{cursor:pointer;border:none;border-radius:10px;font-weight:600;font-size:14px;padding:10px 16px;background:var(--teal);color:#fff;transition:.12s}
+  .btn:hover{background:var(--tealDeep)}
+  .btn.g{background:var(--gold);color:#3a2c05}.btn.g:hover{filter:brightness(1.05)}
+  .btn.o{background:#fff;color:var(--teal);border:1.5px solid var(--teal)}
+  .btn.sm{padding:7px 12px;font-size:13px;border-radius:9px}
+  .btn.ghost{background:transparent;color:var(--inkSoft);border:1px solid var(--line)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}
+  .pill{display:inline-flex;align-items:center;gap:5px;border-radius:30px;padding:3px 10px;font-size:11.5px;font-weight:600}
+
+  /* ---- gate / rolepick ---- */
+  .center{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(1200px 500px at 50% -10%, #163f3b 0%, #0c2b28 55%, #08201e 100%)}
+  .gatecard{width:100%;max-width:440px;background:#fff;border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:30px 30px 26px;text-align:center}
+  .gatecard .mark{font-family:'Fraunces',serif;font-weight:700;font-size:30px;color:var(--tealDeep);letter-spacing:.5px}
+  .gatecard .tag{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-top:2px}
+  .gatecard h3{font-size:18px;margin:20px 0 4px}
+  .gatecard p{color:var(--inkSoft);font-size:13.5px;margin:0 0 18px}
+  .fieldlbl{display:block;text-align:left;font-size:12px;font-weight:600;color:var(--inkSoft);margin:12px 0 5px}
+  .inp{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 13px;font-size:14px;background:#fff}
+  .inp:focus{outline:none;border-color:var(--teal)}
+  .roles{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:8px}
+  .role{cursor:pointer;border:1.5px solid var(--line);border-radius:13px;padding:14px 12px;text-align:left;transition:.12s;background:#fff}
+  .role:hover{border-color:var(--teal);box-shadow:0 4px 14px rgba(18,113,107,.12)}
+  .role.sel{border-color:var(--teal);background:var(--tealSoft)}
+  .role .ic{font-size:20px}
+  .role b{display:block;font-size:14px;margin-top:6px}
+  .role span{font-size:11.5px;color:var(--inkSoft);line-height:1.35;display:block;margin-top:2px}
+
+  /* ---- pipeline ---- */
+  .pipe{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 12px}
+  .pcol{min-width:150px;flex:1}
+  .pcol h4{font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin:0 0 8px;font-weight:700;display:flex;justify-content:space-between}
+  .pcol h4 span{background:var(--line);color:var(--inkSoft);border-radius:20px;padding:0 7px}
+  .ccard{background:#fff;border:1px solid var(--line);border-radius:11px;padding:11px 12px;margin-bottom:8px;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.04);transition:.12s}
+  .ccard:hover{border-color:var(--teal);box-shadow:0 4px 14px rgba(18,113,107,.13)}
+  .ccard b{font-size:13.5px}
+  .ccard .m{font-size:11.5px;color:var(--muted);margin-top:3px}
+  .ccard .bar{height:5px;border-radius:4px;background:var(--line);margin-top:8px;overflow:hidden}
+  .ccard .bar i{display:block;height:100%;background:var(--teal)}
+
+  /* ---- grids ---- */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .stat{background:#fff;border:1px solid var(--line);border-radius:13px;padding:15px 16px}
+  .stat .n{font-size:26px;font-weight:700;font-family:'Fraunces',serif}
+  .stat .l{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+
+  .list .row{display:flex;align-items:center;gap:12px;padding:13px 15px;border-bottom:1px solid var(--line);cursor:pointer}
+  .list .row:last-child{border-bottom:none}
+  .list .row:hover{background:var(--tealSoft)}
+  .list .row b{font-size:14px}
+  .list .row .m{font-size:12px;color:var(--muted)}
+
+  .stagepill{font-size:11px;font-weight:700;border-radius:30px;padding:3px 10px;white-space:nowrap}
+
+  /* ---- inline reviewer ---- */
+  .rvhead{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+  .rvhead .back{cursor:pointer;color:var(--teal);font-weight:600;font-size:13.5px;background:none;border:none}
+  .passtabs{display:flex;gap:7px;flex-wrap:wrap}
+  .passtab{cursor:pointer;border:1.5px solid var(--line);background:#fff;border-radius:30px;padding:6px 14px;font-size:13px;font-weight:600;color:var(--inkSoft)}
+  .passtab.on{background:var(--teal);color:#fff;border-color:var(--teal)}
+  .passtab.done{border-color:var(--ok);color:var(--ok)}
+
+  .rvbody{display:grid;grid-template-columns:270px 1fr;gap:16px;align-items:start}
+  .rail{position:sticky;top:64px;background:#fff;border:1px solid var(--line);border-radius:13px;padding:9px;max-height:calc(100vh - 90px);overflow:auto}
+  .rail .ri{display:flex;align-items:center;gap:9px;padding:8px 9px;border-radius:9px;cursor:pointer;font-size:12.8px}
+  .rail .ri:hover{background:var(--paper)}
+  .rail .ri.on{background:var(--tealSoft);font-weight:600}
+  .rail .ri .num{width:22px;height:22px;border-radius:6px;background:var(--paper);display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;color:var(--inkSoft);flex-shrink:0}
+  .rail .ri.ok .num{background:var(--okSoft);color:var(--ok)}
+  .rail .ri .t{flex:1;line-height:1.25}
+
+  .section{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
+  .section .sh{padding:16px 20px;border-bottom:1px solid var(--line);background:linear-gradient(#fff,#fbfcfc)}
+  .section .sh .eye{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--gold);font-weight:700}
+  .section .sh h3{margin:3px 0 0;font-size:19px;font-weight:600}
+  .section .sh .st{font-size:12px;color:var(--muted);margin-top:2px}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:0}
+  .split .app{padding:18px 20px;border-right:1px solid var(--line);background:#fcfcfa}
+  .split .rev{padding:18px 20px;background:#fff}
+  .colh{font-size:11px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;color:var(--muted);margin:0 0 10px;display:flex;align-items:center;gap:7px}
+  .ans{font-size:14px;color:var(--ink);white-space:pre-wrap;line-height:1.55}
+  .docchip{display:inline-flex;align-items:center;gap:6px;background:var(--tealSoft);color:var(--tealDeep);border:1px solid #cfe6e2;border-radius:8px;padding:6px 10px;font-size:12.5px;font-weight:600;cursor:pointer;margin:6px 6px 0 0}
+  .docwrap{margin-top:10px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff}
+  .docwrap iframe{width:100%;height:340px;border:none;display:block;background:#f2f2f2}
+  .docwrap .dh{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--paper);font-size:12px}
+
+  .qrow{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px dashed var(--line)}
+  .qrow:last-of-type{border-bottom:none}
+  .qrow .qt{flex:1;font-size:13.2px;line-height:1.4}
+  .yn{display:flex;gap:5px;flex-shrink:0}
+  .yn button{border:1.5px solid var(--line);background:#fff;border-radius:8px;padding:5px 11px;font-size:12.5px;font-weight:600;cursor:pointer;color:var(--inkSoft)}
+  .yn button.y.on{background:var(--okSoft);border-color:var(--ok);color:var(--ok)}
+  .yn button.n.on{background:var(--warnSoft);border-color:var(--warn);color:var(--warn)}
+  .yn button.na.on{background:#eef0f4;border-color:var(--muted);color:var(--inkSoft)}
+  .scale{display:flex;gap:5px;flex-shrink:0}
+  .scale button{border:1.5px solid var(--line);background:#fff;border-radius:8px;padding:5px 9px;font-size:12px;font-weight:600;cursor:pointer;color:var(--inkSoft)}
+  .scale button.on{background:var(--tealSoft);border-color:var(--teal);color:var(--tealDeep)}
+  .flabel{font-size:12.5px;font-weight:600;color:var(--inkSoft);margin:14px 0 5px}
+  textarea.inp{min-height:74px;resize:vertical}
+  .savebar{display:flex;align-items:center;gap:12px;padding:13px 20px;border-top:1px solid var(--line);background:#fbfcfc}
+  .savebar .st{font-size:12.5px;color:var(--muted)}
+
+  .banner{border-radius:12px;padding:13px 16px;font-size:13.5px;margin-bottom:14px;display:flex;gap:10px;align-items:flex-start}
+  .banner.warn{background:var(--warnSoft);color:#7a2c0a;border:1px solid #f0d3c2}
+  .banner.ok{background:var(--okSoft);color:#1c5a38;border:1px solid #c6e4d3}
+  .banner.info{background:#e9f3ff;color:#0f52c9;border:1px solid #cfe2fb}
+
+  .empty{text-align:center;padding:50px 20px;color:var(--muted)}
+  .empty .ic{font-size:34px}
+
+  .modal{position:fixed;inset:0;background:rgba(16,26,30,.5);z-index:60;display:flex;align-items:center;justify-content:center;padding:20px}
+  .modal .box{background:#fff;border-radius:16px;max-width:520px;width:100%;padding:24px;box-shadow:0 30px 80px rgba(0,0,0,.4);max-height:88vh;overflow:auto}
+  .modal h3{margin:0 0 4px;font-size:19px}
+  .chk{display:flex;align-items:center;gap:9px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;margin-bottom:7px;cursor:pointer;font-size:13.5px}
+  .chk input{width:17px;height:17px}
+  .actbar{display:flex;gap:9px;flex-wrap:wrap;margin-top:8px}
+  .feed{max-height:220px;overflow:auto}
+  .feed .f{display:flex;gap:9px;padding:8px 0;border-bottom:1px solid var(--line);font-size:12.8px}
+  .feed .f .who{font-weight:600}
+  .feed .f .tm{color:var(--muted);font-size:11px;margin-left:auto;white-space:nowrap}
+
+  @media (max-width:860px){
+    .rvbody{grid-template-columns:1fr}.rail{position:static;max-height:none}
+    .split{grid-template-columns:1fr}.split .app{border-right:none;border-bottom:1px solid var(--line)}
+    .grid2,.grid3{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script src="https://unpkg.com/preact@10.19.3/dist/preact.umd.js"></script>
+<script src="https://unpkg.com/preact@10.19.3/hooks/dist/hooks.umd.js"></script>
+<script src="https://unpkg.com/htm@3.1.1/dist/htm.umd.js"></script>
+<script src="./data.js"></script>
+<script>
+(function(){
+  var h = preact.h, render = preact.render;
+  var useState = preactHooks.useState, useEffect = preactHooks.useEffect, useRef = preactHooks.useRef, useMemo = preactHooks.useMemo;
+  var html = htm.bind(h);
+
+  /* ---------------- backend ---------------- */
+  var SUPA = "https://qcikhcnclduakriextsz.supabase.co";
+  var KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaWtoY25jbGR1YWtyaWV4dHN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NTc3NDAsImV4cCI6MjA5MTIzMzc0MH0.owUv_C0b0TYisI7v3Lpb2ZGF6TMn1Gwm7oRr26yR2eI";
+  var H = { "apikey": KEY, "Authorization": "Bearer " + KEY, "Content-Type": "application/json" };
+  function api(path, opts){ opts = opts || {}; var head = Object.assign({}, H, opts.headers||{});
+    return fetch(SUPA + "/rest/v1/" + path, Object.assign({}, opts, {headers:head})).then(function(r){
+      return r.text().then(function(t){ if(!r.ok) throw new Error(t); return t? JSON.parse(t): null; });
+    });
+  }
+  var db = {
+    cases: function(){ return api("marco_cases?select=*&order=created_at.asc"); },
+    patchCase: function(id,b){ return api("marco_cases?id=eq."+id,{method:"PATCH",headers:{Prefer:"return=representation"},body:JSON.stringify(b)}); },
+    addCase: function(b){ return api("marco_cases",{method:"POST",headers:{Prefer:"return=representation"},body:JSON.stringify(b)}); },
+    assignments: function(){ return api("marco_assignments?select=*&order=created_at.asc"); },
+    addAssign: function(b){ return api("marco_assignments",{method:"POST",headers:{Prefer:"return=representation"},body:JSON.stringify(b)}); },
+    delAssign: function(id){ return api("marco_assignments?id=eq."+id,{method:"DELETE"}); },
+    reviews: function(){ return api("marco_reviews?select=*"); },
+    upReview: function(b){ return api("marco_reviews",{method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=representation"},body:JSON.stringify(b)}); },
+    patchReview: function(id,b){ return api("marco_reviews?id=eq."+id,{method:"PATCH",headers:{Prefer:"return=representation"},body:JSON.stringify(b)}); },
+    votes: function(){ return api("marco_votes?select=*&order=created_at.asc"); },
+    addVote: function(b){ return api("marco_votes",{method:"POST",headers:{Prefer:"return=representation"},body:JSON.stringify(b)}); },
+    activity: function(){ return api("marco_activity?select=*&order=created_at.desc&limit=40"); },
+    log: function(b){ return api("marco_activity",{method:"POST",body:JSON.stringify(b)}); }
+  };
+
+  /* ---------------- constants ---------------- */
+  var STAGES = [
+    {k:"self_assessment", l:"Self-Assessment", c:"#6a7180", bg:"#eef0f4"},
+    {k:"application",      l:"Application",     c:"#0f52c9", bg:"#e9f3ff"},
+    {k:"first_review",     l:"MARCO First Review", c:"#8a5a00", bg:"#faf1da"},
+    {k:"peer_review",      l:"Peer Review",     c:"#12716b", bg:"#e6f2f0"},
+    {k:"site_visit",       l:"Site Visit",      c:"#12716b", bg:"#e6f2f0"},
+    {k:"panel",            l:"Panel",           c:"#7a2c88", bg:"#f6e9fb"},
+    {k:"board",            l:"Board Vote",      c:"#c2410c", bg:"#fbeee6"},
+    {k:"certified",        l:"Certified",       c:"#2f8f5b", bg:"#e4f1ea"},
+    {k:"not_certified",    l:"Not Certified",   c:"#9a1c1c", bg:"#fbe6e6"}
+  ];
+  function stageMeta(k){ for(var i=0;i<STAGES.length;i++){ if(STAGES[i].k===k) return STAGES[i]; } return STAGES[1]; }
+  function stageIdx(k){ for(var i=0;i<STAGES.length;i++){ if(STAGES[i].k===k) return i; } return 1; }
+
+  var ROLES = [
+    {k:"marco",    ic:"🏛️", l:"MARCO Staff", d:"Run the pipeline: first reviews, assign peers, board & letters"},
+    {k:"reviewer", ic:"🧑‍⚖️", l:"Peer Reviewer", d:"Review your assigned orgs — written, site visit, panel"},
+    {k:"board",    ic:"🗳️", l:"MARCO Board", d:"Vote on the panel's certification recommendations"},
+    {k:"applicant",ic:"🏢", l:"RCO Applicant", d:"Your organization's status and what's needed next"}
+  ];
+  function roleMeta(k){ for(var i=0;i<ROLES.length;i++){ if(ROLES[i].k===k) return ROLES[i]; } return ROLES[0]; }
+
+  // SECTIONS + seed live in data.js (window.MARCO_SECTIONS)
+  var SECTIONS = window.MARCO_SECTIONS;
+  var PASSES = [
+    {k:"written", l:"Written Review"},
+    {k:"site_visit", l:"Site Visit"},
+    {k:"panel", l:"Panel"}
+  ];
+
+  function timeAgo(ts){ if(!ts) return ""; var s=Math.floor((Date.now()-new Date(ts).getTime())/1000);
+    if(s<60) return s+"s ago"; if(s<3600) return Math.floor(s/60)+"m ago"; if(s<86400) return Math.floor(s/3600)+"h ago"; return Math.floor(s/86400)+"d ago"; }
+
+  /* ---------------- root ---------------- */
+  function App(){
+    var s = useState(function(){ return {
+      gate: localStorage.getItem("marco_gate")==="ok",
+      role: localStorage.getItem("marco_role")||"",
+      name: localStorage.getItem("marco_name")||"",
+      view: {name:"home"},
+      cases:[], assignments:[], reviews:[], votes:[], activity:[], loaded:false
+    }; });
+    var st = s[0], set = s[1];
+    function up(p){ set(Object.assign({}, st, p)); }
+    var stRef = useRef(st); stRef.current = st;
+
+    function refresh(){
+      Promise.all([db.cases(), db.assignments(), db.reviews(), db.votes(), db.activity()]).then(function(r){
+        var cur = stRef.current;
+        set(Object.assign({}, cur, {cases:r[0]||[], assignments:r[1]||[], reviews:r[2]||[], votes:r[3]||[], activity:r[4]||[], loaded:true}));
+      }).catch(function(e){ console.warn("refresh", e); });
+    }
+    useEffect(function(){
+      if(!st.gate || !st.role) return;
+      refresh();
+      var t = setInterval(refresh, 2600);
+      return function(){ clearInterval(t); };
+    }, [st.gate, st.role]);
+
+    if(!st.gate) return html`<${Gate} onOk=${function(){ localStorage.setItem("marco_gate","ok"); up({gate:true}); }} />`;
+    if(!st.role || !st.name) return html`<${RolePick} onPick=${function(role,name){ localStorage.setItem("marco_role",role); localStorage.setItem("marco_name",name); up({role:role,name:name}); }} />`;
+
+    var ctx = { st:st, up:up, refresh:refresh, role:st.role, name:st.name };
+    return html`<div>
+      <${Header} ...${ctx} />
+      <div class="wrap">
+        ${ st.role==="marco" ? html`<${MarcoView} ...${ctx} />`
+         : st.role==="reviewer" ? html`<${ReviewerView} ...${ctx} />`
+         : st.role==="board" ? html`<${BoardView} ...${ctx} />`
+         : html`<${ApplicantView} ...${ctx} />` }
+      </div>
+    </div>`;
+  }
+
+  /* ---------------- gate ---------------- */
+  function Gate(props){
+    var v = useState(""), val=v[0], setVal=v[1];
+    var e = useState(""), err=e[0], setErr=e[1];
+    function go(){ if(val.trim().toLowerCase()==="marcopolo"){ props.onOk(); } else { setErr("Hmm, that's not it. (hint: marco… polo)"); } }
+    return html`<div class="center"><div class="gatecard">
+      <div class="mark">MARCO</div>
+      <div class="tag">RCO Certification Console</div>
+      <h3>Welcome in</h3>
+      <p>A shared, live workspace for the whole certification review. Enter the passcode to continue.</p>
+      <input class="inp" placeholder="passcode" value=${val} onInput=${function(ev){setVal(ev.target.value); setErr("");}}
+        onKeyDown=${function(ev){ if(ev.key==="Enter") go(); }} />
+      ${err && html`<div style="color:var(--warn);font-size:12.5px;margin-top:8px">${err}</div>`}
+      <button class="btn" style="width:100%;margin-top:16px" onClick=${go}>Enter →</button>
+      <p style="font-size:11px;color:var(--muted);margin-top:16px">A CARES Consulting build for MARCO · demo environment with real sample data</p>
+    </div></div>`;
+  }
+
+  /* ---------------- role pick ---------------- */
+  function RolePick(props){
+    var r = useState(""), role=r[0], setRole=r[1];
+    var n = useState(""), name=n[0], setName=n[1];
+    return html`<div class="center"><div class="gatecard" style="max-width:520px">
+      <div class="mark" style="font-size:24px">Who's joining?</div>
+      <p style="margin-top:8px">Pick your seat for this session. Everyone works in the same live console — like being in the room together.</p>
+      <div class="roles">
+        ${ROLES.map(function(ro){ return html`<div class=${"role"+(role===ro.k?" sel":"")} onClick=${function(){setRole(ro.k);}}>
+          <div class="ic">${ro.ic}</div><b>${ro.l}</b><span>${ro.d}</span>
+        </div>`; })}
+      </div>
+      <label class="fieldlbl">Your name</label>
+      <input class="inp" placeholder="e.g. Jennifer O'Byrne" value=${name} onInput=${function(ev){setName(ev.target.value);}} />
+      <button class="btn" style="width:100%;margin-top:18px" disabled=${!role||name.trim().length<2}
+        onClick=${function(){ props.onPick(role, name.trim()); }}>Enter the console →</button>
+    </div></div>`;
+  }
+
+  /* ---------------- header ---------------- */
+  function Header(props){
+    var ro = roleMeta(props.role);
+    return html`<div class="top">
+      <div class="logo"><img src="../marco-logo.png" onError=${function(ev){ ev.target.style.display='none'; ev.target.parentNode.textContent='M'; }} /></div>
+      <div><h1>RCO Certification Console</h1><div class="sub">Minnesota Alliance of Recovery Community Organizations</div></div>
+      <div class="spacer"></div>
+      <div class="live"><span class="dot"></span> live</div>
+      <div class="whoami">
+        <span class="rl">${ro.ic} ${ro.l}</span>
+        <b>${props.name}</b>
+        <button onClick=${function(){ localStorage.removeItem("marco_role"); localStorage.removeItem("marco_name"); props.up({role:"",name:""}); }}>switch</button>
+      </div>
+    </div>`;
+  }
+
+  /* ---------------- helpers on data ---------------- */
+  function caseReviews(st, caseId){ return st.reviews.filter(function(r){ return r.case_id===caseId; }); }
+  function myReview(st, caseId, kind, name){ return st.reviews.filter(function(r){ return r.case_id===caseId && r.kind===kind && r.reviewer_name===name; })[0]; }
+  function caseAssigns(st, caseId){ return st.assignments.filter(function(a){ return a.case_id===caseId; }); }
+  function progressOf(payload){ if(!payload) return 0; var done=0; for(var i=0;i<SECTIONS.length;i++){ if(payload[SECTIONS[i].n] && payload[SECTIONS[i].n].touched) done++; } return Math.round(done/SECTIONS.length*100); }
+
+  /* ---------------- MARCO staff ---------------- */
+  function MarcoView(props){
+    var st=props.st;
+    var open = st.view.name==="case" ? st.cases.filter(function(c){return c.id===st.view.id;})[0] : null;
+    if(open) return html`<${CaseDetail} ...${props} c=${open} />`;
+
+    var counts={}; STAGES.forEach(function(s){counts[s.k]=0;}); st.cases.forEach(function(c){counts[c.stage]=(counts[c.stage]||0)+1;});
+    var shown = STAGES.filter(function(s){ return s.k!=="self_assessment"; });
+    return html`<div>
+      <div class="page-h">
+        <div><h2>Certification pipeline</h2><p>Every organization, live, in its current stage. Click any card to open it.</p></div>
+        <button class="btn g" onClick=${function(){ props.up({view:{name:"newcase"}}); }}>＋ New organization</button>
+      </div>
+      ${ st.view.name==="newcase" && html`<${NewCase} ...${props} />` }
+      <div class="grid3" style="margin-bottom:18px">
+        <div class="stat"><div class="n">${st.cases.length}</div><div class="l">Active organizations</div></div>
+        <div class="stat"><div class="n">${(counts.peer_review||0)+(counts.site_visit||0)+(counts.panel||0)}</div><div class="l">In peer review</div></div>
+        <div class="stat"><div class="n">${counts.certified||0}</div><div class="l">Certified</div></div>
+      </div>
+      <div class="pipe">
+        ${shown.map(function(sg){ var cs=st.cases.filter(function(c){return c.stage===sg.k;});
+          return html`<div class="pcol">
+            <h4>${sg.l} <span>${cs.length}</span></h4>
+            ${cs.map(function(c){ return html`<${MiniCard} ...${props} c=${c} />`; })}
+          </div>`;
+        })}
+      </div>
+    </div>`;
+  }
+
+  function MiniCard(props){
+    var c=props.c, st=props.st; var revs=caseReviews(st,c.id);
+    var subm = revs.filter(function(r){return r.submitted;}).length;
+    return html`<div class="ccard" onClick=${function(){ props.up({view:{name:"case",id:c.id}}); }}>
+      <b>${c.org_name}</b>
+      <div class="m">${c.profile && c.profile.region ? c.profile.region : (c.short_name||"")}</div>
+      ${revs.length>0 && html`<div class="m" style="margin-top:5px">${subm}/${revs.length} reviews in · ${caseAssigns(st,c.id).length} assigned</div>`}
+    </div>`;
+  }
+
+  function NewCase(props){
+    var n=useState(""), nm=n[0], setNm=n[1];
+    var r=useState(""), rg=r[0], setRg=r[1];
+    return html`<div class="card" style="padding:16px 18px;margin-bottom:16px">
+      <div class="grid2">
+        <div><label class="fieldlbl">Organization name</label><input class="inp" value=${nm} onInput=${function(e){setNm(e.target.value);}} placeholder="Organization legal name" /></div>
+        <div><label class="fieldlbl">Region / community</label><input class="inp" value=${rg} onInput=${function(e){setRg(e.target.value);}} placeholder="e.g. Greater Minnesota" /></div>
+      </div>
+      <div class="actbar" style="margin-top:12px">
+        <button class="btn sm" disabled=${nm.trim().length<2} onClick=${function(){
+          db.addCase({org_name:nm.trim(), stage:"application", profile:{region:rg}, application:{sections:{}}, first_review:{}}).then(function(){
+            db.log({actor:props.name, role:"marco", text:"created a new application: "+nm.trim()});
+            props.up({view:{name:"home"}}); props.refresh();
+          });
+        }}>Create & add to pipeline</button>
+        <button class="btn ghost sm" onClick=${function(){ props.up({view:{name:"home"}}); }}>Cancel</button>
+      </div>
+    </div>`;
+  }
+
+  /* ---------------- case detail (MARCO) ---------------- */
+  function CaseDetail(props){
+    var c=props.c, st=props.st;
+    var idx=stageIdx(c.stage), sm=stageMeta(c.stage);
+    var revs=caseReviews(st,c.id), assigns=caseAssigns(st,c.id);
+    var votes=st.votes.filter(function(v){return v.case_id===c.id;});
+    var showAssign=useState(false), sa=showAssign[0], setSa=showAssign[1];
+    var reviewView=useState(null), rv=reviewView[0], setRv=reviewView[1]; // {kind,name}
+
+    if(rv) return html`<${InlineReview} ...${props} c=${c} kind=${rv.kind} reviewerName=${rv.name} readOnly=${true} onBack=${function(){setRv(null);}} />`;
+
+    function advance(to, note){ db.patchCase(c.id,{stage:to, updated_at:new Date().toISOString()}).then(function(){
+      db.log({actor:props.name, role:"marco", case_id:c.id, text:note||("moved "+c.org_name+" to "+stageMeta(to).l)}); props.refresh(); }); }
+
+    var fr = c.first_review||{};
+    var frFlags = SECTIONS.filter(function(s){ return fr[s.n] && (fr[s.n].status==="needs"||fr[s.n].status==="suggest"); });
+
+    return html`<div>
+      <div class="rvhead">
+        <button class="back" onClick=${function(){ props.up({view:{name:"home"}}); }}>← Pipeline</button>
+        <div style="flex:1"></div>
+        <span class="stagepill" style=${"background:"+sm.bg+";color:"+sm.c}>${sm.l}</span>
+      </div>
+      <div class="page-h" style="margin-top:4px">
+        <div><h2>${c.org_name}</h2><p>${c.profile&&c.profile.contact?c.profile.contact+" · ":""}${c.profile&&c.profile.region?c.profile.region:""}</p></div>
+      </div>
+
+      <${StageStrip} stage=${c.stage} />
+
+      <div class="grid2" style="margin-top:16px;align-items:start">
+        <div>
+          <!-- actions by stage -->
+          <div class="card" style="padding:16px 18px;margin-bottom:14px">
+            <div class="colh">This stage — what's next</div>
+            ${ c.stage==="application" && html`<div>
+              <p style="font-size:13.5px;color:var(--inkSoft);margin:0 0 10px">The application is in. Do your first review — flag any sections that need more from the applicant, then send it back or advance to peer review.</p>
+              <button class="btn sm" onClick=${function(){ props.up({view:{name:"firstreview",id:c.id}}); setTimeout(function(){ props.up({view:{name:"firstreview_open",id:c.id}}); },0); }}>Open first review →</button>
+              <button class="btn o sm" style="margin-left:8px" onClick=${function(){ advance("peer_review"); }}>Skip to peer review</button>
+            </div>`}
+            ${ c.stage==="first_review" && html`<div>
+              <p style="font-size:13.5px;color:var(--inkSoft);margin:0 0 10px">${frFlags.length} section(s) flagged for the applicant. When they've responded, assign peer reviewers to begin.</p>
+              <button class="btn sm" onClick=${function(){ setSa(true); }}>Assign peer reviewers →</button>
+              <button class="btn o sm" style="margin-left:8px" onClick=${function(){ advance("peer_review"); }}>Advance to peer review</button>
+            </div>`}
+            ${ (c.stage==="peer_review"||c.stage==="site_visit") && html`<div>
+              <p style="font-size:13.5px;color:var(--inkSoft);margin:0 0 10px">Peer reviewers are working. ${revs.filter(function(r){return r.submitted;}).length} of ${assigns.length||revs.length} submissions in.</p>
+              <button class="btn sm" onClick=${function(){ setSa(true); }}>Manage assignments</button>
+              <button class="btn o sm" style="margin-left:8px" onClick=${function(){ advance("site_visit","scheduled site visit for "+c.org_name); }}>Mark site visit stage</button>
+              <button class="btn o sm" style="margin-left:8px" onClick=${function(){ advance("panel","convened panel for "+c.org_name); }}>Convene panel</button>
+            </div>`}
+            ${ c.stage==="panel" && html`<div>
+              <p style="font-size:13.5px;color:var(--inkSoft);margin:0 0 10px">Panel recommendations are being entered. When the panel agrees, send it to the Board with a recommendation.</p>
+              <button class="btn sm" onClick=${function(){ advance("board","forwarded "+c.org_name+" to the Board — recommend to certify"); }}>Send to Board · recommend certify</button>
+              <button class="btn o sm" style="margin-left:8px" onClick=${function(){ advance("board","forwarded "+c.org_name+" to the Board — recommend NOT to certify"); }}>Send to Board · recommend not</button>
+            </div>`}
+            ${ c.stage==="board" && html`<div>
+              <p style="font-size:13.5px;color:var(--inkSoft);margin:0 0 10px">${votes.length} board vote(s) recorded. Finalize when the vote is complete.</p>
+              <button class="btn sm" onClick=${function(){ advance("certified","certified "+c.org_name); }}>Record: Certified 🎉</button>
+              <button class="btn o sm" style="margin-left:8px" onClick=${function(){ advance("not_certified","did not certify "+c.org_name); }}>Record: Not certified</button>
+            </div>`}
+            ${ (c.stage==="certified"||c.stage==="not_certified") && html`<div>
+              <div class=${"banner "+(c.stage==="certified"?"ok":"warn")} style="margin:0">
+                <span>${c.stage==="certified"?"🎉":"⚠️"}</span>
+                <div>${c.stage==="certified"? c.org_name+" is MARCO-certified. Generate the certification letter and agreement." : c.org_name+" was not certified. Send the improvement-plan notification."}</div>
+              </div>
+            </div>`}
+          </div>
+
+          <!-- the application (inline, read-only for MARCO) -->
+          <div class="card" style="padding:0;overflow:hidden">
+            <div style="padding:14px 18px;border-bottom:1px solid var(--line)" class="colh">The application — all 15 sections, inline</div>
+            ${SECTIONS.map(function(sec){ var ans=(c.application&&c.application.sections)?c.application.sections[sec.n]:""; var frs=fr[sec.n];
+              return html`<div style="padding:12px 18px;border-bottom:1px solid var(--line)">
+                <div style="display:flex;gap:8px;align-items:baseline"><b style="font-size:13.5px">${sec.n}. ${sec.t}</b>
+                  ${frs && frs.status==="needs" && html`<span class="pill" style="background:var(--warnSoft);color:var(--warn)">needs follow-up</span>`}
+                  ${frs && frs.status==="suggest" && html`<span class="pill" style="background:var(--goldSoft);color:var(--gold)">suggestion</span>`}
+                </div>
+                <div class="ans" style="margin-top:4px;color:var(--inkSoft)">${ans||html`<span style="color:var(--muted)">— not yet answered —</span>`}</div>
+                ${frs && frs.note && html`<div class="banner warn" style="margin:8px 0 0;font-size:12.5px"><span>↳</span><div><b>MARCO:</b> ${frs.note}${frs.response?html`<div style="margin-top:6px;color:#1c5a38"><b>Applicant:</b> ${frs.response}</div>`:""}</div></div>`}
+              </div>`;
+            })}
+          </div>
+        </div>
+
+        <div>
+          <div class="card" style="padding:16px 18px;margin-bottom:14px">
+            <div class="colh">Reviews on this org</div>
+            ${revs.length===0 && html`<div style="font-size:13px;color:var(--muted)">No reviews yet.</div>`}
+            ${revs.map(function(r){ var pm=PASSES.filter(function(p){return p.k===r.kind;})[0]||{l:r.kind};
+              return html`<div class="row" style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);cursor:pointer" onClick=${function(){ setRv({kind:r.kind,name:r.reviewer_name}); }}>
+                <div style="flex:1"><b style="font-size:13.5px">${r.reviewer_name}</b><div class="m" style="font-size:12px;color:var(--muted)">${pm.l} · ${r.submitted?"submitted":"in progress ("+progressOf(r.payload)+"%)"}</div></div>
+                <span class="pill" style=${"background:"+(r.submitted?"var(--okSoft);color:var(--ok)":"var(--tealSoft);color:var(--tealDeep)")}>${r.submitted?"done":"open"}</span>
+              </div>`;
+            })}
+            <button class="btn o sm" style="margin-top:12px" onClick=${function(){ setSa(true); }}>Assign a peer reviewer</button>
+          </div>
+
+          ${votes.length>0 && html`<div class="card" style="padding:16px 18px;margin-bottom:14px">
+            <div class="colh">Board votes</div>
+            ${votes.map(function(v){ return html`<div style="display:flex;gap:8px;padding:6px 0;font-size:13px;border-bottom:1px solid var(--line)">
+              <b style="flex:1">${v.member_name}</b><span class="pill" style=${"background:"+(v.decision==="yes"?"var(--okSoft);color:var(--ok)":v.decision==="no"?"var(--warnSoft);color:var(--warn)":"#eef0f4;color:var(--inkSoft)")}>${v.decision==="yes"?"approve":v.decision==="no"?"reject":"recuse"}</span>
+            </div>`; })}
+          </div>`}
+
+          <${FeedCard} st=${st} caseId=${c.id} />
+        </div>
+      </div>
+
+      ${sa && html`<${AssignModal} ...${props} c=${c} onClose=${function(){setSa(false);}} />`}
+    </div>`;
+  }
+
+  function StageStrip(props){
+    var seq = ["application","first_review","peer_review","site_visit","panel","board","certified"];
+    var cur = stageIdx(props.stage);
+    return html`<div style="display:flex;gap:6px;overflow-x:auto;padding:2px 0">
+      ${seq.map(function(k){ var m=stageMeta(k); var done=stageIdx(k)<=cur && props.stage!=="not_certified"; var isCur=k===props.stage||(props.stage==="not_certified"&&k==="board");
+        return html`<div style=${"flex:1;min-width:96px;text-align:center;padding:7px 4px;border-radius:9px;font-size:11.5px;font-weight:600;"+(isCur?"background:"+m.bg+";color:"+m.c+";border:1.5px solid "+m.c:done?"background:var(--tealSoft);color:var(--tealDeep)":"background:#f2f3f5;color:var(--muted)")}>
+          ${m.l}
+        </div>`;
+      })}
+    </div>`;
+  }
+
+  function AssignModal(props){
+    var c=props.c, st=props.st;
+    var existing=caseAssigns(st,c.id);
+    var nm=useState(""), name=nm[0], setName=nm[1];
+    var kd=useState("written"), kind=kd[0], setKind=kd[1];
+    return html`<div class="modal" onClick=${function(e){ if(e.target.className==="modal") props.onClose(); }}>
+      <div class="box">
+        <h3>Assign peer reviewers</h3>
+        <p style="color:var(--inkSoft);font-size:13.5px;margin:4px 0 14px">${c.org_name} — reviewers you add here will see it under "My assignments" instantly.</p>
+        ${existing.map(function(a){ return html`<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid var(--line);border-radius:9px;margin-bottom:6px">
+          <b style="flex:1;font-size:13.5px">${a.reviewer_name}</b><span class="pill" style="background:var(--tealSoft);color:var(--tealDeep)">${(PASSES.filter(function(p){return p.k===a.kind;})[0]||{l:a.kind}).l}</span>
+          <button class="btn ghost sm" onClick=${function(){ db.delAssign(a.id).then(props.refresh); }}>remove</button>
+        </div>`; })}
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <input class="inp" style="flex:1" placeholder="Reviewer name" value=${name} onInput=${function(e){setName(e.target.value);}} />
+          <select class="inp" style="width:150px" value=${kind} onChange=${function(e){setKind(e.target.value);}}>
+            ${PASSES.map(function(p){ return html`<option value=${p.k}>${p.l}</option>`; })}
+          </select>
+        </div>
+        <div class="actbar" style="margin-top:14px">
+          <button class="btn sm" disabled=${name.trim().length<2} onClick=${function(){
+            db.addAssign({case_id:c.id, reviewer_name:name.trim(), kind:kind}).then(function(){
+              db.log({actor:props.name, role:"marco", case_id:c.id, text:"assigned "+name.trim()+" to "+c.org_name}); setName(""); props.refresh(); });
+          }}>Add reviewer</button>
+          <button class="btn ghost sm" onClick=${props.onClose}>Done</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  /* ---------------- first review (MARCO) ---------------- */
+  function FirstReviewEditor(props){
+    var c=props.c;
+    var frState=useState(function(){ return Object.assign({}, c.first_review||{}); }); var fr=frState[0], setFr=frState[1];
+    var savedAt=useState(""), sv=savedAt[0], setSv=savedAt[1];
+    function setSec(n, patch){ var next=Object.assign({}, fr); next[n]=Object.assign({status:"ok"}, next[n]||{}, patch); setFr(next); }
+    function save(){ db.patchCase(c.id,{first_review:fr, updated_at:new Date().toISOString()}).then(function(){ setSv("Saved "+new Date().toLocaleTimeString()); props.refresh(); }); }
+    function send(){ db.patchCase(c.id,{first_review:fr, stage:"first_review", updated_at:new Date().toISOString()}).then(function(){
+      db.log({actor:props.name, role:"marco", case_id:c.id, text:"sent first-review feedback to "+c.org_name}); props.up({view:{name:"case",id:c.id}}); props.refresh(); }); }
+    return html`<div>
+      <div class="rvhead"><button class="back" onClick=${function(){ props.up({view:{name:"case",id:c.id}}); }}>← ${c.org_name}</button></div>
+      <div class="page-h"><div><h2>First review — ${c.org_name}</h2><p>Go section by section. Mark each OK, or flag it with a note back to the applicant. Everything's inline.</p></div></div>
+      <div class="card" style="padding:0;overflow:hidden">
+        ${SECTIONS.map(function(sec){ var ans=(c.application&&c.application.sections)?c.application.sections[sec.n]:""; var f=fr[sec.n]||{status:"ok"};
+          return html`<div class="split" style="border-bottom:1px solid var(--line)">
+            <div class="app">
+              <div class="colh">§${sec.n} · ${sec.t}</div>
+              <div class="ans">${ans||html`<span style="color:var(--muted)">— not yet answered —</span>`}</div>
+              ${(function(){ var fd=(c.application&&c.application.docs)?(c.application.docs[sec.n]||[]):[]; return fd.length>0 && html`<div style="margin-top:8px">${fd.map(function(d){ return html`<span class="docchip">📎 ${d.l}</span>`; })}</div>`; })()}
+            </div>
+            <div class="rev">
+              <div class="colh">Your first-review call</div>
+              <div class="yn">
+                <button class=${"y"+(f.status==="ok"?" on":"")} onClick=${function(){ setSec(sec.n,{status:"ok"}); }}>✓ Looks good</button>
+                <button class=${"na"+(f.status==="suggest"?" on":"")} style=${f.status==="suggest"?"background:var(--goldSoft);border-color:var(--gold);color:var(--gold)":""} onClick=${function(){ setSec(sec.n,{status:"suggest"}); }}>◐ Suggestion</button>
+                <button class=${"n"+(f.status==="needs"?" on":"")} onClick=${function(){ setSec(sec.n,{status:"needs"}); }}>↩ Needs more</button>
+              </div>
+              ${(f.status==="needs"||f.status==="suggest") && html`<div>
+                <div class="flabel">Note to the applicant</div>
+                <textarea class="inp" value=${f.note||""} onInput=${function(e){ setSec(sec.n,{note:e.target.value}); }} placeholder="What's missing or needs clarifying…"></textarea>
+              </div>`}
+            </div>
+          </div>`;
+        })}
+      </div>
+      <div class="savebar card" style="margin-top:14px;border-radius:12px">
+        <button class="btn sm" onClick=${save}>Save draft</button>
+        <button class="btn g sm" onClick=${send}>Send feedback to applicant →</button>
+        <span class="st">${sv}</span>
+      </div>
+    </div>`;
+  }
+
+  /* ---------------- reviewer ---------------- */
+  function ReviewerView(props){
+    var st=props.st;
+    if(st.view.name==="review"){ var rc=st.cases.filter(function(c){return c.id===st.view.id;})[0];
+      if(rc) return html`<${InlineReview} ...${props} c=${rc} kind=${st.view.kind} reviewerName=${props.name} readOnly=${false} onBack=${function(){ props.up({view:{name:"home"}}); }} />`;
+    }
+    var mine = st.assignments.filter(function(a){ return a.reviewer_name===props.name; });
+    // also include cases where I already have a review row
+    var myRevCaseKinds = {};
+    st.reviews.filter(function(r){return r.reviewer_name===props.name;}).forEach(function(r){ myRevCaseKinds[r.case_id+"|"+r.kind]=r; });
+    var tasks = mine.map(function(a){ return {case_id:a.case_id, kind:a.kind}; });
+    Object.keys(myRevCaseKinds).forEach(function(key){ var p=key.split("|"); if(!tasks.some(function(t){return t.case_id===p[0]&&t.kind===p[1];})) tasks.push({case_id:p[0],kind:p[1]}); });
+
+    return html`<div>
+      <div class="page-h"><div><h2>My reviews</h2><p>Everything you need is inline — the application and your review side by side. No second windows.</p></div></div>
+      ${tasks.length===0 && html`<div class="card empty"><div class="ic">🧑‍⚖️</div><p>No assignments yet. When MARCO assigns you an organization, it appears here instantly.</p></div>`}
+      <div class="grid2">
+      ${tasks.map(function(t){ var c=st.cases.filter(function(x){return x.id===t.case_id;})[0]; if(!c) return null;
+        var r=myRevCaseKinds[t.case_id+"|"+t.kind]; var pm=PASSES.filter(function(p){return p.k===t.kind;})[0]||{l:t.kind};
+        var prog=r?progressOf(r.payload):0;
+        return html`<div class="card" style="padding:16px 18px">
+          <div style="display:flex;align-items:center;gap:8px"><b style="font-size:15px;flex:1">${c.org_name}</b>
+            <span class="pill" style="background:var(--tealSoft);color:var(--tealDeep)">${pm.l}</span></div>
+          <div class="m" style="font-size:12.5px;color:var(--muted);margin-top:2px">${c.profile&&c.profile.region?c.profile.region:""}</div>
+          <div class="ccard bar" style="height:6px;background:var(--line);border-radius:4px;margin:12px 0 4px;overflow:hidden"><i style=${"display:block;height:100%;background:var(--teal);width:"+(r&&r.submitted?100:prog)+"%"}></i></div>
+          <div class="m" style="font-size:12px;color:var(--muted)">${r&&r.submitted?"Submitted":prog+"% complete"}</div>
+          <button class="btn sm" style="margin-top:12px;width:100%" onClick=${function(){ props.up({view:{name:"review",id:c.id,kind:t.kind}}); }}>${r?(r.submitted?"Review your submission":"Continue review"):"Start review"} →</button>
+        </div>`;
+      })}
+      </div>
+    </div>`;
+  }
+
+  /* ---------------- the inline review screen (star) ---------------- */
+  function InlineReview(props){
+    var c=props.c, kind=props.kind, reviewerName=props.reviewerName, readOnly=props.readOnly;
+    var existing = myReview(props.st, c.id, kind, reviewerName);
+    var payState = useState(function(){ return existing? Object.assign({}, existing.payload||{}) : {}; });
+    var pay=payState[0], setPay=payState[1];
+    var idState=useState(existing?existing.id:null); var rid=idState[0], setRid=idState[1];
+    var activeSec=useState(SECTIONS[0].n); var asec=activeSec[0], setAsec=activeSec[1];
+    var savedAt=useState(""), sv=savedAt[0], setSv=savedAt[1];
+    var openDoc=useState(""), od=openDoc[0], setOd=openDoc[1];
+    var pm = PASSES.filter(function(p){return p.k===kind;})[0]||{l:kind};
+
+    function ensureRow(next){
+      if(rid){ return db.patchReview(rid,{payload:next, updated_at:new Date().toISOString()}); }
+      return db.upReview({case_id:c.id, reviewer_name:reviewerName, kind:kind, payload:next}).then(function(rows){ if(rows&&rows[0]) setRid(rows[0].id); });
+    }
+    var saveTimer=useRef(null);
+    function setSec(n, patch){
+      if(readOnly) return;
+      var next=Object.assign({}, pay); next[n]=Object.assign({touched:true}, next[n]||{}, patch); setPay(next);
+      if(saveTimer.current) clearTimeout(saveTimer.current);
+      saveTimer.current=setTimeout(function(){ ensureRow(next).then(function(){ setSv("Saved "+new Date().toLocaleTimeString()); }); }, 700);
+    }
+    function submit(){ var next=Object.assign({}, pay);
+      var doSubmit=function(){ db.patchReview(rid,{submitted:true, payload:next, updated_at:new Date().toISOString()}).then(function(){
+        db.log({actor:reviewerName, role:"reviewer", case_id:c.id, text:"submitted "+pm.l+" for "+c.org_name}); setSv("Submitted ✓"); props.refresh(); }); };
+      if(rid){ doSubmit(); } else { db.upReview({case_id:c.id,reviewer_name:reviewerName,kind:kind,payload:next}).then(function(rows){ if(rows&&rows[0]){ setRid(rows[0].id); db.patchReview(rows[0].id,{submitted:true}).then(function(){ setSv("Submitted ✓"); props.refresh(); }); } }); }
+    }
+
+    var sec = SECTIONS.filter(function(s){return s.n===asec;})[0];
+    var ans=(c.application&&c.application.sections)?c.application.sections[sec.n]:"";
+    var fr=(c.first_review||{})[sec.n];
+    var cur = pay[sec.n]||{};
+    var rows = kind==="site_visit" ? (sec.sv||sec.wr) : sec.wr;
+    var docs=(c.application&&c.application.docs)?(c.application.docs[sec.n]||[]):[];
+
+    return html`<div>
+      <div class="rvhead">
+        <button class="back" onClick=${props.onBack}>← ${readOnly?"Back":"My reviews"}</button>
+        <div class="passtabs">
+          ${PASSES.map(function(p){ return html`<div class=${"passtab"+(p.k===kind?" on":"")} onClick=${function(){ if(!readOnly && p.k!==kind){ props.up({view:{name:"review",id:c.id,kind:p.k}}); } }}>${p.l}</div>`; })}
+        </div>
+        <div style="flex:1"></div>
+        <span class="stagepill" style="background:var(--tealSoft);color:var(--tealDeep)">${c.org_name}</span>
+      </div>
+      <div class="page-h" style="margin:2px 0 12px"><div><h2>${pm.l}${readOnly?" · "+reviewerName:""}</h2><p>${sec.n} of 15 · click a section on the left. Application on the left, your review on the right — all on one screen.</p></div></div>
+
+      <div class="rvbody">
+        <div class="rail">
+          ${SECTIONS.map(function(s){ var done=pay[s.n]&&pay[s.n].touched;
+            return html`<div class=${"ri"+(s.n===asec?" on":"")+(done?" ok":"")} onClick=${function(){ setAsec(s.n); setOd(""); }}>
+              <div class="num">${done?"✓":s.n}</div><div class="t">${s.t}</div>
+            </div>`;
+          })}
+        </div>
+
+        <div class="section">
+          <div class="sh">
+            <div class="eye">Evaluation Section ${sec.n} — ${sec.s}</div>
+            <h3>${sec.t}</h3>
+            ${sec.guide && html`<div class="st">${sec.guide}</div>`}
+          </div>
+          <div class="split">
+            <div class="app">
+              <div class="colh">📄 What ${c.org_name} submitted</div>
+              <div class="ans">${ans||html`<span style="color:var(--muted)">— not yet answered —</span>`}</div>
+              ${fr && fr.note && html`<div class="banner warn" style="margin:10px 0 0;font-size:12.5px"><span>↳</span><div><b>MARCO first review:</b> ${fr.note}${fr.response?html`<div style="margin-top:5px;color:#1c5a38"><b>Applicant response:</b> ${fr.response}</div>`:""}</div></div>`}
+              ${docs && docs.length>0 && html`<div style="margin-top:12px">
+                <div class="colh">Uploaded documents — open inline</div>
+                ${docs.map(function(d){ return html`<span class="docchip" onClick=${function(){ setOd(od===d.f?"":d.f); }}>📎 ${d.l}</span>`; })}
+                ${od && html`<div class="docwrap"><div class="dh"><span>${od}</span><a href=${(c.docbase||"")+od} target="_blank">open ↗</a></div><iframe src=${(c.docbase||"")+od}></iframe></div>`}
+              </div>`}
+            </div>
+            <div class="rev">
+              <div class="colh">✍️ Your ${pm.l.toLowerCase()}</div>
+              ${ kind!=="panel" ? html`<div>
+                ${rows.map(function(q,i){ var key="r"+i; var val=cur[key];
+                  return html`<div class="qrow">
+                    <div class="qt">${q}</div>
+                    ${ kind==="site_visit" ? html`<div class="scale">
+                        ${["Not","Some","Clear"].map(function(lbl,si){ var v=si+1; return html`<button class=${(val===v?"on":"")} title=${["Not observed","Somewhat observed","Clearly observed"][si]} onClick=${function(){ setSec(sec.n,{[key]:v}); }}>${lbl}</button>`; })}
+                        ${sec.n===14 && html`<button class=${(val===0?"on":"")} onClick=${function(){ setSec(sec.n,{[key]:0}); }}>N/A</button>`}
+                      </div>`
+                    : html`<div class="yn">
+                        <button class=${"y"+(val==="yes"?" on":"")} onClick=${function(){ setSec(sec.n,{[key]:"yes"}); }}>Yes</button>
+                        <button class=${"n"+(val==="no"?" on":"")} onClick=${function(){ setSec(sec.n,{[key]:"no"}); }}>No</button>
+                        ${sec.n===14 && html`<button class=${"na"+(val==="na"?" on":"")} onClick=${function(){ setSec(sec.n,{[key]:"na"}); }}>N/A</button>`}
+                      </div>` }
+                  </div>`;
+                })}
+                <div class="flabel">${kind==="site_visit"?"What you observed / how questions were addressed":"Clarifying questions for the site visit"}</div>
+                <textarea class="inp" disabled=${readOnly} value=${cur.note||""} onInput=${function(e){ setSec(sec.n,{note:e.target.value}); }} placeholder=${readOnly?"":"Notes for this section…"}></textarea>
+              </div>` : html`<div>
+                <div class="flabel">✅ A key strength in this area</div>
+                <textarea class="inp" disabled=${readOnly} value=${cur.strength||""} onInput=${function(e){ setSec(sec.n,{strength:e.target.value}); }} placeholder="What stood out as strong…"></textarea>
+                <div class="flabel">↑ Something the organization could improve</div>
+                <textarea class="inp" disabled=${readOnly} value=${cur.improve||""} onInput=${function(e){ setSec(sec.n,{improve:e.target.value}); }} placeholder="A concrete area for growth…"></textarea>
+                <div class="flabel">Final recommendation for this section</div>
+                <div class="yn">
+                  <button class=${"y"+(cur.rec==="meets"?" on":"")} onClick=${function(){ setSec(sec.n,{rec:"meets"}); }}>Meets</button>
+                  <button class=${"na"+(cur.rec==="meets_notes"?" on":"")} style=${cur.rec==="meets_notes"?"background:var(--goldSoft);border-color:var(--gold);color:var(--gold)":""} onClick=${function(){ setSec(sec.n,{rec:"meets_notes"}); }}>Meets w/ notes</button>
+                  <button class=${"n"+(cur.rec==="not"?" on":"")} onClick=${function(){ setSec(sec.n,{rec:"not"}); }}>Doesn't meet</button>
+                </div>
+              </div>` }
+            </div>
+          </div>
+          <div class="savebar">
+            ${!readOnly && html`<button class="btn sm" disabled=${asec===SECTIONS[0].n} onClick=${function(){ var i=SECTIONS.findIndex(function(s){return s.n===asec;}); if(i>0) setAsec(SECTIONS[i-1].n); }}>← Prev</button>`}
+            ${!readOnly && asec!==SECTIONS[SECTIONS.length-1].n && html`<button class="btn sm" onClick=${function(){ var i=SECTIONS.findIndex(function(s){return s.n===asec;}); if(i<SECTIONS.length-1) setAsec(SECTIONS[i+1].n); }}>Next section →</button>`}
+            ${!readOnly && asec===SECTIONS[SECTIONS.length-1].n && html`<button class="btn g sm" onClick=${submit}>Submit ${pm.l} ✓</button>`}
+            <span class="st">${sv||(existing&&existing.submitted?"Submitted":"")}</span>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  /* ---------------- board ---------------- */
+  function BoardView(props){
+    var st=props.st;
+    var boardCases = st.cases.filter(function(c){ return c.stage==="board"; });
+    if(st.view.name==="vote"){ var vc=st.cases.filter(function(c){return c.id===st.view.id;})[0]; if(vc) return html`<${BoardVote} ...${props} c=${vc} />`; }
+    return html`<div>
+      <div class="page-h"><div><h2>Board certification votes</h2><p>Organizations the panel has forwarded with a recommendation. Record your vote — it tallies live.</p></div></div>
+      ${boardCases.length===0 && html`<div class="card empty"><div class="ic">🗳️</div><p>Nothing awaiting a vote right now. When a panel forwards an organization, it lands here.</p></div>`}
+      <div class="grid2">
+      ${boardCases.map(function(c){ var votes=st.votes.filter(function(v){return v.case_id===c.id;});
+        var mine=votes.filter(function(v){return v.member_name===props.name;})[0];
+        return html`<div class="card" style="padding:16px 18px">
+          <b style="font-size:15px">${c.org_name}</b>
+          <div class="m" style="font-size:12.5px;color:var(--muted);margin-top:2px">${c.profile&&c.profile.region?c.profile.region:""}</div>
+          <div class="banner info" style="margin:12px 0;font-size:12.5px"><span>📋</span><div>Panel recommendation on file. ${votes.length} vote(s) recorded so far.</div></div>
+          <button class="btn sm" style="width:100%" onClick=${function(){ props.up({view:{name:"vote",id:c.id}}); }}>${mine?"You voted: "+mine.decision+" — review":"Cast your vote →"}</button>
+        </div>`;
+      })}
+      </div>
+    </div>`;
+  }
+
+  function BoardVote(props){
+    var c=props.c, st=props.st;
+    var votes=st.votes.filter(function(v){return v.case_id===c.id;});
+    var mine=votes.filter(function(v){return v.member_name===props.name;})[0];
+    var dec=useState(mine?mine.decision:""); var d=dec[0], setD=dec[1];
+    var nt=useState(mine?mine.note:""); var note=nt[0], setNote=nt[1];
+    var rvv=useState(null), rv=rvv[0], setRv=rvv[1];
+    if(rv) return html`<${InlineReview} ...${props} c=${c} kind=${rv.kind} reviewerName=${rv.name} readOnly=${true} onBack=${function(){setRv(null);}} />`;
+    var panelRevs=st.reviews.filter(function(r){return r.case_id===c.id && r.kind==="panel";});
+    return html`<div>
+      <div class="rvhead"><button class="back" onClick=${function(){ props.up({view:{name:"home"}}); }}>← Board</button></div>
+      <div class="page-h"><div><h2>${c.org_name}</h2><p>Review the panel's recommendation, then record your vote.</p></div></div>
+      <div class="grid2" style="align-items:start">
+        <div class="card" style="padding:16px 18px">
+          <div class="colh">Panel recommendations</div>
+          ${panelRevs.length===0 && html`<div style="font-size:13px;color:var(--muted)">Panel notes will appear here.</div>`}
+          ${panelRevs.map(function(r){ return html`<div style="padding:8px 0;border-bottom:1px solid var(--line);cursor:pointer" onClick=${function(){ setRv({kind:"panel",name:r.reviewer_name}); }}>
+            <b style="font-size:13.5px">${r.reviewer_name}</b> <span style="font-size:12px;color:var(--muted)">— view panel notes ↗</span></div>`; })}
+          <div class="banner info" style="margin-top:12px;font-size:12.5px"><span>📋</span><div>MARCO forwarded this organization to the Board. The committee's recommendation is on file in the pipeline.</div></div>
+        </div>
+        <div class="card" style="padding:16px 18px">
+          <div class="colh">Your vote</div>
+          <p style="font-size:13.5px;color:var(--inkSoft);margin:0 0 10px">Do you approve the recommendation to certify <b>${c.org_name}</b>?</p>
+          <div class="yn" style="gap:8px">
+            <button class=${"y"+(d==="yes"?" on":"")} onClick=${function(){setD("yes");}}>Yes, approve</button>
+            <button class=${"n"+(d==="no"?" on":"")} onClick=${function(){setD("no");}}>No</button>
+            <button class=${"na"+(d==="recuse"?" on":"")} onClick=${function(){setD("recuse");}}>I recuse myself</button>
+          </div>
+          <div class="flabel">Comment (optional)</div>
+          <textarea class="inp" value=${note} onInput=${function(e){setNote(e.target.value);}}></textarea>
+          <button class="btn g sm" style="margin-top:12px" disabled=${!d} onClick=${function(){
+            db.addVote({case_id:c.id, member_name:props.name, decision:d, note:note, recommendation:"certify"}).then(function(){
+              db.log({actor:props.name, role:"board", case_id:c.id, text:"voted "+d+" on "+c.org_name}); props.up({view:{name:"home"}}); props.refresh(); });
+          }}>${mine?"Update my vote":"Record my vote"}</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  /* ---------------- applicant ---------------- */
+  function ApplicantView(props){
+    var st=props.st;
+    // applicant sees the first case whose org matches their name, else lets them pick
+    var mine = st.cases.filter(function(c){ return (c.profile&&c.profile.applicant_login && c.profile.applicant_login===props.name) || c.org_name.toLowerCase().indexOf(props.name.toLowerCase())>=0; });
+    var pick=useState(mine[0]?mine[0].id:(st.cases[0]?st.cases[0].id:null)); var pid=pick[0], setPid=pick[1];
+    var c = st.cases.filter(function(x){return x.id===pid;})[0];
+    if(!c) return html`<div class="card empty"><div class="ic">🏢</div><p>No organization loaded yet.</p></div>`;
+    var sm=stageMeta(c.stage);
+    var fr=c.first_review||{};
+    var flags=SECTIONS.filter(function(s){ return fr[s.n] && (fr[s.n].status==="needs"||fr[s.n].status==="suggest"); });
+
+    return html`<div>
+      <div class="page-h">
+        <div><h2>${c.org_name}</h2><p>Your certification status and what's needed from you next.</p></div>
+        ${st.cases.length>1 && html`<select class="inp" style="width:auto" value=${pid} onChange=${function(e){setPid(e.target.value);}}>${st.cases.map(function(x){return html`<option value=${x.id}>${x.org_name}</option>`;})}</select>`}
+      </div>
+      <div class="card" style="padding:18px 20px;margin-bottom:16px;display:flex;align-items:center;gap:16px">
+        <div style=${"width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;background:"+sm.bg}>${c.stage==="certified"?"🎉":c.stage==="board"?"🗳️":c.stage==="panel"?"👥":"📋"}</div>
+        <div style="flex:1"><div style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:700">Current stage</div>
+          <div class="serif" style="font-size:22px">${sm.l}</div></div>
+      </div>
+      <${StageStrip} stage=${c.stage} />
+
+      ${flags.length>0 && html`<div style="margin-top:18px">
+        <div class="banner warn"><span>📝</span><div><b>MARCO reviewed your application and needs a bit more on ${flags.length} section(s).</b> Respond inline below — everything's on this page.</div></div>
+        ${flags.map(function(s){ var f=fr[s.n]; return html`<div class="card" style="padding:16px 18px;margin-bottom:12px">
+          <b style="font-size:14.5px">§${s.n} · ${s.t}</b>
+          <div class="banner warn" style="margin:8px 0;font-size:13px"><span>↳</span><div><b>MARCO:</b> ${f.note}</div></div>
+          <div class="flabel">Your response</div>
+          <textarea class="inp" value=${f.response||""} onInput=${function(e){ var nf=Object.assign({},fr); nf[s.n]=Object.assign({},f,{response:e.target.value}); c.first_review=nf; props.up({}); }}></textarea>
+          <button class="btn sm" style="margin-top:10px" onClick=${function(){ db.patchCase(c.id,{first_review:c.first_review}).then(function(){ db.log({actor:props.name,role:"applicant",case_id:c.id,text:"responded to first-review feedback on §"+s.n}); props.refresh(); }); }}>Send response</button>
+        </div>`; })}
+      </div>`}
+
+      <div style="margin-top:18px" class="card">
+        <div style="padding:14px 18px;border-bottom:1px solid var(--line)" class="colh">Your application — all 15 sections</div>
+        ${SECTIONS.map(function(sec){ var ans=(c.application&&c.application.sections)?c.application.sections[sec.n]:"";
+          return html`<div style="padding:12px 18px;border-bottom:1px solid var(--line)">
+            <b style="font-size:13.5px">${sec.n}. ${sec.t}</b>
+            <div class="ans" style="margin-top:4px;color:var(--inkSoft)">${ans||html`<span style="color:var(--muted)">— not yet answered —</span>`}</div>
+          </div>`;
+        })}
+      </div>
+    </div>`;
+  }
+
+  /* ---------------- feed ---------------- */
+  function FeedCard(props){
+    var acts=(props.st.activity||[]).filter(function(a){ return !props.caseId || a.case_id===props.caseId || !a.case_id; }).slice(0,12);
+    return html`<div class="card" style="padding:16px 18px">
+      <div class="colh">Live activity</div>
+      <div class="feed">
+        ${acts.length===0 && html`<div style="font-size:12.5px;color:var(--muted)">Actions across the console show up here as they happen.</div>`}
+        ${acts.map(function(a){ return html`<div class="f"><span class="who">${a.actor||"someone"}</span><span>${a.text}</span><span class="tm">${timeAgo(a.created_at)}</span></div>`; })}
+      </div>
+    </div>`;
+  }
+
+  /* first-review routing shim (MARCO) */
+  var _origMarco = MarcoView;
+  MarcoView = function(props){
+    if(props.st.view.name==="firstreview" || props.st.view.name==="firstreview_open"){
+      var c=props.st.cases.filter(function(x){return x.id===props.st.view.id;})[0];
+      if(c) return html`<${FirstReviewEditor} ...${props} c=${c} />`;
+    }
+    return _origMarco(props);
+  };
+
+  render(html`<${App} />`, document.getElementById("app"));
+})();
+</script>
+</body>
+</html>
