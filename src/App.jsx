@@ -43,6 +43,7 @@ import BudgetBuilder from "./pages/BudgetBuilder";
 import Pricing from "./pages/Pricing";
 import NonprofitSeries from "./pages/NonprofitSeries";
 import OrgHome from "./pages/OrgHome";
+import PublicRent from "./pages/PublicRent";
 import LedgerWorkspace from "./pages/LedgerWorkspace";
 import InvoicePublic from "./pages/InvoicePublic";
 import { FRAME_COCKPITS, CLOUD_COCKPITS } from "./cockpits/registry";
@@ -129,6 +130,11 @@ export default function App() {
     if (!session) { navigate("/login"); return null; }
     const slug = path.replace("/org/", "").replace(/\/$/, "");
     return <OrgHome slug={slug} session={session} />;
+  }
+
+  // Public rent page — anyone can visit, no login required
+  if (path.startsWith("/rent/")) {
+    return <PublicRent />;
   }
 
   // If a member has a primary org set, root URL takes them straight to their org workspace.

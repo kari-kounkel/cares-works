@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 import { navigate } from "../App";
 import { N, N_RGB, FONT_LINK, NeonBox, NeonBtn, SignatureFooter, WASH_BG_LITE, HERO_TEXT_GRAD_BLUE } from "../design/neon";
+import FacilitiesMap from "../components/FacilitiesMap";
 
 const MOBILE = `
   @media (max-width: 900px) {
@@ -23,6 +24,7 @@ const ACCENTS = {
 const SIDEBAR_SECTIONS = [
   { key: "home",         emoji: "🏠", label: "Home" },
   { key: "financials",   emoji: "💰", label: "Financials" },
+  { key: "facilities",   emoji: "🏛", label: "Facilities" },
   { key: "meetings",     emoji: "📝", label: "Meetings & Minutes" },
   { key: "newsletter",   emoji: "📮", label: "Newsletter" },
   { key: "fundraisers",  emoji: "🎯", label: "Fundraisers" },
@@ -63,6 +65,9 @@ export default function OrgHome({ slug, session }) {
   const [rawEntries, setRawEntries] = useState([]);  // full ledger_entries so we can snapshot balances as of ANY date
   const [rawFunds,   setRawFunds]   = useState([]);
   const [invites, setInvites] = useState([]);
+  const [spaces, setSpaces] = useState([]);
+  const [rentals, setRentals] = useState([]);
+  const [rentalRequests, setRentalRequests] = useState([]);
 
   // Compose modal — one form used for meetings, newsletters, fundraisers
   const [composeType, setComposeType] = useState(null); // 'meeting' | 'newsletter' | 'fundraiser' | null
@@ -84,7 +89,7 @@ export default function OrgHome({ slug, session }) {
       setOrg(o);
 
       const ledgerOrgId = o.primary_ledger_org_id;
-      const [{ data: mem }, m, nl, fr, docs, inv, funds, entries] = await Promise.all([
+      const [{ data: mem }, m, nl, fr, docs, inv, funds, entries, sp, rt, rspLinks, rq] = await Promise.all([
         supabase.from("organization_members").select("*").eq("org_id", o.id).eq("user_email", session.user.email).maybeSingle(),
         supabase.from("org_meetings").select("*").eq("org_id", o.id).order("meeting_date", { ascending: false }),
         supabase.from("org_newsletters").select("*").eq("org_id", o.id).order("issue_date", { ascending: false }),
@@ -93,6 +98,10 @@ export default function OrgHome({ slug, session }) {
         supabase.from("org_invites").select("*").eq("org_id", o.id).order("created_at", { ascending: false }),
         ledgerOrgId ? supabase.from("ledger_funds").select("id,name,is_restricted,archived").eq("org_id", ledgerOrgId).eq("archived", false).order("name") : Promise.resolve({ data: [] }),
         ledgerOrgId ? supabase.from("ledger_entries").select("fund_id,direction,amount_cents,entry_date").eq("org_id", ledgerOrgId) : Promise.resolve({ data: [] }),
+        supabase.from("org_spaces").select("*").eq("org_id", o.id).order("sort_order", { ascending: true }),
+        supabase.from("org_rentals").select("*").eq("org_id", o.id).order("starts_at", { ascending: true }),
+        supabase.from("org_rental_spaces").select("rental_id, space_id"),
+        supabase.from("org_rental_requests").select("*").eq("org_id", o.id).order("created_at", { ascending: false }),
       ]);
       setMe(mem);
       setMeetings(m.data || []);
@@ -100,6 +109,15 @@ export default function OrgHome({ slug, session }) {
       setFundraisers(fr.data || []);
       setDocuments(docs.data || []);
       setInvites(inv.data || []);
+      setSpaces(sp.data || []);
+      // Attach space_ids array to each rental via the link table
+      const linksByRental = new Map();
+      (rspLinks.data || []).forEach(l => {
+        if (!linksByRental.has(l.rental_id)) linksByRental.set(l.rental_id, []);
+        linksByRental.get(l.rental_id).push(l.space_id);
+      });
+      setRentals((rt.data || []).map(r => ({ ...r, space_ids: linksByRental.get(r.id) || [] })));
+      setRentalRequests(rq.data || []);
 
       if (ledgerOrgId) {
         const entryRows = entries.data || [];
@@ -399,6 +417,81 @@ export default function OrgHome({ slug, session }) {
                   <p style={{ color: N.muted, fontSize: 14, marginBottom: 14 }}>Kari can link this workspace to your CARES Ledger org so balances land here.</p>
                   <NeonBtn color={accent.color} onClick={() => navigate("/tools/ledger")}>Open Ledger →</NeonBtn>
                 </NeonBox>
+              )}
+            </div>
+          )}
+
+          {section === "facilities" && (
+            <div>
+              <div style={{ marginBottom: 20, display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 20, flexWrap: "wrap" }}>
+                <div>
+                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.16em", color: accent.color, fontWeight: 700, marginBottom: 8 }}>SPACES & RENTALS</div>
+                  <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 30, color: N.ink, marginBottom: 8 }}>Facilities</h1>
+                  <p style={{ color: N.muted, fontSize: 14 }}>The map shows what's in use at the moment you pick. Rentable rooms are white; internal-only are grey.</p>
+                </div>
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                  <a href={"/rent/" + org.slug} target="_blank" rel="noopener noreferrer"
+                    style={{ padding: "8px 14px", background: N.white, border: `1.5px solid ${accent.color}`, borderRadius: 8, color: accent.color, fontSize: 12, fontWeight: 700, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", textDecoration: "none" }}>
+                    👁 PUBLIC RENT PAGE
+                  </a>
+                </div>
+              </div>
+
+              {spaces.length === 0 ? (
+                <NeonBox color={accent.color} rgb={accent.rgb} scale={0.7} style={{ padding: "28px 24px", textAlign: "center" }}>
+                  <div style={{ fontSize: 32, marginBottom: 10 }}>🏛</div>
+                  <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: N.ink, marginBottom: 8 }}>No spaces set up yet.</div>
+                  <p style={{ color: N.muted, fontSize: 14 }}>Add spaces via SQL or the admin console for now.</p>
+                </NeonBox>
+              ) : (
+                <FacilitiesMap spaces={spaces} rentals={rentals} accent={accent} />
+              )}
+
+              {/* Requests inbox */}
+              {rentalRequests.filter(r => r.status === "pending").length > 0 && (
+                <div style={{ marginTop: 24 }}>
+                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", color: accent.color, fontWeight: 700, marginBottom: 10 }}>PENDING REQUESTS · {rentalRequests.filter(r => r.status === "pending").length}</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    {rentalRequests.filter(r => r.status === "pending").map(r => (
+                      <NeonBox key={r.id} color={accent.color} rgb={accent.rgb} style={{ padding: "16px 20px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                          <div>
+                            <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 17, color: N.ink }}>{r.requester_name}{r.requester_org ? " · " + r.requester_org : ""}</div>
+                            <div style={{ fontSize: 12, color: N.muted, marginTop: 2 }}>{r.requester_email}{r.requester_phone ? " · " + r.requester_phone : ""}</div>
+                            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: N.ink, marginTop: 6 }}>{fmtDate(r.requested_starts_at)} → {fmtDate(r.requested_ends_at)}</div>
+                            {r.purpose && <div style={{ fontSize: 13, color: N.muted, marginTop: 6, fontStyle: "italic" }}>{r.purpose}</div>}
+                          </div>
+                          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                            <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.12em", padding: "3px 10px", borderRadius: 100, background: N.pink, color: N.white, fontWeight: 700, textAlign: "center" }}>PENDING</span>
+                            <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: N.muted, textAlign: "center" }}>{fmtDate(r.created_at)}</span>
+                          </div>
+                        </div>
+                      </NeonBox>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Rentals list */}
+              {rentals.length > 0 && (
+                <div style={{ marginTop: 24 }}>
+                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", color: N.muted, fontWeight: 700, marginBottom: 10 }}>ALL RENTALS · {rentals.length}</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {rentals.map(r => (
+                      <div key={r.id} style={{ padding: "10px 14px", background: N.white, border: `1px solid ${N.rule}`, borderRadius: 8, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                        <div style={{ flex: 1, minWidth: 200 }}>
+                          <div style={{ fontSize: 14, color: N.ink, fontWeight: 700 }}>{r.renter_name}{r.renter_org ? " · " + r.renter_org : ""}</div>
+                          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: N.muted }}>
+                            {r.recurs_weekdays?.length ? r.recurs_weekdays.join(",") + " · " : ""}
+                            {new Date(r.starts_at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })} → {new Date(r.ends_at).toLocaleString("en-US", { hour: "numeric", minute: "2-digit" })}
+                            {r.recurs_until ? " · until " + fmtDate(r.recurs_until) : ""}
+                          </div>
+                        </div>
+                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", padding: "3px 10px", borderRadius: 100, background: r.status === "confirmed" ? `rgba(${accent.rgb},0.15)` : "#eef0f6", color: r.status === "confirmed" ? accent.color : N.muted, fontWeight: 700 }}>{r.status.toUpperCase()}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
           )}

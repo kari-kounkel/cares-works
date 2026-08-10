@@ -425,6 +425,18 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     if (live) supabase.from("ledger_entries").update({ category: cat }).eq("id", id).then(() => {});
   }
 
+  // Add a brand-new account to the chart on the fly (from the "which account?"
+  // dropdown) and, if a line was open, drop the transaction straight into it.
+  async function addCategory(name, forLineId) {
+    const nm = (name || "").trim();
+    if (!nm) return;
+    if (forLineId) setCategory(forLineId, nm);
+    if (live && liveOrgId) {
+      await supabase.from("ledger_categories").insert({ org_id: liveOrgId, user_id: session.user.id, name: nm, kind: "expense", sort_order: 999, archived: false });
+      setReloadTick(t => t + 1);
+    }
+  }
+
   // "Paid with which card?" — set which account a transaction hit.
   function setAccount(id, acctId, acctName) {
     setItems(prev => prev.map(x => (x.id === id ? { ...x, accountId: acctId, source: acctName } : x)));
@@ -920,7 +932,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                         const bg = hasCat ? "#eafaf0" : isSug ? "#fdf5e3" : "#eef6ff";
                         const fg = hasCat ? N.pinkDark : isSug ? "#8a5a00" : N.blueDark;
                         return (
-                          <select value={x.category || ""} onChange={e => setCategory(x.id, e.target.value)}
+                          <select value={x.category || ""} onChange={e => { if (e.target.value === "__new__") { const nm = window.prompt("New account name:"); if (nm && nm.trim()) addCategory(nm, x.id); } else setCategory(x.id, e.target.value); }}
                             title={isSug ? "Remembered from a past entry — confirm or change" : "Which account does this go to?"}
                             style={{
                               fontSize: 11, fontWeight: 600, padding: "4px 8px", maxWidth: 200,
@@ -929,6 +941,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                             }}>
                             <option value="">{isSug ? `${x.suggested}?` : "Which account?"}</option>
                             {(entity.categories || []).map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                            <option value="__new__">＋ Add a new account…</option>
                           </select>
                         );
                       })()}
