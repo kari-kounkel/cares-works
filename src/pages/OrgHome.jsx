@@ -3,6 +3,7 @@ import { supabase } from "../supabaseClient";
 import { navigate } from "../App";
 import { N, N_RGB, FONT_LINK, NeonBox, NeonBtn, SignatureFooter, WASH_BG_LITE, HERO_TEXT_GRAD_BLUE } from "../design/neon";
 import FacilitiesMap from "../components/FacilitiesMap";
+import RentalModal from "../components/RentalModal";
 
 const MOBILE = `
   @media (max-width: 900px) {
@@ -93,6 +94,24 @@ export default function OrgHome({ slug, session }) {
   const [selectedSpaceId, setSelectedSpaceId] = useState(null);
   const [rentalFilter, setRentalFilter] = useState("upcoming"); // upcoming | past | all
   const [roomRentalFilter, setRoomRentalFilter] = useState("upcoming");
+  const [rentalModalOpen, setRentalModalOpen] = useState(false);
+  const [editingRental, setEditingRental] = useState(null);
+
+  const reloadRentals = async () => {
+    if (!org) return;
+    const [rt, rspLinks, rq] = await Promise.all([
+      supabase.from("org_rentals").select("*").eq("org_id", org.id).order("starts_at", { ascending: true }),
+      supabase.from("org_rental_spaces").select("rental_id, space_id"),
+      supabase.from("org_rental_requests").select("*").eq("org_id", org.id).order("created_at", { ascending: false }),
+    ]);
+    const linksByRental = new Map();
+    (rspLinks.data || []).forEach(l => {
+      if (!linksByRental.has(l.rental_id)) linksByRental.set(l.rental_id, []);
+      linksByRental.get(l.rental_id).push(l.space_id);
+    });
+    setRentals((rt.data || []).map(r => ({ ...r, space_ids: linksByRental.get(r.id) || [] })));
+    setRentalRequests(rq.data || []);
+  };
 
   // Compose modal — one form used for meetings, newsletters, fundraisers
   const [composeType, setComposeType] = useState(null); // 'meeting' | 'newsletter' | 'fundraiser' | null
@@ -455,6 +474,10 @@ export default function OrgHome({ slug, session }) {
                   <p style={{ color: N.muted, fontSize: 14 }}>The map shows what's in use at the moment you pick. Rentable rooms are white; internal-only are grey.</p>
                 </div>
                 <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                  <button onClick={() => { setEditingRental(null); setRentalModalOpen(true); }}
+                    style={{ padding: "8px 16px", background: accent.color, color: N.white, border: "none", borderRadius: 8, fontSize: 12, fontWeight: 700, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", cursor: "pointer", boxShadow: `0 3px 12px ${accent.color}66` }}>
+                    + NEW RENTAL
+                  </button>
                   <a href={"/rent/" + org.slug} target="_blank" rel="noopener noreferrer"
                     style={{ padding: "8px 14px", background: N.white, border: `1.5px solid ${accent.color}`, borderRadius: 8, color: accent.color, fontSize: 12, fontWeight: 700, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", textDecoration: "none" }}>
                     👁 PUBLIC RENT PAGE
@@ -519,7 +542,13 @@ export default function OrgHome({ slug, session }) {
                                 </div>
                                 {r.purpose && <div style={{ fontSize: 12, color: N.muted, marginTop: 4, fontStyle: "italic" }}>{r.purpose}</div>}
                               </div>
-                              <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", padding: "3px 10px", borderRadius: 100, background: r.status === "confirmed" ? `rgba(${accent.rgb},0.15)` : "#eef0f6", color: r.status === "confirmed" ? accent.color : N.muted, fontWeight: 700, height: "fit-content" }}>{r.status.toUpperCase()}</span>
+                              <div style={{ display: "flex", alignItems: "center", gap: 8, height: "fit-content" }}>
+                                <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", padding: "3px 10px", borderRadius: 100, background: r.status === "confirmed" ? `rgba(${accent.rgb},0.15)` : "#eef0f6", color: r.status === "confirmed" ? accent.color : N.muted, fontWeight: 700 }}>{r.status.toUpperCase()}</span>
+                                <button onClick={() => { setEditingRental(r); setRentalModalOpen(true); }}
+                                  style={{ padding: "5px 10px", background: "transparent", border: `1px solid ${N.rule}`, color: accent.color, fontSize: 10, fontWeight: 700, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", borderRadius: 6, cursor: "pointer" }}>
+                                  EDIT
+                                </button>
+                              </div>
                             </div>
                           </div>
                         ))}
@@ -579,9 +608,9 @@ export default function OrgHome({ slug, session }) {
                       {upcoming.map(r => {
                         const roomNames = (r.space_ids || []).map(id => spaces.find(s => s.id === id)?.name).filter(Boolean);
                         return (
-                          <div key={r.id} style={{ padding: "10px 14px", background: N.white, border: `1px solid ${N.rule}`, borderRadius: 8, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", cursor: "pointer" }}
-                               onClick={() => { if (r.space_ids?.[0]) setSelectedSpaceId(r.space_ids[0]); }}>
-                            <div style={{ flex: 1, minWidth: 200 }}>
+                          <div key={r.id} style={{ padding: "10px 14px", background: N.white, border: `1px solid ${N.rule}`, borderRadius: 8, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                            <div style={{ flex: 1, minWidth: 200, cursor: "pointer" }}
+                                 onClick={() => { if (r.space_ids?.[0]) setSelectedSpaceId(r.space_ids[0]); }}>
                               <div style={{ fontSize: 14, color: N.ink, fontWeight: 700 }}>{r.renter_name}{r.renter_org ? " · " + r.renter_org : ""}</div>
                               <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: N.muted }}>
                                 {r.recurs_weekdays?.length ? r.recurs_weekdays.join(",") + " · " : ""}
@@ -595,6 +624,10 @@ export default function OrgHome({ slug, session }) {
                               )}
                             </div>
                             <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", padding: "3px 10px", borderRadius: 100, background: r.status === "confirmed" ? `rgba(${accent.rgb},0.15)` : "#eef0f6", color: r.status === "confirmed" ? accent.color : N.muted, fontWeight: 700 }}>{r.status.toUpperCase()}</span>
+                            <button onClick={() => { setEditingRental(r); setRentalModalOpen(true); }}
+                              style={{ padding: "5px 10px", background: "transparent", border: `1px solid ${N.rule}`, color: accent.color, fontSize: 10, fontWeight: 700, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", borderRadius: 6, cursor: "pointer" }}>
+                              EDIT
+                            </button>
                           </div>
                         );
                       })}
@@ -800,6 +833,18 @@ export default function OrgHome({ slug, session }) {
 
         </main>
       </div>
+
+      {/* RENTAL MODAL — Laurie's add/edit rentals */}
+      {rentalModalOpen && (
+        <RentalModal
+          orgId={org.id}
+          spaces={spaces}
+          rental={editingRental}
+          accent={accent}
+          onClose={() => setRentalModalOpen(false)}
+          onSaved={async () => { await reloadRentals(); setRentalModalOpen(false); }}
+        />
+      )}
 
       {/* COMPOSE MODAL — same shape as FlowSuite's AddDeliveryModal, neon-styled */}
       {composeType && (
