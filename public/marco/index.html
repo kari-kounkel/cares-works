@@ -4,26 +4,27 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>MARCO · RCO Certification Console</title>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>
   :root{
     --teal:#12716b; --tealDeep:#0c5651; --tealSoft:#e6f2f0; --gold:#c2922a; --goldSoft:#faf1da;
     --ink:#1b2733; --inkSoft:#4a5563; --muted:#8a93a0; --line:#e6e8ec; --paper:#f4f6f7; --card:#ffffff;
     --ok:#2f8f5b; --okSoft:#e4f1ea; --warn:#c2410c; --warnSoft:#fbeee6; --info:#1a7af0;
     --shadow:0 6px 26px rgba(20,40,45,.09);
+    --serif:'Fraunces',Georgia,serif; --sans:'Inter',system-ui,sans-serif;
   }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0}
-  body{background:var(--paper);color:var(--ink);font-family:'Inter',system-ui,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased}
   a{color:var(--teal)}
-  .serif{font-family:'Fraunces',serif}
+  .serif{font-family:var(--serif),serif}
   button{font-family:inherit}
   input,textarea,select{font-family:inherit;font-size:14px}
   ::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:#d3d8dc;border-radius:6px}
 
   /* ---- shell ---- */
   .top{position:sticky;top:0;z-index:40;background:var(--tealDeep);color:#fff;display:flex;align-items:center;gap:14px;padding:10px 18px;box-shadow:0 2px 10px rgba(0,0,0,.12)}
-  .top .logo{height:34px;width:34px;border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:center;color:var(--tealDeep);font-weight:700;font-family:'Fraunces',serif;font-size:17px;overflow:hidden}
+  .top .logo{height:34px;width:34px;border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:center;color:var(--tealDeep);font-weight:700;font-family:var(--serif),serif;font-size:17px;overflow:hidden}
   .top .logo img{height:34px;width:34px;object-fit:contain}
   .top h1{font-size:15px;font-weight:600;margin:0;letter-spacing:.2px}
   .top .sub{font-size:11.5px;opacity:.8;margin-top:-2px}
@@ -55,7 +56,7 @@
   /* ---- gate / rolepick ---- */
   .center{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(1200px 500px at 50% -10%, #163f3b 0%, #0c2b28 55%, #08201e 100%)}
   .gatecard{width:100%;max-width:440px;background:#fff;border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:30px 30px 26px;text-align:center}
-  .gatecard .mark{font-family:'Fraunces',serif;font-weight:700;font-size:30px;color:var(--tealDeep);letter-spacing:.5px}
+  .gatecard .mark{font-family:var(--serif),serif;font-weight:700;font-size:30px;color:var(--tealDeep);letter-spacing:.5px}
   .gatecard .tag{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-top:2px}
   .gatecard h3{font-size:18px;margin:20px 0 4px}
   .gatecard p{color:var(--inkSoft);font-size:13.5px;margin:0 0 18px}
@@ -86,7 +87,7 @@
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
   .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
   .stat{background:#fff;border:1px solid var(--line);border-radius:13px;padding:15px 16px}
-  .stat .n{font-size:26px;font-weight:700;font-family:'Fraunces',serif}
+  .stat .n{font-size:26px;font-weight:700;font-family:var(--serif),serif}
   .stat .l{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
 
   .list .row{display:flex;align-items:center;gap:12px;padding:13px 15px;border-bottom:1px solid var(--line);cursor:pointer}
@@ -184,17 +185,27 @@
   var useState = preactHooks.useState, useEffect = preactHooks.useEffect, useRef = preactHooks.useRef, useMemo = preactHooks.useMemo;
   var html = htm.bind(h);
 
-  /* ---------------- theming ---------------- */
+  /* ---------------- theming (exact palettes + fonts from the original build) ---------------- */
   var PALETTES = [
-    {name:"Teal",     v:{teal:"#12716b",tealDeep:"#0c5651",tealSoft:"#e6f2f0",gold:"#c2922a",goldSoft:"#faf1da"}},
-    {name:"Navy",     v:{teal:"#1f3d63",tealDeep:"#152a45",tealSoft:"#e9eef5",gold:"#c2922a",goldSoft:"#faf1da"}},
-    {name:"Plum",     v:{teal:"#6d2f74",tealDeep:"#4f2155",tealSoft:"#f3e9f4",gold:"#c2922a",goldSoft:"#faf1da"}},
-    {name:"Forest",   v:{teal:"#2f6b41",tealDeep:"#20492d",tealSoft:"#e7f1ea",gold:"#c2922a",goldSoft:"#faf1da"}},
-    {name:"Slate",    v:{teal:"#3a4a57",tealDeep:"#28343d",tealSoft:"#eceff2",gold:"#b8862f",goldSoft:"#f7efe0"}},
-    {name:"Burgundy", v:{teal:"#8a2f3b",tealDeep:"#66222c",tealSoft:"#f6e8ea",gold:"#c2922a",goldSoft:"#faf1da"}}
+    { name:"Teal",   vars:{ "--teal":"#125b53","--tealDeep":"#0b3d38","--tealSoft":"#e7f1ef","--gold":"#c2902f","--goldSoft":"#f7ecd6" } },
+    { name:"Royal",  vars:{ "--teal":"#1d4ed8","--tealDeep":"#11297a","--tealSoft":"#e8eefc","--gold":"#f59e0b","--goldSoft":"#fdf0d8" } },
+    { name:"Plum",   vars:{ "--teal":"#6d28d9","--tealDeep":"#3b1280","--tealSoft":"#f0eafc","--gold":"#db2777","--goldSoft":"#fbe4ef" } },
+    { name:"Sunset", vars:{ "--teal":"#c2410c","--tealDeep":"#7c2208","--tealSoft":"#fbeee6","--gold":"#0891b2","--goldSoft":"#dff3f8" } },
+    { name:"Forest", vars:{ "--teal":"#15803d","--tealDeep":"#0a4023","--tealSoft":"#e8f3ec","--gold":"#ca8a04","--goldSoft":"#f7eecb" } },
+    { name:"Slate",  vars:{ "--teal":"#334155","--tealDeep":"#1e293b","--tealSoft":"#eef1f5","--gold":"#0d9488","--goldSoft":"#d7f0ec" } }
   ];
-  function applyTheme(p){ var r=document.documentElement.style; r.setProperty("--teal",p.v.teal); r.setProperty("--tealDeep",p.v.tealDeep); r.setProperty("--tealSoft",p.v.tealSoft); r.setProperty("--gold",p.v.gold); r.setProperty("--goldSoft",p.v.goldSoft); try{ localStorage.setItem("marco_theme",p.name); }catch(e){} }
-  (function(){ try{ var s=localStorage.getItem("marco_theme"); var p=PALETTES.filter(function(x){return x.name===s;})[0]; if(p) applyTheme(p); }catch(e){} })();
+  var FONT_OPTIONS = [
+    { name:"Editorial", vars:{ "--serif":"'Fraunces', Georgia, serif",  "--sans":"'Inter', system-ui, sans-serif" } },
+    { name:"Modern",    vars:{ "--serif":"'Space Grotesk', sans-serif", "--sans":"'Inter', system-ui, sans-serif" } },
+    { name:"Friendly",  vars:{ "--serif":"'Poppins', sans-serif",       "--sans":"'Poppins', system-ui, sans-serif" } }
+  ];
+  function applyVars(vars){ var r=document.documentElement.style; for(var k in vars){ if(vars.hasOwnProperty(k)) r.setProperty(k, vars[k]); } }
+  function applyTheme(p){ applyVars(p.vars); try{ localStorage.setItem("marco_theme",p.name); }catch(e){} }
+  function applyFont(f){ applyVars(f.vars); try{ localStorage.setItem("marco_font",f.name); }catch(e){} }
+  (function(){ try{
+    var s=localStorage.getItem("marco_theme"); var p=PALETTES.filter(function(x){return x.name===s;})[0]; if(p) applyTheme(p);
+    var fs=localStorage.getItem("marco_font"); var f=FONT_OPTIONS.filter(function(x){return x.name===fs;})[0]; if(f) applyFont(f);
+  }catch(e){} })();
 
   /* ---------------- backend ---------------- */
   var SUPA = "https://qcikhcnclduakriextsz.supabase.co";
@@ -887,16 +898,21 @@
   function ThemePicker(){
     var o=useState(false), open=o[0], setOpen=o[1];
     var c=useState((function(){ try{ return localStorage.getItem("marco_theme")||"Teal"; }catch(e){ return "Teal"; } })()), cur=c[0], setCur=c[1];
+    var cf=useState((function(){ try{ return localStorage.getItem("marco_font")||"Editorial"; }catch(e){ return "Editorial"; } })()), curF=cf[0], setCurF=cf[1];
     return html`<div style="position:fixed;right:16px;bottom:16px;z-index:80">
-      ${open && html`<div class="card" style="padding:13px 14px;margin-bottom:9px;width:224px;box-shadow:0 12px 34px rgba(0,0,0,.22)">
+      ${open && html`<div class="card" style="padding:14px 15px;margin-bottom:9px;width:244px;box-shadow:0 12px 34px rgba(0,0,0,.22)">
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:10px">Theme color</div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
           ${PALETTES.map(function(p){ return html`<div onClick=${function(){ applyTheme(p); setCur(p.name); }} style="cursor:pointer;text-align:center">
-            <div style=${"height:34px;border-radius:9px;background:"+p.v.teal+";border:2.5px solid "+(cur===p.name?p.v.gold:"transparent")}></div>
+            <div style=${"height:34px;border-radius:9px;background:"+p.vars["--teal"]+";border:2.5px solid "+(cur===p.name?p.vars["--gold"]:"transparent")}></div>
             <div style="font-size:10.5px;margin-top:4px;color:var(--inkSoft)">${p.name}</div>
           </div>`; })}
         </div>
-        <div style="font-size:10.5px;color:var(--muted);margin-top:11px;line-height:1.45">Your colors — pick what fits MARCO's brand. We can drop in your exact palette and logo.</div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin:15px 0 8px">Font</div>
+        <div style="display:flex;gap:7px">
+          ${FONT_OPTIONS.map(function(f){ return html`<button class=${"btn sm"+(curF===f.name?"":" o")} style="flex:1;padding:7px 4px;font-size:12px" onClick=${function(){ applyFont(f); setCurF(f.name); }}>${f.name}</button>`; })}
+        </div>
+        <div style="font-size:10.5px;color:var(--muted);margin-top:12px;line-height:1.45">Your brand — pick what fits MARCO. We can drop in your exact palette + logo.</div>
       </div>`}
       <button class="btn sm" style="border-radius:30px;box-shadow:0 6px 20px rgba(0,0,0,.2)" onClick=${function(){ setOpen(!open); }}>🎨 Theme</button>
     </div>`;
