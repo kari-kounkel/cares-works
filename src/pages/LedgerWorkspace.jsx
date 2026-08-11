@@ -403,6 +403,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [editDraft, setEditDraft] = useState({ date: "", payee: "", amount: "", direction: "out" });
   const [addedCount, setAddedCount] = useState(0);
   const [sortBy, setSortBy] = useState("account");
+  const [acctFilter, setAcctFilter] = useState("");
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [wide, setWide] = useState(false);
   const payeeRef = useRef(null);
@@ -1061,9 +1062,10 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   }
 
   const q = query.trim().toLowerCase();
-  const filteredItems = q
-    ? items.filter(x => (x.payee + " " + x.amount + " " + x.date).toLowerCase().includes(q))
-    : items;
+  const filteredItems = items.filter(x =>
+    (!q || (x.payee + " " + x.amount + " " + x.date).toLowerCase().includes(q)) &&
+    (!acctFilter || x.source === acctFilter)
+  );
   const visibleItems = [...filteredItems].sort((a, b) => {
     if (sortBy === "date-asc") return (a.dateISO || "").localeCompare(b.dateISO || "");
     if (sortBy === "vendor") return (a.payee || "").localeCompare(b.payee || "");
@@ -1090,6 +1092,10 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             </div>
             <button onClick={() => { setShowAddLine(s => !s); setShowPayCard(false); setAddedCount(0); setTimeout(() => payeeRef.current && payeeRef.current.focus(), 40); }} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 16px" }}>{showAddLine ? "Close" : "+ Add a line"}</button>
             <button onClick={() => { setShowPayCard(s => !s); setShowAddLine(false); }} style={btnPaper(N.blue)}>{showPayCard ? "Close" : "Pay a card"}</button>
+            <select value={acctFilter} onChange={e => setAcctFilter(e.target.value)} title="Show only one account" style={{ ...inputSt, padding: "8px 10px", fontSize: 12, fontWeight: acctFilter ? 700 : 400, color: acctFilter ? N.blueDark : N.text, borderColor: acctFilter ? N.blue : N.rule }}>
+              <option value="">All accounts</option>
+              {accountList.map(a => <option key={a.id} value={a.name}>{a.name}</option>)}
+            </select>
             <select value={sortBy} onChange={e => setSortBy(e.target.value)} title="Sort the notebook" style={{ ...inputSt, padding: "8px 10px", fontSize: 12 }}>
               <option value="date-desc">Sort: Date (newest)</option>
               <option value="date-asc">Sort: Date (oldest)</option>
