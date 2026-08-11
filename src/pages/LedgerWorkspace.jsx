@@ -1159,7 +1159,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                           </select>
                         );
                       })()}
-                      {x.direction !== "in" && (() => {
+                      {!x.invoiceId && (() => {
                         const hasCat = !!x.category;
                         const isSug = !hasCat && !!x.suggested;
                         const bd = hasCat ? "#bff0d3" : isSug ? "#f0d89a" : "#cfe4ff";
@@ -1194,7 +1194,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                             title="Which invoice is this payment for?"
                             style={{ fontSize: 11, fontWeight: 600, padding: "4px 8px", maxWidth: 230, borderRadius: 100, cursor: "pointer", fontFamily: "'Figtree', sans-serif", border: "1px solid #f0d89a", background: "#fdf5e3", color: "#8a5a00" }}>
                             <option value="">Paying which invoice?</option>
-                            {list.map(v => <option key={v.id} value={v.id}>#{v.number || "—"} · {v.customer} · {v.status}</option>)}
+                            {list.map(v => <option key={v.id} value={v.id}>#{v.number || "—"} · {v.customer} · {money(v.amount)}{v.balanceCents != null && v.balanceCents > 0 && v.balanceCents !== Math.round((v.amount || 0) * 100) ? ` (bal ${money(v.balance)})` : ""} · {v.status}</option>)}
                           </select>
                         );
                       })()}
@@ -1204,6 +1204,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                     {proposed ? (
                       <button onClick={() => clearOne(x.id, "confirmed cleared")} style={btnBlue}><Ico name="check" size={14} /> Confirm cleared</button>
+                    ) : x.direction === "in" ? (
+                      <button onClick={() => clearOne(x.id, "deposit cleared")} style={btnPaper(N.muted)}><Ico name="check" size={14} /> Cleared</button>
                     ) : (
                       <>
                         <button onClick={() => clearOne(x.id, "bill attached")} style={btnPaper(N.pinkDark)}><Ico name="clip" size={14} /> Attach bill</button>
@@ -2277,8 +2279,10 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       <header style={{ position: "sticky", top: 0, zIndex: 50, background: N.white, borderBottom: "1px solid " + N.rule }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 22px", gap: 16 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 0 }}>
-            {/* What's new pill — top left */}
-            <div style={{ position: "relative" }}>
+            {/* CARES Works neon logo, stacked above the What's new pill */}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 6 }}>
+              <img src="/cares-works-neon-logo.png" alt="CARES Works" style={{ height: 22 }} />
+              <div style={{ position: "relative" }}>
               <button onClick={() => setWhatsNew(w => !w)} style={{ display: "flex", alignItems: "center", gap: 6, background: "#eef6ff", border: "1px solid #cfe4ff", color: N.blueDark, borderRadius: 100, padding: "6px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'Figtree', sans-serif" }}>
                 <Ico name="sparkle" size={14} /> Updated {latestUpdate}
                 <span style={{ width: 7, height: 7, borderRadius: 100, background: N.pink, boxShadow: `0 0 8px ${N.pink}` }} />
@@ -2299,15 +2303,12 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   ))}
                 </div>
               )}
+              </div>
             </div>
             <div style={{ width: 1, height: 26, background: N.rule }} />
-            {entity.logoUrl ? <img src={entity.logoUrl} alt={entity.name} style={{ height: 30, maxWidth: 150, objectFit: "contain" }} /> : null}
-            <div style={{ display: "flex", alignItems: "baseline", gap: 9, minWidth: 0 }}>
-              <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: N.ink, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{entity.short}</span>
-              <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.16em", color: N.blue }}>LEDGER</span>
-            </div>
-            <div style={{ width: 1, height: 26, background: N.rule }} />
-            <img src="/cares-works-logo.png" alt="CARES Works" title="Powered by CARES Works" style={{ height: 24, opacity: 0.9 }} />
+            {entity.logoUrl
+              ? <img src={entity.logoUrl} alt={entity.name} style={{ height: 34, maxWidth: 210, objectFit: "contain" }} />
+              : <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: N.ink, whiteSpace: "nowrap" }}>{entity.short}</span>}
           </div>
           <div style={{ position: "relative", whiteSpace: "nowrap" }}>
             <button onClick={() => setUserMenuOpen(o => !o)} title="Account" style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "1px solid " + N.rule, borderRadius: 100, padding: "3px 10px 3px 3px", cursor: "pointer", fontFamily: "'Figtree', sans-serif" }}>
