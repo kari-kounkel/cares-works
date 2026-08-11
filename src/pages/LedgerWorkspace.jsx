@@ -98,10 +98,7 @@ const SECTIONS = [
   { key: "bills", label: "Bills" },
   { key: "reports", label: "Reports" },
   { key: "documents", label: "Documents" },
-  { key: "customers", label: "Customers" },
-  { key: "vendors", label: "Vendors" },
-  { key: "accounts", label: "Accounts" },
-  { key: "items", label: "Items" },
+  { key: "lists", label: "Lists" },
   { key: "admin", label: "Admin" },
 ];
 
@@ -234,6 +231,8 @@ function Ico({ name, size = 18 }) {
     case "orders": return <svg {...p}><path d="M6 3h9l3 3v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" /><path d="M9 8h6M9 12h6M9 16h3" /></svg>;
     case "admin": return <svg {...p}><path d="M12 3l7 4v5c0 4-3 7-7 9-4-2-7-5-7-9V7Z" /><path d="M9 12l2 2 4-4" /></svg>;
     case "items": return <svg {...p}><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0l-7-7A2 2 0 0 1 3 12V4h8a2 2 0 0 1 1.4.6l8.2 8.2a2 2 0 0 1 0 2.6Z" /><circle cx="7.5" cy="7.5" r="1.2" /></svg>;
+    case "chart": return <svg {...p}><path d="M4 5h16M4 12h16M4 19h16" /><path d="M8 3v4M14 10v4M10 17v4" /></svg>;
+    case "lists": return <svg {...p}><path d="M8 6h12M8 12h12M8 18h12" /><circle cx="4" cy="6" r="1" /><circle cx="4" cy="12" r="1" /><circle cx="4" cy="18" r="1" /></svg>;
     case "accounts": return <svg {...p}><path d="M3 10 12 4l9 6" /><path d="M5 10v8M19 10v8M9 10v8M15 10v8M3 20h18" /></svg>;
     case "customers": return <svg {...p}><circle cx="9" cy="8" r="3.2" /><path d="M3.5 20a5.5 5.5 0 0 1 11 0" /><path d="M16 5.5a3 3 0 0 1 0 5.6M17.5 20a5.5 5.5 0 0 0-3-4.9" /></svg>;
     case "vendors": return <svg {...p}><path d="M3 7h11v9H3Z" /><path d="M14 10h4l3 3v3h-7Z" /><circle cx="7" cy="18" r="1.6" /><circle cx="17" cy="18" r="1.6" /></svg>;
@@ -417,6 +416,12 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [itemDraft, setItemDraft] = useState(blankItem);
   const [showAddItem, setShowAddItem] = useState(false);
   const [newItem, setNewItem] = useState(blankItem);
+  const blankCat = { name: "", kind: "expense" };
+  const [catEditId, setCatEditId] = useState(null);
+  const [catDraft, setCatDraft] = useState(blankCat);
+  const [showAddCat, setShowAddCat] = useState(false);
+  const [newCat, setNewCat] = useState(blankCat);
+  const [listsTab, setListsTab] = useState("customers");
   const blankContact = { name: "", company: "", email: "", phone: "", billing_address: "", tax_status: "Taxable", notes: "" };
   const [contactEditId, setContactEditId] = useState(null);
   const [contactDraft, setContactDraft] = useState(blankContact);
@@ -487,6 +492,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       built.customers = cust.data || [];
       built.products = prod.data || [];
       built.bills = bil.data || [];
+      built.rawCategories = c.data || [];
       setDbEntity(built);
     })();
     return () => { cancelled = true; };
@@ -525,6 +531,23 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       await supabase.from("ledger_categories").insert({ org_id: liveOrgId, user_id: session.user.id, name: nm, kind: "expense", sort_order: 999, archived: false });
       setReloadTick(t => t + 1);
     }
+  }
+
+  // Chart-of-accounts management (income / expense accounts = ledger_categories).
+  async function addChartCat() {
+    if (!newCat.name.trim() || !liveOrgId) return;
+    await supabase.from("ledger_categories").insert({ org_id: liveOrgId, user_id: session.user.id, name: newCat.name.trim(), kind: newCat.kind, sort_order: 999, archived: false });
+    setShowAddCat(false); setNewCat(blankCat); setReloadTick(t => t + 1);
+  }
+  async function saveChartCat() {
+    if (!catEditId || !catDraft.name.trim()) return;
+    await supabase.from("ledger_categories").update({ name: catDraft.name.trim(), kind: catDraft.kind }).eq("id", catEditId);
+    setCatEditId(null); setReloadTick(t => t + 1);
+  }
+  async function archiveChartCat(id) {
+    if (!window.confirm("Remove this account from the chart? Past entries keep the name; it just won't show in the pickers.")) return;
+    await supabase.from("ledger_categories").update({ archived: true }).eq("id", id);
+    setReloadTick(t => t + 1);
   }
 
   // "Paid with which card?" — set which account a transaction hit.
@@ -926,6 +949,12 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     setShowBillForm(false);
     setBillDraft(blankBill);
     if (live && liveOrgId) {
+      // Auto-create the vendor if it's new, so it shows on the Vendors list where
+      // you can add its address/phone/email — which is what prints on the check.
+      const known = (entity.vendors || []).some(v => (v || "").toLowerCase() === draft.vendor.trim().toLowerCase());
+      if (!known && draft.vendor.trim()) {
+        await supabase.from("ledger_vendors").insert({ org_id: liveOrgId, user_id: session.user.id, name: draft.vendor.trim() });
+      }
       await supabase.from("ledger_bills").insert({
         org_id: liveOrgId, user_id: session.user.id, vendor_name: draft.vendor.trim(),
         amount_cents: cents, due_date: draft.due || null, category: draft.category || null,
@@ -2091,6 +2120,82 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     );
   }
 
+  function Chart() {
+    const rows = (entity.rawCategories || []).filter(c => !c.archived);
+    const byOrder = (a, b) => (a.sort_order || 0) - (b.sort_order || 0) || (a.name || "").localeCompare(b.name || "");
+    const income = rows.filter(c => c.kind === "income").sort(byOrder);
+    const expense = rows.filter(c => c.kind !== "income").sort(byOrder);
+    const cell = { ...inputSt };
+    const group = (title, list, color) => (
+      <div style={{ marginBottom: 18 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color, marginBottom: 6 }}>{title} · {list.length}</div>
+        <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, overflow: "hidden" }}>
+          {list.length === 0 && <div style={{ padding: "16px", color: N.muted, fontSize: 13 }}>None yet.</div>}
+          {list.map((c, i) => (
+            <div key={c.id} style={{ padding: "9px 14px", borderTop: i === 0 ? "none" : "1px solid " + N.rule, display: "flex", alignItems: "center", gap: 8 }}>
+              {catEditId === c.id ? (
+                <>
+                  <input value={catDraft.name} onChange={e => setCatDraft(d => ({ ...d, name: e.target.value }))} style={{ ...cell, flex: 1 }} />
+                  <select value={catDraft.kind} onChange={e => setCatDraft(d => ({ ...d, kind: e.target.value }))} style={{ ...cell, width: 130 }}>
+                    <option value="income">Income</option><option value="expense">Expense</option>
+                  </select>
+                  <button onClick={saveChartCat} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "8px 12px" }}>Save</button>
+                  <button onClick={() => setCatEditId(null)} style={btnPaper(N.muted)}>Cancel</button>
+                </>
+              ) : (
+                <>
+                  <span style={{ flex: 1, fontSize: 14, color: N.ink }}>{c.name}</span>
+                  <button onClick={() => { setCatEditId(c.id); setCatDraft({ name: c.name, kind: c.kind || "expense" }); }} style={{ ...btnPaper(N.muted), padding: "6px 12px" }}>Edit</button>
+                  <button onClick={() => archiveChartCat(c.id)} style={{ background: "none", border: "1px solid " + N.rule, borderRadius: 100, cursor: "pointer", color: N.muted, fontFamily: "'Figtree', sans-serif", fontSize: 12, fontWeight: 600, padding: "6px 12px" }}>Remove</button>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+    return (
+      <div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, flexWrap: "wrap", gap: 10 }}>
+          <div>
+            <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>Chart of accounts</div>
+            <div style={{ fontSize: 13, color: N.muted }}>{rows.length} accounts — the income &amp; expense accounts everything categorizes into (pulled from QuickBooks). Add, rename, or remove.</div>
+          </div>
+          <button onClick={() => { setShowAddCat(s => !s); setNewCat(blankCat); }} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 16px" }}>{showAddCat ? "Close" : "+ Add account"}</button>
+        </div>
+        {showAddCat && (
+          <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: 14, marginBottom: 14, display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+            <input placeholder="Account name" value={newCat.name} onChange={e => setNewCat(d => ({ ...d, name: e.target.value }))} style={{ ...cell, flex: 1, minWidth: 200 }} />
+            <select value={newCat.kind} onChange={e => setNewCat(d => ({ ...d, kind: e.target.value }))} style={{ ...cell, width: 150 }}>
+              <option value="expense">Expense</option><option value="income">Income</option>
+            </select>
+            <button onClick={addChartCat} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 16px" }}>Save</button>
+          </div>
+        )}
+        {group("Income accounts", income, "#5a7a63")}
+        {group("Expense accounts", expense, N.blueDark)}
+      </div>
+    );
+  }
+
+  function Lists() {
+    const tabs = [["customers", "Customers"], ["vendors", "Vendors"], ["items", "Items & services"], ["chart", "Chart of accounts"], ["accounts", "Bank & card accounts"]];
+    return (
+      <div>
+        <div style={{ display: "flex", gap: 6, marginBottom: 18, flexWrap: "wrap", borderBottom: "1px solid " + N.rule, paddingBottom: 12 }}>
+          {tabs.map(([k, label]) => (
+            <button key={k} onClick={() => setListsTab(k)} style={{ fontSize: 13, fontWeight: 600, padding: "7px 14px", borderRadius: 100, cursor: "pointer", fontFamily: "'Figtree', sans-serif", border: "1px solid " + (listsTab === k ? N.blue : N.rule), background: listsTab === k ? N.blue : N.white, color: listsTab === k ? N.white : N.text }}>{label}</button>
+          ))}
+        </div>
+        {listsTab === "customers" && ContactList("customer")}
+        {listsTab === "vendors" && ContactList("vendor")}
+        {listsTab === "items" && Items()}
+        {listsTab === "chart" && Chart()}
+        {listsTab === "accounts" && Accounts()}
+      </div>
+    );
+  }
+
   function Connect() {
     return (
       <div style={{ maxWidth: 560, margin: "40px auto 0", textAlign: "center" }}>
@@ -2114,10 +2219,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   else if (section === "orders") body = Orders();
   else if (section === "salestax") body = SalesTax();
   else if (section === "reports") body = Reports();
-  else if (section === "accounts") body = Accounts();
-  else if (section === "customers") body = ContactList("customer");
-  else if (section === "vendors") body = ContactList("vendor");
-  else if (section === "items") body = Items();
+  else if (section === "lists") body = Lists();
   else if (section === "admin") body = <Stub title="Admin" note="Users & roles, entity settings, logo & branding, sales-tax rate — coming here." />;
   else if (section === "bills") body = Bills();
   else if (section === "documents") body = <Stub title="Documents" note="Statements, exemption certificates, and anything you attach lives here." />;
@@ -2163,10 +2265,13 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               )}
             </div>
             <div style={{ width: 1, height: 26, background: N.rule }} />
+            {entity.logoUrl ? <img src={entity.logoUrl} alt={entity.name} style={{ height: 30, maxWidth: 150, objectFit: "contain" }} /> : null}
             <div style={{ display: "flex", alignItems: "baseline", gap: 9, minWidth: 0 }}>
               <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: N.ink, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{entity.short}</span>
               <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.16em", color: N.blue }}>LEDGER</span>
             </div>
+            <div style={{ width: 1, height: 26, background: N.rule }} />
+            <img src="/cares-works-logo.png" alt="CARES Works" title="Powered by CARES Works" style={{ height: 24, opacity: 0.9 }} />
           </div>
           <div style={{ position: "relative", whiteSpace: "nowrap" }}>
             <button onClick={() => setUserMenuOpen(o => !o)} title="Account" style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "1px solid " + N.rule, borderRadius: 100, padding: "3px 10px 3px 3px", cursor: "pointer", fontFamily: "'Figtree', sans-serif" }}>
@@ -2188,11 +2293,29 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         </div>
 
         {/* Balances — always in view */}
-        <div style={{ display: "flex", gap: 8, padding: "0 22px 12px", overflowX: "auto", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 8, padding: "0 22px 12px", overflowX: "auto", flexWrap: "wrap", alignItems: "stretch" }}>
+          {(() => {
+            const ar = invoices.filter(v => v.docType !== "order" && v.status !== "Void" && v.status !== "Paid")
+              .reduce((s, v) => s + (v.balanceCents != null ? v.balanceCents : Math.round((v.amount || 0) * 100)), 0);
+            const ap = (entity.bills || []).filter(b => b.status !== "paid").reduce((s, b) => s + (b.amount_cents || 0), 0);
+            const pill = (label, val, bg, go) => (
+              <div onClick={go} title={"Go to " + label.toLowerCase()} style={{ background: bg, borderRadius: 10, padding: "6px 13px", whiteSpace: "nowrap", cursor: "pointer", color: "#fff", boxShadow: "0 2px 10px " + bg + "55" }}>
+                <div style={{ fontSize: 10, letterSpacing: "0.06em", opacity: 0.92 }}>{label}</div>
+                <div style={{ fontSize: 15, fontWeight: 700 }}>{money(val / 100)}</div>
+              </div>
+            );
+            return (
+              <>
+                {pill("OPEN INVOICES", ar, N.green, () => setSection("invoices"))}
+                {pill("OPEN BILLS", ap, N.blueDark, () => setSection("bills"))}
+                <div style={{ width: 1, background: N.rule, margin: "3px 5px" }} />
+              </>
+            );
+          })()}
           {[...entity.accounts.banks, ...entity.accounts.cards, ...entity.accounts.loans].map(a => (
-            <div key={a.name} style={{ background: a.balance < 0 ? "#fdf0f0" : "#f0f7f1", border: "1px solid " + (a.balance < 0 ? "#f6d5d5" : "#cfe9d6"), borderRadius: 10, padding: "6px 11px", whiteSpace: "nowrap" }}>
-              <div style={{ fontSize: 10, color: a.balance < 0 ? "#9a5a5a" : "#5a7a63", letterSpacing: "0.04em" }}>{a.name.toUpperCase()}</div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: a.balance < 0 ? N.red : N.ink }}>{money(a.balance)}</div>
+            <div key={a.name} style={{ background: a.balance < 0 ? "#eef4fb" : "#f0f7f1", border: "1px solid " + (a.balance < 0 ? "#cfe0f4" : "#cfe9d6"), borderRadius: 10, padding: "6px 11px", whiteSpace: "nowrap" }}>
+              <div style={{ fontSize: 10, color: a.balance < 0 ? "#4a6a9a" : "#5a7a63", letterSpacing: "0.04em" }}>{a.name.toUpperCase()}</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: a.balance < 0 ? N.blueDark : N.ink }}>{money(a.balance)}</div>
             </div>
           ))}
         </div>
@@ -2221,9 +2344,9 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             {(() => {
               const box = (st, sz) => (
                 <span style={{ width: sz, height: sz, borderRadius: 4, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
-                  background: st === "done" ? AMBER : "transparent",
+                  background: st === "done" ? N.green : "transparent",
                   border: st === "done" ? "none" : "1.5px solid " + (st === "wip" ? AMBER : N.rule),
-                  color: N.ink, fontSize: sz - 5, fontWeight: 700 }}>{st === "done" ? "✓" : st === "wip" ? "•" : ""}</span>
+                  color: st === "done" ? "#fff" : N.ink, fontSize: sz - 5, fontWeight: 700 }}>{st === "done" ? "✓" : st === "wip" ? "•" : ""}</span>
               );
               return BUILD_PROGRESS.map(g => {
                 const st = progStatus(g.items);
