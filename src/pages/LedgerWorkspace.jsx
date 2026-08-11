@@ -523,6 +523,21 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     if (live) supabase.from("ledger_entries").update({ category: cat }).eq("id", id).then(() => {});
   }
 
+  // Bulk "I've got the invoice/receipt" for everything currently showing — pair it
+  // with the account filter to clear a whole card's statement lines at once.
+  async function clearAllVisible() {
+    const ids = visibleItems.map(x => x.id).filter(id => typeof id === "string" && id.length > 20);
+    if (ids.length === 0) return;
+    if (!window.confirm(`Mark all ${ids.length} showing here as "I've got the invoice/receipt"? They move to Cleared.`)) return;
+    const idset = new Set(ids);
+    setItems(prev => {
+      const moving = prev.filter(x => idset.has(x.id));
+      setCleared(c => [...moving.map(m => ({ ...m, how: "has it" })), ...c]);
+      return prev.filter(x => !idset.has(x.id));
+    });
+    if (live) { await supabase.from("ledger_entries").update({ match_status: "noted" }).in("id", ids); setReloadTick(t => t + 1); }
+  }
+
   // Add a brand-new account to the chart on the fly (from the "which account?"
   // dropdown) and, if a line was open, drop the transaction straight into it.
   async function addCategory(name, forLineId) {
@@ -1102,6 +1117,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               <option value="vendor">Sort: Vendor (A–Z)</option>
               <option value="account">Sort: Pymt by</option>
             </select>
+            {visibleItems.length > 0 && <button onClick={clearAllVisible} title="Mark everything showing as documented" style={btnPaper(N.pinkDark)}><Ico name="check" size={14} /> Got all {visibleItems.length}{acctFilter ? " here" : ""}</button>}
             <div style={{ fontSize: 12, fontWeight: 700, color: N.pinkDark, background: "#eafaf0", border: "1px solid #bff0d3", padding: "7px 12px", borderRadius: 100, whiteSpace: "nowrap" }}>
               {items.length} left to match
             </div>
