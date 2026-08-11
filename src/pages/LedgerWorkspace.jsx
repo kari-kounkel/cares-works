@@ -1182,7 +1182,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                       {x.direction === "in" && (() => {
                         const linked = !!x.invoiceId;
                         const linkedInv = linked ? invoices.find(v => v.id === x.invoiceId) : null;
-                        const list = invoices.filter(v => v.docType !== "order" && v.status !== "Void");
+                        const list = invoices.filter(v => v.docType !== "order" && v.status !== "Void").slice().sort((a, b) => (a.customer || "").localeCompare(b.customer || ""));
                         if (linked) return (
                           <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, padding: "4px 8px", borderRadius: 100, border: "1px solid #bff0d3", background: "#eafaf0", color: N.pinkDark }}>
                             ✓ {linkedInv ? `Inv #${linkedInv.number || "?"} · ${linkedInv.customer}` : "Applied to invoice"}
@@ -1316,7 +1316,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, overflow: "hidden" }}>
           {invoices.length === 0 ? (
             <div style={{ padding: "30px 20px", textAlign: "center", color: N.muted, fontSize: 14 }}>No invoices yet. Click “New invoice” to make the first one.</div>
-          ) : invoices.filter(v => v.docType !== "order").sort((a, b) => (a.status === "Void" ? 2 : a.status === "Paid" ? 1 : 0) - (b.status === "Void" ? 2 : b.status === "Paid" ? 1 : 0)).map((v, i) => {
+          ) : invoices.filter(v => v.docType !== "order").sort((a, b) => ((a.status === "Void" ? 2 : a.status === "Paid" ? 1 : 0) - (b.status === "Void" ? 2 : b.status === "Paid" ? 1 : 0)) || (a.customer || "").localeCompare(b.customer || "")).map((v, i) => {
             const voided = v.status === "Void";
             return (
             <div key={v.id} onClick={() => setOpenInv(v)} title="Open invoice"
