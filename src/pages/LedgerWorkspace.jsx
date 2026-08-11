@@ -201,6 +201,8 @@ function buildLiveEntity(org, accounts, categories, entries, session) {
       cleared: null,
       category: e.category || null,
       suggested: !e.category && memory[norm(e.description)] ? memory[norm(e.description)] : null,
+      invoiceId: e.invoice_id || null,
+      paymentId: e.payment_id || null,
     }));
 
   const short = org.name.length > 16 ? org.name.split(" ")[0] : org.name;
@@ -344,7 +346,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [showInvForm, setShowInvForm] = useState(false);
   const [openInv, setOpenInv] = useState(null);
   const [sentLink, setSentLink] = useState(null);
-  const blankInvPay = { amount: "", method: "check", check_number: "", paid_on: "", memo: "" };
+  const blankInvPay = { amount: "", method: "check", check_number: "", paid_on: "", memo: "", accountId: "" };
   const [payFor, setPayFor] = useState(null);
   const [invPay, setInvPay] = useState(blankInvPay);
   const [showOrderForm, setShowOrderForm] = useState(false);
@@ -442,6 +444,33 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     setItems(prev => prev.map(x => (x.id === id ? { ...x, accountId: acctId, source: acctName } : x)));
     setAcctOpen(null);
     if (live) supabase.from("ledger_entries").update({ account_id: acctId }).eq("id", id).then(() => {});
+  }
+
+  // Notebook → invoice: apply an incoming-money line to an open invoice. Creates the
+  // payment record (so the invoice balance drops / it goes Paid) and links the two.
+  async function applyEntryToInvoice(x, invId) {
+    const inv = invoices.find(v => v.id === invId);
+    if (!inv || !live || !liveOrgId) return;
+    const cents = Math.round((x.amount || 0) * 100);
+    const { data: payRow } = await supabase.from("ledger_payments").insert({
+      org_id: liveOrgId, user_id: session.user.id, invoice_id: inv.id, amount_cents: cents,
+      method: "other", paid_on: x.dateISO || new Date().toISOString().slice(0, 10),
+      memo: "Matched from the notebook", entry_id: x.id,
+    }).select("id").single();
+    await supabase.from("ledger_entries").update({ invoice_id: inv.id, payment_id: payRow ? payRow.id : null, category: "Customer payment" }).eq("id", x.id);
+    const newPaid = (inv.paidCents || 0) + cents;
+    const totalCents = Math.round((inv.amount || 0) * 100);
+    if (totalCents > 0 && newPaid >= totalCents) {
+      await supabase.from("invoices").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", inv.id);
+    }
+    setReloadTick(t => t + 1);
+  }
+  async function unlinkEntryInvoice(x) {
+    if (!live) return;
+    if (!window.confirm("Unlink this deposit from its invoice? The invoice payment is removed.")) return;
+    if (x.paymentId) await supabase.from("ledger_payments").delete().eq("id", x.paymentId);
+    await supabase.from("ledger_entries").update({ invoice_id: null, payment_id: null }).eq("id", x.id);
+    setReloadTick(t => t + 1);
   }
 
   // Card payment = a TRANSFER (checking down, card down), NOT an expense.
@@ -655,13 +684,25 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     const cents = Math.round((parseFloat(invPay.amount) || 0) * 100);
     if (!inv || cents <= 0 || !liveOrgId) return;
     const paidOn = invPay.paid_on || new Date().toISOString().slice(0, 10);
+    const acctId = invPay.accountId || null;
+    const method = invPay.method;
+    const checkNo = method === "check" ? (invPay.check_number.trim() || null) : null;
     setPayFor(null); setInvPay(blankInvPay); setOpenInv(null);
-    await supabase.from("ledger_payments").insert({
+    // The payment record (against the invoice) and a matching money-in line in the
+    // notebook (the deposit) are the SAME event — insert both and link them.
+    const { data: payRow } = await supabase.from("ledger_payments").insert({
       org_id: liveOrgId, user_id: session.user.id, invoice_id: inv.id,
-      amount_cents: cents, method: invPay.method,
-      check_number: invPay.method === "check" ? (invPay.check_number.trim() || null) : null,
+      amount_cents: cents, method, check_number: checkNo,
       paid_on: paidOn, memo: invPay.memo.trim() || null,
-    });
+    }).select("id").single();
+    const desc = `Payment — ${inv.customer}${inv.number ? ` (Inv #${inv.number})` : ""}${checkNo ? ` · check #${checkNo}` : ""}`;
+    const { data: entRow } = await supabase.from("ledger_entries").insert({
+      org_id: liveOrgId, user_id: session.user.id, entry_date: paidOn, direction: "in",
+      amount_cents: cents, description: desc, category: "Customer payment", account_id: acctId,
+      payment_method: method, reference: checkNo, match_status: null,
+      invoice_id: inv.id, payment_id: payRow ? payRow.id : null,
+    }).select("id").single();
+    if (payRow && entRow) await supabase.from("ledger_payments").update({ entry_id: entRow.id }).eq("id", payRow.id);
     const newPaid = (inv.paidCents || 0) + cents;
     const totalCents = Math.round((inv.amount || 0) * 100);
     if (totalCents > 0 && newPaid >= totalCents) {
@@ -670,8 +711,11 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     setReloadTick(t => t + 1);
   }
   async function deletePaymentRec(p, inv) {
-    if (!window.confirm(`Remove this ${money((p.amount_cents || 0) / 100)} payment?`)) return;
+    if (!window.confirm(`Remove this ${money((p.amount_cents || 0) / 100)} payment? Its matching deposit in the notebook is removed too.`)) return;
     setOpenInv(null);
+    // Remove the linked notebook deposit as well (same event).
+    if (p.entry_id) await supabase.from("ledger_entries").delete().eq("id", p.entry_id);
+    await supabase.from("ledger_entries").delete().eq("payment_id", p.id);
     await supabase.from("ledger_payments").delete().eq("id", p.id);
     // If the invoice was marked paid and this drops it below the total, reopen it.
     const remaining = (inv.paidCents || 0) - (p.amount_cents || 0);
@@ -942,6 +986,25 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                             <option value="">{isSug ? `${x.suggested}?` : "Which account?"}</option>
                             {(entity.categories || []).map(cat => <option key={cat} value={cat}>{cat}</option>)}
                             <option value="__new__">＋ Add a new account…</option>
+                          </select>
+                        );
+                      })()}
+                      {x.direction === "in" && (() => {
+                        const linked = !!x.invoiceId;
+                        const linkedInv = linked ? invoices.find(v => v.id === x.invoiceId) : null;
+                        const open = invoices.filter(v => v.docType !== "order" && v.status !== "Void" && v.status !== "Paid");
+                        if (linked) return (
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, padding: "4px 8px", borderRadius: 100, border: "1px solid #bff0d3", background: "#eafaf0", color: N.pinkDark }}>
+                            ✓ {linkedInv ? `Inv #${linkedInv.number || "?"} · ${linkedInv.customer}` : "Applied to invoice"}
+                            <button onClick={() => unlinkEntryInvoice(x)} title="Unlink from invoice" style={{ border: "none", background: "none", cursor: "pointer", color: N.mutedLite, fontSize: 13, lineHeight: 1, padding: 0 }}>×</button>
+                          </span>
+                        );
+                        return (
+                          <select value="" onChange={e => { if (e.target.value) applyEntryToInvoice(x, e.target.value); }}
+                            title="Which invoice is this payment for?"
+                            style={{ fontSize: 11, fontWeight: 600, padding: "4px 8px", maxWidth: 220, borderRadius: 100, cursor: "pointer", fontFamily: "'Figtree', sans-serif", border: "1px solid #f0d89a", background: "#fdf5e3", color: "#8a5a00" }}>
+                            <option value="">Paying which invoice?</option>
+                            {open.map(v => <option key={v.id} value={v.id}>#{v.number || "—"} · {v.customer} · {money(v.balance != null ? v.balance : v.amount)}</option>)}
                           </select>
                         );
                       })()}
@@ -1286,6 +1349,13 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   <input value={invPay.check_number} onChange={e => setInvPay(d => ({ ...d, check_number: e.target.value }))} placeholder="e.g. 4021" style={inputSt} />
                 </div>
               )}
+              <div style={{ marginBottom: 12 }}>
+                <label style={lbl}>DEPOSITED TO (SHOWS IN THE NOTEBOOK)</label>
+                <select value={invPay.accountId} onChange={e => setInvPay(d => ({ ...d, accountId: e.target.value }))} style={inputSt}>
+                  <option value="">Which bank account?…</option>
+                  {accountList.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                </select>
+              </div>
               <div style={{ marginBottom: 16 }}>
                 <label style={lbl}>MEMO (OPTIONAL)</label>
                 <input value={invPay.memo} onChange={e => setInvPay(d => ({ ...d, memo: e.target.value }))} style={inputSt} />
