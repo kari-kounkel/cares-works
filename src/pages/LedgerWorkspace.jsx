@@ -561,6 +561,13 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   async function applyEntryToInvoice(x, invId) {
     const inv = invoices.find(v => v.id === invId);
     if (!inv || !live || !liveOrgId) return;
+    // Already settled? Just tag the deposit with the invoice — don't add a second
+    // payment (that would over-pay it). Lets you attach the number for the record.
+    if (inv.status === "Paid" || (inv.balanceCents != null && inv.balanceCents <= 0)) {
+      await supabase.from("ledger_entries").update({ invoice_id: inv.id, category: "Customer payment" }).eq("id", x.id);
+      setReloadTick(t => t + 1);
+      return;
+    }
     const cents = Math.round((x.amount || 0) * 100);
     const { data: payRow } = await supabase.from("ledger_payments").insert({
       org_id: liveOrgId, user_id: session.user.id, invoice_id: inv.id, amount_cents: cents,
@@ -1152,7 +1159,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                           </select>
                         );
                       })()}
-                      {(() => {
+                      {x.direction !== "in" && (() => {
                         const hasCat = !!x.category;
                         const isSug = !hasCat && !!x.suggested;
                         const bd = hasCat ? "#bff0d3" : isSug ? "#f0d89a" : "#cfe4ff";
@@ -1175,7 +1182,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                       {x.direction === "in" && (() => {
                         const linked = !!x.invoiceId;
                         const linkedInv = linked ? invoices.find(v => v.id === x.invoiceId) : null;
-                        const open = invoices.filter(v => v.docType !== "order" && v.status !== "Void" && v.status !== "Paid");
+                        const list = invoices.filter(v => v.docType !== "order" && v.status !== "Void");
                         if (linked) return (
                           <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, padding: "4px 8px", borderRadius: 100, border: "1px solid #bff0d3", background: "#eafaf0", color: N.pinkDark }}>
                             ✓ {linkedInv ? `Inv #${linkedInv.number || "?"} · ${linkedInv.customer}` : "Applied to invoice"}
@@ -1185,9 +1192,9 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                         return (
                           <select value="" onChange={e => { if (e.target.value) applyEntryToInvoice(x, e.target.value); }}
                             title="Which invoice is this payment for?"
-                            style={{ fontSize: 11, fontWeight: 600, padding: "4px 8px", maxWidth: 220, borderRadius: 100, cursor: "pointer", fontFamily: "'Figtree', sans-serif", border: "1px solid #f0d89a", background: "#fdf5e3", color: "#8a5a00" }}>
+                            style={{ fontSize: 11, fontWeight: 600, padding: "4px 8px", maxWidth: 230, borderRadius: 100, cursor: "pointer", fontFamily: "'Figtree', sans-serif", border: "1px solid #f0d89a", background: "#fdf5e3", color: "#8a5a00" }}>
                             <option value="">Paying which invoice?</option>
-                            {open.map(v => <option key={v.id} value={v.id}>#{v.number || "—"} · {v.customer} · {money(v.balance != null ? v.balance : v.amount)}</option>)}
+                            {list.map(v => <option key={v.id} value={v.id}>#{v.number || "—"} · {v.customer} · {v.status}</option>)}
                           </select>
                         );
                       })()}
