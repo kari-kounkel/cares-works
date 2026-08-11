@@ -451,6 +451,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [billEdit, setBillEdit] = useState(null);
   const [checkFor, setCheckFor] = useState(null);
   const [checkAcctId, setCheckAcctId] = useState("");
+  const [checkOffX, setCheckOffX] = useState(0); // inches, printer alignment nudge
+  const [checkOffY, setCheckOffY] = useState(0);
   const blankInvoice = { customer: "", email: "", taxStatus: "Exempt", lines: [{ desc: "", qty: "1", price: "" }] };
   const [invDraft, setInvDraft] = useState(blankInvoice);
 
@@ -1088,6 +1090,15 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     return (b.dateISO || "").localeCompare(a.dateISO || ""); // date-desc (default)
   });
 
+  // Everything typed anywhere becomes a payee suggestion — vendors, customers, and
+  // every payee already in the notebook — de-duped and alphabetized.
+  const payeeOptions = [...new Set([
+    ...(entity.vendors || []),
+    ...(entity.customers || []).map(c => c.name),
+    ...items.map(x => x.payee),
+    ...cleared.map(x => x.payee),
+  ].filter(Boolean))].sort((a, b) => a.localeCompare(b));
+
   const accentRail = N.blue;
 
   // ---- section renderers ----------------------------------------------------
@@ -1138,7 +1149,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               <input type="date" value={lineDraft.date} onChange={e => setLineDraft(d => ({ ...d, date: e.target.value }))} style={{ ...inputSt, width: 150 }} />
               <input ref={payeeRef} list="pg-vendor-list" placeholder={lineDraft.direction === "in" ? "From whom? (deposit, payment…)" : "Payee / vendor — start typing"} value={lineDraft.payee} onChange={e => setLineDraft(d => ({ ...d, payee: e.target.value }))} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); amountRef.current && amountRef.current.focus(); } }} style={{ ...inputSt, flex: 1, minWidth: 200 }} />
               <datalist id="pg-vendor-list">
-                {(entity.vendors || []).map(v => <option key={v} value={v} />)}
+                {payeeOptions.map(v => <option key={v} value={v} />)}
               </datalist>
               <input ref={amountRef} placeholder="$ amount" value={lineDraft.amount} onChange={e => setLineDraft(d => ({ ...d, amount: e.target.value }))} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); createLine(); } }} style={{ ...inputSt, width: 120 }} />
               <select value={lineDraft.accountId} onChange={e => setLineDraft(d => ({ ...d, accountId: e.target.value }))} style={{ ...inputSt, width: 168 }}>
@@ -1868,56 +1879,59 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           const vd = (entity.vendorList || []).find(v => (v.name || "").toLowerCase() === (b.vendor_name || "").toLowerCase()) || {};
           const today = new Date().toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" });
           const banks = accountList.filter(a => a.type === "bank");
-          const Stub = ({ tag }) => (
-            <div style={{ padding: "12px 24px", borderTop: "1px dashed " + N.rule, fontSize: 12, color: N.text }}>
-              <div style={{ display: "flex", justifyContent: "space-between", color: N.muted, fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.08em", marginBottom: 4 }}><span>{tag}</span><span>CHECK #{num} · {today}</span></div>
-              <div style={{ display: "flex", justifyContent: "space-between" }}><span><b>{b.vendor_name}</b>{b.category ? ` · ${b.category}` : ""}{b.memo ? ` · ${b.memo}` : ""}{b.due_date ? ` · due ${b.due_date}` : ""}</span><span style={{ fontWeight: 700 }}>{money(amt)}</span></div>
+          const OX = checkOffX, OY = checkOffY;
+          // Only the fill-in fields print — the stock is pre-printed. Positions are the
+          // standard QuickBooks "voucher" layout (check on top 3.5in of an 8.5x11 page).
+          const at = (top, left) => ({ position: "absolute", top: `calc(${top}in + ${OY}in)`, left: `calc(${left}in + ${OX}in)`, fontFamily: "'Figtree', sans-serif", fontSize: "11pt", color: "#000", whiteSpace: "nowrap" });
+          const detail = `${b.category || ""}${b.memo ? (b.category ? " · " : "") + b.memo : ""}${b.due_date ? ` · due ${b.due_date}` : ""}` || "Payment";
+          const Stub = ({ label }) => (
+            <div style={{ height: "3.6in", padding: "0.35in 0.7in", boxSizing: "border-box", borderTop: "1px dashed #999", fontFamily: "'Figtree', sans-serif", color: "#000" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "9pt", letterSpacing: "0.06em", color: "#666", textTransform: "uppercase", marginBottom: "0.16in" }}><span>{label}</span><span>Check #{num} · {today}</span></div>
+              <div style={{ fontSize: "12pt", fontWeight: 700 }}>{b.vendor_name}</div>
+              <div style={{ display: "flex", justifyContent: "space-between", marginTop: "0.14in", paddingTop: "0.1in", borderTop: "1px solid #ccc", fontSize: "11pt" }}>
+                <span>{detail}</span><span style={{ fontWeight: 700 }}>{money(amt)}</span>
+              </div>
             </div>
           );
           return (
-          <div onClick={() => setCheckFor(null)} style={{ position: "fixed", inset: 0, background: "rgba(10,10,20,0.45)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "40px 16px", zIndex: 220, overflowY: "auto" }}>
-            <div onClick={e => e.stopPropagation()} className="print-doc" style={{ background: N.white, borderRadius: 10, width: "100%", maxWidth: 680, boxShadow: "0 24px 70px rgba(10,10,20,0.35)", overflow: "hidden" }}>
-              {/* CHECK (top third) */}
-              <div style={{ padding: "22px 24px 18px", borderBottom: "2px solid " + N.ink }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                  <div>
-                    <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 16, color: N.ink }}>{entity.name}</div>
-                    <div style={{ fontSize: 11, color: N.muted, whiteSpace: "pre-line" }}>{entity.remitAddress || ""}</div>
-                    {entity.ach && entity.ach.bank ? <div style={{ fontSize: 11, color: N.muted, marginTop: 2 }}>{entity.ach.bank}</div> : null}
-                  </div>
-                  <div style={{ textAlign: "right", fontSize: 12 }}>
-                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 15, color: N.ink }}>No. {num}</div>
-                    <div style={{ marginTop: 10, color: N.muted }}>Date <span style={{ color: N.ink, borderBottom: "1px solid " + N.rule, padding: "0 20px" }}>{today}</span></div>
-                  </div>
+          <div onClick={() => setCheckFor(null)} style={{ position: "fixed", inset: 0, background: "rgba(10,10,20,0.55)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "24px 16px", zIndex: 220, overflowY: "auto" }}>
+            <style>{`@media print { @page { size: letter portrait; margin: 0; } body * { visibility: hidden !important; } .check-sheet, .check-sheet * { visibility: visible !important; } .check-sheet { position: absolute !important; left: 0; top: 0; margin: 0 !important; box-shadow: none !important; } .no-print { display: none !important; } }`}</style>
+            <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 780 }}>
+              <div className="no-print" style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", background: N.white, borderRadius: 10, padding: "12px 16px", marginBottom: 12, boxShadow: "0 12px 34px rgba(10,10,20,0.3)" }}>
+                <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: N.ink }}>Check #{num}</span>
+                {banks.length > 0 && (<>
+                  <span style={{ fontSize: 12, color: N.muted }}>From</span>
+                  <select value={checkAcctId} onChange={e => setCheckAcctId(e.target.value)} style={{ ...inputSt, width: 160 }}>{banks.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select>
+                </>)}
+                <div style={{ display: "flex", alignItems: "center", gap: 4, marginLeft: 6 }}>
+                  <span style={{ fontSize: 12, color: N.muted }}>Align:</span>
+                  <button onClick={() => setCheckOffY(y => +(y - 0.05).toFixed(2))} style={btnPaper(N.muted)} title="Move fields up">↑</button>
+                  <button onClick={() => setCheckOffY(y => +(y + 0.05).toFixed(2))} style={btnPaper(N.muted)} title="Move fields down">↓</button>
+                  <button onClick={() => setCheckOffX(x => +(x - 0.05).toFixed(2))} style={btnPaper(N.muted)} title="Move fields left">←</button>
+                  <button onClick={() => setCheckOffX(x => +(x + 0.05).toFixed(2))} style={btnPaper(N.muted)} title="Move fields right">→</button>
+                  <button onClick={() => { setCheckOffX(0); setCheckOffY(0); }} style={btnPaper(N.muted)}>Reset</button>
                 </div>
-                <div style={{ display: "flex", alignItems: "flex-end", gap: 10, margin: "16px 0 6px" }}>
-                  <span style={{ fontSize: 11, color: N.muted }}>PAY TO THE<br />ORDER OF</span>
-                  <span style={{ flex: 1, fontSize: 15, fontWeight: 600, borderBottom: "1px solid " + N.ink, paddingBottom: 2 }}>{b.vendor_name}</span>
-                  <span style={{ fontSize: 15, fontWeight: 700, border: "1px solid " + N.ink, borderRadius: 4, padding: "3px 12px" }}>{money(amt)}</span>
-                </div>
-                <div style={{ fontSize: 13, borderBottom: "1px solid " + N.ink, paddingBottom: 3, marginBottom: 12 }}>{amountToWords(amt)}<span style={{ float: "right", color: N.muted }}>DOLLARS</span></div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
-                  <div style={{ fontSize: 11, color: N.muted }}>MEMO <span style={{ color: N.ink }}>{b.memo || b.category || ""}</span></div>
-                  <div style={{ width: 200, borderTop: "1px solid " + N.ink, textAlign: "center", fontSize: 10, color: N.muted, paddingTop: 3 }}>AUTHORIZED SIGNATURE</div>
-                </div>
-                {vd.billing_address ? <div style={{ fontSize: 11, color: N.muted, marginTop: 10, whiteSpace: "pre-line" }}>{b.vendor_name + "\n" + vd.billing_address}</div> : null}
-              </div>
-              {/* Two stubs */}
-              <Stub tag="STATEMENT — VENDOR COPY" />
-              <Stub tag="STATEMENT — FILE COPY" />
-
-              <div className="no-print" style={{ padding: "14px 22px", borderTop: "1px solid " + N.rule, background: "#f7fafd", display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                {banks.length > 0 && (
-                  <>
-                    <span style={{ fontSize: 12, color: N.muted }}>From:</span>
-                    <select value={checkAcctId} onChange={e => setCheckAcctId(e.target.value)} style={{ ...inputSt, width: 200 }}>
-                      {banks.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                    </select>
-                  </>
-                )}
-                <span style={{ marginLeft: "auto", fontSize: 12, color: N.muted }}>Load your check stock, then:</span>
-                <button onClick={confirmCheck} style={{ ...btnBlue, background: N.blue }}>Print check #{num} &amp; mark paid</button>
+                <span style={{ marginLeft: "auto", fontSize: 11, color: N.muted, maxWidth: 200 }}>Pre-printed check stock, check on top. Nudge to line up, then print.</span>
+                <button onClick={confirmCheck} style={{ ...btnBlue, background: N.blue }}>Print &amp; mark paid</button>
                 <button onClick={() => setCheckFor(null)} style={btnPaper(N.muted)}>Cancel</button>
+              </div>
+
+              <div className="check-sheet" style={{ width: "8.5in", height: "11in", background: N.white, position: "relative", margin: "0 auto", boxShadow: "0 12px 34px rgba(10,10,20,0.3)", boxSizing: "border-box", overflow: "hidden" }}>
+                {/* on-screen guide only — the check area of the pre-printed stock */}
+                <div className="no-print" style={{ position: "absolute", top: 0, left: 0, right: 0, height: "3.5in", borderBottom: "1px dashed #cbd5e1", background: "#fbfdff" }}>
+                  <div style={{ position: "absolute", top: 4, left: 6, fontSize: 9, color: "#94a3b8", fontFamily: "'DM Mono', monospace" }}>PRE-PRINTED CHECK AREA — only these fields print</div>
+                </div>
+                {/* fill-in fields (these print) */}
+                <div style={at(0.60, 6.35)}>{today}</div>
+                <div style={{ ...at(0.95, 6.55), fontWeight: 700 }}>{money(amt)}</div>
+                <div style={{ ...at(1.30, 0.95), fontSize: "12pt", fontWeight: 600 }}>{b.vendor_name}</div>
+                <div style={at(1.58, 0.18)}>{amountToWords(amt)}</div>
+                <div style={{ ...at(2.02, 0.95), whiteSpace: "pre-line", fontSize: "10pt", lineHeight: 1.35 }}>{b.vendor_name}{vd.billing_address ? "\n" + vd.billing_address : ""}</div>
+                <div style={at(2.98, 0.6)}>{b.memo || b.category || ""}</div>
+                {/* flow spacer for the check third, then the two tear-off stubs */}
+                <div style={{ height: "3.5in" }} />
+                <Stub label="Remittance — send with payment" />
+                <Stub label="Your file copy" />
               </div>
             </div>
           </div>
