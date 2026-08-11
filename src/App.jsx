@@ -44,6 +44,9 @@ import Pricing from "./pages/Pricing";
 import NonprofitSeries from "./pages/NonprofitSeries";
 import OrgHome from "./pages/OrgHome";
 import PublicRent from "./pages/PublicRent";
+import ProposalsIndex from "./pages/ProposalsIndex";
+import ProposalView from "./pages/ProposalView";
+import ProposalPublic from "./pages/ProposalPublic";
 import LedgerWorkspace from "./pages/LedgerWorkspace";
 import InvoicePublic from "./pages/InvoicePublic";
 import { FRAME_COCKPITS, CLOUD_COCKPITS } from "./cockpits/registry";
@@ -135,6 +138,23 @@ export default function App() {
   // Public rent page — anyone can visit, no login required
   if (path.startsWith("/rent/")) {
     return <PublicRent />;
+  }
+
+  // Public proposal view for clients — no login. /p/:token
+  if (path.startsWith("/p/")) {
+    const token = path.replace("/p/", "").replace(/\/$/, "");
+    return <ProposalPublic token={token} />;
+  }
+
+  // Kari's proposals hub (owner-only)
+  if (path === "/proposals" || path === "/proposals/") {
+    if (!session) { navigate("/login"); return null; }
+    return <ProposalsIndex session={session} />;
+  }
+  if (path.startsWith("/proposals/")) {
+    if (!session) { navigate("/login"); return null; }
+    const slug = path.replace("/proposals/", "").replace(/\/$/, "");
+    return <ProposalView slug={slug} session={session} />;
   }
 
   // If a member has a primary org set, root URL takes them straight to their org workspace.
