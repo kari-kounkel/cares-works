@@ -199,6 +199,28 @@ function money(n) {
   return (n < 0 ? "−$" : "$") + s;
 }
 
+// Dollar amount → words for the check line ("One thousand two hundred and 34/100").
+function amountToWords(dollars) {
+  const whole = Math.floor(Math.abs(dollars));
+  const cents = Math.round((Math.abs(dollars) - whole) * 100);
+  const ones = ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"];
+  const tens = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"];
+  const three = num => {
+    let s = "";
+    if (num >= 100) { s += ones[Math.floor(num / 100)] + " hundred"; num %= 100; if (num) s += " "; }
+    if (num >= 20) { s += tens[Math.floor(num / 10)]; num %= 10; if (num) s += "-" + ones[num]; }
+    else if (num > 0) s += ones[num];
+    return s;
+  };
+  let w = "", rem = whole;
+  for (const [name, val] of [["million", 1e6], ["thousand", 1e3]]) {
+    if (rem >= val) { w += three(Math.floor(rem / val)) + " " + name + " "; rem %= val; }
+  }
+  if (rem > 0) w += three(rem);
+  w = (w.trim() || "zero");
+  return w.charAt(0).toUpperCase() + w.slice(1) + " and " + String(cents).padStart(2, "0") + "/100";
+}
+
 // Tiny inline-SVG icon set (outline, inherits color via stroke=currentColor).
 function Ico({ name, size = 18 }) {
   const p = { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.7, strokeLinecap: "round", strokeLinejoin: "round" };
@@ -418,6 +440,10 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [showBillForm, setShowBillForm] = useState(false);
   const blankBill = { vendor: "", amount: "", due: "", category: "", memo: "" };
   const [billDraft, setBillDraft] = useState(blankBill);
+  const [openBill, setOpenBill] = useState(null);
+  const [billEdit, setBillEdit] = useState(null);
+  const [checkFor, setCheckFor] = useState(null);
+  const [checkAcctId, setCheckAcctId] = useState("");
   const blankInvoice = { customer: "", email: "", taxStatus: "Exempt", lines: [{ desc: "", qty: "1", price: "" }] };
   const [invDraft, setInvDraft] = useState(blankInvoice);
 
@@ -913,6 +939,52 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       await supabase.from("ledger_bills").update({ status: paid ? "paid" : "unpaid", paid_at: paid ? new Date().toISOString() : null }).eq("id", id);
       setReloadTick(t => t + 1);
     }
+  }
+
+  async function updateBill() {
+    const b = billEdit;
+    if (!b || !b.vendor.trim()) return;
+    const cents = Math.round((parseFloat(b.amount) || 0) * 100);
+    if (live) {
+      await supabase.from("ledger_bills").update({
+        vendor_name: b.vendor.trim(), amount_cents: cents, due_date: b.due || null,
+        category: b.category || null, memo: (b.memo || "").trim() || null,
+      }).eq("id", b.id);
+      setReloadTick(t => t + 1);
+    }
+    setBillEdit(null); setOpenBill(null);
+  }
+  async function deleteBill(id) {
+    if (!window.confirm("Delete this bill? This can't be undone.")) return;
+    setOpenBill(null);
+    if (live) { await supabase.from("ledger_bills").delete().eq("id", id); setReloadTick(t => t + 1); }
+  }
+  function payBillByCheck(bill) {
+    const banks = accountList.filter(a => a.type === "bank");
+    setCheckAcctId(banks[0] ? banks[0].id : "");
+    setOpenBill(null);
+    setCheckFor(bill);
+  }
+  // Print the check, mark the bill paid, book the outflow on the chosen bank,
+  // stamp the check number in the reference, and advance the next check number.
+  async function confirmCheck() {
+    const bill = checkFor;
+    if (!bill) return;
+    const num = entity.nextCheckNumber || 1001;
+    const acct = accountList.find(a => a.id === checkAcctId);
+    window.print();
+    if (live && liveOrgId) {
+      await supabase.from("ledger_bills").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", bill.id);
+      await supabase.from("ledger_entries").insert({
+        org_id: liveOrgId, user_id: session.user.id, entry_date: new Date().toISOString().slice(0, 10),
+        direction: "out", amount_cents: bill.amount_cents, description: bill.vendor_name || "Check",
+        category: bill.category || null, account_id: (acct && acct.id && String(acct.id).length > 20) ? acct.id : null,
+        reference: "Check #" + num, match_status: "noted",
+      });
+      await supabase.from("ledger_orgs").update({ next_check_number: num + 1 }).eq("id", liveOrgId);
+      setReloadTick(t => t + 1);
+    }
+    setCheckFor(null);
   }
 
   const q = query.trim().toLowerCase();
@@ -1625,18 +1697,130 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           ) : bills.map((b, i) => {
             const paid = b.status === "paid";
             return (
-              <div key={b.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 16px", borderBottom: i === bills.length - 1 ? "none" : "1px solid " + N.rule, opacity: paid ? 0.6 : 1 }}>
+              <div key={b.id} onClick={() => { setOpenBill(b); setBillEdit(null); }} title="Open bill"
+                style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 16px", borderBottom: i === bills.length - 1 ? "none" : "1px solid " + N.rule, opacity: paid ? 0.6 : 1, cursor: "pointer" }}
+                onMouseEnter={e => (e.currentTarget.style.background = "#f7fafd")}
+                onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 15, fontWeight: 600, color: N.ink }}>{b.vendor_name || "—"}</div>
                   <div style={{ fontSize: 12, color: N.muted }}>{b.category || "Uncategorized"}{b.due_date ? ` · due ${b.due_date}` : ""}{b.memo ? ` · ${b.memo}` : ""}</div>
                 </div>
                 <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: paid ? N.green : N.red, background: (paid ? N.green : N.red) + "18", padding: "4px 10px", borderRadius: 100 }}>{paid ? "Paid" : "Unpaid"}</span>
-                <button onClick={() => markBillPaid(b.id, !paid)} style={btnPaper(paid ? N.muted : N.pinkDark)}>{paid ? "Unmark" : "Mark paid"}</button>
+                {!paid && <button onClick={e => { e.stopPropagation(); payBillByCheck(b); }} style={btnPaper(N.text)}>Pay by check</button>}
+                <button onClick={e => { e.stopPropagation(); markBillPaid(b.id, !paid); }} style={btnPaper(paid ? N.muted : N.pinkDark)}>{paid ? "Unmark" : "Mark paid"}</button>
                 <div style={{ fontSize: 16, fontWeight: 600, color: N.ink, width: 90, textAlign: "right" }}>{money((b.amount_cents || 0) / 100)}</div>
               </div>
             );
           })}
         </div>
+
+        {openBill && (() => {
+          const b = openBill; const paid = b.status === "paid"; const editing = billEdit && billEdit.id === b.id;
+          return (
+          <div onClick={() => { setOpenBill(null); setBillEdit(null); }} style={{ position: "fixed", inset: 0, background: "rgba(10,10,20,0.45)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "60px 16px", zIndex: 210 }}>
+            <div onClick={e => e.stopPropagation()} style={{ background: N.white, borderRadius: 12, width: "100%", maxWidth: 480, boxShadow: "0 24px 70px rgba(10,10,20,0.35)", padding: 22 }}>
+              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: N.ink, marginBottom: 12 }}>{editing ? "Edit bill" : "Bill"}</div>
+              {editing ? (
+                <div style={{ display: "grid", gap: 10 }}>
+                  <div style={{ position: "relative" }}>
+                    <input placeholder="Vendor" list="bill-vendors" value={billEdit.vendor} onChange={e => setBillEdit(d => ({ ...d, vendor: e.target.value }))} style={{ ...inputSt, paddingRight: 26 }} />
+                    <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: N.muted, fontSize: 10 }}>▼</span>
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 150px", gap: 10 }}>
+                    <input placeholder="$ amount" value={billEdit.amount} onChange={e => setBillEdit(d => ({ ...d, amount: e.target.value }))} style={{ ...inputSt, textAlign: "right" }} />
+                    <input type="date" value={billEdit.due} onChange={e => setBillEdit(d => ({ ...d, due: e.target.value }))} style={inputSt} />
+                  </div>
+                  <div style={{ position: "relative" }}>
+                    <input placeholder="Which account? (category)" list="bill-cats" value={billEdit.category} onChange={e => setBillEdit(d => ({ ...d, category: e.target.value }))} style={{ ...inputSt, paddingRight: 26 }} />
+                    <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: N.muted, fontSize: 10 }}>▼</span>
+                  </div>
+                  <input placeholder="Memo (optional)" value={billEdit.memo} onChange={e => setBillEdit(d => ({ ...d, memo: e.target.value }))} style={inputSt} />
+                  <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 4 }}>
+                    <button onClick={() => setBillEdit(null)} style={btnPaper(N.muted)}>Cancel</button>
+                    <button onClick={updateBill} style={{ ...btnBlue, background: N.blue }}>Save</button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div style={{ fontSize: 22, fontWeight: 700, color: N.ink, marginBottom: 2 }}>{money((b.amount_cents || 0) / 100)}</div>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: N.ink }}>{b.vendor_name || "—"}</div>
+                  <div style={{ fontSize: 13, color: N.muted, marginBottom: 14 }}>{b.category || "Uncategorized"}{b.due_date ? ` · due ${b.due_date}` : ""}{b.memo ? ` · ${b.memo}` : ""} · <b style={{ color: paid ? N.green : N.red }}>{paid ? "Paid" : "Unpaid"}</b></div>
+                  <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", flexWrap: "wrap" }}>
+                    <button onClick={() => setBillEdit({ id: b.id, vendor: b.vendor_name || "", amount: String((b.amount_cents || 0) / 100), due: b.due_date || "", category: b.category || "", memo: b.memo || "" })} style={btnPaper(N.muted)}>Edit</button>
+                    {!paid && <button onClick={() => payBillByCheck(b)} style={{ ...btnBlue, background: N.blue }}>Pay by check</button>}
+                    <button onClick={() => { markBillPaid(b.id, !paid); setOpenBill(null); }} style={btnPaper(N.pinkDark)}>{paid ? "Mark unpaid" : "Mark paid (no check)"}</button>
+                    <button onClick={() => deleteBill(b.id)} style={btnPaper(N.pinkDark)}>Delete</button>
+                    <button onClick={() => setOpenBill(null)} style={btnPaper(N.muted)}>Close</button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+          );
+        })()}
+
+        {checkFor && (() => {
+          const b = checkFor;
+          const amt = (b.amount_cents || 0) / 100;
+          const num = entity.nextCheckNumber || 1001;
+          const vd = (entity.vendorList || []).find(v => (v.name || "").toLowerCase() === (b.vendor_name || "").toLowerCase()) || {};
+          const today = new Date().toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" });
+          const banks = accountList.filter(a => a.type === "bank");
+          const Stub = ({ tag }) => (
+            <div style={{ padding: "12px 24px", borderTop: "1px dashed " + N.rule, fontSize: 12, color: N.text }}>
+              <div style={{ display: "flex", justifyContent: "space-between", color: N.muted, fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.08em", marginBottom: 4 }}><span>{tag}</span><span>CHECK #{num} · {today}</span></div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}><span><b>{b.vendor_name}</b>{b.category ? ` · ${b.category}` : ""}{b.memo ? ` · ${b.memo}` : ""}{b.due_date ? ` · due ${b.due_date}` : ""}</span><span style={{ fontWeight: 700 }}>{money(amt)}</span></div>
+            </div>
+          );
+          return (
+          <div onClick={() => setCheckFor(null)} style={{ position: "fixed", inset: 0, background: "rgba(10,10,20,0.45)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "40px 16px", zIndex: 220, overflowY: "auto" }}>
+            <div onClick={e => e.stopPropagation()} className="print-doc" style={{ background: N.white, borderRadius: 10, width: "100%", maxWidth: 680, boxShadow: "0 24px 70px rgba(10,10,20,0.35)", overflow: "hidden" }}>
+              {/* CHECK (top third) */}
+              <div style={{ padding: "22px 24px 18px", borderBottom: "2px solid " + N.ink }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <div>
+                    <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 16, color: N.ink }}>{entity.name}</div>
+                    <div style={{ fontSize: 11, color: N.muted, whiteSpace: "pre-line" }}>{entity.remitAddress || ""}</div>
+                    {entity.ach && entity.ach.bank ? <div style={{ fontSize: 11, color: N.muted, marginTop: 2 }}>{entity.ach.bank}</div> : null}
+                  </div>
+                  <div style={{ textAlign: "right", fontSize: 12 }}>
+                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 15, color: N.ink }}>No. {num}</div>
+                    <div style={{ marginTop: 10, color: N.muted }}>Date <span style={{ color: N.ink, borderBottom: "1px solid " + N.rule, padding: "0 20px" }}>{today}</span></div>
+                  </div>
+                </div>
+                <div style={{ display: "flex", alignItems: "flex-end", gap: 10, margin: "16px 0 6px" }}>
+                  <span style={{ fontSize: 11, color: N.muted }}>PAY TO THE<br />ORDER OF</span>
+                  <span style={{ flex: 1, fontSize: 15, fontWeight: 600, borderBottom: "1px solid " + N.ink, paddingBottom: 2 }}>{b.vendor_name}</span>
+                  <span style={{ fontSize: 15, fontWeight: 700, border: "1px solid " + N.ink, borderRadius: 4, padding: "3px 12px" }}>{money(amt)}</span>
+                </div>
+                <div style={{ fontSize: 13, borderBottom: "1px solid " + N.ink, paddingBottom: 3, marginBottom: 12 }}>{amountToWords(amt)}<span style={{ float: "right", color: N.muted }}>DOLLARS</span></div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                  <div style={{ fontSize: 11, color: N.muted }}>MEMO <span style={{ color: N.ink }}>{b.memo || b.category || ""}</span></div>
+                  <div style={{ width: 200, borderTop: "1px solid " + N.ink, textAlign: "center", fontSize: 10, color: N.muted, paddingTop: 3 }}>AUTHORIZED SIGNATURE</div>
+                </div>
+                {vd.billing_address ? <div style={{ fontSize: 11, color: N.muted, marginTop: 10, whiteSpace: "pre-line" }}>{b.vendor_name + "\n" + vd.billing_address}</div> : null}
+              </div>
+              {/* Two stubs */}
+              <Stub tag="STATEMENT — VENDOR COPY" />
+              <Stub tag="STATEMENT — FILE COPY" />
+
+              <div className="no-print" style={{ padding: "14px 22px", borderTop: "1px solid " + N.rule, background: "#f7fafd", display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                {banks.length > 0 && (
+                  <>
+                    <span style={{ fontSize: 12, color: N.muted }}>From:</span>
+                    <select value={checkAcctId} onChange={e => setCheckAcctId(e.target.value)} style={{ ...inputSt, width: 200 }}>
+                      {banks.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                    </select>
+                  </>
+                )}
+                <span style={{ marginLeft: "auto", fontSize: 12, color: N.muted }}>Load your check stock, then:</span>
+                <button onClick={confirmCheck} style={{ ...btnBlue, background: N.blue }}>Print check #{num} &amp; mark paid</button>
+                <button onClick={() => setCheckFor(null)} style={btnPaper(N.muted)}>Cancel</button>
+              </div>
+            </div>
+          </div>
+          );
+        })()}
       </div>
     );
   }
