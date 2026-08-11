@@ -98,7 +98,6 @@ const SECTIONS = [
   { key: "bills", label: "Bills" },
   { key: "reports", label: "Reports" },
   { key: "documents", label: "Documents" },
-  { key: "lists", label: "Lists" },
   { key: "admin", label: "Admin" },
 ];
 
@@ -421,7 +420,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [catDraft, setCatDraft] = useState(blankCat);
   const [showAddCat, setShowAddCat] = useState(false);
   const [newCat, setNewCat] = useState(blankCat);
-  const [listsTab, setListsTab] = useState("customers");
+  const [listsTab, setListsTab] = useState("");
   const blankContact = { name: "", company: "", email: "", phone: "", billing_address: "", tax_status: "Taxable", notes: "" };
   const [contactEditId, setContactEditId] = useState(null);
   const [contactDraft, setContactDraft] = useState(blankContact);
@@ -2178,20 +2177,51 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     );
   }
 
-  function Lists() {
-    const tabs = [["customers", "Customers"], ["vendors", "Vendors"], ["items", "Items & services"], ["chart", "Chart of accounts"], ["accounts", "Bank & card accounts"]];
+  function Admin() {
+    const choices = [
+      { key: "customers", label: "Customers", desc: "Who you bill — names, emails, addresses", count: (entity.customers || []).length },
+      { key: "vendors", label: "Vendors", desc: "Who you pay — for bills and checks", count: (entity.vendorList || []).length },
+      { key: "items", label: "Items & services", desc: "Your product/service list for invoices", count: (entity.products || []).filter(p => !p.archived).length },
+      { key: "chart", label: "Chart of accounts", desc: "Every account — banks, cards, income, expenses", count: (entity.rawCategories || []).filter(c => !c.archived).length + (entity.rawAccounts || []).length },
+      { key: "settings", label: "Settings", desc: "Branding, users, remit, sales-tax rate" },
+    ];
+    if (!listsTab) {
+      return (
+        <div>
+          <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink, marginBottom: 2 }}>Admin</div>
+          <div style={{ fontSize: 13, color: N.muted, marginBottom: 18 }}>Your lists and setup. Pick one to open it.</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12 }}>
+            {choices.map(c => (
+              <button key={c.key} onClick={() => setListsTab(c.key)} style={{ textAlign: "left", background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: "16px 18px", cursor: "pointer", fontFamily: "'Figtree', sans-serif", display: "flex", flexDirection: "column", gap: 4 }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = N.blue; e.currentTarget.style.boxShadow = "0 4px 14px rgba(0,128,255,0.12)"; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = N.rule; e.currentTarget.style.boxShadow = "none"; }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <span style={{ fontSize: 16, fontWeight: 700, color: N.ink }}>{c.label}</span>
+                  {c.count != null && <span style={{ fontSize: 12, fontFamily: "'DM Mono', monospace", color: N.blue, background: "#eef6ff", borderRadius: 100, padding: "2px 9px" }}>{c.count}</span>}
+                </div>
+                <span style={{ fontSize: 12.5, color: N.muted }}>{c.desc}</span>
+                <span style={{ fontSize: 12, color: N.blue, fontWeight: 600, marginTop: 4 }}>Open →</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      );
+    }
     return (
       <div>
-        <div style={{ display: "flex", gap: 6, marginBottom: 18, flexWrap: "wrap", borderBottom: "1px solid " + N.rule, paddingBottom: 12 }}>
-          {tabs.map(([k, label]) => (
-            <button key={k} onClick={() => setListsTab(k)} style={{ fontSize: 13, fontWeight: 600, padding: "7px 14px", borderRadius: 100, cursor: "pointer", fontFamily: "'Figtree', sans-serif", border: "1px solid " + (listsTab === k ? N.blue : N.rule), background: listsTab === k ? N.blue : N.white, color: listsTab === k ? N.white : N.text }}>{label}</button>
-          ))}
-        </div>
+        <button onClick={() => setListsTab("")} style={{ ...btnPaper(N.muted), marginBottom: 14 }}>← Back to Admin</button>
         {listsTab === "customers" && ContactList("customer")}
         {listsTab === "vendors" && ContactList("vendor")}
         {listsTab === "items" && Items()}
-        {listsTab === "chart" && Chart()}
-        {listsTab === "accounts" && Accounts()}
+        {listsTab === "chart" && (
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: N.blueDark, marginBottom: 10 }}>Balance-sheet accounts — banks, cards, loans</div>
+            {Accounts()}
+            <div style={{ height: 22 }} />
+            {Chart()}
+          </div>
+        )}
+        {listsTab === "settings" && <div style={{ background: N.white, border: "1px dashed " + N.rule, borderRadius: 12, padding: "34px 20px", textAlign: "center", color: N.muted, fontSize: 14 }}>Users &amp; roles, logo &amp; branding, remit info, and sales-tax rate — coming here.</div>}
       </div>
     );
   }
@@ -2219,8 +2249,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   else if (section === "orders") body = Orders();
   else if (section === "salestax") body = SalesTax();
   else if (section === "reports") body = Reports();
-  else if (section === "lists") body = Lists();
-  else if (section === "admin") body = <Stub title="Admin" note="Users & roles, entity settings, logo & branding, sales-tax rate — coming here." />;
+  else if (section === "admin") body = Admin();
   else if (section === "bills") body = Bills();
   else if (section === "documents") body = <Stub title="Documents" note="Statements, exemption certificates, and anything you attach lives here." />;
 
@@ -2313,9 +2342,9 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             );
           })()}
           {[...entity.accounts.banks, ...entity.accounts.cards, ...entity.accounts.loans].map(a => (
-            <div key={a.name} style={{ background: a.balance < 0 ? "#eef4fb" : "#f0f7f1", border: "1px solid " + (a.balance < 0 ? "#cfe0f4" : "#cfe9d6"), borderRadius: 10, padding: "6px 11px", whiteSpace: "nowrap" }}>
-              <div style={{ fontSize: 10, color: a.balance < 0 ? "#4a6a9a" : "#5a7a63", letterSpacing: "0.04em" }}>{a.name.toUpperCase()}</div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: a.balance < 0 ? N.blueDark : N.ink }}>{money(a.balance)}</div>
+            <div key={a.name} style={{ background: "#f4f7fb", border: "1px solid " + N.rule, borderRadius: 10, padding: "6px 11px", whiteSpace: "nowrap" }}>
+              <div style={{ fontSize: 10, color: N.muted, letterSpacing: "0.04em" }}>{a.name.toUpperCase()}</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: N.ink }}>{money(Math.abs(a.balance))}</div>
             </div>
           ))}
         </div>
@@ -2339,7 +2368,11 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               </button>
             );
           })}
-          <div style={{ marginTop: 20, borderTop: "1px solid " + N.rule, paddingTop: 14 }}>
+        </nav>
+
+        <main style={{ flex: 1, minWidth: 0, padding: "18px 24px 80px" }}>{body}</main>
+
+        <aside style={{ width: 238, flexShrink: 0, padding: "18px 12px", position: "sticky", top: 132 }}>
             <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9.5, letterSpacing: "0.12em", color: N.muted, marginBottom: 8, paddingLeft: 4 }}>BUILD PROGRESS</div>
             {(() => {
               const box = (st, sz) => (
@@ -2374,10 +2407,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 );
               });
             })()}
-          </div>
-        </nav>
-
-        <main style={{ flex: 1, minWidth: 0, padding: "18px 24px 80px" }}>{body}</main>
+        </aside>
       </div>
     </div>
   );
