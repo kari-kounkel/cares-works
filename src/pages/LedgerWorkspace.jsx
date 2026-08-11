@@ -1602,12 +1602,18 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             <datalist id="bill-vendors">{(entity.vendors || []).map(v => <option key={v} value={v} />)}</datalist>
             <datalist id="bill-cats">{(entity.categories || []).map(c => <option key={c} value={c} />)}</datalist>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 110px 150px", gap: 10, marginBottom: 10 }}>
-              <input placeholder="Vendor" list="bill-vendors" value={billDraft.vendor} onChange={e => setBillDraft(d => ({ ...d, vendor: e.target.value }))} style={inputSt} />
+              <div style={{ position: "relative" }}>
+                <input placeholder="Vendor — pick or type new" list="bill-vendors" value={billDraft.vendor} onChange={e => setBillDraft(d => ({ ...d, vendor: e.target.value }))} style={{ ...inputSt, paddingRight: 26 }} />
+                <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: N.muted, fontSize: 10 }}>▼</span>
+              </div>
               <input placeholder="$ amount" value={billDraft.amount} onChange={e => setBillDraft(d => ({ ...d, amount: e.target.value }))} style={{ ...inputSt, textAlign: "right" }} />
               <input type="date" value={billDraft.due} onChange={e => setBillDraft(d => ({ ...d, due: e.target.value }))} style={inputSt} />
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
-              <input placeholder="Which account? (category)" list="bill-cats" value={billDraft.category} onChange={e => setBillDraft(d => ({ ...d, category: e.target.value }))} style={inputSt} />
+              <div style={{ position: "relative" }}>
+                <input placeholder="Which account? (category)" list="bill-cats" value={billDraft.category} onChange={e => setBillDraft(d => ({ ...d, category: e.target.value }))} style={{ ...inputSt, paddingRight: 26 }} />
+                <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: N.muted, fontSize: 10 }}>▼</span>
+              </div>
               <input placeholder="Memo (optional)" value={billDraft.memo} onChange={e => setBillDraft(d => ({ ...d, memo: e.target.value }))} style={inputSt} />
             </div>
             <div style={{ display: "flex", justifyContent: "flex-end" }}><button onClick={recordBill} style={{ ...btnBlue, background: N.blue, fontSize: 14, padding: "10px 18px" }}>Save bill</button></div>
