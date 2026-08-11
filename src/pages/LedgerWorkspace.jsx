@@ -402,7 +402,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [editLineId, setEditLineId] = useState(null);
   const [editDraft, setEditDraft] = useState({ date: "", payee: "", amount: "", direction: "out" });
   const [addedCount, setAddedCount] = useState(0);
-  const [sortBy, setSortBy] = useState("date-desc");
+  const [sortBy, setSortBy] = useState("account");
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [wide, setWide] = useState(false);
   const payeeRef = useRef(null);
@@ -1168,7 +1168,10 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           {visibleItems.map((x, i) => {
             const proposed = !!x.cleared;
             const last = i === visibleItems.length - 1;
-            return (
+            const prevSrc = i > 0 ? visibleItems[i - 1].source : null;
+            const showHead = sortBy === "account" && x.source !== prevSrc;
+            return [
+              showHead && <div key={x.id + "-hdr"} style={{ margin: "18px 0 2px", padding: "5px 2px", borderBottom: "2px solid #b8c7ab", fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.08em", color: "#4a6a9a", fontWeight: 700 }}>{(x.source && x.source !== "—" ? x.source : "— not assigned to an account —").toUpperCase()}</div>,
               <div key={x.id} style={{ borderBottom: last ? "none" : "1px solid #cfdcc4", background: proposed ? "#e2edf7" : "transparent", marginLeft: proposed ? -8 : 0, paddingLeft: proposed ? 8 : 0, borderRadius: proposed ? 6 : 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "9px 0" }}>
                   <div style={{ width: 34, marginLeft: -38, textAlign: "right", paddingRight: 6, fontFamily: "'Figtree', sans-serif", fontSize: 18, color: "#8a8f9a" }}>{x.date}</div>
@@ -1211,7 +1214,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                               border: "1px solid " + bd, background: bg, color: fg,
                             }}>
                             <option value="">{isSug ? `${x.suggested}?` : "Which account?"}</option>
-                            {(entity.categories || []).map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                            {(entity.categories || []).slice().sort((a, b) => a.localeCompare(b)).map(cat => <option key={cat} value={cat}>{cat}</option>)}
                             <option value="__new__">＋ Add a new account…</option>
                           </select>
                         );
@@ -1267,7 +1270,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   </div>
                 )}
               </div>
-            );
+            ];
           })}
         </div>
 
