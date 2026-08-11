@@ -1665,9 +1665,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           </div>
           <button onClick={() => setShowBillForm(s => !s)} style={{ ...btnBlue, background: N.blue, fontSize: 14, padding: "10px 18px" }}>{showBillForm ? "Close" : "+ Record a bill"}</button>
         </div>
-        <div style={{ display: "flex", alignItems: "flex-start", gap: 8, background: "#fef9c3", border: "1px solid #fde68a", borderRadius: 10, padding: "11px 14px", marginBottom: 14, fontSize: 13, color: "#8a5a00", lineHeight: 1.5 }}>
-          <span style={{ fontWeight: 700, flexShrink: 0 }}>⚠ Only enter a bill here if you're paying it by CHECK.</span>
-          <span>If it's going on a credit card, it's a card charge — leave it for the <b>Notebook</b>, not Bills. (Cards get double-counted otherwise.)</span>
+        <div style={{ background: "#fef9c3", border: "1px solid #fde68a", borderRadius: 10, padding: "11px 14px", marginBottom: 14, fontSize: 13, color: "#8a5a00", lineHeight: 1.55, textAlign: "left" }}>
+          <b>⚠ Only enter a bill if you're paying by check.</b> If it's going on a credit card or is already in the bank account, it gets entered in the <b>Notebook</b> section, not Bills. If you enter it here too, it will be a duplicate.
         </div>
         {showBillForm && (
           <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: 16, marginBottom: 16 }}>
