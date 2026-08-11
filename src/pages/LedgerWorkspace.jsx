@@ -404,6 +404,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [addedCount, setAddedCount] = useState(0);
   const [sortBy, setSortBy] = useState("date-desc");
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [wide, setWide] = useState(false);
   const payeeRef = useRef(null);
   const amountRef = useRef(null);
   const blankAcct = { name: "", account_type: "bank", last_four: "", opening: "" };
@@ -844,6 +845,30 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     if (inv.status === "Paid" && remaining < totalCents) {
       await supabase.from("invoices").update({ status: "sent", paid_at: null }).eq("id", inv.id);
     }
+    setReloadTick(t => t + 1);
+  }
+
+  // Quick "Mark paid" — records the full payment AND drops a CorTrust deposit in the
+  // notebook (she deposits on her phone when she marks it). Skips if already recorded.
+  async function quickMarkPaid(v) {
+    if (!live || !liveOrgId) { invoiceStatus(v.id, "paid"); setOpenInv(null); return; }
+    if ((v.payments || []).length > 0) { await invoiceStatus(v.id, "paid"); setOpenInv(null); return; }
+    const cents = (v.balanceCents != null && v.balanceCents > 0) ? v.balanceCents : Math.round((v.amount || 0) * 100);
+    const bank = accountList.find(a => a.type === "bank");
+    const paidOn = new Date().toISOString().slice(0, 10);
+    setOpenInv(null);
+    const { data: payRow } = await supabase.from("ledger_payments").insert({
+      org_id: liveOrgId, user_id: session.user.id, invoice_id: v.id, amount_cents: cents,
+      method: "deposit", paid_on: paidOn, memo: "Marked paid",
+    }).select("id").single();
+    const { data: entRow } = await supabase.from("ledger_entries").insert({
+      org_id: liveOrgId, user_id: session.user.id, entry_date: paidOn, direction: "in",
+      amount_cents: cents, description: `Payment — ${v.customer}${v.number ? ` (Inv #${v.number})` : ""}`,
+      category: "Customer payment", account_id: bank ? bank.id : null, match_status: null,
+      invoice_id: v.id, payment_id: payRow ? payRow.id : null,
+    }).select("id").single();
+    if (payRow && entRow) await supabase.from("ledger_payments").update({ entry_id: entRow.id }).eq("id", payRow.id);
+    await supabase.from("invoices").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", v.id);
     setReloadTick(t => t + 1);
   }
 
@@ -1343,7 +1368,9 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: STATUS_COLOR[v.status] || N.muted, background: (STATUS_COLOR[v.status] || N.muted) + "18", padding: "4px 10px", borderRadius: 100 }}>{v.status}</span>
               <div style={{ display: "flex", gap: 6 }}>
                 {v.status === "Draft" && <button onClick={e => { e.stopPropagation(); invoiceStatus(v.id, "sent"); }} style={btnPaper(N.blue)}>Send</button>}
-                {v.status !== "Paid" && !voided && <button onClick={e => { e.stopPropagation(); openPayment(v); }} style={btnPaper(N.pinkDark)}>Record payment</button>}
+                {(v.status === "Sent" || v.status === "Viewed") && <button onClick={e => { e.stopPropagation(); invoiceStatus(v.id, "draft"); }} style={btnPaper(N.muted)}>← Draft</button>}
+                {v.status !== "Paid" && !voided && <button onClick={e => { e.stopPropagation(); quickMarkPaid(v); }} style={btnPaper(N.pinkDark)}>Mark paid</button>}
+                {v.status !== "Paid" && !voided && <button onClick={e => { e.stopPropagation(); openPayment(v); }} style={btnPaper(N.muted)}>Payment…</button>}
               </div>
               <div style={{ fontSize: 16, fontWeight: 600, color: voided ? N.mutedLite : N.ink, width: 90, textAlign: "right", textDecoration: voided ? "line-through" : "none" }}>{money(v.amount)}</div>
             </div>
@@ -1490,7 +1517,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 ) : (
                   <>
                     {openInv.status !== "Void" && <button onClick={() => sendInvoice(openInv)} style={{ ...btnBlue, background: N.blue }}>{openInv.status === "Draft" ? "Send · get link" : "Copy / resend link"}</button>}
-                    {openInv.status !== "Paid" && openInv.status !== "Void" && <button onClick={() => openPayment(openInv)} style={{ ...btnBlue, background: N.pinkDark }}>Record payment / check</button>}
+                    {openInv.status !== "Paid" && openInv.status !== "Void" && <button onClick={() => quickMarkPaid(openInv)} style={{ ...btnBlue, background: N.pinkDark }}>Mark paid</button>}
+                    {openInv.status !== "Paid" && openInv.status !== "Void" && <button onClick={() => openPayment(openInv)} style={btnPaper(N.pinkDark)}>Partial / check…</button>}
                     {openInv.status === "Paid" && (openInv.payments || []).length === 0 && <button onClick={() => { invoiceStatus(openInv.id, "sent"); setOpenInv(null); }} style={btnPaper(N.muted)}>Unmark paid</button>}
                     {(openInv.status === "Sent" || openInv.status === "Viewed") && <button onClick={() => { invoiceStatus(openInv.id, "draft"); setOpenInv(null); }} style={btnPaper(N.muted)}>← Back to draft</button>}
                     {openInv.status !== "Void" && <button onClick={() => voidInvoice(openInv)} style={btnPaper(N.muted)}>Void</button>}
@@ -2322,6 +2350,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               ? <img src={entity.logoUrl} alt={entity.name} style={{ height: 34, maxWidth: 210, objectFit: "contain" }} />
               : <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: N.ink, whiteSpace: "nowrap" }}>{entity.short}</span>}
           </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <button onClick={() => setWide(w => !w)} title={wide ? "Show the side panels" : "Hide side panels for more room"} style={{ background: wide ? N.blue : "none", border: "1px solid " + (wide ? N.blue : N.rule), color: wide ? "#fff" : N.muted, borderRadius: 100, cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontSize: 12, fontWeight: 600, padding: "6px 12px", whiteSpace: "nowrap" }}>{wide ? "◧ Panels" : "⤢ Wide"}</button>
           <div style={{ position: "relative", whiteSpace: "nowrap" }}>
             <button onClick={() => setUserMenuOpen(o => !o)} title="Account" style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "1px solid " + N.rule, borderRadius: 100, padding: "3px 10px 3px 3px", cursor: "pointer", fontFamily: "'Figtree', sans-serif" }}>
               <span style={{ width: 28, height: 28, borderRadius: 100, background: "#eef6ff", color: N.blueDark, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700 }}>
@@ -2338,6 +2368,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 <button onClick={logout} style={{ width: "100%", textAlign: "left", background: "none", border: "none", cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontSize: 13, fontWeight: 600, color: N.pinkDark, padding: "8px", borderRadius: 6 }}>Log out &amp; switch user →</button>
               </div>
             )}
+          </div>
           </div>
         </div>
 
@@ -2372,19 +2403,19 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
 
       {/* Body: nav + work area */}
       <div style={{ display: "flex", alignItems: "flex-start", maxWidth: 1180, margin: "0 auto" }}>
-        <nav style={{ width: 210, flexShrink: 0, padding: "18px 12px", position: "sticky", top: 132 }}>
+        <nav style={{ width: wide ? 58 : 210, flexShrink: 0, padding: "18px 10px", position: "sticky", top: 132 }}>
           {SECTIONS.map(s => {
             const active = section === s.key;
             return (
-              <button key={s.key} onClick={() => setSection(s.key)} style={{
-                display: "flex", alignItems: "center", gap: 11, width: "100%", textAlign: "left",
+              <button key={s.key} onClick={() => setSection(s.key)} title={s.label} style={{
+                display: "flex", alignItems: "center", justifyContent: wide ? "center" : "flex-start", gap: 11, width: "100%", textAlign: "left",
                 padding: "10px 12px", marginBottom: 3, borderRadius: 10, cursor: "pointer",
                 border: "none", fontFamily: "'Figtree', sans-serif", fontSize: 14,
                 background: active ? "#eef6ff" : "transparent",
                 color: active ? N.blueDark : N.muted, fontWeight: active ? 700 : 500,
               }}>
                 <span style={{ display: "flex", color: active ? N.blue : N.mutedLite }}><Ico name={s.key} /></span>
-                {s.label}
+                {!wide && s.label}
               </button>
             );
           })}
@@ -2392,6 +2423,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
 
         <main style={{ flex: 1, minWidth: 0, padding: "18px 24px 80px" }}>{body}</main>
 
+        {!wide && (
         <aside style={{ width: 238, flexShrink: 0, padding: "18px 12px", position: "sticky", top: 132 }}>
             <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9.5, letterSpacing: "0.12em", color: N.muted, marginBottom: 8, paddingLeft: 4 }}>BUILD PROGRESS</div>
             {(() => {
@@ -2428,6 +2460,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               });
             })()}
         </aside>
+        )}
       </div>
     </div>
   );
