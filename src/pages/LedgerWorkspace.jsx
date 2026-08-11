@@ -106,17 +106,77 @@ const SECTIONS = [
 ];
 
 const BUILD_PROGRESS = [
-  ["Purchase Orders", "done"],
-  ["Invoicing", "done"],
-  ["Bank & card setup", "done"],
-  ["Notebook", "done"],
-  ["Bills", "done"],
-  ["Sales tax", "done"],
-  ["Reports", "todo"],
-  ["Documents", "todo"],
-  ["Year-end for Gary", "todo"],
-  ["Admin panel", "todo"],
+  { label: "Purchase Orders", items: [
+    ["Take an order — customer + items", "done"],
+    ["Optional PO to a vendor", "done"],
+    ["Vendor cost vs. customer price", "done"],
+    ["Print the PO", "done"],
+    ["Convert PO → invoice", "done"],
+    ["Edit or delete an order", "done"],
+  ] },
+  { label: "Invoicing", items: [
+    ["Branded invoice — logo, remit, ACH, tax", "done"],
+    ["Customer + item pickers from your lists", "done"],
+    ["Send link + “Viewed” tracking", "done"],
+    ["Email it from CARES Works", "wip"],
+    ["Partial payments + record checks", "done"],
+    ["Void or delete", "done"],
+  ] },
+  { label: "Bank & card setup", items: [
+    ["Bank + credit-card accounts", "done"],
+    ["Real transactions imported", "done"],
+    ["Add / edit accounts", "done"],
+    ["Card balances tied to statements", "wip"],
+  ] },
+  { label: "Notebook", items: [
+    ["Bank / card lines to reconcile", "done"],
+    ["Real chart-of-accounts picker", "done"],
+    ["Which bank / card each hit", "done"],
+    ["Customer payments link to invoices", "done"],
+    ["Pay a card — transfer, not expense", "done"],
+    ["Hand-enter a check / cash / deposit", "done"],
+  ] },
+  { label: "Bills", items: [
+    ["Record a vendor bill", "done"],
+    ["Mark a bill paid", "done"],
+    ["Credit-card balances as bills to pay", "todo"],
+  ] },
+  { label: "Sales tax", items: [
+    ["Auto-tally taxable / exempt / collected", "done"],
+    ["Printable filing report", "todo"],
+  ] },
+  { label: "Lists — customers, vendors, items", items: [
+    ["Customers — add / edit full info", "done"],
+    ["Vendors — add / edit full info", "done"],
+    ["Items & services — edit, price, inactive", "done"],
+  ] },
+  { label: "Reports", items: [
+    ["Profit & Loss — from April 1", "todo"],
+    ["Trial balance — begin + end", "todo"],
+    ["Balance sheet", "todo"],
+    ["Expense detail by category", "todo"],
+  ] },
+  { label: "Documents", items: [
+    ["Store statements & certificates", "todo"],
+  ] },
+  { label: "Year-end for Gary", items: [
+    ["April-1 opening balances", "wip"],
+    ["Tax-ready package", "todo"],
+  ] },
+  { label: "Admin panel", items: [
+    ["Users & roles", "todo"],
+    ["Branding / logo", "todo"],
+    ["Sales-tax rate", "todo"],
+  ] },
 ];
+
+// Roll a group's sub-items up to one status: done (all), todo (none), else wip.
+function progStatus(items) {
+  const d = items.filter(i => i[1] === "done").length;
+  if (d === items.length) return "done";
+  if (d === 0 && !items.some(i => i[1] === "wip")) return "todo";
+  return "wip";
+}
 
 const ACCOUNT_TYPES = [
   { value: "bank", label: "Bank / working capital" },
@@ -347,6 +407,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [openInv, setOpenInv] = useState(null);
   const [sentLink, setSentLink] = useState(null);
   const [emailState, setEmailState] = useState(null);
+  const [progOpen, setProgOpen] = useState({});
   const blankInvPay = { amount: "", method: "check", check_number: "", paid_on: "", memo: "", accountId: "" };
   const [payFor, setPayFor] = useState(null);
   const [invPay, setInvPay] = useState(blankInvPay);
@@ -1963,12 +2024,39 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           })}
           <div style={{ marginTop: 20, borderTop: "1px solid " + N.rule, paddingTop: 14 }}>
             <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9.5, letterSpacing: "0.12em", color: N.muted, marginBottom: 8, paddingLeft: 4 }}>BUILD PROGRESS</div>
-            {BUILD_PROGRESS.map(([label, st]) => (
-              <div key={label} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12.5, color: st === "done" ? N.ink : N.mutedLite, padding: "4px 4px" }}>
-                <span style={{ width: 15, height: 15, borderRadius: 4, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: st === "done" ? AMBER : "transparent", border: st === "done" ? "none" : "1.5px solid " + N.rule, color: N.ink, fontSize: 10, fontWeight: 700 }}>{st === "done" ? "✓" : ""}</span>
-                {label}
-              </div>
-            ))}
+            {(() => {
+              const box = (st, sz) => (
+                <span style={{ width: sz, height: sz, borderRadius: 4, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
+                  background: st === "done" ? AMBER : "transparent",
+                  border: st === "done" ? "none" : "1.5px solid " + (st === "wip" ? AMBER : N.rule),
+                  color: N.ink, fontSize: sz - 5, fontWeight: 700 }}>{st === "done" ? "✓" : st === "wip" ? "•" : ""}</span>
+              );
+              return BUILD_PROGRESS.map(g => {
+                const st = progStatus(g.items);
+                const done = g.items.filter(i => i[1] === "done").length;
+                const open = progOpen[g.label] !== undefined ? progOpen[g.label] : (st === "wip");
+                return (
+                  <div key={g.label} style={{ marginBottom: 2 }}>
+                    <div onClick={() => setProgOpen(p => ({ ...p, [g.label]: !open }))}
+                      style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12.5, fontWeight: 600, color: st === "todo" ? N.mutedLite : N.ink, padding: "4px 4px", cursor: "pointer", borderRadius: 6 }}>
+                      {box(st, 15)}
+                      <span style={{ flex: 1, minWidth: 0 }}>{g.label}</span>
+                      <span style={{ fontSize: 10, color: N.mutedLite, fontFamily: "'DM Mono', monospace" }}>{done}/{g.items.length}</span>
+                      <span style={{ fontSize: 9, color: N.mutedLite, transform: open ? "rotate(90deg)" : "none", transition: "transform .15s" }}>▸</span>
+                    </div>
+                    {open && (
+                      <div style={{ marginLeft: 10, paddingLeft: 12, borderLeft: "1px solid " + N.rule, marginBottom: 6 }}>
+                        {g.items.map(([sl, ss]) => (
+                          <div key={sl} style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 11.5, color: ss === "done" ? N.text : ss === "wip" ? "#8a5a00" : N.mutedLite, padding: "3px 2px" }}>
+                            {box(ss, 13)}<span>{sl}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              });
+            })()}
           </div>
         </nav>
 
