@@ -346,6 +346,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [showInvForm, setShowInvForm] = useState(false);
   const [openInv, setOpenInv] = useState(null);
   const [sentLink, setSentLink] = useState(null);
+  const [emailState, setEmailState] = useState(null);
   const blankInvPay = { amount: "", method: "check", check_number: "", paid_on: "", memo: "", accountId: "" };
   const [payFor, setPayFor] = useState(null);
   const [invPay, setInvPay] = useState(blankInvPay);
@@ -731,8 +732,28 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     const emailText = `Hi ${v.customer},\n\nHere's your invoice from ${entity.name}${v.number ? " (No. " + v.number + ")" : ""} for ${money(v.amount)}.\n\nView it here: ${url}\n\n${entity.customerNote || "Thank you for your business."}`;
     if (v.status === "Draft") invoiceStatus(v.id, "sent");
     try { navigator.clipboard && navigator.clipboard.writeText(url); } catch (e) { /* clipboard may be blocked */ }
-    setSentLink({ url, emailText, customer: v.customer });
+    setEmailState(null);
+    setSentLink({ url, emailText, customer: v.customer, invoiceId: v.id, email: v.email });
     setOpenInv(null);
+  }
+
+  // One-click send via the send-invoice-email Edge Function (Resend behind it).
+  async function emailInvoiceNow() {
+    if (!sentLink || !sentLink.invoiceId) return;
+    setEmailState("sending");
+    try {
+      const { data, error } = await supabase.functions.invoke("send-invoice-email", {
+        body: { invoice_id: sentLink.invoiceId, origin: window.location.origin },
+      });
+      if (error || (data && data.error)) {
+        setEmailState({ err: (data && data.error) || error.message || "Send failed." });
+      } else {
+        setEmailState({ ok: data && data.to ? data.to : sentLink.email });
+        setReloadTick(t => t + 1);
+      }
+    } catch (e) {
+      setEmailState({ err: String(e) });
+    }
   }
 
   async function createOrder() {
@@ -1304,7 +1325,24 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           <div onClick={() => setSentLink(null)} style={{ position: "fixed", inset: 0, background: "rgba(10,10,20,0.45)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "60px 16px", zIndex: 210 }}>
             <div onClick={e => e.stopPropagation()} style={{ background: N.white, borderRadius: 12, width: "100%", maxWidth: 520, boxShadow: "0 24px 70px rgba(10,10,20,0.35)", padding: 22 }}>
               <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: N.ink, marginBottom: 4 }}>Ready to send</div>
-              <div style={{ fontSize: 13, color: N.muted, marginBottom: 14 }}>Link copied. Paste it into an email to {sentLink.customer} — when they open it, this invoice flips to <b style={{ color: N.blue }}>Viewed</b>.</div>
+              <div style={{ fontSize: 13, color: N.muted, marginBottom: 14 }}>When {sentLink.customer} opens it, this invoice flips to <b style={{ color: N.blue }}>Viewed</b>.</div>
+
+              <div style={{ background: "#eef6ff", border: "1px solid #cfe4ff", borderRadius: 10, padding: 12, marginBottom: 16 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: N.blueDark, marginBottom: 8 }}>Email it from CARES Works</div>
+                {emailState && emailState.ok ? (
+                  <div style={{ fontSize: 13, color: N.pinkDark, fontWeight: 600 }}>✓ Sent to {emailState.ok}</div>
+                ) : (
+                  <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                    <button onClick={emailInvoiceNow} disabled={emailState === "sending" || !sentLink.email} style={{ ...btnBlue, background: sentLink.email ? N.blue : N.mutedLite, cursor: sentLink.email ? "pointer" : "not-allowed" }}>
+                      {emailState === "sending" ? "Sending…" : sentLink.email ? `Send email to ${sentLink.email}` : "No email on file"}
+                    </button>
+                    {emailState && emailState.err && <span style={{ fontSize: 12, color: N.red }}>{emailState.err}</span>}
+                  </div>
+                )}
+                {!sentLink.email && <div style={{ fontSize: 12, color: N.muted, marginTop: 6 }}>Add the customer's email on the invoice or Customers screen to send directly.</div>}
+              </div>
+
+              <div style={{ fontSize: 12, color: N.muted, marginBottom: 8 }}>…or copy the link and send it yourself:</div>
               <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", color: N.muted, marginBottom: 3 }}>INVOICE LINK</div>
               <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
                 <input readOnly value={sentLink.url} onFocus={e => e.target.select()} style={{ ...inputSt, fontSize: 13 }} />
