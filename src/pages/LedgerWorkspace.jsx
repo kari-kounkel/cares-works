@@ -294,6 +294,7 @@ function buildLiveEntity(org, accounts, categories, entries, session) {
     ach: { bank: org.ach_bank_name || "", routing: org.ach_routing || "", account: org.ach_account || "", notify: org.ach_notify || "" },
     nextCheckNumber: org.next_check_number || 1001,
     nextPoNumber: org.next_po_number || 2133,
+    nextInvoiceNumber: org.next_invoice_number || 1001,
     logoUrl: org.logo_url || "",
     brandColor: org.brand_color || "#0080ff",
     currentUser: userName,
@@ -765,15 +766,17 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     const tax = invDraft.taxStatus === "Taxable" ? Math.round(subtotal * MN_TAX_RATE) : 0;
     const total = subtotal + tax;
     const draft = invDraft;
+    const num = entity.nextInvoiceNumber || 1001;
     setShowInvForm(false);
     setInvDraft(blankInvoice);
     if (live && liveOrgId) {
       await supabase.from("invoices").insert({
-        org_id: liveOrgId, user_id: session.user.id,
+        org_id: liveOrgId, user_id: session.user.id, invoice_number: String(num),
         customer_name: draft.customer.trim(), customer_email: draft.email.trim() || null,
         line_items: lines.map(l => ({ desc: l.desc.trim(), qty: parseInt(l.qty) || 1, price: parseFloat(l.price) || 0 })),
         tax_status: draft.taxStatus, subtotal_cents: subtotal, tax_cents: tax, total_cents: total, status: "draft",
       });
+      await supabase.from("ledger_orgs").update({ next_invoice_number: num + 1 }).eq("id", liveOrgId);
       setReloadTick(t => t + 1);
     } else {
       setInvoices(prev => [{ id: "inv-" + prev.length, customer: draft.customer, item: lines.map(l => l.desc).join(", "), amount: total / 100, tax: draft.taxStatus, taxAmt: tax / 100, status: "Draft", date: "today" }, ...prev]);
@@ -901,8 +904,11 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       if (editing) {
         await supabase.from("invoices").update(row).eq("id", editing.id);
       } else {
-        await supabase.from("invoices").insert({ org_id: liveOrgId, user_id: session.user.id, ...row });
+        const insertRow = { org_id: liveOrgId, user_id: session.user.id, ...row };
+        if (!asPo) insertRow.invoice_number = String(entity.nextInvoiceNumber || 1001);
+        await supabase.from("invoices").insert(insertRow);
         if (asPo) await supabase.from("ledger_orgs").update({ next_po_number: po + 1 }).eq("id", liveOrgId);
+        else await supabase.from("ledger_orgs").update({ next_invoice_number: (entity.nextInvoiceNumber || 1001) + 1 }).eq("id", liveOrgId);
       }
       setReloadTick(t => t + 1);
     }
@@ -941,8 +947,14 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   }
 
   async function convertToInvoice(v) {
-    if (live) {
-      await supabase.from("invoices").update({ doc_type: "invoice", status: "draft" }).eq("id", v.id);
+    if (live && liveOrgId) {
+      const patch = { doc_type: "invoice", status: "draft" };
+      if (!v.number) {
+        const num = entity.nextInvoiceNumber || 1001;
+        patch.invoice_number = String(num);
+        await supabase.from("ledger_orgs").update({ next_invoice_number: num + 1 }).eq("id", liveOrgId);
+      }
+      await supabase.from("invoices").update(patch).eq("id", v.id);
       setReloadTick(t => t + 1);
     }
     setSection("invoices");
@@ -1325,7 +1337,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
               <div style={{ width: 50, fontSize: 12, color: N.muted }}>{v.date}</div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 15, color: N.ink, fontWeight: 600, textDecoration: voided ? "line-through" : "none" }}>{v.customer}</div>
+                <div style={{ fontSize: 15, color: N.ink, fontWeight: 600, textDecoration: voided ? "line-through" : "none" }}>{v.number ? <span style={{ color: N.blue, fontFamily: "'DM Mono', monospace", fontSize: 13, marginRight: 7 }}>#{v.number}</span> : null}{v.customer}</div>
                 <div style={{ fontSize: 12, color: N.muted }}>{v.item} · {v.tax}{v.taxAmt ? ` · MN tax ${money(v.taxAmt)}` : ""}{v.paidCents > 0 && v.balanceCents > 0 ? <span style={{ color: "#a16207" }}> · paid {money(v.paid)}, balance {money(v.balance)}</span> : ""}</div>
               </div>
               <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: STATUS_COLOR[v.status] || N.muted, background: (STATUS_COLOR[v.status] || N.muted) + "18", padding: "4px 10px", borderRadius: 100 }}>{v.status}</span>
