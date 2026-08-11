@@ -764,7 +764,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   }
 
   function openPayment(v) {
-    setInvPay({ ...blankInvPay, amount: v.balance != null ? String(v.balance) : String(v.amount || ""), paid_on: new Date().toISOString().slice(0, 10) });
+    const bank = accountList.find(a => a.type === "bank");
+    setInvPay({ ...blankInvPay, amount: v.balance != null ? String(v.balance) : String(v.amount || ""), paid_on: new Date().toISOString().slice(0, 10), accountId: bank ? bank.id : "" });
     setPayFor(v);
   }
   async function recordPayment() {
