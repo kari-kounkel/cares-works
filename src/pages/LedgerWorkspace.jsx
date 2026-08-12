@@ -405,6 +405,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [addedCount, setAddedCount] = useState(0);
   const [sortBy, setSortBy] = useState("account");
   const [acctFilter, setAcctFilter] = useState("");
+  const [reconTarget, setReconTarget] = useState("");
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [wide, setWide] = useState(false);
   const payeeRef = useRef(null);
@@ -1206,6 +1207,27 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             </div>
           </div>
         </div>
+
+        {acctFilter && (() => {
+          const allA = [...(entity.accounts?.banks || []), ...(entity.accounts?.cards || []), ...(entity.accounts?.loans || [])];
+          const acct = allA.find(a => a.name === acctFilter);
+          if (!acct) return null;
+          const book = acct.balance;
+          const tgt = reconTarget === "" ? null : (parseFloat(reconTarget) || 0);
+          const diff = tgt == null ? null : (tgt - book);
+          const ok = diff != null && Math.abs(diff) < 0.005;
+          return (
+            <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", background: ok ? "#eafaf0" : "#eef6ff", border: "1px solid " + (ok ? "#bff0d3" : "#cfe4ff"), borderRadius: 12, padding: "12px 16px", marginBottom: 12 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: N.ink }}>Reconcile {acctFilter}</span>
+              <span style={{ fontSize: 13, color: N.muted }}>Books show <b style={{ color: book < 0 ? N.red : N.ink }}>{money(book)}</b></span>
+              <span style={{ fontSize: 13, color: N.muted }}>· Statement ending balance:</span>
+              <input value={reconTarget} onChange={e => setReconTarget(e.target.value)} placeholder="$ from statement" inputMode="decimal" style={{ ...inputSt, width: 160 }} />
+              {diff != null && (ok
+                ? <span style={{ fontSize: 13, fontWeight: 700, color: N.pinkDark }}>✓ Reconciled — matches to the penny</span>
+                : <span style={{ fontSize: 13, color: "#8a5a00" }}>Off by <b>{money(Math.abs(diff))}</b> — {diff > 0 ? "bank shows more (charges not booked yet)" : "books show more (deposits in transit / not cleared)"}</span>)}
+            </div>
+          );
+        })()}
 
         {showAddLine && (
           <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: 14, marginBottom: 12 }}>
