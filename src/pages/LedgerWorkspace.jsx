@@ -1178,17 +1178,21 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   function Notebook() {
     return (
       <div>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10, flexWrap: "wrap", gap: 10 }}>
-          <div>
-            <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>{entity.currentUser ? `${entity.currentUser}'s notebook` : "Notebook"}</div>
-            <div style={{ fontSize: 13, color: N.muted }}>Today — {entity.today}</div>
-          </div>
-          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+        <div style={{ marginBottom: 12 }}>
+          {/* Row 1 — title + search */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+            <div>
+              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>{entity.currentUser ? `${entity.currentUser}'s notebook` : "Notebook"}</div>
+              <div style={{ fontSize: 13, color: N.muted }}>Today — {entity.today}</div>
+            </div>
             <div style={{ display: "flex", alignItems: "center", gap: 6, background: N.white, border: "1px solid " + N.rule, borderRadius: 100, padding: "7px 12px" }}>
               <span style={{ color: N.muted, display: "flex" }}><Ico name="search" size={15} /></span>
               <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Look up any day, payee, amount"
-                style={{ border: "none", outline: "none", fontSize: 13, fontFamily: "'Figtree', sans-serif", width: 190, color: N.text }} />
+                style={{ border: "none", outline: "none", fontSize: 13, fontFamily: "'Figtree', sans-serif", width: 200, color: N.text }} />
             </div>
+          </div>
+          {/* Row 2 — controls */}
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginTop: 12 }}>
             <button onClick={() => { setShowAddLine(s => !s); setShowPayCard(false); setAddedCount(0); setTimeout(() => payeeRef.current && payeeRef.current.focus(), 40); }} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 16px" }}>{showAddLine ? "Close" : "+ Add a line"}</button>
             <button onClick={() => { setShowPayCard(s => !s); setShowAddLine(false); }} style={btnPaper(N.blue)}>{showPayCard ? "Close" : "Pay a card"}</button>
             <select value={acctFilter} onChange={e => setAcctFilter(e.target.value)} title="Show only one account" style={{ ...inputSt, padding: "8px 10px", fontSize: 12, fontWeight: acctFilter ? 700 : 400, color: acctFilter ? N.blueDark : N.text, borderColor: acctFilter ? N.blue : N.rule }}>
@@ -1202,7 +1206,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               <option value="account">Sort: Pymt by</option>
             </select>
             {visibleItems.length > 0 && <button onClick={clearAllVisible} title="Mark everything showing as documented" style={btnPaper(N.pinkDark)}><Ico name="check" size={14} /> Got all {visibleItems.length}{acctFilter ? " here" : ""}</button>}
-            <div style={{ fontSize: 12, fontWeight: 700, color: N.pinkDark, background: "#eafaf0", border: "1px solid #bff0d3", padding: "7px 12px", borderRadius: 100, whiteSpace: "nowrap" }}>
+            <div style={{ marginLeft: "auto", fontSize: 12, fontWeight: 700, color: N.pinkDark, background: "#eafaf0", border: "1px solid #bff0d3", padding: "7px 12px", borderRadius: 100, whiteSpace: "nowrap" }}>
               {items.length} left to match
             </div>
           </div>
@@ -1374,10 +1378,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                     ) : x.direction === "in" ? (
                       <button onClick={() => clearOne(x.id, "deposit cleared")} style={btnPaper(N.muted)}><Ico name="check" size={14} /> Cleared</button>
                     ) : (
-                      <>
-                        <button onClick={() => clearOne(x.id, "bill attached")} style={btnPaper(N.pinkDark)}><Ico name="clip" size={14} /> Attach bill</button>
-                        <button onClick={() => clearOne(x.id, "has it")} style={btnPaper(N.muted)}><Ico name="check" size={14} /> I've got it</button>
-                      </>
+                      <button onClick={() => clearOne(x.id, "has it")} title="I have a bill/receipt for this, or it doesn't need one" style={btnPaper(N.muted)}><Ico name="check" size={14} /> Got it</button>
                     )}
                     <button onClick={() => { setEditLineId(x.id); setEditDraft({ date: x.dateISO || "", payee: x.payee, amount: String(x.amount), direction: x.direction || "out" }); setCatOpen(null); setAcctOpen(null); }} title="Edit this line" style={{ ...btnPaper(N.muted), padding: "6px 10px" }}>Edit</button>
                     <button onClick={() => deleteLine(x.id)} title="Delete this line" style={{ background: "none", border: "1px solid " + N.rule, borderRadius: 100, cursor: "pointer", color: N.pinkDark, fontFamily: "'Figtree', sans-serif", fontSize: 15, fontWeight: 700, lineHeight: 1, padding: "5px 10px" }}>✕</button>
@@ -1979,7 +1980,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           const at = (top, left) => ({ position: "absolute", top: `calc(${top}in + ${OY}in)`, left: `calc(${left}in + ${OX}in)`, fontFamily: "'Figtree', sans-serif", fontSize: "11pt", color: "#000", whiteSpace: "nowrap" });
           const detail = `${b.category || ""}${b.memo ? (b.category ? " · " : "") + b.memo : ""}${b.due_date ? ` · due ${b.due_date}` : ""}` || "Payment";
           const Stub = ({ label }) => (
-            <div style={{ height: "3.6in", padding: "0.35in 0.7in", boxSizing: "border-box", borderTop: "1px dashed #999", fontFamily: "'Figtree', sans-serif", color: "#000" }}>
+            <div style={{ height: "3.5in", padding: "0.35in 0.7in", boxSizing: "border-box", borderTop: "1px dashed #999", fontFamily: "'Figtree', sans-serif", color: "#000" }}>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: "9pt", letterSpacing: "0.06em", color: "#666", textTransform: "uppercase", marginBottom: "0.16in" }}><span>{label}</span><span>Check #{num} · {today}</span></div>
               <div style={{ fontSize: "12pt", fontWeight: 700 }}>{b.vendor_name}</div>
               <div style={{ display: "flex", justifyContent: "space-between", marginTop: "0.14in", paddingTop: "0.1in", borderTop: "1px solid #ccc", fontSize: "11pt" }}>
@@ -2010,17 +2011,17 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 <button onClick={() => setCheckFor(null)} style={btnPaper(N.muted)}>Cancel</button>
               </div>
 
-              <div className="check-sheet" style={{ width: "8.5in", height: "11in", background: N.white, position: "relative", margin: "0 auto", boxShadow: "0 12px 34px rgba(10,10,20,0.3)", boxSizing: "border-box", overflow: "hidden" }}>
+              <div className="check-sheet" style={{ width: "8.5in", height: "10.5in", background: N.white, position: "relative", margin: "0 auto", boxShadow: "0 12px 34px rgba(10,10,20,0.3)", boxSizing: "border-box", overflow: "hidden" }}>
                 {/* on-screen guide only — the check area of the pre-printed stock */}
                 <div className="no-print" style={{ position: "absolute", top: 0, left: 0, right: 0, height: "3.5in", borderBottom: "1px dashed #cbd5e1", background: "#fbfdff" }}>
                   <div style={{ position: "absolute", top: 4, left: 6, fontSize: 9, color: "#94a3b8", fontFamily: "'DM Mono', monospace" }}>PRE-PRINTED CHECK AREA — only these fields print</div>
                 </div>
                 {/* fill-in fields (these print) */}
-                <div style={at(0.60, 6.35)}>{today}</div>
-                <div style={{ ...at(0.95, 6.55), fontWeight: 700 }}>{money(amt)}</div>
+                <div style={at(0.95, 6.35)}>{today}</div>
+                <div style={{ ...at(1.30, 6.55), fontWeight: 700 }}>{money(amt)}</div>
                 <div style={{ ...at(1.30, 0.95), fontSize: "12pt", fontWeight: 600 }}>{b.vendor_name}</div>
                 <div style={at(1.58, 0.18)}>{amountToWords(amt)}</div>
-                <div style={{ ...at(2.02, 0.95), whiteSpace: "pre-line", fontSize: "10pt", lineHeight: 1.35 }}>{b.vendor_name}{vd.billing_address ? "\n" + vd.billing_address : ""}</div>
+                <div style={{ ...at(1.80, 0.95), whiteSpace: "pre-line", fontSize: "10pt", lineHeight: 1.3, maxWidth: "3.4in" }}>{b.vendor_name}{vd.billing_address ? "\n" + vd.billing_address : ""}</div>
                 <div style={at(2.98, 0.6)}>{b.memo || b.category || ""}</div>
                 {/* flow spacer for the check third, then the two tear-off stubs */}
                 <div style={{ height: "3.5in" }} />
