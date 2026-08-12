@@ -414,6 +414,12 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [acctDraft, setAcctDraft] = useState(blankAcct);
   const [showAddAcct, setShowAddAcct] = useState(false);
   const [plaidBusy, setPlaidBusy] = useState(null);
+  const [cardPlan, setCardPlan] = useState({}); // { cardName: { apr, min } }
+  const [payoffBudget, setPayoffBudget] = useState("");
+  const blankCampaign = { subject: "", body: "" };
+  const [campaign, setCampaign] = useState(blankCampaign);
+  const [campaignBusy, setCampaignBusy] = useState(false);
+  const [campaignResult, setCampaignResult] = useState(null);
   const [newAcct, setNewAcct] = useState(blankAcct);
   const blankItem = { name: "", description: "", price: "", taxable: true, income_account: "" };
   const [itemEditId, setItemEditId] = useState(null);
@@ -965,6 +971,24 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     } catch (e) {
       setEmailState({ err: String(e) });
     }
+  }
+
+  async function sendCampaign() {
+    if (!liveOrgId || !campaign.subject.trim() || !campaign.body.trim()) return;
+    if (!window.confirm("Send this to every customer with an email on file? It goes out for real.")) return;
+    setCampaignBusy(true); setCampaignResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("send-campaign", { body: { org_id: liveOrgId, subject: campaign.subject, body: campaign.body } });
+      if (error || (data && data.error)) {
+        let msg = (data && data.error) || (error && error.message) || "Send failed.";
+        try { if (error && error.context && typeof error.context.json === "function") { const b = await error.context.json(); if (b && b.error) msg = b.error; } } catch (e) { /* keep msg */ }
+        setCampaignResult({ err: msg });
+      } else {
+        setCampaignResult({ ok: data.sent, failed: data.failed });
+        setCampaign(blankCampaign);
+      }
+    } catch (e) { setCampaignResult({ err: String(e) }); }
+    setCampaignBusy(false);
   }
 
   async function createOrder() {
@@ -2323,6 +2347,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       { key: "vendors", label: "Vendors", desc: "Who you pay — for bills and checks", count: (entity.vendorList || []).length },
       { key: "items", label: "Items & services", desc: "Your product/service list for invoices", count: (entity.products || []).filter(p => !p.archived).length },
       { key: "chart", label: "Chart of accounts", desc: "Every account — banks, cards, income, expenses", count: (entity.rawCategories || []).filter(c => !c.archived).length + (entity.rawAccounts || []).length },
+      { key: "cardpayoff", label: "Card payoff plan", desc: "Smartest order to pay down the credit cards" },
+      { key: "campaigns", label: "Email campaigns", desc: "Newsletters & blasts to your customers (Constant Contact replacement)" },
       { key: "settings", label: "Settings", desc: "Branding, users, remit, sales-tax rate" },
     ];
     if (!listsTab) {
@@ -2353,6 +2379,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         {listsTab === "customers" && ContactList("customer")}
         {listsTab === "vendors" && ContactList("vendor")}
         {listsTab === "items" && Items()}
+        {listsTab === "cardpayoff" && CardPayoff()}
+        {listsTab === "campaigns" && Campaigns()}
         {listsTab === "chart" && (
           <div>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: N.blueDark, marginBottom: 10 }}>Balance-sheet accounts — banks, cards, loans</div>
@@ -2362,6 +2390,89 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           </div>
         )}
         {listsTab === "settings" && <div style={{ background: N.white, border: "1px dashed " + N.rule, borderRadius: 12, padding: "34px 20px", textAlign: "center", color: N.muted, fontSize: 14 }}>Users &amp; roles, logo &amp; branding, remit info, and sales-tax rate — coming here.</div>}
+      </div>
+    );
+  }
+
+  function Campaigns() {
+    const withEmail = (entity.customers || []).filter(c => c.email && String(c.email).trim());
+    const lbl = { display: "block", fontSize: 11, color: N.muted, marginBottom: 4, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" };
+    return (
+      <div>
+        <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink, marginBottom: 2 }}>Email campaigns</div>
+        <div style={{ fontSize: 13, color: N.muted, marginBottom: 16 }}>Send a newsletter or announcement to your customers — through CARES Works, no Constant Contact needed.</div>
+        <div style={{ background: "#eef6ff", border: "1px solid #cfe4ff", borderRadius: 10, padding: "10px 14px", marginBottom: 14, fontSize: 13, color: N.blueDark }}><b>{withEmail.length}</b> customers have an email on file and will receive this.</div>
+        <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: 16 }}>
+          <label style={lbl}>SUBJECT</label>
+          <input value={campaign.subject} onChange={e => setCampaign(d => ({ ...d, subject: e.target.value }))} placeholder="e.g. Spring specials from ProGraphics" style={{ ...inputSt, marginBottom: 12 }} />
+          <label style={lbl}>MESSAGE</label>
+          <textarea value={campaign.body} onChange={e => setCampaign(d => ({ ...d, body: e.target.value }))} rows={9} placeholder="Write your message…" style={{ ...inputSt, resize: "vertical", lineHeight: 1.5, marginBottom: 12, fontFamily: "'Figtree', sans-serif" }} />
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            <button onClick={sendCampaign} disabled={campaignBusy || !campaign.subject.trim() || !campaign.body.trim()} style={{ ...btnBlue, background: (campaignBusy || !campaign.subject.trim() || !campaign.body.trim()) ? N.mutedLite : N.blue }}>{campaignBusy ? "Sending…" : `Send to ${withEmail.length} customers`}</button>
+            {campaignResult && campaignResult.ok != null && <span style={{ fontSize: 13, color: N.pinkDark, fontWeight: 600 }}>✓ Sent to {campaignResult.ok}{campaignResult.failed ? ` · ${campaignResult.failed} failed` : ""}</span>}
+            {campaignResult && campaignResult.err && <span style={{ fontSize: 13, color: N.red }}>{campaignResult.err}</span>}
+          </div>
+        </div>
+        <div style={{ fontSize: 12, color: N.muted, marginTop: 10 }}>Sends from your CARES Works address with your business name, and appends your name + a reply-to-opt-out line to each message. Uses the same email pipe as your invoices.</div>
+      </div>
+    );
+  }
+
+  function CardPayoff() {
+    const cards = (entity.accounts?.cards || []).map(c => ({ name: c.name, owed: Math.max(0, -(c.balance || 0)) })).filter(c => c.owed > 0);
+    const total = cards.reduce((s, c) => s + c.owed, 0);
+    const rows = cards.map(c => { const p = cardPlan[c.name] || {}; return { ...c, apr: (p.apr !== undefined && p.apr !== "") ? parseFloat(p.apr) : null, min: parseFloat(p.min) || 0 }; });
+    const anyApr = rows.some(r => r.apr != null);
+    const ranked = [...rows].sort((a, b) => anyApr ? ((b.apr || 0) - (a.apr || 0)) : (a.owed - b.owed));
+    const method = anyApr ? "highest interest first — the avalanche, saves the most money" : "smallest balance first — the snowball, quick wins that free up a minimum payment";
+    const budget = parseFloat(payoffBudget) || 0;
+    const totalMin = rows.reduce((s, r) => s + r.min, 0);
+    const extra = Math.max(0, budget - totalMin);
+    const target = ranked[0];
+    const setP = (name, k, v) => setCardPlan(prev => ({ ...prev, [name]: { ...(prev[name] || {}), [k]: v } }));
+    const cols = "1fr 110px 84px 96px 96px";
+    return (
+      <div>
+        <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink, marginBottom: 2 }}>Credit-card payoff plan</div>
+        <div style={{ fontSize: 13, color: N.muted, marginBottom: 16 }}>Live from your card balances. Add each card's interest rate for the smartest payoff order.</div>
+        {cards.length === 0 ? (
+          <div style={{ background: N.white, border: "1px dashed " + N.rule, borderRadius: 12, padding: "34px 20px", textAlign: "center", color: N.muted, fontSize: 14 }}>No card balances owed — nothing to pay down. 🎉</div>
+        ) : (
+          <>
+            <div style={{ display: "grid", gridTemplateColumns: "180px 1fr", gap: 12, marginBottom: 14 }}>
+              <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: 16 }}>
+                <div style={{ fontSize: 11, color: N.muted, letterSpacing: "0.04em" }}>TOTAL CARD DEBT</div>
+                <div style={{ fontSize: 24, fontWeight: 700, color: N.red }}>{money(total)}</div>
+              </div>
+              <div style={{ background: "#eef6ff", border: "1px solid #cfe4ff", borderRadius: 12, padding: 16 }}>
+                <div style={{ fontSize: 11, color: N.blueDark, fontWeight: 700, letterSpacing: "0.06em" }}>THE PLAN</div>
+                <div style={{ fontSize: 14, color: N.text, marginTop: 4, lineHeight: 1.5 }}>Pay at least the minimum on every card, then put every extra dollar on <b>{target.name}</b> ({method}). When it's cleared, roll that whole payment onto the next card down the list — and keep going.</div>
+              </div>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14, flexWrap: "wrap", fontSize: 13, color: N.muted }}>
+              <span>If you can put</span>
+              <input value={payoffBudget} onChange={e => setPayoffBudget(e.target.value)} placeholder="$ / month" inputMode="decimal" style={{ ...inputSt, width: 120 }} />
+              <span>toward cards this month{totalMin > 0 ? ` (minimums total ${money(totalMin)})` : ""}{extra > 0 ? <> — that's <b style={{ color: N.blueDark }}>{money(extra)} extra</b>, all to {target.name}.</> : "."}</span>
+            </div>
+
+            <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, overflow: "hidden" }}>
+              <div style={{ display: "grid", gridTemplateColumns: cols, gap: 8, padding: "10px 16px", background: "#f7fafd", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.08em", color: N.muted }}>
+                <span>CARD</span><span style={{ textAlign: "right" }}>OWED</span><span style={{ textAlign: "right" }}>APR %</span><span style={{ textAlign: "right" }}>MIN PMT</span><span style={{ textAlign: "right" }}>ORDER</span>
+              </div>
+              {ranked.map((r, i) => (
+                <div key={r.name} style={{ display: "grid", gridTemplateColumns: cols, gap: 8, padding: "9px 16px", borderTop: "1px solid " + N.rule, alignItems: "center" }}>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: N.ink }}>{r.name}</span>
+                  <span style={{ textAlign: "right", fontSize: 14, color: N.red }}>{money(r.owed)}</span>
+                  <input value={(cardPlan[r.name] || {}).apr || ""} onChange={e => setP(r.name, "apr", e.target.value)} placeholder="—" inputMode="decimal" style={{ ...inputSt, textAlign: "right", padding: "6px 8px" }} />
+                  <input value={(cardPlan[r.name] || {}).min || ""} onChange={e => setP(r.name, "min", e.target.value)} placeholder="$" inputMode="decimal" style={{ ...inputSt, textAlign: "right", padding: "6px 8px" }} />
+                  <span style={{ textAlign: "right" }}>{i === 0 ? <span style={{ fontSize: 9.5, fontWeight: 700, color: "#fff", background: N.pinkDark, padding: "3px 8px", borderRadius: 100 }}>PAY FIRST</span> : <span style={{ fontSize: 12, color: N.mutedLite }}>#{i + 1}</span>}</span>
+                </div>
+              ))}
+            </div>
+            <div style={{ fontSize: 12, color: N.muted, marginTop: 10 }}>Balances come straight from your accounts. Enter APRs to switch from "smallest balance first" to "highest interest first" (saves more money over time). When you pay a card, record it in the notebook as <b>Pay a card</b> — it books a transfer, not an expense.</div>
+          </>
+        )}
       </div>
     );
   }
