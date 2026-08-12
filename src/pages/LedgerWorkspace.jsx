@@ -1304,84 +1304,83 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             return [
               showHead && <div key={x.id + "-hdr"} style={{ margin: "18px 0 2px", padding: "5px 2px", borderBottom: "2px solid #b8c7ab", fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.08em", color: "#4a6a9a", fontWeight: 700 }}>{(x.source && x.source !== "—" ? x.source : "— not assigned to an account —").toUpperCase()}</div>,
               <div key={x.id} style={{ borderBottom: last ? "none" : "1px solid #cfdcc4", background: proposed ? "#e2edf7" : "transparent", marginLeft: proposed ? -8 : 0, paddingLeft: proposed ? 8 : 0, borderRadius: proposed ? 6 : 0 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "9px 0" }}>
-                  <div style={{ width: 34, marginLeft: -38, textAlign: "right", paddingRight: 6, fontFamily: "'Figtree', sans-serif", fontSize: 18, color: "#8a8f9a" }}>{x.date}</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 0" }}>
+                  {/* LEFT — date + which bank/card */}
+                  <div style={{ width: 104, marginLeft: -44, flexShrink: 0 }}>
+                    <div style={{ fontFamily: "'Figtree', sans-serif", fontSize: 13, color: "#8a8f9a", textAlign: "right", paddingRight: 6 }}>{x.date}</div>
+                    {!proposed && (() => {
+                      const hasAcct = x.source && x.source !== "—";
+                      return (
+                        <select value={x.accountId || ""} title="Which bank or card?"
+                          onChange={e => { const id = e.target.value; const nm = accountList.find(a => a.id === id)?.name || "—"; setAccount(x.id, id || null, nm); }}
+                          style={{ width: "100%", marginTop: 3, fontSize: 10, fontWeight: 600, padding: "3px 6px", borderRadius: 6, cursor: "pointer", fontFamily: "'Figtree', sans-serif",
+                            border: "1px solid " + (hasAcct ? "#cdd8c2" : "#f0d89a"), background: hasAcct ? "#f0f7f1" : "#fdf5e3", color: hasAcct ? "#5a7a63" : "#8a5a00" }}>
+                          <option value="">Pymt by?</option>
+                          {accountList.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                        </select>
+                      );
+                    })()}
+                  </div>
+                  {/* MIDDLE — payee (one line) + coding */}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontFamily: "'Figtree', sans-serif", fontSize: 21, color: "#26303f", lineHeight: 1.1 }}>{x.payee}</div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 2, flexWrap: "wrap" }}>
+                    <div style={{ fontFamily: "'Figtree', sans-serif", fontSize: 15, color: "#26303f", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{x.payee}</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 3, flexWrap: "wrap" }}>
                       {proposed ? (
-                        <span style={{ fontSize: 11, color: N.blue, display: "flex", alignItems: "center", gap: 4 }}>
-                          <Ico name="bank" size={13} />Bank says cleared · {x.cleared.bank} · {x.cleared.date}
-                        </span>
-                      ) : (() => {
-                        const hasAcct = x.source && x.source !== "—";
-                        return (
-                          <select value={x.accountId || ""}
-                            title="Payment by which bank or card?"
-                            onChange={e => { const id = e.target.value; const nm = accountList.find(a => a.id === id)?.name || "—"; setAccount(x.id, id || null, nm); }}
-                            style={{
-                              fontSize: 11, fontWeight: 600, padding: "4px 8px", borderRadius: 100, cursor: "pointer", fontFamily: "'Figtree', sans-serif",
-                              border: "1px solid " + (hasAcct ? "#cdd8c2" : "#f0d89a"),
-                              background: hasAcct ? "#f0f7f1" : "#fdf5e3",
-                              color: hasAcct ? "#5a7a63" : "#8a5a00",
-                            }}>
-                            <option value="">Pymt by?</option>
-                            {accountList.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                          </select>
-                        );
-                      })()}
-                      {!x.invoiceId && (() => {
-                        const hasCat = !!x.category;
-                        const isSug = !hasCat && !!x.suggested;
-                        const bd = hasCat ? "#bff0d3" : isSug ? "#f0d89a" : "#cfe4ff";
-                        const bg = hasCat ? "#eafaf0" : isSug ? "#fdf5e3" : "#eef6ff";
-                        const fg = hasCat ? N.pinkDark : isSug ? "#8a5a00" : N.blueDark;
-                        return (
-                          <select value={x.category || ""} onChange={e => { if (e.target.value === "__new__") { const nm = window.prompt("New account name:"); if (nm && nm.trim()) addCategory(nm, x.id); } else setCategory(x.id, e.target.value); }}
-                            title={isSug ? "Remembered from a past entry — confirm or change" : "Which account does this go to?"}
-                            style={{
-                              fontSize: 11, fontWeight: 600, padding: "4px 8px", maxWidth: 200,
-                              borderRadius: 100, cursor: "pointer", fontFamily: "'Figtree', sans-serif",
-                              border: "1px solid " + bd, background: bg, color: fg,
-                            }}>
-                            <option value="">{isSug ? `${x.suggested}?` : "Which account?"}</option>
-                            {(entity.categories || []).slice().sort((a, b) => a.localeCompare(b)).map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                            <option value="__new__">＋ Add a new account…</option>
-                          </select>
-                        );
-                      })()}
-                      {x.direction === "in" && (() => {
-                        const linked = !!x.invoiceId;
-                        const linkedInv = linked ? invoices.find(v => v.id === x.invoiceId) : null;
-                        const list = invoices.filter(v => v.docType !== "order" && v.status !== "Void").slice().sort((a, b) => (a.customer || "").localeCompare(b.customer || ""));
-                        if (linked) return (
-                          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, padding: "4px 8px", borderRadius: 100, border: "1px solid #bff0d3", background: "#eafaf0", color: N.pinkDark }}>
-                            ✓ {linkedInv ? `Inv #${linkedInv.number || "?"} · ${linkedInv.customer}` : "Applied to invoice"}
-                            <button onClick={() => unlinkEntryInvoice(x)} title="Unlink from invoice" style={{ border: "none", background: "none", cursor: "pointer", color: N.mutedLite, fontSize: 13, lineHeight: 1, padding: 0 }}>×</button>
-                          </span>
-                        );
-                        return (
-                          <select value="" onChange={e => { if (e.target.value) applyEntryToInvoice(x, e.target.value); }}
-                            title="Which invoice is this payment for?"
-                            style={{ fontSize: 11, fontWeight: 600, padding: "4px 8px", maxWidth: 230, borderRadius: 100, cursor: "pointer", fontFamily: "'Figtree', sans-serif", border: "1px solid #f0d89a", background: "#fdf5e3", color: "#8a5a00" }}>
-                            <option value="">Paying which invoice?</option>
-                            {list.map(v => <option key={v.id} value={v.id}>#{v.number || "—"} · {v.customer} · {money(v.amount)}{v.balanceCents != null && v.balanceCents > 0 && v.balanceCents !== Math.round((v.amount || 0) * 100) ? ` (bal ${money(v.balance)})` : ""} · {v.status}</option>)}
-                          </select>
-                        );
-                      })()}
+                        <span style={{ fontSize: 11, color: N.blue, display: "flex", alignItems: "center", gap: 4 }}><Ico name="bank" size={12} />Bank says cleared · {x.cleared.bank} · {x.cleared.date}</span>
+                      ) : (
+                        <>
+                          {!x.invoiceId && (() => {
+                            const hasCat = !!x.category; const isSug = !hasCat && !!x.suggested;
+                            const bd = hasCat ? "#bff0d3" : isSug ? "#f0d89a" : "#cfe4ff";
+                            const bg = hasCat ? "#eafaf0" : isSug ? "#fdf5e3" : "#eef6ff";
+                            const fg = hasCat ? N.pinkDark : isSug ? "#8a5a00" : N.blueDark;
+                            return (
+                              <select value={x.category || ""} onChange={e => { if (e.target.value === "__new__") { const nm = window.prompt("New account name:"); if (nm && nm.trim()) addCategory(nm, x.id); } else setCategory(x.id, e.target.value); }}
+                                title={isSug ? "Remembered — confirm or change" : "Which account does this code to?"}
+                                style={{ fontSize: 11, fontWeight: 600, padding: "3px 8px", maxWidth: 190, borderRadius: 100, cursor: "pointer", fontFamily: "'Figtree', sans-serif", border: "1px solid " + bd, background: bg, color: fg }}>
+                                <option value="">{isSug ? `${x.suggested}?` : (x.direction === "in" ? "Return / other income?" : "Which account?")}</option>
+                                {(entity.categories || []).slice().sort((a, b) => a.localeCompare(b)).map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                                <option value="__new__">＋ Add a new account…</option>
+                              </select>
+                            );
+                          })()}
+                          {x.direction === "in" && (() => {
+                            const linked = !!x.invoiceId;
+                            const linkedInv = linked ? invoices.find(v => v.id === x.invoiceId) : null;
+                            const list = invoices.filter(v => v.docType !== "order" && v.status !== "Void").slice().sort((a, b) => (a.customer || "").localeCompare(b.customer || ""));
+                            if (linked) return (
+                              <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, padding: "3px 8px", borderRadius: 100, border: "1px solid #bff0d3", background: "#eafaf0", color: N.pinkDark }}>
+                                ✓ {linkedInv ? `Inv #${linkedInv.number || "?"} · ${linkedInv.customer}` : "Applied"}
+                                <button onClick={() => unlinkEntryInvoice(x)} title="Unlink" style={{ border: "none", background: "none", cursor: "pointer", color: N.mutedLite, fontSize: 13, lineHeight: 1, padding: 0 }}>×</button>
+                              </span>
+                            );
+                            return (
+                              <select value="" onChange={e => { if (e.target.value) applyEntryToInvoice(x, e.target.value); }} title="Which invoice is this paying?"
+                                style={{ fontSize: 11, fontWeight: 600, padding: "3px 8px", maxWidth: 220, borderRadius: 100, cursor: "pointer", fontFamily: "'Figtree', sans-serif", border: "1px solid #f0d89a", background: "#fdf5e3", color: "#8a5a00" }}>
+                                <option value="">Paying which invoice?</option>
+                                {list.map(v => <option key={v.id} value={v.id}>#{v.number || "—"} · {v.customer} · {money(v.amount)}{v.balanceCents != null && v.balanceCents > 0 && v.balanceCents !== Math.round((v.amount || 0) * 100) ? ` (bal ${money(v.balance)})` : ""} · {v.status}</option>)}
+                              </select>
+                            );
+                          })()}
+                        </>
+                      )}
                     </div>
                   </div>
-                  <div style={{ fontFamily: "'Figtree', sans-serif", fontSize: 21, color: x.direction === "in" ? N.green : "#26303f", whiteSpace: "nowrap" }}>{x.direction === "in" ? "+" + money(x.amount) : money(-x.amount)}</div>
+                  {/* AMOUNT */}
+                  <div style={{ fontFamily: "'Figtree', sans-serif", fontSize: 17, fontWeight: 600, color: x.direction === "in" ? N.green : "#26303f", whiteSpace: "nowrap" }}>{x.direction === "in" ? "+" + money(x.amount) : money(-x.amount)}</div>
+                  {/* ACTIONS — clear + edit/delete stacked */}
                   <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                     {proposed ? (
-                      <button onClick={() => clearOne(x.id, "confirmed cleared")} style={btnBlue}><Ico name="check" size={14} /> Confirm cleared</button>
+                      <button onClick={() => clearOne(x.id, "confirmed cleared")} style={{ ...btnBlue, fontSize: 12, padding: "6px 10px" }}><Ico name="check" size={13} /> Cleared</button>
                     ) : x.direction === "in" ? (
-                      <button onClick={() => clearOne(x.id, "deposit cleared")} style={btnPaper(N.muted)}><Ico name="check" size={14} /> Cleared</button>
+                      <button onClick={() => clearOne(x.id, "deposit cleared")} style={{ ...btnPaper(N.muted), fontSize: 12, padding: "6px 10px" }}><Ico name="check" size={13} /> Cleared</button>
                     ) : (
-                      <button onClick={() => clearOne(x.id, "has it")} title="I have a bill/receipt for this, or it doesn't need one" style={btnPaper(N.muted)}><Ico name="check" size={14} /> Got it</button>
+                      <button onClick={() => clearOne(x.id, "has it")} title="Have a bill/receipt, or none needed" style={{ ...btnPaper(N.muted), fontSize: 12, padding: "6px 10px" }}><Ico name="check" size={13} /> Got it</button>
                     )}
-                    <button onClick={() => { setEditLineId(x.id); setEditDraft({ date: x.dateISO || "", payee: x.payee, amount: String(x.amount), direction: x.direction || "out" }); setCatOpen(null); setAcctOpen(null); }} title="Edit this line" style={{ ...btnPaper(N.muted), padding: "6px 10px" }}>Edit</button>
-                    <button onClick={() => deleteLine(x.id)} title="Delete this line" style={{ background: "none", border: "1px solid " + N.rule, borderRadius: 100, cursor: "pointer", color: N.pinkDark, fontFamily: "'Figtree', sans-serif", fontSize: 15, fontWeight: 700, lineHeight: 1, padding: "5px 10px" }}>✕</button>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                      <button onClick={() => { setEditLineId(x.id); setEditDraft({ date: x.dateISO || "", payee: x.payee, amount: String(x.amount), direction: x.direction || "out" }); setCatOpen(null); setAcctOpen(null); }} title="Edit" style={{ background: "none", border: "1px solid " + N.rule, borderRadius: 6, cursor: "pointer", color: N.muted, fontFamily: "'Figtree', sans-serif", fontSize: 10, fontWeight: 600, padding: "2px 9px", lineHeight: 1.3 }}>Edit</button>
+                      <button onClick={() => deleteLine(x.id)} title="Delete" style={{ background: "none", border: "1px solid " + N.rule, borderRadius: 6, cursor: "pointer", color: N.pinkDark, fontFamily: "'Figtree', sans-serif", fontSize: 10, fontWeight: 600, padding: "2px 9px", lineHeight: 1.3 }}>Delete</button>
+                    </div>
                   </div>
                 </div>
                 {editLineId === x.id && (
