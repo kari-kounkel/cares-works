@@ -460,6 +460,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [billEdit, setBillEdit] = useState(null);
   const [checkFor, setCheckFor] = useState(null);
   const [checkAcctId, setCheckAcctId] = useState("");
+  const [selectedBills, setSelectedBills] = useState({}); // { billId: true }
   const [checkOffX, setCheckOffX] = useState(() => { try { return parseFloat(localStorage.getItem("cw_checkAlignX")) || 0; } catch (e) { return 0; } }); // inches, printer alignment nudge (remembered)
   const [checkOffY, setCheckOffY] = useState(() => { try { return parseFloat(localStorage.getItem("cw_checkAlignY")) || 0; } catch (e) { return 0; } });
   useEffect(() => { try { localStorage.setItem("cw_checkAlignX", String(checkOffX)); localStorage.setItem("cw_checkAlignY", String(checkOffY)); } catch (e) { /* storage may be blocked */ } }, [checkOffX, checkOffY]);
@@ -1123,29 +1124,46 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     setOpenBill(null);
     if (live) { await supabase.from("ledger_bills").delete().eq("id", id); setReloadTick(t => t + 1); }
   }
-  function payBillByCheck(bill) {
+  function payBillByCheck(bill) { payBillsByCheck([bill]); }
+  // One check can cover several bills for the SAME vendor — the stubs itemize them.
+  function payBillsByCheck(bills) {
+    if (!bills || bills.length === 0) return;
+    const vendors = [...new Set(bills.map(b => (b.vendor_name || "").trim().toLowerCase()))];
+    if (vendors.length > 1) { window.alert("One check = one payee. Pick bills for a single vendor."); return; }
     const banks = accountList.filter(a => a.type === "bank");
     setCheckAcctId(banks[0] ? banks[0].id : "");
     setOpenBill(null);
-    setCheckFor(bill);
+    const total = bills.reduce((s, b) => s + (b.amount_cents || 0), 0);
+    setCheckFor({
+      vendor_name: bills[0].vendor_name, amount_cents: total,
+      category: bills.length === 1 ? bills[0].category : null,
+      memo: bills.length === 1 ? bills[0].memo : `${bills.length} bills`,
+      due_date: bills.length === 1 ? bills[0].due_date : null,
+      _bills: bills,
+    });
   }
-  // Print the check, mark the bill paid, book the outflow on the chosen bank,
+  // Print the check, mark every covered bill paid, book one outflow on the chosen bank,
   // stamp the check number in the reference, and advance the next check number.
   async function confirmCheck() {
-    const bill = checkFor;
-    if (!bill) return;
+    const cf = checkFor;
+    if (!cf) return;
+    const bills = cf._bills || [cf];
     const num = entity.nextCheckNumber || 1001;
     const acct = accountList.find(a => a.id === checkAcctId);
     window.print();
     if (live && liveOrgId) {
-      await supabase.from("ledger_bills").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", bill.id);
+      for (const b of bills) {
+        if (b.id) await supabase.from("ledger_bills").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", b.id);
+      }
       await supabase.from("ledger_entries").insert({
         org_id: liveOrgId, user_id: session.user.id, entry_date: new Date().toISOString().slice(0, 10),
-        direction: "out", amount_cents: bill.amount_cents, description: bill.vendor_name || "Check",
-        category: bill.category || null, account_id: (acct && acct.id && String(acct.id).length > 20) ? acct.id : null,
+        direction: "out", amount_cents: cf.amount_cents, description: cf.vendor_name || "Check",
+        category: bills.length === 1 ? (bills[0].category || null) : null,
+        account_id: (acct && acct.id && String(acct.id).length > 20) ? acct.id : null,
         reference: "Check #" + num, match_status: "noted",
       });
       await supabase.from("ledger_orgs").update({ next_check_number: num + 1 }).eq("id", liveOrgId);
+      setSelectedBills({});
       setReloadTick(t => t + 1);
     }
     setCheckFor(null);
@@ -1864,6 +1882,9 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     const bills = entity.bills || [];
     const unpaid = bills.filter(b => b.status !== "paid");
     const owed = unpaid.reduce((s, b) => s + (b.amount_cents || 0), 0);
+    const selBills = unpaid.filter(b => selectedBills[b.id]);
+    const selTotal = selBills.reduce((s, b) => s + (b.amount_cents || 0), 0);
+    const toggleBill = id => setSelectedBills(p => ({ ...p, [id]: !p[id] }));
     return (
       <div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, flexWrap: "wrap", gap: 10 }}>
@@ -1871,7 +1892,10 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>Bills</div>
             <div style={{ fontSize: 13, color: N.muted }}>What you owe vendors. {unpaid.length} unpaid · {money(owed / 100)} outstanding.</div>
           </div>
-          <button onClick={() => setShowBillForm(s => !s)} style={{ ...btnBlue, background: N.blue, fontSize: 14, padding: "10px 18px" }}>{showBillForm ? "Close" : "+ Record a bill"}</button>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {selBills.length > 0 && <button onClick={() => payBillsByCheck(selBills)} style={{ ...btnBlue, background: N.pinkDark, fontSize: 14, padding: "10px 16px" }}>Pay {selBills.length} by check · {money(selTotal / 100)}</button>}
+            <button onClick={() => setShowBillForm(s => !s)} style={{ ...btnBlue, background: N.blue, fontSize: 14, padding: "10px 18px" }}>{showBillForm ? "Close" : "+ Record a bill"}</button>
+          </div>
         </div>
         <div style={{ background: "#fef9c3", border: "1px solid #fde68a", borderRadius: 10, padding: "11px 14px", marginBottom: 14, fontSize: 13, color: "#8a5a00", lineHeight: 1.55, textAlign: "left" }}>
           <b>⚠ Only enter a bill if you're paying by check.</b> If it's going on a credit card or is already in the bank account, it gets entered in the <b>Notebook</b> section, not Bills. If you enter it here too, it will be a duplicate.
@@ -1905,9 +1929,10 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             const paid = b.status === "paid";
             return (
               <div key={b.id} onClick={() => { setOpenBill(b); setBillEdit(null); }} title="Open bill"
-                style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 16px", borderBottom: i === bills.length - 1 ? "none" : "1px solid " + N.rule, opacity: paid ? 0.6 : 1, cursor: "pointer" }}
-                onMouseEnter={e => (e.currentTarget.style.background = "#f7fafd")}
-                onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+                style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 16px", borderBottom: i === bills.length - 1 ? "none" : "1px solid " + N.rule, opacity: paid ? 0.6 : 1, cursor: "pointer", background: selectedBills[b.id] ? "#eef6ff" : "transparent" }}
+                onMouseEnter={e => (e.currentTarget.style.background = selectedBills[b.id] ? "#e3eefc" : "#f7fafd")}
+                onMouseLeave={e => (e.currentTarget.style.background = selectedBills[b.id] ? "#eef6ff" : "transparent")}>
+                {!paid ? <input type="checkbox" checked={!!selectedBills[b.id]} onClick={e => e.stopPropagation()} onChange={() => toggleBill(b.id)} title="Select to pay with one check" style={{ width: 16, height: 16, cursor: "pointer", accentColor: N.blue }} /> : <span style={{ width: 16 }} />}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 15, fontWeight: 600, color: N.ink }}>{b.vendor_name || "—"}</div>
                   <div style={{ fontSize: 12, color: N.muted }}>{b.category || "Uncategorized"}{b.due_date ? ` · due ${b.due_date}` : ""}{b.memo ? ` · ${b.memo}` : ""}</div>
@@ -1982,9 +2007,21 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             <div style={{ height: "3.2in", padding: "0.3in 0.7in", boxSizing: "border-box", borderTop: "1px dashed #999", fontFamily: "'Figtree', sans-serif", color: "#000" }}>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: "9pt", letterSpacing: "0.06em", color: "#666", textTransform: "uppercase", marginBottom: "0.16in" }}><span>{label}</span><span>Check #{num} · {today}</span></div>
               <div style={{ fontSize: "12pt", fontWeight: 700 }}>{b.vendor_name}</div>
-              <div style={{ display: "flex", justifyContent: "space-between", marginTop: "0.14in", paddingTop: "0.1in", borderTop: "1px solid #ccc", fontSize: "11pt" }}>
-                <span>{detail}</span><span style={{ fontWeight: 700 }}>{money(amt)}</span>
-              </div>
+              {b._bills && b._bills.length > 1 ? (
+                <div style={{ marginTop: "0.12in", paddingTop: "0.08in", borderTop: "1px solid #ccc", fontSize: "10pt" }}>
+                  {b._bills.map((bl, k) => (
+                    <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "1px 0" }}>
+                      <span>{bl.category || bl.vendor_name}{bl.memo ? ` · ${bl.memo}` : ""}{bl.due_date ? ` · due ${bl.due_date}` : ""}</span>
+                      <span>{money((bl.amount_cents || 0) / 100)}</span>
+                    </div>
+                  ))}
+                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: "0.06in", paddingTop: "0.06in", borderTop: "1px solid #999", fontWeight: 700, fontSize: "11pt" }}><span>Total</span><span>{money(amt)}</span></div>
+                </div>
+              ) : (
+                <div style={{ display: "flex", justifyContent: "space-between", marginTop: "0.14in", paddingTop: "0.1in", borderTop: "1px solid #ccc", fontSize: "11pt" }}>
+                  <span>{detail}</span><span style={{ fontWeight: 700 }}>{money(amt)}</span>
+                </div>
+              )}
             </div>
           );
           return (
