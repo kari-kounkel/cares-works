@@ -1140,6 +1140,23 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     if (live) { await supabase.from("ledger_bills").delete().eq("id", id); setReloadTick(t => t + 1); }
   }
   function payBillByCheck(bill) { payBillsByCheck([bill]); }
+  // Reprint / edit a check already written for a bill: pull the notebook line it created
+  // (so we don't double it), set the bill back to unpaid, and reopen the check to redo.
+  async function reprintCheck(bill) {
+    if (live && liveOrgId) {
+      const { data } = await supabase.from("ledger_entries")
+        .select("id")
+        .eq("org_id", liveOrgId).eq("direction", "out")
+        .eq("amount_cents", bill.amount_cents)
+        .eq("description", bill.vendor_name)
+        .ilike("reference", "Check #%")
+        .order("created_at", { ascending: false }).limit(1);
+      if (data && data[0]) await supabase.from("ledger_entries").delete().eq("id", data[0].id);
+      await supabase.from("ledger_bills").update({ status: "unpaid", paid_at: null }).eq("id", bill.id);
+      setReloadTick(t => t + 1);
+    }
+    payBillsByCheck([bill]);
+  }
   // Bills for the SAME vendor collapse onto one check (stubs itemize them); bills for
   // different vendors each get their own check, so she can print 3–4 at once.
   function payBillsByCheck(bills) {
@@ -2034,7 +2051,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 </div>
                 <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: paid ? N.green : N.red, background: (paid ? N.green : N.red) + "18", padding: "4px 10px", borderRadius: 100 }}>{paid ? "Paid" : "Unpaid"}</span>
                 {!paid && <button onClick={e => { e.stopPropagation(); payBillByCheck(b); }} style={btnPaper(N.text)}>Pay by check</button>}
-                <button onClick={e => { e.stopPropagation(); markBillPaid(b.id, !paid); }} style={btnPaper(paid ? N.muted : N.pinkDark)}>{paid ? "Unmark" : "Mark paid"}</button>
+                <button onClick={e => { e.stopPropagation(); paid ? reprintCheck(b) : markBillPaid(b.id, true); }} style={btnPaper(paid ? N.blue : N.pinkDark)}>{paid ? "Reprint / edit check" : "Mark paid"}</button>
                 <div style={{ fontSize: 16, fontWeight: 600, color: N.ink, width: 90, textAlign: "right" }}>{money((b.amount_cents || 0) / 100)}</div>
               </div>
             );
@@ -2101,7 +2118,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             const vd = (entity.vendorList || []).find(v => (v.name || "").toLowerCase() === (ck.vendor_name || "").toLowerCase()) || {};
             const detail = `${ck.category || ""}${ck.memo ? (ck.category ? " · " : "") + ck.memo : ""}${ck.due_date ? ` · due ${ck.due_date}` : ""}` || "Payment";
             const Stub = ({ label }) => (
-              <div style={{ height: "3.2in", padding: "0.3in 0.7in", boxSizing: "border-box", borderTop: "1px dashed #999", fontFamily: "'Figtree', sans-serif", color: "#000" }}>
+              <div style={{ height: "3.0in", padding: "0.3in 0.7in", boxSizing: "border-box", borderTop: "1px dashed #999", fontFamily: "'Figtree', sans-serif", color: "#000" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: "9pt", letterSpacing: "0.06em", color: "#666", textTransform: "uppercase", marginBottom: "0.16in" }}><span>{label}</span><span>Check #{num} · {today}</span></div>
                 <div style={{ fontSize: "12pt", fontWeight: 700 }}>{ck.vendor_name}</div>
                 {ck._bills && ck._bills.length > 1 ? (
@@ -2122,7 +2139,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               </div>
             );
             return (
-              <div className="check-page" style={{ width: "8.5in", height: "10in", background: N.white, position: "relative", margin: "0 auto 18px", boxShadow: "0 12px 34px rgba(10,10,20,0.3)", boxSizing: "border-box", overflow: "hidden" }}>
+              <div className="check-page" style={{ width: "8.5in", height: "9.7in", background: N.white, position: "relative", margin: "0 auto 18px", boxShadow: "0 12px 34px rgba(10,10,20,0.3)", boxSizing: "border-box", overflow: "hidden" }}>
                 {/* on-screen guide only — the check area of the pre-printed stock */}
                 <div className="no-print" style={{ position: "absolute", top: 0, left: 0, right: 0, height: "3.5in", borderBottom: "1px dashed #cbd5e1", background: "#fbfdff" }}>
                   <div style={{ position: "absolute", top: 4, left: 6, fontSize: 9, color: "#94a3b8", fontFamily: "'DM Mono', monospace" }}>PRE-PRINTED CHECK #{num} — only these fields print</div>
@@ -2132,10 +2149,10 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 <div style={{ ...at(1.42, 6.8), fontWeight: 700 }}>{amt.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
                 <div style={{ ...at(1.30, 0.95), fontSize: "12pt", fontWeight: 600 }}>{ck.vendor_name}</div>
                 {/* written amount: words, then a run of ***** filling the line, ending in DOLLARS under/right of the numeric box */}
-                <div style={{ ...at(1.58, 0.18), width: `calc(6.95in - ${OX}in)`, display: "flex", alignItems: "baseline", gap: "6px", overflow: "hidden" }}>
-                  <span>{amountToWords(amt)}</span>
-                  <span style={{ flex: 1, overflow: "hidden", letterSpacing: "1.5px", whiteSpace: "nowrap" }}>{"*".repeat(200)}</span>
-                  <span style={{ fontWeight: 700 }}>DOLLARS</span>
+                <div style={{ ...at(1.58, 0.18), width: `calc(6.95in - ${OX}in)`, display: "flex", alignItems: "baseline", gap: "6px", overflow: "hidden", whiteSpace: "nowrap" }}>
+                  <span style={{ flexShrink: 0 }}>{amountToWords(amt)}</span>
+                  <span style={{ flex: 1, minWidth: 0, overflow: "hidden", letterSpacing: "1.5px" }}>{"*".repeat(80)}</span>
+                  <span style={{ flexShrink: 0, fontWeight: 700 }}>DOLLARS</span>
                 </div>
                 {vd.billing_address ? <div style={{ ...at(1.92, 0.95), whiteSpace: "pre-line", fontSize: "10pt", lineHeight: 1.3, maxWidth: "3.4in" }}>{vd.billing_address}</div> : null}
                 <div style={at(2.98, 0.6)}>{ck.memo || ck.category || ""}</div>
@@ -2150,12 +2167,12 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           return createPortal(
           <div onClick={() => setCheckFor(null)} className="check-overlay check-portal" style={{ position: "fixed", inset: 0, background: "rgba(10,10,20,0.55)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "24px 16px", zIndex: 220, overflowY: "auto" }}>
             {/* Portaled to <body> so print can hide the (tall) app entirely — that tall body was paginating into blank "extra copies". */}
-            <style>{`@media print { @page { size: letter portrait; margin: 0; } html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; } body > *:not(.check-overlay) { display: none !important; } .check-overlay, .check-overlay * { visibility: visible !important; } .no-print, .no-print * { visibility: hidden !important; } .check-overlay { position: static !important; background: #fff !important; padding: 0 !important; overflow: visible !important; display: block !important; } .check-print-root { max-width: none !important; width: 100% !important; margin: 0 !important; } .check-page { box-shadow: none !important; margin: 0 !important; page-break-after: always; break-after: page; } .check-page:last-child { page-break-after: auto; break-after: auto; } .no-print { display: none !important; } }`}</style>
+            <style>{`@media print { @page { size: letter portrait; margin: 0; } html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; } body > *:not(.check-overlay) { display: none !important; } .check-overlay, .check-overlay * { visibility: visible !important; } .no-print, .no-print * { visibility: hidden !important; } .check-overlay { position: static !important; background: #fff !important; padding: 0 !important; overflow: visible !important; display: block !important; } .check-print-root { max-width: none !important; width: 100% !important; margin: 0 !important; } .check-page { box-shadow: none !important; margin: 0 !important; page-break-after: always; break-after: page; break-inside: avoid; } .check-page:last-child { page-break-after: avoid !important; break-after: avoid !important; } .no-print { display: none !important; } }`}</style>
             <div onClick={e => e.stopPropagation()} className="check-print-root" style={{ width: "100%", maxWidth: 780 }}>
               <div className="no-print" style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", background: N.white, borderRadius: 10, padding: "12px 16px", marginBottom: 12, boxShadow: "0 12px 34px rgba(10,10,20,0.3)" }}>
                 <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: N.ink }}>{checks.length > 1 ? `${checks.length} checks` : "Check"}</span>
-                <span style={{ fontSize: 12, color: N.muted }}>Start&nbsp;#</span>
-                <input value={checkStartNum} onChange={e => setCheckStartNum(e.target.value.replace(/[^0-9]/g, ""))} inputMode="numeric" style={{ ...inputSt, width: 74, fontWeight: 700 }} />
+                <label style={{ fontSize: 12, color: N.ink, fontWeight: 600 }}>{checks.length > 1 ? "Start check #" : "Check #"}</label>
+                <input value={checkStartNum} onChange={e => setCheckStartNum(e.target.value.replace(/[^0-9]/g, ""))} inputMode="numeric" placeholder="####" title="Type the number printed on the check in your printer" style={{ ...inputSt, width: 80, fontWeight: 700, fontSize: 15, border: "1px solid " + N.blue }} />
                 {checks.length > 1 && <span style={{ fontSize: 11, color: N.muted }}>→ #{start + checks.length - 1}</span>}
                 {banks.length > 0 && (<>
                   <span style={{ fontSize: 12, color: N.muted }}>From</span>
