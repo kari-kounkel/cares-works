@@ -406,6 +406,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [sortBy, setSortBy] = useState("account");
   const [acctFilter, setAcctFilter] = useState("");
   const [reconTarget, setReconTarget] = useState("");
+  const [reconOpen, setReconOpen] = useState(false);
+  const [reconChecked, setReconChecked] = useState({});
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [wide, setWide] = useState(false);
   const payeeRef = useRef(null);
@@ -508,6 +510,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       built.products = prod.data || [];
       built.bills = bil.data || [];
       built.rawCategories = c.data || [];
+      built.rawEntries = e.data || [];
       setDbEntity(built);
     })();
     return () => { cancelled = true; };
@@ -549,6 +552,16 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       return prev.filter(x => !idset.has(x.id));
     });
     if (live) { await supabase.from("ledger_entries").update({ match_status: "noted" }).in("id", ids); setReloadTick(t => t + 1); }
+  }
+
+  // Reconcile: mark the checked transactions reconciled (locks them with an R) and
+  // drops them out of the "to match" notebook.
+  async function finishReconcile(ids) {
+    if (!ids || ids.length === 0) { setReconOpen(false); return; }
+    setReconOpen(false); setReconChecked({});
+    const idset = new Set(ids);
+    setItems(prev => prev.filter(x => !idset.has(x.id)));
+    if (live) { await supabase.from("ledger_entries").update({ match_status: "reconciled", cleared_confirmed: true }).in("id", ids); setReloadTick(t => t + 1); }
   }
 
   // Add a brand-new account to the chart on the fly (from the "which account?"
@@ -1217,6 +1230,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               <option value="">All accounts</option>
               {accountList.map(a => <option key={a.id} value={a.name}>{a.name}</option>)}
             </select>
+            <button onClick={() => { if (!acctFilter) { window.alert("Pick one account in the dropdown to the left, then Reconcile."); return; } setReconChecked({}); setReconOpen(true); }} title="Reconcile the selected account against its statement" style={{ ...btnBlue, background: acctFilter ? N.green : N.mutedLite, fontSize: 13, padding: "9px 16px", cursor: acctFilter ? "pointer" : "not-allowed" }}>Reconcile{acctFilter ? " " + acctFilter : "…"}</button>
             <select value={sortBy} onChange={e => setSortBy(e.target.value)} title="Sort the notebook" style={{ ...inputSt, padding: "8px 10px", fontSize: 12 }}>
               <option value="date-desc">Sort: Date (newest)</option>
               <option value="date-asc">Sort: Date (oldest)</option>
@@ -1443,6 +1457,68 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             ))}
           </div>
         )}
+
+        {reconOpen && acctFilter && (() => {
+          const acct = accountList.find(a => a.name === acctFilter);
+          const acctId = acct ? acct.id : null;
+          const rawA = (entity.rawAccounts || []).find(a => a.id === acctId);
+          const opening = rawA ? (rawA.opening_balance_cents || 0) : 0;
+          const all = (entity.rawEntries || []).filter(e => e.account_id === acctId);
+          const reconciledSum = all.filter(e => e.match_status === "reconciled").reduce((s, e) => s + (e.direction === "in" ? e.amount_cents : -e.amount_cents), 0);
+          const beginning = opening + reconciledSum;
+          const unrec = all.filter(e => e.match_status !== "reconciled").sort((a, b) => (a.entry_date || "").localeCompare(b.entry_date || ""));
+          const moneyIn = unrec.filter(e => e.direction === "in");
+          const moneyOut = unrec.filter(e => e.direction !== "in");
+          const checkedSum = unrec.filter(e => reconChecked[e.id]).reduce((s, e) => s + (e.direction === "in" ? e.amount_cents : -e.amount_cents), 0);
+          const clearedBal = beginning + checkedSum;
+          const stmt = reconTarget === "" ? null : Math.round((parseFloat(reconTarget) || 0) * 100);
+          const diff = stmt == null ? null : (stmt - clearedBal);
+          const ok = diff != null && Math.abs(diff) < 1;
+          const checkedIds = unrec.filter(e => reconChecked[e.id]).map(e => e.id);
+          const toggle = id => setReconChecked(p => ({ ...p, [id]: !p[id] }));
+          const shortD = d => { const p = (d || "").split("-"); return p.length === 3 ? `${+p[1]}/${+p[2]}` : d; };
+          const Col = ({ title, rows, color }) => (
+            <div style={{ flex: 1, minWidth: 260 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color, marginBottom: 6 }}>{title} · {rows.length}</div>
+              <div style={{ border: "1px solid " + N.rule, borderRadius: 10, overflow: "hidden", maxHeight: "42vh", overflowY: "auto" }}>
+                {rows.length === 0 && <div style={{ padding: 14, color: N.muted, fontSize: 13 }}>None.</div>}
+                {rows.map((e, i) => (
+                  <div key={e.id} onClick={() => toggle(e.id)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", borderTop: i === 0 ? "none" : "1px solid " + N.rule, cursor: "pointer", background: reconChecked[e.id] ? "#eafaf0" : "transparent" }}>
+                    <span style={{ width: 18, height: 18, borderRadius: 4, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: reconChecked[e.id] ? N.pinkDark : "transparent", border: reconChecked[e.id] ? "none" : "1.5px solid " + N.rule, color: "#fff", fontSize: 11, fontWeight: 700 }}>{reconChecked[e.id] ? "R" : ""}</span>
+                    <span style={{ width: 42, fontSize: 12, color: N.muted }}>{shortD(e.entry_date)}</span>
+                    <span style={{ flex: 1, minWidth: 0, fontSize: 13, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{e.description}</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color }}>{money((e.amount_cents || 0) / 100)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+          return (
+            <div onClick={() => setReconOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(10,10,20,0.5)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "36px 16px", zIndex: 220, overflowY: "auto" }}>
+              <div onClick={ev => ev.stopPropagation()} style={{ background: N.white, borderRadius: 14, width: "100%", maxWidth: 880, boxShadow: "0 24px 70px rgba(10,10,20,0.35)", padding: 22 }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10, marginBottom: 10 }}>
+                  <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 21, color: N.ink }}>Reconcile {acctFilter}</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: N.muted, flexWrap: "wrap" }}>
+                    <span>Statement ending balance</span>
+                    <input value={reconTarget} onChange={e => setReconTarget(e.target.value)} placeholder="$ from statement" inputMode="decimal" style={{ ...inputSt, width: 150 }} />
+                  </div>
+                </div>
+                <div style={{ fontSize: 13, color: N.muted, marginBottom: 14 }}>Click each line that's on this statement — it gets an <b style={{ color: N.pinkDark }}>R</b>. When the difference hits <b>$0.00</b>, you're reconciled.</div>
+                <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 16 }}>
+                  <Col title="Money in — deposits" rows={moneyIn} color="#3a7d4a" />
+                  <Col title="Money out — checks & payments" rows={moneyOut} color={N.red} />
+                </div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, background: ok ? "#eafaf0" : "#f7fafd", border: "1px solid " + (ok ? "#bff0d3" : N.rule), borderRadius: 12, padding: "12px 16px" }}>
+                  <div style={{ fontSize: 13, color: N.muted }}>Beginning <b style={{ color: N.ink }}>{money(beginning / 100)}</b> + {checkedIds.length} checked = <b style={{ color: N.ink }}>{money(clearedBal / 100)}</b>{diff != null && (ok ? <b style={{ color: N.pinkDark, marginLeft: 10 }}>✓ Reconciled — difference $0.00</b> : <span style={{ marginLeft: 10, color: "#8a5a00" }}>Difference <b>{money(diff / 100)}</b></span>)}</div>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button onClick={() => setReconOpen(false)} style={btnPaper(N.muted)}>Close</button>
+                    <button onClick={() => finishReconcile(checkedIds)} disabled={checkedIds.length === 0} style={{ ...btnBlue, background: checkedIds.length ? N.blue : N.mutedLite }}>Reconcile {checkedIds.length} &amp; lock</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
       </div>
     );
   }
