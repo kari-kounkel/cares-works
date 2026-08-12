@@ -1979,7 +1979,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           const at = (top, left) => ({ position: "absolute", top: `calc(${top}in + ${OY}in)`, left: `calc(${left}in + ${OX}in)`, fontFamily: "'Figtree', sans-serif", fontSize: "11pt", color: "#000", whiteSpace: "nowrap" });
           const detail = `${b.category || ""}${b.memo ? (b.category ? " · " : "") + b.memo : ""}${b.due_date ? ` · due ${b.due_date}` : ""}` || "Payment";
           const Stub = ({ label }) => (
-            <div style={{ height: "3.5in", padding: "0.35in 0.7in", boxSizing: "border-box", borderTop: "1px dashed #999", fontFamily: "'Figtree', sans-serif", color: "#000" }}>
+            <div style={{ height: "3.2in", padding: "0.3in 0.7in", boxSizing: "border-box", borderTop: "1px dashed #999", fontFamily: "'Figtree', sans-serif", color: "#000" }}>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: "9pt", letterSpacing: "0.06em", color: "#666", textTransform: "uppercase", marginBottom: "0.16in" }}><span>{label}</span><span>Check #{num} · {today}</span></div>
               <div style={{ fontSize: "12pt", fontWeight: 700 }}>{b.vendor_name}</div>
               <div style={{ display: "flex", justifyContent: "space-between", marginTop: "0.14in", paddingTop: "0.1in", borderTop: "1px solid #ccc", fontSize: "11pt" }}>
@@ -2010,17 +2010,17 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 <button onClick={() => setCheckFor(null)} style={btnPaper(N.muted)}>Cancel</button>
               </div>
 
-              <div className="check-sheet" style={{ width: "8.5in", height: "10.5in", background: N.white, position: "relative", margin: "0 auto", boxShadow: "0 12px 34px rgba(10,10,20,0.3)", boxSizing: "border-box", overflow: "hidden" }}>
+              <div className="check-sheet" style={{ width: "8.5in", height: "10in", background: N.white, position: "relative", margin: "0 auto", boxShadow: "0 12px 34px rgba(10,10,20,0.3)", boxSizing: "border-box", overflow: "hidden", pageBreakInside: "avoid", breakInside: "avoid" }}>
                 {/* on-screen guide only — the check area of the pre-printed stock */}
                 <div className="no-print" style={{ position: "absolute", top: 0, left: 0, right: 0, height: "3.5in", borderBottom: "1px dashed #cbd5e1", background: "#fbfdff" }}>
                   <div style={{ position: "absolute", top: 4, left: 6, fontSize: 9, color: "#94a3b8", fontFamily: "'DM Mono', monospace" }}>PRE-PRINTED CHECK AREA — only these fields print</div>
                 </div>
                 {/* fill-in fields (these print) */}
                 <div style={at(0.95, 6.35)}>{today}</div>
-                <div style={{ ...at(1.30, 6.55), fontWeight: 700 }}>{money(amt)}</div>
+                <div style={{ ...at(1.42, 6.8), fontWeight: 700 }}>{amt.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
                 <div style={{ ...at(1.30, 0.95), fontSize: "12pt", fontWeight: 600 }}>{b.vendor_name}</div>
                 <div style={at(1.58, 0.18)}>{amountToWords(amt)}</div>
-                <div style={{ ...at(1.80, 0.95), whiteSpace: "pre-line", fontSize: "10pt", lineHeight: 1.3, maxWidth: "3.4in" }}>{b.vendor_name}{vd.billing_address ? "\n" + vd.billing_address : ""}</div>
+                {vd.billing_address ? <div style={{ ...at(1.92, 0.95), whiteSpace: "pre-line", fontSize: "10pt", lineHeight: 1.3, maxWidth: "3.4in" }}>{vd.billing_address}</div> : null}
                 <div style={at(2.98, 0.6)}>{b.memo || b.category || ""}</div>
                 {/* flow spacer for the check third, then the two tear-off stubs */}
                 <div style={{ height: "3.5in" }} />
