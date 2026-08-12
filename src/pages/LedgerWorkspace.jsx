@@ -114,7 +114,7 @@ const BUILD_PROGRESS = [
     ["Branded invoice — logo, remit, ACH, tax", "done"],
     ["Customer + item pickers from your lists", "done"],
     ["Send link + “Viewed” tracking", "done"],
-    ["Email it from CARES Works", "wip"],
+    ["Email it from CARES Works", "done"],
     ["Partial payments + record checks", "done"],
     ["Void or delete", "done"],
   ] },
@@ -135,6 +135,7 @@ const BUILD_PROGRESS = [
   { label: "Bills", items: [
     ["Record a vendor bill", "done"],
     ["Mark a bill paid", "done"],
+    ["Pay a bill by printed check (voucher)", "done"],
     ["Credit-card balances as bills to pay", "todo"],
   ] },
   { label: "Sales tax", items: [
