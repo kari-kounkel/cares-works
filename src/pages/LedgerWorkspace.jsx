@@ -954,7 +954,9 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         body: { invoice_id: sentLink.invoiceId, origin: window.location.origin },
       });
       if (error || (data && data.error)) {
-        setEmailState({ err: (data && data.error) || error.message || "Send failed." });
+        let msg = (data && data.error) || (error && error.message) || "Send failed.";
+        try { if (error && error.context && typeof error.context.json === "function") { const b = await error.context.json(); if (b && b.error) msg = b.error; } } catch (e) { /* keep msg */ }
+        setEmailState({ err: msg });
       } else {
         setEmailState({ ok: data && data.to ? data.to : sentLink.email });
         setReloadTick(t => t + 1);
