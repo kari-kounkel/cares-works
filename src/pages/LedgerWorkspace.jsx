@@ -412,6 +412,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [acctEditId, setAcctEditId] = useState(null);
   const [acctDraft, setAcctDraft] = useState(blankAcct);
   const [showAddAcct, setShowAddAcct] = useState(false);
+  const [plaidBusy, setPlaidBusy] = useState(null);
   const [newAcct, setNewAcct] = useState(blankAcct);
   const blankItem = { name: "", description: "", price: "", taxable: true, income_account: "" };
   const [itemEditId, setItemEditId] = useState(null);
@@ -710,6 +711,49 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     });
     setShowAddAcct(false); setNewAcct(blankAcct); setReloadTick(t => t + 1);
   }
+
+  // --- Plaid: connect a bank/card and pull transactions into the notebook -------
+  function loadPlaidScript() {
+    return new Promise((resolve, reject) => {
+      if (window.Plaid) return resolve();
+      const s = document.createElement("script");
+      s.src = "https://cdn.plaid.com/link/v2/stable/link-initialize.js";
+      s.onload = () => resolve();
+      s.onerror = () => reject(new Error("Couldn't load Plaid."));
+      document.body.appendChild(s);
+    });
+  }
+  async function connectPlaid() {
+    if (!liveOrgId) return;
+    setPlaidBusy("connecting");
+    try {
+      const { data, error } = await supabase.functions.invoke("plaid-link-token", { body: { org_id: liveOrgId } });
+      if (error || !data || data.error || !data.link_token) { setPlaidBusy(null); window.alert((data && data.error) || "Couldn't start Plaid — is it configured in Supabase yet?"); return; }
+      await loadPlaidScript();
+      const handler = window.Plaid.create({
+        token: data.link_token,
+        onSuccess: async (public_token) => {
+          setPlaidBusy("linking");
+          await supabase.functions.invoke("plaid-exchange", { body: { public_token, org_id: liveOrgId } });
+          setPlaidBusy("syncing");
+          await supabase.functions.invoke("plaid-sync", { body: { org_id: liveOrgId } });
+          setPlaidBusy(null); setReloadTick(t => t + 1);
+        },
+        onExit: () => setPlaidBusy(null),
+      });
+      handler.open();
+    } catch (e) { setPlaidBusy(null); window.alert(String(e)); }
+  }
+  async function syncPlaid() {
+    if (!liveOrgId) return;
+    setPlaidBusy("syncing");
+    const { data, error } = await supabase.functions.invoke("plaid-sync", { body: { org_id: liveOrgId } });
+    setPlaidBusy(null);
+    if (error || (data && data.error)) { window.alert((data && data.error) || "Sync failed."); return; }
+    window.alert(`Pulled ${data && data.added != null ? data.added : 0} new transaction${data && data.added === 1 ? "" : "s"} into the notebook.`);
+    setReloadTick(t => t + 1);
+  }
+
   async function saveAccount() {
     const id = acctEditId;
     if (!id || !acctDraft.name.trim()) return;
@@ -2008,7 +2052,11 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>Accounts</div>
             <div style={{ fontSize: 13, color: N.muted }}>Your banks, cards, and loans. You set these — add the last four when you have it, and real opening balances from each statement.</div>
           </div>
-          <button onClick={() => { setShowAddAcct(s => !s); setNewAcct(blankAcct); }} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 16px" }}>{showAddAcct ? "Close" : "+ Add account"}</button>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <button onClick={connectPlaid} disabled={!!plaidBusy} style={{ ...btnBlue, background: plaidBusy ? N.mutedLite : N.green, fontSize: 13, padding: "9px 16px" }}>{plaidBusy ? (plaidBusy === "connecting" ? "Opening…" : plaidBusy === "linking" ? "Linking…" : "Syncing…") : "🔗 Connect a bank / card"}</button>
+            <button onClick={syncPlaid} disabled={!!plaidBusy} title="Pull new transactions from connected accounts" style={{ ...btnPaper(N.blue), fontSize: 13, padding: "9px 16px" }}>Sync now</button>
+            <button onClick={() => { setShowAddAcct(s => !s); setNewAcct(blankAcct); }} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 16px" }}>{showAddAcct ? "Close" : "+ Add account"}</button>
+          </div>
         </div>
 
         {showAddAcct && (
