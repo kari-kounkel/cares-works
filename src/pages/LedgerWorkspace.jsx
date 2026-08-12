@@ -1373,10 +1373,14 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                               </span>
                             );
                             return (
-                              <select value="" onChange={e => { if (e.target.value) applyEntryToInvoice(x, e.target.value); }} title="Which invoice is this paying?"
+                              <select value="" onChange={e => { const v = e.target.value; if (v === "__refund") setCategory(x.id, "Refund"); else if (v === "__other") setCategory(x.id, "Other income"); else if (v) applyEntryToInvoice(x, v); }} title="Refund, other income, or a payment on an invoice?"
                                 style={{ fontSize: 11, fontWeight: 600, padding: "3px 8px", maxWidth: 220, borderRadius: 100, cursor: "pointer", fontFamily: "'Figtree', sans-serif", border: "1px solid #f0d89a", background: "#fdf5e3", color: "#8a5a00" }}>
-                                <option value="">Paying which invoice?</option>
-                                {list.map(v => <option key={v.id} value={v.id}>#{v.number || "—"} · {v.customer} · {money(v.amount)}{v.balanceCents != null && v.balanceCents > 0 && v.balanceCents !== Math.round((v.amount || 0) * 100) ? ` (bal ${money(v.balance)})` : ""} · {v.status}</option>)}
+                                <option value="">What is this?</option>
+                                <option value="__refund">↩ Refund</option>
+                                <option value="__other">＋ Other income</option>
+                                <optgroup label="Payment on an invoice">
+                                  {list.map(v => <option key={v.id} value={v.id}>#{v.number || "—"} · {v.customer} · {money(v.amount)}{v.balanceCents != null && v.balanceCents > 0 && v.balanceCents !== Math.round((v.amount || 0) * 100) ? ` (bal ${money(v.balance)})` : ""} · {v.status}</option>)}
+                                </optgroup>
                               </select>
                             );
                           })()}
@@ -2580,38 +2584,33 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       <header style={{ position: "sticky", top: 0, zIndex: 50, background: N.white, borderBottom: "1px solid " + N.rule }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 22px", gap: 16 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 0 }}>
-            {/* CARES Works neon logo, stacked above the What's new pill */}
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 6 }}>
-              <img src="/cares-works-neon-logo.png" alt="CARES Works" style={{ height: 22 }} />
-              <div style={{ position: "relative" }}>
-              <button onClick={() => setWhatsNew(w => !w)} style={{ display: "flex", alignItems: "center", gap: 6, background: "#eef6ff", border: "1px solid #cfe4ff", color: N.blueDark, borderRadius: 100, padding: "6px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'Figtree', sans-serif" }}>
-                <Ico name="sparkle" size={14} /> Updated {latestUpdate}
-                <span style={{ width: 7, height: 7, borderRadius: 100, background: N.pink, boxShadow: `0 0 8px ${N.pink}` }} />
-              </button>
-              {whatsNew && (
-                <div style={{ position: "absolute", top: 40, left: 0, width: 320, background: N.white, border: "1px solid " + N.rule, borderRadius: 12, boxShadow: "0 12px 34px rgba(10,10,20,0.14)", padding: 14, zIndex: 60 }}>
-                  <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 17, color: N.ink, marginBottom: 2 }}>What's new</div>
-                  <div style={{ fontSize: 12, color: N.muted, marginBottom: 10 }}>We tell you what changed — so nothing ever moves on you without a heads-up.</div>
-                  {entity.changelog.map(c => (
-                    <div key={c.date} style={{ marginBottom: 10 }}>
-                      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", color: N.blue, marginBottom: 4 }}>{c.date.toUpperCase()}</div>
-                      {c.items.map((it, i) => (
-                        <div key={i} style={{ display: "flex", gap: 8, fontSize: 13, color: N.text, marginBottom: 4 }}>
-                          <span style={{ color: N.pink }}>•</span>{it}
-                        </div>
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              )}
-              </div>
-            </div>
-            <div style={{ width: 1, height: 26, background: N.rule }} />
             {entity.logoUrl
-              ? <img src={entity.logoUrl} alt={entity.name} style={{ height: 34, maxWidth: 210, objectFit: "contain" }} />
+              ? <img src={entity.logoUrl} alt={entity.name} style={{ height: 38, maxWidth: 260, objectFit: "contain" }} />
               : <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: N.ink, whiteSpace: "nowrap" }}>{entity.short}</span>}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ position: "relative" }}>
+            <button onClick={() => setWhatsNew(w => !w)} style={{ display: "flex", alignItems: "center", gap: 6, background: "#eef6ff", border: "1px solid #cfe4ff", color: N.blueDark, borderRadius: 100, padding: "6px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'Figtree', sans-serif", whiteSpace: "nowrap" }}>
+              <Ico name="sparkle" size={14} /> Updated {latestUpdate}
+              <span style={{ width: 7, height: 7, borderRadius: 100, background: N.pink, boxShadow: `0 0 8px ${N.pink}` }} />
+            </button>
+            {whatsNew && (
+              <div style={{ position: "absolute", top: 40, right: 0, width: 320, background: N.white, border: "1px solid " + N.rule, borderRadius: 12, boxShadow: "0 12px 34px rgba(10,10,20,0.14)", padding: 14, zIndex: 60 }}>
+                <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 17, color: N.ink, marginBottom: 2 }}>What's new</div>
+                <div style={{ fontSize: 12, color: N.muted, marginBottom: 10 }}>We tell you what changed — so nothing ever moves on you without a heads-up.</div>
+                {entity.changelog.map(c => (
+                  <div key={c.date} style={{ marginBottom: 10 }}>
+                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", color: N.blue, marginBottom: 4 }}>{c.date.toUpperCase()}</div>
+                    {c.items.map((it, i) => (
+                      <div key={i} style={{ display: "flex", gap: 8, fontSize: 13, color: N.text, marginBottom: 4 }}>
+                        <span style={{ color: N.pink }}>•</span>{it}
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
           <button onClick={() => setWide(w => !w)} title={wide ? "Show the side panels" : "Hide side panels for more room"} style={{ background: wide ? N.blue : "none", border: "1px solid " + (wide ? N.blue : N.rule), color: wide ? "#fff" : N.muted, borderRadius: 100, cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontSize: 12, fontWeight: 600, padding: "6px 12px", whiteSpace: "nowrap" }}>{wide ? "◧ Panels" : "⤢ Wide"}</button>
           <div style={{ position: "relative", whiteSpace: "nowrap" }}>
             <button onClick={() => setUserMenuOpen(o => !o)} title="Account" style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "1px solid " + N.rule, borderRadius: 100, padding: "3px 10px 3px 3px", cursor: "pointer", fontFamily: "'Figtree', sans-serif" }}>
