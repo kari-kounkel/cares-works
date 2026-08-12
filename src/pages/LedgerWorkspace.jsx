@@ -451,8 +451,9 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [billEdit, setBillEdit] = useState(null);
   const [checkFor, setCheckFor] = useState(null);
   const [checkAcctId, setCheckAcctId] = useState("");
-  const [checkOffX, setCheckOffX] = useState(0); // inches, printer alignment nudge
-  const [checkOffY, setCheckOffY] = useState(0);
+  const [checkOffX, setCheckOffX] = useState(() => { try { return parseFloat(localStorage.getItem("cw_checkAlignX")) || 0; } catch (e) { return 0; } }); // inches, printer alignment nudge (remembered)
+  const [checkOffY, setCheckOffY] = useState(() => { try { return parseFloat(localStorage.getItem("cw_checkAlignY")) || 0; } catch (e) { return 0; } });
+  useEffect(() => { try { localStorage.setItem("cw_checkAlignX", String(checkOffX)); localStorage.setItem("cw_checkAlignY", String(checkOffY)); } catch (e) { /* storage may be blocked */ } }, [checkOffX, checkOffY]);
   const blankInvoice = { customer: "", email: "", taxStatus: "Exempt", lines: [{ desc: "", qty: "1", price: "" }] };
   const [invDraft, setInvDraft] = useState(blankInvoice);
 
