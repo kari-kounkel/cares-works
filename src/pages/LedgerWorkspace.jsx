@@ -1625,13 +1625,13 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   <div style={{ fontSize: 13, color: N.pinkDark, fontWeight: 600 }}>✓ Sent to {emailState.ok}</div>
                 ) : (
                   <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                    <button onClick={emailInvoiceNow} disabled={emailState === "sending" || !sentLink.email} style={{ ...btnBlue, background: sentLink.email ? N.blue : N.mutedLite, cursor: sentLink.email ? "pointer" : "not-allowed" }}>
-                      {emailState === "sending" ? "Sending…" : sentLink.email ? `Send email to ${sentLink.email}` : "No email on file"}
+                    <button onClick={emailInvoiceNow} disabled={emailState === "sending"} style={{ ...btnBlue, background: N.blue }}>
+                      {emailState === "sending" ? "Sending…" : sentLink.email ? `Send email to ${sentLink.email}` : "Send email"}
                     </button>
                     {emailState && emailState.err && <span style={{ fontSize: 12, color: N.red }}>{emailState.err}</span>}
                   </div>
                 )}
-                {!sentLink.email && <div style={{ fontSize: 12, color: N.muted, marginTop: 6 }}>Add the customer's email on the invoice or Customers screen to send directly.</div>}
+                {!sentLink.email && <div style={{ fontSize: 12, color: N.muted, marginTop: 6 }}>We'll use the email on the customer's record if the invoice doesn't have one.</div>}
               </div>
 
               <div style={{ fontSize: 12, color: N.muted, marginBottom: 8 }}>…or copy the link and send it yourself:</div>
