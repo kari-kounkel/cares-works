@@ -7,6 +7,7 @@
 // Betty lands on her stenographer Notebook; Dave lands on Invoices.
 
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { supabase } from "../supabaseClient";
 import { navigate } from "../App";
 import { N } from "../design/neon";
@@ -462,6 +463,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [billEdit, setBillEdit] = useState(null);
   const [checkFor, setCheckFor] = useState(null);
   const [checkAcctId, setCheckAcctId] = useState("");
+  const [checkStartNum, setCheckStartNum] = useState(""); // editable first check number for the batch
   const [selectedBills, setSelectedBills] = useState({}); // { billId: true }
   const [checkOffX, setCheckOffX] = useState(() => { try { return parseFloat(localStorage.getItem("cw_checkAlignX")) || 0; } catch (e) { return 0; } }); // inches, printer alignment nudge (remembered)
   const [checkOffY, setCheckOffY] = useState(() => { try { return parseFloat(localStorage.getItem("cw_checkAlignY")) || 0; } catch (e) { return 0; } });
@@ -1138,44 +1140,57 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     if (live) { await supabase.from("ledger_bills").delete().eq("id", id); setReloadTick(t => t + 1); }
   }
   function payBillByCheck(bill) { payBillsByCheck([bill]); }
-  // One check can cover several bills for the SAME vendor — the stubs itemize them.
+  // Bills for the SAME vendor collapse onto one check (stubs itemize them); bills for
+  // different vendors each get their own check, so she can print 3–4 at once.
   function payBillsByCheck(bills) {
     if (!bills || bills.length === 0) return;
-    const vendors = [...new Set(bills.map(b => (b.vendor_name || "").trim().toLowerCase()))];
-    if (vendors.length > 1) { window.alert("One check = one payee. Pick bills for a single vendor."); return; }
     const banks = accountList.filter(a => a.type === "bank");
     setCheckAcctId(banks[0] ? banks[0].id : "");
     setOpenBill(null);
-    const total = bills.reduce((s, b) => s + (b.amount_cents || 0), 0);
-    setCheckFor({
-      vendor_name: bills[0].vendor_name, amount_cents: total,
-      category: bills.length === 1 ? bills[0].category : null,
-      memo: bills.length === 1 ? bills[0].memo : `${bills.length} bills`,
-      due_date: bills.length === 1 ? bills[0].due_date : null,
-      _bills: bills,
-    });
+    const groups = new Map();
+    for (const b of bills) {
+      const key = (b.vendor_name || "").trim().toLowerCase();
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(b);
+    }
+    const checks = [...groups.values()].map(gb => ({
+      vendor_name: gb[0].vendor_name,
+      amount_cents: gb.reduce((s, b) => s + (b.amount_cents || 0), 0),
+      category: gb.length === 1 ? gb[0].category : null,
+      memo: gb.length === 1 ? gb[0].memo : `${gb.length} bills`,
+      due_date: gb.length === 1 ? gb[0].due_date : null,
+      _bills: gb,
+    }));
+    setCheckStartNum(String(entity.nextCheckNumber || 1001));
+    setCheckFor({ checks });
   }
   // Print the check, mark every covered bill paid, book one outflow on the chosen bank,
   // stamp the check number in the reference, and advance the next check number.
   async function confirmCheck() {
     const cf = checkFor;
     if (!cf) return;
-    const bills = cf._bills || [cf];
-    const num = entity.nextCheckNumber || 1001;
+    const checks = cf.checks || [cf._bills ? { ...cf } : cf];
+    const start = parseInt(checkStartNum, 10) || entity.nextCheckNumber || 1001;
     const acct = accountList.find(a => a.id === checkAcctId);
     window.print();
     if (live && liveOrgId) {
-      for (const b of bills) {
-        if (b.id) await supabase.from("ledger_bills").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", b.id);
+      const today = new Date().toISOString().slice(0, 10);
+      for (let i = 0; i < checks.length; i++) {
+        const ck = checks[i];
+        const num = start + i;
+        const bills = ck._bills || [ck];
+        for (const b of bills) {
+          if (b.id) await supabase.from("ledger_bills").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", b.id);
+        }
+        await supabase.from("ledger_entries").insert({
+          org_id: liveOrgId, user_id: session.user.id, entry_date: today,
+          direction: "out", amount_cents: ck.amount_cents, description: ck.vendor_name || "Check",
+          category: bills.length === 1 ? (bills[0].category || null) : null,
+          account_id: (acct && acct.id && String(acct.id).length > 20) ? acct.id : null,
+          reference: "Check #" + num, match_status: "noted",
+        });
       }
-      await supabase.from("ledger_entries").insert({
-        org_id: liveOrgId, user_id: session.user.id, entry_date: new Date().toISOString().slice(0, 10),
-        direction: "out", amount_cents: cf.amount_cents, description: cf.vendor_name || "Check",
-        category: bills.length === 1 ? (bills[0].category || null) : null,
-        account_id: (acct && acct.id && String(acct.id).length > 20) ? acct.id : null,
-        reference: "Check #" + num, match_status: "noted",
-      });
-      await supabase.from("ledger_orgs").update({ next_check_number: num + 1 }).eq("id", liveOrgId);
+      await supabase.from("ledger_orgs").update({ next_check_number: start + checks.length }).eq("id", liveOrgId);
       setSelectedBills({});
       setReloadTick(t => t + 1);
     }
@@ -2072,47 +2087,79 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         })()}
 
         {checkFor && (() => {
-          const b = checkFor;
-          const amt = (b.amount_cents || 0) / 100;
-          const num = entity.nextCheckNumber || 1001;
-          const vd = (entity.vendorList || []).find(v => (v.name || "").toLowerCase() === (b.vendor_name || "").toLowerCase()) || {};
+          const checks = checkFor.checks || [checkFor];
+          const start = parseInt(checkStartNum, 10) || entity.nextCheckNumber || 1001;
           const today = new Date().toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" });
           const banks = accountList.filter(a => a.type === "bank");
           const OX = checkOffX, OY = checkOffY;
           // Only the fill-in fields print — the stock is pre-printed. Positions are the
           // standard QuickBooks "voucher" layout (check on top 3.5in of an 8.5x11 page).
           const at = (top, left) => ({ position: "absolute", top: `calc(${top}in + ${OY}in)`, left: `calc(${left}in + ${OX}in)`, fontFamily: "'Figtree', sans-serif", fontSize: "11pt", color: "#000", whiteSpace: "nowrap" });
-          const detail = `${b.category || ""}${b.memo ? (b.category ? " · " : "") + b.memo : ""}${b.due_date ? ` · due ${b.due_date}` : ""}` || "Payment";
-          const Stub = ({ label }) => (
-            <div style={{ height: "3.2in", padding: "0.3in 0.7in", boxSizing: "border-box", borderTop: "1px dashed #999", fontFamily: "'Figtree', sans-serif", color: "#000" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "9pt", letterSpacing: "0.06em", color: "#666", textTransform: "uppercase", marginBottom: "0.16in" }}><span>{label}</span><span>Check #{num} · {today}</span></div>
-              <div style={{ fontSize: "12pt", fontWeight: 700 }}>{b.vendor_name}</div>
-              {b._bills && b._bills.length > 1 ? (
-                <div style={{ marginTop: "0.12in", paddingTop: "0.08in", borderTop: "1px solid #ccc", fontSize: "10pt" }}>
-                  {b._bills.map((bl, k) => (
-                    <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "1px 0" }}>
-                      <span>{bl.category || bl.vendor_name}{bl.memo ? ` · ${bl.memo}` : ""}{bl.due_date ? ` · due ${bl.due_date}` : ""}</span>
-                      <span>{money((bl.amount_cents || 0) / 100)}</span>
-                    </div>
-                  ))}
-                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: "0.06in", paddingTop: "0.06in", borderTop: "1px solid #999", fontWeight: 700, fontSize: "11pt" }}><span>Total</span><span>{money(amt)}</span></div>
+
+          const CheckSheet = ({ ck, num }) => {
+            const amt = (ck.amount_cents || 0) / 100;
+            const vd = (entity.vendorList || []).find(v => (v.name || "").toLowerCase() === (ck.vendor_name || "").toLowerCase()) || {};
+            const detail = `${ck.category || ""}${ck.memo ? (ck.category ? " · " : "") + ck.memo : ""}${ck.due_date ? ` · due ${ck.due_date}` : ""}` || "Payment";
+            const Stub = ({ label }) => (
+              <div style={{ height: "3.2in", padding: "0.3in 0.7in", boxSizing: "border-box", borderTop: "1px dashed #999", fontFamily: "'Figtree', sans-serif", color: "#000" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "9pt", letterSpacing: "0.06em", color: "#666", textTransform: "uppercase", marginBottom: "0.16in" }}><span>{label}</span><span>Check #{num} · {today}</span></div>
+                <div style={{ fontSize: "12pt", fontWeight: 700 }}>{ck.vendor_name}</div>
+                {ck._bills && ck._bills.length > 1 ? (
+                  <div style={{ marginTop: "0.12in", paddingTop: "0.08in", borderTop: "1px solid #ccc", fontSize: "10pt" }}>
+                    {ck._bills.map((bl, k) => (
+                      <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "1px 0" }}>
+                        <span>{bl.category || bl.vendor_name}{bl.memo ? ` · ${bl.memo}` : ""}{bl.due_date ? ` · due ${bl.due_date}` : ""}</span>
+                        <span>{money((bl.amount_cents || 0) / 100)}</span>
+                      </div>
+                    ))}
+                    <div style={{ display: "flex", justifyContent: "space-between", marginTop: "0.06in", paddingTop: "0.06in", borderTop: "1px solid #999", fontWeight: 700, fontSize: "11pt" }}><span>Total</span><span>{money(amt)}</span></div>
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: "0.14in", paddingTop: "0.1in", borderTop: "1px solid #ccc", fontSize: "11pt" }}>
+                    <span>{detail}</span><span style={{ fontWeight: 700 }}>{money(amt)}</span>
+                  </div>
+                )}
+              </div>
+            );
+            return (
+              <div className="check-page" style={{ width: "8.5in", height: "10in", background: N.white, position: "relative", margin: "0 auto 18px", boxShadow: "0 12px 34px rgba(10,10,20,0.3)", boxSizing: "border-box", overflow: "hidden" }}>
+                {/* on-screen guide only — the check area of the pre-printed stock */}
+                <div className="no-print" style={{ position: "absolute", top: 0, left: 0, right: 0, height: "3.5in", borderBottom: "1px dashed #cbd5e1", background: "#fbfdff" }}>
+                  <div style={{ position: "absolute", top: 4, left: 6, fontSize: 9, color: "#94a3b8", fontFamily: "'DM Mono', monospace" }}>PRE-PRINTED CHECK #{num} — only these fields print</div>
                 </div>
-              ) : (
-                <div style={{ display: "flex", justifyContent: "space-between", marginTop: "0.14in", paddingTop: "0.1in", borderTop: "1px solid #ccc", fontSize: "11pt" }}>
-                  <span>{detail}</span><span style={{ fontWeight: 700 }}>{money(amt)}</span>
+                {/* fill-in fields (these print) */}
+                <div style={at(0.95, 6.35)}>{today}</div>
+                <div style={{ ...at(1.42, 6.8), fontWeight: 700 }}>{amt.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                <div style={{ ...at(1.30, 0.95), fontSize: "12pt", fontWeight: 600 }}>{ck.vendor_name}</div>
+                {/* written amount: words, then a run of ***** filling the line, ending in DOLLARS under/right of the numeric box */}
+                <div style={{ ...at(1.58, 0.18), width: `calc(6.95in - ${OX}in)`, display: "flex", alignItems: "baseline", gap: "6px", overflow: "hidden" }}>
+                  <span>{amountToWords(amt)}</span>
+                  <span style={{ flex: 1, overflow: "hidden", letterSpacing: "1.5px", whiteSpace: "nowrap" }}>{"*".repeat(200)}</span>
+                  <span style={{ fontWeight: 700 }}>DOLLARS</span>
                 </div>
-              )}
-            </div>
-          );
-          return (
-          <div onClick={() => setCheckFor(null)} style={{ position: "fixed", inset: 0, background: "rgba(10,10,20,0.55)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "24px 16px", zIndex: 220, overflowY: "auto" }}>
-            <style>{`@media print { @page { size: letter portrait; margin: 0; } body * { visibility: hidden !important; } .check-sheet, .check-sheet * { visibility: visible !important; } .check-sheet { position: absolute !important; left: 0; top: 0; margin: 0 !important; box-shadow: none !important; } .no-print { display: none !important; } }`}</style>
-            <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 780 }}>
+                {vd.billing_address ? <div style={{ ...at(1.92, 0.95), whiteSpace: "pre-line", fontSize: "10pt", lineHeight: 1.3, maxWidth: "3.4in" }}>{vd.billing_address}</div> : null}
+                <div style={at(2.98, 0.6)}>{ck.memo || ck.category || ""}</div>
+                {/* flow spacer for the check third, then the two tear-off stubs */}
+                <div style={{ height: "3.5in" }} />
+                <Stub label="Remittance — send with payment" />
+                <Stub label="Your file copy" />
+              </div>
+            );
+          };
+
+          return createPortal(
+          <div onClick={() => setCheckFor(null)} className="check-overlay check-portal" style={{ position: "fixed", inset: 0, background: "rgba(10,10,20,0.55)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "24px 16px", zIndex: 220, overflowY: "auto" }}>
+            {/* Portaled to <body> so print can hide the (tall) app entirely — that tall body was paginating into blank "extra copies". */}
+            <style>{`@media print { @page { size: letter portrait; margin: 0; } html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; } body > *:not(.check-portal) { display: none !important; } .check-overlay { position: static !important; background: #fff !important; padding: 0 !important; overflow: visible !important; } .check-print-root { max-width: none !important; width: 100% !important; margin: 0 !important; } .check-page { box-shadow: none !important; margin: 0 !important; page-break-after: always; break-after: page; } .check-page:last-child { page-break-after: auto; break-after: auto; } .no-print { display: none !important; } }`}</style>
+            <div onClick={e => e.stopPropagation()} className="check-print-root" style={{ width: "100%", maxWidth: 780 }}>
               <div className="no-print" style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", background: N.white, borderRadius: 10, padding: "12px 16px", marginBottom: 12, boxShadow: "0 12px 34px rgba(10,10,20,0.3)" }}>
-                <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: N.ink }}>Check #{num}</span>
+                <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: N.ink }}>{checks.length > 1 ? `${checks.length} checks` : "Check"}</span>
+                <span style={{ fontSize: 12, color: N.muted }}>Start&nbsp;#</span>
+                <input value={checkStartNum} onChange={e => setCheckStartNum(e.target.value.replace(/[^0-9]/g, ""))} inputMode="numeric" style={{ ...inputSt, width: 74, fontWeight: 700 }} />
+                {checks.length > 1 && <span style={{ fontSize: 11, color: N.muted }}>→ #{start + checks.length - 1}</span>}
                 {banks.length > 0 && (<>
                   <span style={{ fontSize: 12, color: N.muted }}>From</span>
-                  <select value={checkAcctId} onChange={e => setCheckAcctId(e.target.value)} style={{ ...inputSt, width: 160 }}>{banks.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select>
+                  <select value={checkAcctId} onChange={e => setCheckAcctId(e.target.value)} style={{ ...inputSt, width: 150 }}>{banks.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select>
                 </>)}
                 <div style={{ display: "flex", alignItems: "center", gap: 4, marginLeft: 6 }}>
                   <span style={{ fontSize: 12, color: N.muted }}>Align:</span>
@@ -2122,30 +2169,15 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   <button onClick={() => setCheckOffX(x => +(x + 0.05).toFixed(2))} style={btnPaper(N.muted)} title="Move fields right">→</button>
                   <button onClick={() => { setCheckOffX(0); setCheckOffY(0); }} style={btnPaper(N.muted)}>Reset</button>
                 </div>
-                <span style={{ marginLeft: "auto", fontSize: 11, color: N.muted, maxWidth: 200 }}>Pre-printed check stock, check on top. Nudge to line up, then print.</span>
-                <button onClick={confirmCheck} style={{ ...btnBlue, background: N.blue }}>Print &amp; mark paid</button>
+                <span style={{ marginLeft: "auto", fontSize: 11, color: N.muted, maxWidth: 190 }}>Pre-printed stock, check on top. Nudge to line up, then print.</span>
+                <button onClick={confirmCheck} style={{ ...btnBlue, background: N.blue }}>Print{checks.length > 1 ? ` ${checks.length}` : ""} &amp; mark paid</button>
                 <button onClick={() => setCheckFor(null)} style={btnPaper(N.muted)}>Cancel</button>
               </div>
 
-              <div className="check-sheet" style={{ width: "8.5in", height: "10in", background: N.white, position: "relative", margin: "0 auto", boxShadow: "0 12px 34px rgba(10,10,20,0.3)", boxSizing: "border-box", overflow: "hidden", pageBreakInside: "avoid", breakInside: "avoid" }}>
-                {/* on-screen guide only — the check area of the pre-printed stock */}
-                <div className="no-print" style={{ position: "absolute", top: 0, left: 0, right: 0, height: "3.5in", borderBottom: "1px dashed #cbd5e1", background: "#fbfdff" }}>
-                  <div style={{ position: "absolute", top: 4, left: 6, fontSize: 9, color: "#94a3b8", fontFamily: "'DM Mono', monospace" }}>PRE-PRINTED CHECK AREA — only these fields print</div>
-                </div>
-                {/* fill-in fields (these print) */}
-                <div style={at(0.95, 6.35)}>{today}</div>
-                <div style={{ ...at(1.42, 6.8), fontWeight: 700 }}>{amt.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-                <div style={{ ...at(1.30, 0.95), fontSize: "12pt", fontWeight: 600 }}>{b.vendor_name}</div>
-                <div style={at(1.58, 0.18)}>{amountToWords(amt)}</div>
-                {vd.billing_address ? <div style={{ ...at(1.92, 0.95), whiteSpace: "pre-line", fontSize: "10pt", lineHeight: 1.3, maxWidth: "3.4in" }}>{vd.billing_address}</div> : null}
-                <div style={at(2.98, 0.6)}>{b.memo || b.category || ""}</div>
-                {/* flow spacer for the check third, then the two tear-off stubs */}
-                <div style={{ height: "3.5in" }} />
-                <Stub label="Remittance — send with payment" />
-                <Stub label="Your file copy" />
-              </div>
+              {checks.map((ck, i) => <CheckSheet key={i} ck={ck} num={start + i} />)}
             </div>
-          </div>
+          </div>,
+          document.body
           );
         })()}
       </div>
