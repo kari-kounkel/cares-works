@@ -1010,7 +1010,9 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
 
   async function createOrder() {
     const lines = orderDraft.lines.filter(l => (l.desc || "").trim() || (l.item || "").trim());
-    if (!orderDraft.customer.trim() || lines.length === 0) return;
+    // A PO can be for Dave himself — customer optional. An invoice still needs someone to bill.
+    if (lines.length === 0) return;
+    if (orderDraft.mode !== "po" && !orderDraft.customer.trim()) return;
     const subtotal = lines.reduce((s, l) => s + Math.round((parseFloat(l.price) || 0) * 100) * (parseInt(l.qty) || 1), 0);
     const tax = orderDraft.taxStatus === "Taxable" ? Math.round(subtotal * MN_TAX_RATE) : 0;
     const total = subtotal + tax;
@@ -1028,7 +1030,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       }
       const row = {
         doc_type: asPo ? "order" : "invoice", status: asPo ? "order" : "draft",
-        customer_name: draft.customer.trim(), customer_email: draft.email.trim() || null,
+        customer_name: draft.customer.trim() || null, customer_email: draft.email.trim() || null,
         vendor_name: asPo ? (draft.vendor.trim() || null) : null, po_number: asPo ? String(po) : null,
         line_items: lines.map(l => ({ item: (l.item || "").trim(), desc: (l.desc || "").trim(), qty: parseInt(l.qty) || 1, cost: parseFloat(l.cost) || 0, price: parseFloat(l.price) || 0 })),
         tax_status: draft.taxStatus, subtotal_cents: subtotal, tax_cents: tax, total_cents: total,
@@ -1681,7 +1683,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                       <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", color: N.muted, marginBottom: 4 }}>SHIP TO</div>
                       <div style={{ fontSize: 15, fontWeight: 600, color: N.ink }}>{entity.name}</div>
                       {entity.remitAddress ? <div style={{ fontSize: 13, color: N.muted, whiteSpace: "pre-line" }}>{entity.remitAddress}</div> : null}
-                      <div style={{ fontSize: 12, color: N.mutedLite, marginTop: 4 }}>For customer: {openInv.customer}</div>
+                      {openInv.customer && openInv.customer !== "—" ? <div style={{ fontSize: 12, color: N.mutedLite, marginTop: 4 }}>For customer: {openInv.customer}</div> : null}
                     </div>
                   </div>
                   );
@@ -1911,7 +1913,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             </div>
             <div style={{ display: "grid", gridTemplateColumns: orderDraft.mode === "po" ? "1fr 1fr" : "1fr", gap: 10, marginBottom: 12 }}>
               <div style={{ position: "relative" }}>
-                <input placeholder="Customer" list="po-customers" value={orderDraft.customer} onChange={e => { const val = e.target.value; const c = (entity.customers || []).find(x => x.name === val); setOrderDraft(d => ({ ...d, customer: val, email: c && c.email ? c.email : d.email })); }} style={{ ...inputSt, paddingRight: 26 }} />
+                <input placeholder={poMode ? "Customer (leave blank if it's for you)" : "Customer"} list="po-customers" value={orderDraft.customer} onChange={e => { const val = e.target.value; const c = (entity.customers || []).find(x => x.name === val); setOrderDraft(d => ({ ...d, customer: val, email: c && c.email ? c.email : d.email })); }} style={{ ...inputSt, paddingRight: 26 }} />
                 <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: N.muted, fontSize: 10 }}>▼</span>
               </div>
               {orderDraft.mode === "po" && (
@@ -2697,6 +2699,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       <link href={FONTS} rel="stylesheet" />
       <style>{`
         input[type="checkbox"] { accent-color: ${AMBER}; }
+        /* datalist inputs draw a native dropdown arrow in Chrome/Edge — hide it so only our custom ▼ shows (no double arrow) */
+        input[list]::-webkit-calendar-picker-indicator { display: none !important; opacity: 0; }
         @media print {
           body * { visibility: hidden !important; }
           .print-doc, .print-doc * { visibility: visible !important; }
