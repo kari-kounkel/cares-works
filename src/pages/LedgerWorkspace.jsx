@@ -441,6 +441,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [contactDraft, setContactDraft] = useState(blankContact);
   const [showAddContact, setShowAddContact] = useState(false);
   const [newContact, setNewContact] = useState(blankContact);
+  const [contactErr, setContactErr] = useState("");
   const [invoices, setInvoices] = useState(entity.invoices || []);
   const [liveOrgId, setLiveOrgId] = useState(null);
   const [reloadTick, setReloadTick] = useState(0);
@@ -448,6 +449,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [openInv, setOpenInv] = useState(null);
   const [sentLink, setSentLink] = useState(null);
   const [emailState, setEmailState] = useState(null);
+  const [poEmailTo, setPoEmailTo] = useState("");   // vendor email for the PO send box
+  const [poEmailMsg, setPoEmailMsg] = useState(null); // {sending} | {ok} | {err}
   const [progOpen, setProgOpen] = useState({});
   const blankInvPay = { amount: "", method: "check", check_number: "", paid_on: "", memo: "", accountId: "" };
   const [payFor, setPayFor] = useState(null);
@@ -828,7 +831,12 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
 
   async function saveContact(table, isNew) {
     const src = isNew ? newContact : contactDraft;
-    if (!src.name.trim() || !liveOrgId) return;
+    if (!liveOrgId) return;
+    // A name alone is useless — we need to be able to reach them.
+    if (!src.name.trim()) { setContactErr("Name is required."); return; }
+    if (!(src.email || "").trim() || !/.+@.+\..+/.test((src.email || "").trim())) { setContactErr("A valid email is required — we can't send invoices or POs without one."); return; }
+    if (!(src.phone || "").trim()) { setContactErr("A phone number is required."); return; }
+    setContactErr("");
     const row = table === "ledger_customers"
       ? { name: src.name.trim(), company: (src.company || "").trim() || null, email: (src.email || "").trim() || null, phone: (src.phone || "").trim() || null, billing_address: (src.billing_address || "").trim() || null, tax_status: src.tax_status || null, notes: (src.notes || "").trim() || null }
       : { name: src.name.trim(), email: (src.email || "").trim() || null, phone: (src.phone || "").trim() || null, billing_address: (src.billing_address || "").trim() || null };
@@ -988,6 +996,205 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     } catch (e) {
       setEmailState({ err: String(e) });
     }
+  }
+
+  // Email a PO to the vendor. QBO didn't bring most vendor emails, so Dave can type it
+  // here — we save it to the vendor record (so it's remembered) and send via the hub.
+  async function sendPO() {
+    if (!openInv) return;
+    const to = (poEmailTo || "").trim();
+    if (!to || !/.+@.+\..+/.test(to)) { setPoEmailMsg({ err: "Type the vendor's email address first." }); return; }
+    setPoEmailMsg({ sending: true });
+    try {
+      if (live && liveOrgId && openInv.vendor) {
+        await supabase.from("ledger_vendors").update({ email: to }).eq("org_id", liveOrgId).ilike("name", openInv.vendor);
+      }
+      const { data, error } = await supabase.functions.invoke("send-po-email", {
+        body: { order_id: openInv.id, to, origin: window.location.origin },
+      });
+      if (error || (data && data.error)) {
+        let msg = (data && data.error) || (error && error.message) || "Send failed.";
+        try { if (error && error.context && typeof error.context.json === "function") { const b = await error.context.json(); if (b && b.error) msg = b.error; } } catch (e) { /* keep msg */ }
+        setPoEmailMsg({ err: msg });
+      } else {
+        setPoEmailMsg({ ok: data && data.to ? data.to : to });
+        setReloadTick(t => t + 1);
+      }
+    } catch (e) { setPoEmailMsg({ err: String(e) }); }
+  }
+
+  // Prefill the PO email box from the vendor record whenever a PO opens.
+  useEffect(() => {
+    setPoEmailMsg(null);
+    if (openInv && openInv.docType === "order") {
+      const vd = (entity.vendorList || []).find(v => (v.name || "").toLowerCase() === (openInv.vendor || "").toLowerCase()) || {};
+      setPoEmailTo(vd.email || "");
+    }
+  }, [openInv]);
+
+  // The invoice / PO document — rendered once at the top level so it opens from any
+  // screen (Invoices AND New Orders). Print lets you Save as PDF from the dialog.
+  function docModal() {
+    if (!openInv) return null;
+    const invLines = openInv.lines && openInv.lines.length ? openInv.lines : [{ desc: openInv.item, qty: 1, price: openInv.subtotal || openInv.amount }];
+    const cleanDesc = d => (/^QuickBooks invoice #/.test(d || "") ? "Signs & graphics" : d);
+    const bc = (entity.customers || []).find(c => (c.name || "").toLowerCase() === (openInv.customer || "").toLowerCase()) || {};
+    const brand = entity.brandColor || N.blue;
+    const logo = entity.logoUrl;
+    const isPo = openInv.docType === "order";
+    const rateOf = l => (isPo ? (l.cost || 0) : (l.price || 0));
+    const docSub = invLines.reduce((s, l) => s + rateOf(l) * (l.qty || 1), 0);
+    return (
+          <div onClick={() => setOpenInv(null)} style={{ position: "fixed", inset: 0, background: "rgba(10,10,20,0.45)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "44px 16px", zIndex: 200, overflowY: "auto" }}>
+            <div onClick={e => e.stopPropagation()} className="print-doc" style={{ background: N.white, borderRadius: 12, width: "100%", maxWidth: 640, boxShadow: "0 24px 70px rgba(10,10,20,0.35)", overflow: "hidden" }}>
+              {/* The invoice document */}
+              <div style={{ padding: "34px 40px 26px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 20, marginBottom: 28 }}>
+                  <div>
+                    {logo ? <img src={logo} alt={entity.name} style={{ maxHeight: 56, maxWidth: 280, display: "block", marginBottom: 4 }} /> : <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>{entity.name}</div>}
+                    <div style={{ fontSize: 12, color: N.muted, marginTop: 3 }}>Minnesota{entity.fiscalYearEnd ? ` · fiscal year ends ${entity.fiscalYearEnd}` : ""}</div>
+                  </div>
+                  <div style={{ textAlign: "right" }}>
+                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 24, letterSpacing: "0.16em", color: brand, fontWeight: 500 }}>{isPo ? "PURCHASE ORDER" : "INVOICE"}</div>
+                    {isPo ? (openInv.poNumber && <div style={{ fontSize: 13, color: N.ink, marginTop: 5 }}>PO #{openInv.poNumber}</div>) : (openInv.number && <div style={{ fontSize: 13, color: N.ink, marginTop: 5 }}>No. {openInv.number}</div>)}
+                    <div style={{ fontSize: 12, color: N.muted, marginTop: 2 }}>Date: {openInv.date}</div>
+                  </div>
+                </div>
+
+                {isPo ? (() => {
+                  const vd = (entity.vendorList || []).find(v => (v.name || "").toLowerCase() === (openInv.vendor || "").toLowerCase()) || {};
+                  return (
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 }}>
+                    <div>
+                      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", color: N.muted, marginBottom: 4 }}>VENDOR</div>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: N.ink }}>{openInv.vendor || "—"}</div>
+                      {vd.billing_address ? <div style={{ fontSize: 13, color: N.muted, whiteSpace: "pre-line" }}>{vd.billing_address}</div> : null}
+                      {vd.email ? <div style={{ fontSize: 13, color: N.muted }}>{vd.email}</div> : null}
+                      {vd.phone ? <div style={{ fontSize: 13, color: N.muted }}>{vd.phone}</div> : null}
+                    </div>
+                    <div>
+                      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", color: N.muted, marginBottom: 4 }}>SHIP TO</div>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: N.ink }}>{entity.name}</div>
+                      {entity.remitAddress ? <div style={{ fontSize: 13, color: N.muted, whiteSpace: "pre-line" }}>{entity.remitAddress}</div> : null}
+                      {openInv.customer && openInv.customer !== "—" ? <div style={{ fontSize: 12, color: N.mutedLite, marginTop: 4 }}>For customer: {openInv.customer}</div> : null}
+                    </div>
+                  </div>
+                  );
+                })() : (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 }}>
+                  <div>
+                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", color: N.muted, marginBottom: 4 }}>BILL TO</div>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: N.ink }}>{openInv.customer}</div>
+                    {bc.billing_address ? <div style={{ fontSize: 13, color: N.muted, whiteSpace: "pre-line" }}>{bc.billing_address}</div> : null}
+                    {(openInv.email || bc.email) ? <div style={{ fontSize: 13, color: N.muted }}>{openInv.email || bc.email}</div> : null}
+                    {bc.phone ? <div style={{ fontSize: 13, color: N.muted }}>{bc.phone}</div> : null}
+                  </div>
+                  <div>
+                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", color: N.muted, marginBottom: 4 }}>SHIP TO</div>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: N.ink }}>{openInv.customer}</div>
+                    {bc.billing_address ? <div style={{ fontSize: 13, color: N.muted, whiteSpace: "pre-line" }}>{bc.billing_address}</div> : <div style={{ fontSize: 12, color: N.mutedLite, fontStyle: "italic" }}>Same as billing</div>}
+                  </div>
+                </div>
+                )}
+
+                <div style={{ border: "1px solid " + N.rule, borderRadius: 10, overflow: "hidden", marginBottom: 16 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 46px 86px 92px", gap: 8, padding: "10px 14px", background: "#f7fafd", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", color: N.muted }}>
+                    <span>DESCRIPTION</span><span style={{ textAlign: "center" }}>QTY</span><span style={{ textAlign: "right" }}>RATE</span><span style={{ textAlign: "right" }}>AMOUNT</span>
+                  </div>
+                  {invLines.map((l, i) => (
+                    <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 46px 86px 92px", gap: 8, padding: "11px 14px", borderTop: "1px solid " + N.rule, fontSize: 14, color: N.text }}>
+                      <span>{cleanDesc(l.desc)}{isPo && l.item ? <span style={{ color: N.mutedLite }}> · {l.item}</span> : null}</span>
+                      <span style={{ textAlign: "center", color: N.muted }}>{l.qty || 1}</span>
+                      <span style={{ textAlign: "right", color: N.muted }}>{money(rateOf(l))}</span>
+                      <span style={{ textAlign: "right", fontWeight: 500, color: N.ink }}>{money(rateOf(l) * (l.qty || 1))}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                  {isPo ? (
+                  <div style={{ width: 250 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 18, fontWeight: 700, color: N.ink, padding: "9px 0 0", borderTop: "2px solid " + N.ink }}><span>PO total</span><span>{money(docSub)}</span></div>
+                    <div style={{ fontSize: 12, color: N.mutedLite, marginTop: 4 }}>What you pay the vendor for this job.</div>
+                  </div>
+                  ) : (
+                  <div style={{ width: 260 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: N.muted, padding: "3px 0" }}><span>Subtotal</span><span>{money(openInv.subtotal || openInv.amount)}</span></div>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: N.muted, padding: "3px 0" }}><span>MN sales tax{openInv.tax === "Taxable" ? " (9.25%)" : ""}</span><span>{money(openInv.taxAmt)}</span></div>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 18, fontWeight: 700, color: N.ink, padding: "9px 0 0", marginTop: 5, borderTop: "2px solid " + N.ink }}><span>Total</span><span>{money(openInv.amount)}</span></div>
+                    {(openInv.payments || []).map((p, pi) => (
+                      <div key={p.id || pi} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12, color: "#a16207", padding: "2px 0" }}>
+                        <span>{fmtPay(p)}</span>
+                        <span style={{ display: "flex", gap: 6, alignItems: "center" }}>−{money((p.amount_cents || 0) / 100)}<button className="no-print" onClick={() => deletePaymentRec(p, openInv)} title="Remove payment" style={{ border: "none", background: "none", color: N.mutedLite, cursor: "pointer", fontSize: 15, lineHeight: 1, padding: 0 }}>×</button></span>
+                      </div>
+                    ))}
+                    {(() => {
+                      const bal = openInv.balanceCents != null ? openInv.balanceCents / 100 : (openInv.status === "Paid" ? 0 : openInv.amount);
+                      const paidInFull = bal <= 0 && openInv.amount > 0;
+                      return (
+                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, marginTop: 7, paddingTop: 6, borderTop: "1px solid " + N.rule, fontWeight: 700, color: paidInFull ? N.green : N.red }}>
+                          <span>{paidInFull ? "Paid in full — thank you" : "Balance due"}</span><span>{money(bal)}</span>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                  )}
+                </div>
+
+                {isPo ? (
+                <div style={{ marginTop: 22, paddingTop: 16, borderTop: "1px solid " + N.rule, fontSize: 12, color: N.muted, lineHeight: 1.6 }}>
+                  <div style={{ fontWeight: 700, color: N.text, marginBottom: 2 }}>Ship to</div>
+                  <div style={{ whiteSpace: "pre-line", color: N.text }}>{entity.remitAddress || entity.name}</div>
+                  <div style={{ marginTop: 6 }}>Please produce the items above and ship to us. Reference PO #{openInv.poNumber} on your invoice.</div>
+                </div>
+                ) : (
+                <div style={{ marginTop: 22, paddingTop: 16, borderTop: "1px solid " + N.rule, fontSize: 12, color: N.muted, lineHeight: 1.6 }}>
+                  <div style={{ fontWeight: 700, color: N.text, marginBottom: 2 }}>Payment instructions</div>
+                  <div>Please send checks to:</div>
+                  <div style={{ whiteSpace: "pre-line", color: N.text }}>{entity.remitAddress || entity.name}</div>
+                  {entity.ach && (entity.ach.routing || entity.ach.bank) ? (
+                    <div style={{ marginTop: 6 }}>Prefer to pay by bank? ACH to {entity.ach.bank || "our bank"}{entity.ach.routing ? ` · routing ${entity.ach.routing}` : ""}{entity.ach.account ? ` · account ${entity.ach.account}` : ""}. (Please cover any bank fee.){entity.ach.notify ? ` If you pay by ACH, please email ${entity.ach.notify} so we can record it.` : ""}</div>
+                  ) : null}
+                  {entity.customerNote ? <div style={{ marginTop: 10, fontStyle: "italic", color: N.text }}>{entity.customerNote}</div> : null}
+                </div>
+                )}
+              </div>
+
+              {isPo && (
+                <div className="no-print" style={{ padding: "12px 22px", borderTop: "1px solid " + N.rule, background: N.white, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                  <span style={{ fontSize: 12, color: N.muted }}>Email this PO to the vendor:</span>
+                  <input value={poEmailTo} onChange={e => setPoEmailTo(e.target.value)} placeholder="vendor@email.com" inputMode="email" style={{ ...inputSt, width: 220 }} />
+                  <button onClick={sendPO} disabled={!!(poEmailMsg && poEmailMsg.sending)} style={{ ...btnBlue, background: (poEmailMsg && poEmailMsg.sending) ? N.mutedLite : N.blue }}>{poEmailMsg && poEmailMsg.sending ? "Sending…" : "Email PO"}</button>
+                  {poEmailMsg && poEmailMsg.ok && <span style={{ fontSize: 12, color: N.green, fontWeight: 600 }}>✓ Sent to {poEmailMsg.ok}</span>}
+                  {poEmailMsg && poEmailMsg.err && <span style={{ fontSize: 12, color: N.red }}>{poEmailMsg.err}</span>}
+                </div>
+              )}
+
+              <div className="no-print" style={{ padding: "14px 22px", borderTop: "1px solid " + N.rule, background: "#f7fafd", display: "flex", gap: 8, justifyContent: "flex-end", alignItems: "center", flexWrap: "wrap" }}>
+                <span style={{ marginRight: "auto", fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: STATUS_COLOR[openInv.status] || N.muted }}>{openInv.status}</span>
+                <button onClick={() => window.print()} style={{ ...btnBlue, background: N.blue }}>Print / Save PDF</button>
+                {isPo ? (
+                  <>
+                    <button onClick={() => { const v = openInv; setOpenInv(null); editOrder(v); }} style={btnPaper(N.muted)}>Edit</button>
+                    <button onClick={() => { const v = openInv; setOpenInv(null); convertToInvoice(v); }} style={{ ...btnBlue, background: N.blue }}>Convert to invoice →</button>
+                    <button onClick={() => { const id = openInv.id; setOpenInv(null); deleteOrder(id); }} style={btnPaper(N.pinkDark)}>Delete</button>
+                  </>
+                ) : (
+                  <>
+                    {openInv.status !== "Void" && <button onClick={() => sendInvoice(openInv)} style={{ ...btnBlue, background: N.blue }}>{openInv.status === "Draft" ? "Send · get link" : "Copy / resend link"}</button>}
+                    {openInv.status !== "Paid" && openInv.status !== "Void" && <button onClick={() => quickMarkPaid(openInv)} style={{ ...btnBlue, background: N.pinkDark }}>Mark paid</button>}
+                    {openInv.status !== "Paid" && openInv.status !== "Void" && <button onClick={() => openPayment(openInv)} style={btnPaper(N.pinkDark)}>Partial / check…</button>}
+                    {openInv.status === "Paid" && (openInv.payments || []).length === 0 && <button onClick={() => { invoiceStatus(openInv.id, "sent"); setOpenInv(null); }} style={btnPaper(N.muted)}>Unmark paid</button>}
+                    {(openInv.status === "Sent" || openInv.status === "Viewed") && <button onClick={() => { invoiceStatus(openInv.id, "draft"); setOpenInv(null); }} style={btnPaper(N.muted)}>← Back to draft</button>}
+                    {openInv.status !== "Void" && <button onClick={() => voidInvoice(openInv)} style={btnPaper(N.muted)}>Void</button>}
+                    <button onClick={() => deleteInvoice(openInv)} style={btnPaper(N.pinkDark)}>Delete</button>
+                  </>
+                )}
+                <button onClick={() => setOpenInv(null)} style={btnPaper(N.muted)}>Close</button>
+              </div>
+            </div>
+          </div>
+    );
   }
 
   async function sendCampaign() {
@@ -1629,7 +1836,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               </div>
               <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: STATUS_COLOR[v.status] || N.muted, background: (STATUS_COLOR[v.status] || N.muted) + "18", padding: "4px 10px", borderRadius: 100 }}>{v.status}</span>
               <div style={{ display: "flex", gap: 6 }}>
-                {v.status === "Draft" && <button onClick={e => { e.stopPropagation(); invoiceStatus(v.id, "sent"); }} style={btnPaper(N.blue)}>Send</button>}
+                {v.status !== "Paid" && !voided && <button onClick={e => { e.stopPropagation(); sendInvoice(v); }} style={btnPaper(N.blue)}>{v.status === "Draft" ? "Send" : "Resend"}</button>}
                 {(v.status === "Sent" || v.status === "Viewed") && <button onClick={e => { e.stopPropagation(); invoiceStatus(v.id, "draft"); }} style={btnPaper(N.muted)}>← Draft</button>}
                 {v.status !== "Paid" && !voided && <button onClick={e => { e.stopPropagation(); quickMarkPaid(v); }} style={btnPaper(N.pinkDark)}>Mark paid</button>}
                 {v.status !== "Paid" && !voided && <button onClick={e => { e.stopPropagation(); openPayment(v); }} style={btnPaper(N.muted)}>Payment…</button>}
@@ -1641,158 +1848,6 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         </div>
         <div style={{ fontSize: 12, color: N.muted, marginTop: 10 }}>Click any invoice to open it. Paid by check? Just hit <b style={{ color: N.pinkDark }}>Mark paid</b>. Sent invoices show <b style={{ color: N.blue }}>Viewed</b> when the customer opens them — the status QuickBooks took away.</div>
 
-        {openInv && (() => {
-          const invLines = openInv.lines && openInv.lines.length ? openInv.lines : [{ desc: openInv.item, qty: 1, price: openInv.subtotal || openInv.amount }];
-          const cleanDesc = d => (/^QuickBooks invoice #/.test(d || "") ? "Signs & graphics" : d);
-          const taxLabel = openInv.tax === "Taxable" ? "Taxable" : openInv.tax === "Shipped" ? "Shipped out of state — no sales tax" : "Tax-exempt (reseller)";
-          const bc = (entity.customers || []).find(c => (c.name || "").toLowerCase() === (openInv.customer || "").toLowerCase()) || {};
-          const brand = entity.brandColor || N.blue;
-          const logo = entity.logoUrl;
-          const isPo = openInv.docType === "order";
-          const rateOf = l => (isPo ? (l.cost || 0) : (l.price || 0));
-          const docSub = invLines.reduce((s, l) => s + rateOf(l) * (l.qty || 1), 0);
-          return (
-          <div onClick={() => setOpenInv(null)} style={{ position: "fixed", inset: 0, background: "rgba(10,10,20,0.45)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "44px 16px", zIndex: 200, overflowY: "auto" }}>
-            <div onClick={e => e.stopPropagation()} className="print-doc" style={{ background: N.white, borderRadius: 12, width: "100%", maxWidth: 640, boxShadow: "0 24px 70px rgba(10,10,20,0.35)", overflow: "hidden" }}>
-              {/* The invoice document */}
-              <div style={{ padding: "34px 40px 26px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 20, marginBottom: 28 }}>
-                  <div>
-                    {logo ? <img src={logo} alt={entity.name} style={{ maxHeight: 56, maxWidth: 280, display: "block", marginBottom: 4 }} /> : <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>{entity.name}</div>}
-                    <div style={{ fontSize: 12, color: N.muted, marginTop: 3 }}>Minnesota{entity.fiscalYearEnd ? ` · fiscal year ends ${entity.fiscalYearEnd}` : ""}</div>
-                  </div>
-                  <div style={{ textAlign: "right" }}>
-                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 24, letterSpacing: "0.16em", color: brand, fontWeight: 500 }}>{isPo ? "PURCHASE ORDER" : "INVOICE"}</div>
-                    {isPo ? (openInv.poNumber && <div style={{ fontSize: 13, color: N.ink, marginTop: 5 }}>PO #{openInv.poNumber}</div>) : (openInv.number && <div style={{ fontSize: 13, color: N.ink, marginTop: 5 }}>No. {openInv.number}</div>)}
-                    <div style={{ fontSize: 12, color: N.muted, marginTop: 2 }}>Date: {openInv.date}</div>
-                  </div>
-                </div>
-
-                {isPo ? (() => {
-                  const vd = (entity.vendorList || []).find(v => (v.name || "").toLowerCase() === (openInv.vendor || "").toLowerCase()) || {};
-                  return (
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 }}>
-                    <div>
-                      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", color: N.muted, marginBottom: 4 }}>VENDOR</div>
-                      <div style={{ fontSize: 15, fontWeight: 600, color: N.ink }}>{openInv.vendor || "—"}</div>
-                      {vd.billing_address ? <div style={{ fontSize: 13, color: N.muted, whiteSpace: "pre-line" }}>{vd.billing_address}</div> : null}
-                      {vd.email ? <div style={{ fontSize: 13, color: N.muted }}>{vd.email}</div> : null}
-                      {vd.phone ? <div style={{ fontSize: 13, color: N.muted }}>{vd.phone}</div> : null}
-                    </div>
-                    <div>
-                      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", color: N.muted, marginBottom: 4 }}>SHIP TO</div>
-                      <div style={{ fontSize: 15, fontWeight: 600, color: N.ink }}>{entity.name}</div>
-                      {entity.remitAddress ? <div style={{ fontSize: 13, color: N.muted, whiteSpace: "pre-line" }}>{entity.remitAddress}</div> : null}
-                      {openInv.customer && openInv.customer !== "—" ? <div style={{ fontSize: 12, color: N.mutedLite, marginTop: 4 }}>For customer: {openInv.customer}</div> : null}
-                    </div>
-                  </div>
-                  );
-                })() : (
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 }}>
-                  <div>
-                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", color: N.muted, marginBottom: 4 }}>BILL TO</div>
-                    <div style={{ fontSize: 15, fontWeight: 600, color: N.ink }}>{openInv.customer}</div>
-                    {bc.billing_address ? <div style={{ fontSize: 13, color: N.muted, whiteSpace: "pre-line" }}>{bc.billing_address}</div> : null}
-                    {(openInv.email || bc.email) ? <div style={{ fontSize: 13, color: N.muted }}>{openInv.email || bc.email}</div> : null}
-                    {bc.phone ? <div style={{ fontSize: 13, color: N.muted }}>{bc.phone}</div> : null}
-                  </div>
-                  <div>
-                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", color: N.muted, marginBottom: 4 }}>SHIP TO</div>
-                    <div style={{ fontSize: 15, fontWeight: 600, color: N.ink }}>{openInv.customer}</div>
-                    {bc.billing_address ? <div style={{ fontSize: 13, color: N.muted, whiteSpace: "pre-line" }}>{bc.billing_address}</div> : <div style={{ fontSize: 12, color: N.mutedLite, fontStyle: "italic" }}>Same as billing</div>}
-                  </div>
-                </div>
-                )}
-
-                <div style={{ border: "1px solid " + N.rule, borderRadius: 10, overflow: "hidden", marginBottom: 16 }}>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 46px 86px 92px", gap: 8, padding: "10px 14px", background: "#f7fafd", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", color: N.muted }}>
-                    <span>DESCRIPTION</span><span style={{ textAlign: "center" }}>QTY</span><span style={{ textAlign: "right" }}>RATE</span><span style={{ textAlign: "right" }}>AMOUNT</span>
-                  </div>
-                  {invLines.map((l, i) => (
-                    <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 46px 86px 92px", gap: 8, padding: "11px 14px", borderTop: "1px solid " + N.rule, fontSize: 14, color: N.text }}>
-                      <span>{cleanDesc(l.desc)}{isPo && l.item ? <span style={{ color: N.mutedLite }}> · {l.item}</span> : null}</span>
-                      <span style={{ textAlign: "center", color: N.muted }}>{l.qty || 1}</span>
-                      <span style={{ textAlign: "right", color: N.muted }}>{money(rateOf(l))}</span>
-                      <span style={{ textAlign: "right", fontWeight: 500, color: N.ink }}>{money(rateOf(l) * (l.qty || 1))}</span>
-                    </div>
-                  ))}
-                </div>
-
-                <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                  {isPo ? (
-                  <div style={{ width: 250 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 18, fontWeight: 700, color: N.ink, padding: "9px 0 0", borderTop: "2px solid " + N.ink }}><span>PO total</span><span>{money(docSub)}</span></div>
-                    <div style={{ fontSize: 12, color: N.mutedLite, marginTop: 4 }}>What you pay the vendor for this job.</div>
-                  </div>
-                  ) : (
-                  <div style={{ width: 260 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: N.muted, padding: "3px 0" }}><span>Subtotal</span><span>{money(openInv.subtotal || openInv.amount)}</span></div>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: N.muted, padding: "3px 0" }}><span>MN sales tax{openInv.tax === "Taxable" ? " (9.25%)" : ""}</span><span>{money(openInv.taxAmt)}</span></div>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 18, fontWeight: 700, color: N.ink, padding: "9px 0 0", marginTop: 5, borderTop: "2px solid " + N.ink }}><span>Total</span><span>{money(openInv.amount)}</span></div>
-                    {(openInv.payments || []).map((p, pi) => (
-                      <div key={p.id || pi} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12, color: "#a16207", padding: "2px 0" }}>
-                        <span>{fmtPay(p)}</span>
-                        <span style={{ display: "flex", gap: 6, alignItems: "center" }}>−{money((p.amount_cents || 0) / 100)}<button className="no-print" onClick={() => deletePaymentRec(p, openInv)} title="Remove payment" style={{ border: "none", background: "none", color: N.mutedLite, cursor: "pointer", fontSize: 15, lineHeight: 1, padding: 0 }}>×</button></span>
-                      </div>
-                    ))}
-                    {(() => {
-                      const bal = openInv.balanceCents != null ? openInv.balanceCents / 100 : (openInv.status === "Paid" ? 0 : openInv.amount);
-                      const paidInFull = bal <= 0 && openInv.amount > 0;
-                      return (
-                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, marginTop: 7, paddingTop: 6, borderTop: "1px solid " + N.rule, fontWeight: 700, color: paidInFull ? N.green : N.red }}>
-                          <span>{paidInFull ? "Paid in full — thank you" : "Balance due"}</span><span>{money(bal)}</span>
-                        </div>
-                      );
-                    })()}
-                  </div>
-                  )}
-                </div>
-
-                {isPo ? (
-                <div style={{ marginTop: 22, paddingTop: 16, borderTop: "1px solid " + N.rule, fontSize: 12, color: N.muted, lineHeight: 1.6 }}>
-                  <div style={{ fontWeight: 700, color: N.text, marginBottom: 2 }}>Ship to</div>
-                  <div style={{ whiteSpace: "pre-line", color: N.text }}>{entity.remitAddress || entity.name}</div>
-                  <div style={{ marginTop: 6 }}>Please produce the items above and ship to us. Reference PO #{openInv.poNumber} on your invoice.</div>
-                </div>
-                ) : (
-                <div style={{ marginTop: 22, paddingTop: 16, borderTop: "1px solid " + N.rule, fontSize: 12, color: N.muted, lineHeight: 1.6 }}>
-                  <div style={{ fontWeight: 700, color: N.text, marginBottom: 2 }}>Payment instructions</div>
-                  <div>Please send checks to:</div>
-                  <div style={{ whiteSpace: "pre-line", color: N.text }}>{entity.remitAddress || entity.name}</div>
-                  {entity.ach && (entity.ach.routing || entity.ach.bank) ? (
-                    <div style={{ marginTop: 6 }}>Prefer to pay by bank? ACH to {entity.ach.bank || "our bank"}{entity.ach.routing ? ` · routing ${entity.ach.routing}` : ""}{entity.ach.account ? ` · account ${entity.ach.account}` : ""}. (Please cover any bank fee.){entity.ach.notify ? ` If you pay by ACH, please email ${entity.ach.notify} so we can record it.` : ""}</div>
-                  ) : null}
-                  {entity.customerNote ? <div style={{ marginTop: 10, fontStyle: "italic", color: N.text }}>{entity.customerNote}</div> : null}
-                </div>
-                )}
-              </div>
-
-              <div className="no-print" style={{ padding: "14px 22px", borderTop: "1px solid " + N.rule, background: "#f7fafd", display: "flex", gap: 8, justifyContent: "flex-end", alignItems: "center", flexWrap: "wrap" }}>
-                <span style={{ marginRight: "auto", fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: STATUS_COLOR[openInv.status] || N.muted }}>{openInv.status}</span>
-                <button onClick={() => window.print()} style={btnPaper(N.text)}>Print</button>
-                {isPo ? (
-                  <>
-                    <button onClick={() => { const v = openInv; setOpenInv(null); editOrder(v); }} style={btnPaper(N.muted)}>Edit</button>
-                    <button onClick={() => { const v = openInv; setOpenInv(null); convertToInvoice(v); }} style={{ ...btnBlue, background: N.blue }}>Convert to invoice →</button>
-                    <button onClick={() => { const id = openInv.id; setOpenInv(null); deleteOrder(id); }} style={btnPaper(N.pinkDark)}>Delete</button>
-                  </>
-                ) : (
-                  <>
-                    {openInv.status !== "Void" && <button onClick={() => sendInvoice(openInv)} style={{ ...btnBlue, background: N.blue }}>{openInv.status === "Draft" ? "Send · get link" : "Copy / resend link"}</button>}
-                    {openInv.status !== "Paid" && openInv.status !== "Void" && <button onClick={() => quickMarkPaid(openInv)} style={{ ...btnBlue, background: N.pinkDark }}>Mark paid</button>}
-                    {openInv.status !== "Paid" && openInv.status !== "Void" && <button onClick={() => openPayment(openInv)} style={btnPaper(N.pinkDark)}>Partial / check…</button>}
-                    {openInv.status === "Paid" && (openInv.payments || []).length === 0 && <button onClick={() => { invoiceStatus(openInv.id, "sent"); setOpenInv(null); }} style={btnPaper(N.muted)}>Unmark paid</button>}
-                    {(openInv.status === "Sent" || openInv.status === "Viewed") && <button onClick={() => { invoiceStatus(openInv.id, "draft"); setOpenInv(null); }} style={btnPaper(N.muted)}>← Back to draft</button>}
-                    {openInv.status !== "Void" && <button onClick={() => voidInvoice(openInv)} style={btnPaper(N.muted)}>Void</button>}
-                    <button onClick={() => deleteInvoice(openInv)} style={btnPaper(N.pinkDark)}>Delete</button>
-                  </>
-                )}
-                <button onClick={() => setOpenInv(null)} style={btnPaper(N.muted)}>Close</button>
-              </div>
-            </div>
-          </div>
-          );
-        })()}
 
         {sentLink && (
           <div onClick={() => setSentLink(null)} style={{ position: "fixed", inset: 0, background: "rgba(10,10,20,0.45)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "60px 16px", zIndex: 210 }}>
@@ -2409,13 +2464,13 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     const rows = ((isCust ? entity.customers : entity.vendorList) || []).slice().sort((a, b) => (a.name || "").localeCompare(b.name || ""));
     const title = isCust ? "Customers" : "Vendors";
     const cell = { ...inputSt };
-    const startEdit = c => { setContactEditId(c.id); setContactDraft({ name: c.name || "", company: c.company || "", email: c.email || "", phone: c.phone || "", billing_address: c.billing_address || "", tax_status: c.tax_status || "Taxable", notes: c.notes || "" }); };
+    const startEdit = c => { setContactErr(""); setContactEditId(c.id); setContactDraft({ name: c.name || "", company: c.company || "", email: c.email || "", phone: c.phone || "", billing_address: c.billing_address || "", tax_status: c.tax_status || "Taxable", notes: c.notes || "" }); };
     const Editor = (src, set, onSave, onCancel, saveLabel) => (
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
         <input placeholder="Name" value={src.name} onChange={e => set(d => ({ ...d, name: e.target.value }))} style={cell} />
         {isCust ? <input placeholder="Business name (optional)" value={src.company} onChange={e => set(d => ({ ...d, company: e.target.value }))} style={cell} /> : <div />}
-        <input placeholder="Email" value={src.email} onChange={e => set(d => ({ ...d, email: e.target.value }))} style={cell} />
-        <input placeholder="Phone" value={src.phone} onChange={e => set(d => ({ ...d, phone: e.target.value }))} style={cell} />
+        <input placeholder="Email (required)" value={src.email} onChange={e => set(d => ({ ...d, email: e.target.value }))} style={cell} />
+        <input placeholder="Phone (required)" value={src.phone} onChange={e => set(d => ({ ...d, phone: e.target.value }))} style={cell} />
         <textarea placeholder="Billing address" value={src.billing_address} onChange={e => set(d => ({ ...d, billing_address: e.target.value }))} rows={2} style={{ ...cell, gridColumn: "1 / -1", resize: "vertical" }} />
         {isCust && (
           <div style={{ gridColumn: "1 / -1", display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
@@ -2426,9 +2481,10 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             <input placeholder="Notes (optional)" value={src.notes} onChange={e => set(d => ({ ...d, notes: e.target.value }))} style={{ ...cell, flex: 1, minWidth: 160 }} />
           </div>
         )}
+        {contactErr && <div style={{ gridColumn: "1 / -1", fontSize: 12, color: N.red, fontWeight: 600 }}>{contactErr}</div>}
         <div style={{ gridColumn: "1 / -1", display: "flex", gap: 8 }}>
           <button onClick={onSave} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 16px" }}>{saveLabel}</button>
-          {onCancel && <button onClick={onCancel} style={btnPaper(N.muted)}>Cancel</button>}
+          {onCancel && <button onClick={() => { setContactErr(""); onCancel(); }} style={btnPaper(N.muted)}>Cancel</button>}
         </div>
       </div>
     );
@@ -2439,7 +2495,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>{title}</div>
             <div style={{ fontSize: 13, color: N.muted }}>{rows.length} {isCust ? "customers" : "vendors"} — {isCust ? "who you bill" : "who you buy from and send POs to"}. Click Edit to add an address, phone, or email.</div>
           </div>
-          <button onClick={() => { setShowAddContact(s => !s); setNewContact(blankContact); }} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 16px" }}>{showAddContact ? "Close" : "+ Add " + (isCust ? "customer" : "vendor")}</button>
+          <button onClick={() => { setShowAddContact(s => !s); setNewContact(blankContact); setContactErr(""); }} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 16px" }}>{showAddContact ? "Close" : "+ Add " + (isCust ? "customer" : "vendor")}</button>
         </div>
 
         {showAddContact && (
@@ -2851,6 +2907,9 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         </aside>
         )}
       </div>
+
+      {/* invoice / PO document modal — mounted once here so View / print works from any screen */}
+      {docModal()}
     </div>
   );
 }
