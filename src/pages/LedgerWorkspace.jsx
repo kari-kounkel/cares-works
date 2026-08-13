@@ -1260,7 +1260,6 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 {isPo ? (
                   <>
                     <button onClick={() => { const v = openInv; setOpenInv(null); editOrder(v); }} style={btnPaper(N.muted)}>Edit</button>
-                    {openInv.status !== "PO sent" && <button onClick={() => { const v = openInv; setOpenInv(null); markPoSent(v); }} style={{ ...btnBlue, background: N.blueDark }}>Mark PO sent</button>}
                     {openInv.customer && openInv.customer !== "—" && <button onClick={() => { const v = openInv; setOpenInv(null); convertToInvoice(v); }} style={{ ...btnBlue, background: N.blue }}>Convert to invoice →</button>}
                     <button onClick={() => { const id = openInv.id; setOpenInv(null); deleteOrder(id); }} style={btnPaper(N.pinkDark)}>Delete</button>
                   </>
@@ -1315,7 +1314,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     const Chip = ({ children, c }) => <span style={{ display: "inline-block", fontSize: 12, fontWeight: 600, color: "#fff", background: c || N.blue, borderRadius: 7, padding: "3px 9px", margin: "0 3px", whiteSpace: "nowrap" }}>{children}</span>;
     const steps = [
       { n: 1, t: "Start a job", tab: "New Orders", body: (<>Go to <Chip c={N.blueDark}>New Orders</Chip>, click <Chip>+ New order</Chip>. Pick the customer, add each item and its price. If a vendor makes it, turn on <Chip c="#334155">Add a PO to a vendor</Chip> and enter the vendor + your cost. Then <Chip>Save job →</Chip>. It waits in New Orders while you build it.</>) },
-      { n: 2, t: "Send the PO to your vendor", tab: "New Orders", body: (<>Open the job, hit <Chip c="#334155">View / print / email</Chip>, type the vendor's email and press <Chip>Email PO</Chip> — or <Chip c={N.blueDark}>Mark PO sent</Chip> if you phoned it in. It moves over to <Chip c={N.blueDark}>Purchase Orders</Chip>.</>) },
+      { n: 2, t: "Send the PO to your vendor", tab: "New Orders", body: (<>Open the job, hit <Chip c="#334155">View / print / email</Chip>, type the vendor's email and press <Chip>Email PO</Chip>. Once it sends, the PO moves over to <Chip c={N.blueDark}>Purchase Orders</Chip>.</>) },
       { n: 3, t: "Bill the customer when it's done", tab: "New Orders", body: (<>Open the job and click <Chip>Convert to invoice →</Chip>. Now it's a real invoice with a number.</>) },
       { n: 4, t: "Send the invoice", tab: "Invoices", body: (<>Go to <Chip c={N.blueDark}>Invoices</Chip>, click <Chip>Send</Chip>. It emails the customer and gives you a link — you'll see <b style={{ color: N.blue }}>Viewed</b> when they open it.</>) },
       { n: 5, t: "Get paid", tab: "Invoices", body: (<>When the money's in, open the invoice → <Chip c={N.pinkDark}>Mark paid</Chip>. Taking a deposit up front? <Chip c={N.pinkDark}>Down payment / partial…</Chip>. Customer overpaid? <Chip c="#64748b">Overpaid…</Chip> → refund a check or keep it as their credit.</>) },
@@ -1436,10 +1435,6 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   async function deleteOrder(id) {
     if (!window.confirm("Delete this order? This can't be undone.")) return;
     if (live) { await supabase.from("invoices").delete().eq("id", id); setReloadTick(t => t + 1); }
-  }
-  // Mark a PO sent to the vendor — it then shows on the Purchase Orders screen.
-  async function markPoSent(v) {
-    if (live && liveOrgId) { await supabase.from("invoices").update({ status: "po_sent" }).eq("id", v.id); setReloadTick(t => t + 1); }
   }
 
   async function voidInvoice(v) {
@@ -2228,7 +2223,6 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               {v.poNumber && v.status === "PO sent" && <span style={{ fontSize: 10, fontWeight: 700, color: N.blueDark, background: "#eef6ff", border: "1px solid #cfe4ff", borderRadius: 100, padding: "3px 9px", letterSpacing: "0.04em" }}>PO SENT</span>}
               <button onClick={() => editOrder(v)} style={btnPaper(N.muted)}>Edit</button>
               <button onClick={() => setOpenInv(v)} style={btnPaper(N.text)}>View / print / email</button>
-              {v.poNumber && v.status !== "PO sent" && <button onClick={() => markPoSent(v)} title="Mark the PO sent to the vendor (moves it to Purchase Orders)" style={{ ...btnBlue, background: N.blueDark }}>Mark PO sent</button>}
               {v.customer && v.customer !== "—" && <button onClick={() => convertToInvoice(v)} style={{ ...btnBlue, background: N.blue }}>Convert to invoice →</button>}
               <button onClick={() => deleteOrder(v.id)} title="Delete order" style={{ border: "1px solid " + N.rule, background: "none", color: N.muted, cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontSize: 12, fontWeight: 600, borderRadius: 100, padding: "6px 12px" }}>Delete</button>
             </div>
