@@ -380,8 +380,9 @@ function fmtPay(p) {
 
 export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, session }) {
   const [dbEntity, setDbEntity] = useState(null);
+  const [testMode, setTestMode] = useState(false); // sandbox: show real data but block every save
   const entity = dbEntity || propEntity || ENTITIES[entityKey] || SAMPLE_ENTITY;
-  const live = !!dbEntity;
+  const live = !!dbEntity && !testMode; // test mode makes every write a no-op
   // Accounts available for the "Pymt by" picker and card payments. Live has real ids; sample uses names.
   // Always ordered: banks first, then cards, then loans/etc — and alphabetical within each type.
   const ACCT_TYPE_ORDER = { bank: 0, credit_card: 1, loan: 2, cash: 3, other: 4 };
@@ -454,7 +455,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [newContact, setNewContact] = useState(blankContact);
   const [contactErr, setContactErr] = useState("");
   const [invoices, setInvoices] = useState(entity.invoices || []);
-  const [liveOrgId, setLiveOrgId] = useState(null);
+  const [liveOrgIdState, setLiveOrgId] = useState(null);
+  const liveOrgId = testMode ? null : liveOrgIdState; // null in test mode → all writes bail out
   const [reloadTick, setReloadTick] = useState(0);
   const [showInvForm, setShowInvForm] = useState(false);
   const [openInv, setOpenInv] = useState(null);
@@ -492,6 +494,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
 
   // Go live when someone's logged in: load their ProGraphics ledger org from Supabase.
   useEffect(() => {
+    if (testMode) return; // freeze the loaded data while sandboxing — no refetch to wipe their play
     const uid = session?.user?.id;
     if (!uid) { setDbEntity(null); return; }
     let cancelled = false;
@@ -538,7 +541,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       setDbEntity(built);
     })();
     return () => { cancelled = true; };
-  }, [session?.user?.id, entityKey, orgId, reloadTick]);
+  }, [session?.user?.id, entityKey, orgId, reloadTick, testMode]);
 
   // Keep the notebook + invoices in sync when the data source changes (sample → live, or after a write).
   useEffect(() => { setItems(entity.notebook); setCleared([]); setInvoices(entity.invoices || []); }, [entity]);
@@ -1060,6 +1063,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   // One-click send via the send-invoice-email Edge Function (Resend behind it).
   async function emailInvoiceNow() {
     if (!sentLink || !sentLink.invoiceId) return;
+    if (testMode) { setEmailState({ ok: "nobody — test mode, not really sent" }); return; }
     setEmailState("sending");
     try {
       const { data, error } = await supabase.functions.invoke("send-invoice-email", {
@@ -1086,6 +1090,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     if (!openInv) return;
     const to = (poEmailTo || "").trim();
     if (!to || !/.+@.+\..+/.test(to)) { setPoEmailMsg({ err: "Type the vendor's email address first." }); return; }
+    if (testMode) { setPoEmailMsg({ ok: "nobody — test mode, not really sent" }); return; }
     setPoEmailMsg({ sending: true });
     try {
       if (live && liveOrgId && openInv.vendor) {
@@ -1397,6 +1402,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   }
 
   async function sendCampaign() {
+    if (testMode) { setCampaignResult({ err: "Test mode — nothing was sent." }); return; }
     if (!liveOrgId || !campaign.subject.trim() || !campaign.body.trim()) return;
     if (!window.confirm("Send this to every customer with an email on file? It goes out for real.")) return;
     setCampaignBusy(true); setCampaignResult(null);
@@ -3174,6 +3180,13 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               : <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: N.ink, whiteSpace: "nowrap" }}>{entity.short}</span>}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          {dbEntity && (
+            <button onClick={() => { if (testMode) { setTestMode(false); } else { if (window.confirm("Turn on Test mode? Show your real numbers but NOTHING you do will be saved — great for letting Dave & Betty poke around. Turn it off to go back to the real thing.")) setTestMode(true); } }}
+              title={testMode ? "Exit test mode — back to your real, saved data" : "Play around safely — nothing saves"}
+              style={{ display: "flex", alignItems: "center", gap: 6, background: testMode ? "#eab308" : "none", border: "1px solid " + (testMode ? "#eab308" : N.rule), color: testMode ? "#fff" : N.muted, borderRadius: 100, padding: "6px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "'Figtree', sans-serif", whiteSpace: "nowrap" }}>
+              🧪 {testMode ? "Exit test mode" : "Test mode"}
+            </button>
+          )}
           <div style={{ position: "relative" }}>
             <button onClick={() => setWhatsNew(w => !w)} style={{ display: "flex", alignItems: "center", gap: 6, background: "#eef6ff", border: "1px solid #cfe4ff", color: N.blueDark, borderRadius: 100, padding: "6px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'Figtree', sans-serif", whiteSpace: "nowrap" }}>
               <Ico name="sparkle" size={14} /> Updated {latestUpdate}
@@ -3246,6 +3259,13 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           ))}
         </div>
       </header>
+
+      {testMode && (
+        <div className="no-print" style={{ background: "#eab308", color: "#fff", textAlign: "center", fontSize: 13, fontWeight: 700, padding: "7px 16px", letterSpacing: "0.02em", display: "flex", alignItems: "center", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
+          🧪 TEST MODE — this is your real data to explore, but nothing you do here is saved.
+          <button onClick={() => setTestMode(false)} style={{ background: "#fff", color: "#8a5a00", border: "none", borderRadius: 100, padding: "3px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "'Figtree', sans-serif" }}>Exit test mode</button>
+        </div>
+      )}
 
       {/* Body: nav + work area */}
       <div style={{ display: "flex", alignItems: "flex-start", maxWidth: 1180, margin: "0 auto" }}>
