@@ -418,6 +418,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [wide, setWide] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [invSort, setInvSort] = useState("status"); // Invoices list sort
+  const [poSort, setPoSort] = useState("vendor");    // Purchase Orders list sort
   const payeeRef = useRef(null);
   const amountRef = useRef(null);
   const blankAcct = { name: "", account_type: "bank", last_four: "", opening: "" };
@@ -1938,7 +1940,16 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       <div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, flexWrap: "wrap", gap: 10 }}>
           <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>Invoices</div>
-          <button onClick={() => setShowInvForm(s => !s)} style={{ ...btnBlue, fontSize: 14, padding: "10px 18px", background: N.blue, boxShadow: "0 4px 14px rgba(0,128,255,0.4)" }}>{showInvForm ? "Close" : "+ New invoice"}</button>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 12, color: N.muted }}>Sort</span>
+            <select value={invSort} onChange={e => setInvSort(e.target.value)} style={{ ...inputSt, width: 170 }}>
+              <option value="status">Open first</option>
+              <option value="customer">Customer (A–Z)</option>
+              <option value="date">Newest first</option>
+              <option value="amount">Amount (high–low)</option>
+            </select>
+            <button onClick={() => setShowInvForm(s => !s)} style={{ ...btnBlue, fontSize: 14, padding: "10px 18px", background: N.blue, boxShadow: "0 4px 14px rgba(0,128,255,0.4)" }}>{showInvForm ? "Close" : "+ New invoice"}</button>
+          </div>
         </div>
 
         {showInvForm && (
@@ -1987,7 +1998,13 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, overflow: "hidden" }}>
           {invoices.length === 0 ? (
             <div style={{ padding: "30px 20px", textAlign: "center", color: N.muted, fontSize: 14 }}>No invoices yet. Click “New invoice” to make the first one.</div>
-          ) : invoices.filter(v => v.docType !== "order").sort((a, b) => ((a.status === "Void" ? 2 : a.status === "Paid" ? 1 : 0) - (b.status === "Void" ? 2 : b.status === "Paid" ? 1 : 0)) || (a.customer || "").localeCompare(b.customer || "")).map((v, i) => {
+          ) : invoices.filter(v => v.docType !== "order").sort((a, b) => {
+            if (invSort === "customer") return (a.customer || "").localeCompare(b.customer || "") || (b.issueDate || "").localeCompare(a.issueDate || "");
+            if (invSort === "date") return (b.issueDate || "").localeCompare(a.issueDate || "");
+            if (invSort === "amount") return (b.amount || 0) - (a.amount || 0);
+            // "status" (default): open first, then paid, then void — then by customer
+            return ((a.status === "Void" ? 2 : a.status === "Paid" ? 1 : 0) - (b.status === "Void" ? 2 : b.status === "Paid" ? 1 : 0)) || (a.customer || "").localeCompare(b.customer || "");
+          }).map((v, i) => {
             const voided = v.status === "Void";
             return (
             <div key={v.id} onClick={() => setOpenInv(v)} title="Open invoice"
@@ -2224,8 +2241,12 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
 
   // Dave's purchase orders — the ones out to vendors. Its own screen so he can find them.
   function PurchaseOrders() {
-    const pos = invoices.filter(v => v.docType === "order" && v.status === "PO sent");
     const newPO = () => { setEditingOrder(null); setOrderDraft({ ...blankOrder, mode: "po" }); setShowOrderForm(true); setSection("orders"); };
+    const pos = invoices.filter(v => v.docType === "order" && v.status === "PO sent").slice().sort((a, b) => {
+      if (poSort === "po") return (a.poNumber || "").localeCompare(b.poNumber || "", undefined, { numeric: true });
+      if (poSort === "date") return (b.issueDate || "").localeCompare(a.issueDate || "");
+      return (a.vendor || "~").localeCompare(b.vendor || "~") || (a.poNumber || "").localeCompare(b.poNumber || "", undefined, { numeric: true });
+    });
     return (
       <div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, flexWrap: "wrap", gap: 10 }}>
@@ -2233,7 +2254,15 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>Purchase Orders</div>
             <div style={{ fontSize: 13, color: N.muted }}>Orders out to your vendors — mostly Dave's. Email or print one, then convert it to an invoice when the job's made.</div>
           </div>
-          <button onClick={newPO} style={{ ...btnBlue, background: N.blue, fontSize: 14, padding: "10px 18px" }}>+ New purchase order</button>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 12, color: N.muted }}>Sort</span>
+            <select value={poSort} onChange={e => setPoSort(e.target.value)} style={{ ...inputSt, width: 150 }}>
+              <option value="vendor">Vendor (A–Z)</option>
+              <option value="po">PO number</option>
+              <option value="date">Newest first</option>
+            </select>
+            <button onClick={newPO} style={{ ...btnBlue, background: N.blue, fontSize: 14, padding: "10px 18px" }}>+ New purchase order</button>
+          </div>
         </div>
         <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, overflow: "hidden" }}>
           {pos.length === 0 ? (
