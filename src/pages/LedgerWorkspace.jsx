@@ -418,6 +418,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [reconTarget, setReconTarget] = useState("");
   const [reconOpen, setReconOpen] = useState(false);
   const [reconChecked, setReconChecked] = useState({});
+  const blankReconAdd = { amount: "", dir: "out", category: "", memo: "" };
+  const [reconAdd, setReconAdd] = useState(blankReconAdd);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [wide, setWide] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
@@ -591,10 +593,26 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   // drops them out of the "to match" notebook.
   async function finishReconcile(ids) {
     if (!ids || ids.length === 0) { setReconOpen(false); return; }
-    setReconOpen(false); setReconChecked({});
+    setReconOpen(false); setReconChecked({}); setReconAdd(blankReconAdd);
     const idset = new Set(ids);
     setItems(prev => prev.filter(x => !idset.has(x.id)));
     if (live) { await supabase.from("ledger_entries").update({ match_status: "reconciled", cleared_confirmed: true }).in("id", ids); setReloadTick(t => t + 1); }
+  }
+  // Add a line (deposit / check / bank fee / interest) that's on the statement but not yet in
+  // the books, right from the reconcile screen. It becomes a notebook line on that account and
+  // is auto-checked into this reconciliation.
+  async function addReconLine(acctId) {
+    const cents = Math.round((parseFloat(reconAdd.amount) || 0) * 100);
+    if (!cents || !acctId || !liveOrgId) return;
+    const { data } = await supabase.from("ledger_entries").insert({
+      org_id: liveOrgId, user_id: session.user.id, entry_date: new Date().toISOString().slice(0, 10),
+      direction: reconAdd.dir === "in" ? "in" : "out", amount_cents: cents,
+      description: reconAdd.memo.trim() || (reconAdd.dir === "in" ? "Deposit" : "Payment"),
+      category: reconAdd.category || null, account_id: acctId, match_status: null,
+    }).select("id").single();
+    if (data) setReconChecked(p => ({ ...p, [data.id]: true })); // pre-checked — it's on the statement
+    setReconAdd(blankReconAdd);
+    setReloadTick(t => t + 1);
   }
 
   // Add a brand-new account to the chart on the fly (from the "which account?"
@@ -2123,6 +2141,26 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   <Col title="Money in — deposits" rows={moneyIn} color="#3a7d4a" />
                   <Col title="Money out — checks & payments" rows={moneyOut} color={N.red} />
                 </div>
+                {(() => {
+                  const presets = [["Deposit", { dir: "in", category: "", memo: "" }], ["Check / payment", { dir: "out", category: "", memo: "" }], ["Bank fee", { dir: "out", category: "Bank charges", memo: "Bank service charge" }], ["Interest", { dir: "in", category: "Interest income", memo: "Interest earned" }]];
+                  const activeIdx = presets.findIndex(([, p]) => p.dir === reconAdd.dir && (p.category || "") === (reconAdd.category || ""));
+                  return (
+                  <div style={{ border: "1px solid " + N.rule, borderRadius: 10, padding: "12px 14px", marginBottom: 16, background: "#fbfdff" }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: N.muted, marginBottom: 8 }}>On the statement but not in your books? Add it here — it gets an R automatically.</div>
+                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
+                      {presets.map(([lbl, p], k) => (
+                        <button key={lbl} onClick={() => setReconAdd(d => ({ ...d, ...p }))} style={{ fontSize: 12, fontWeight: 600, padding: "5px 11px", borderRadius: 100, cursor: "pointer", fontFamily: "'Figtree', sans-serif", border: "1px solid " + (activeIdx === k ? N.blue : N.rule), background: activeIdx === k ? N.blue : N.white, color: activeIdx === k ? "#fff" : N.text }}>{lbl}</button>
+                      ))}
+                    </div>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                      <input value={reconAdd.amount} onChange={e => setReconAdd(d => ({ ...d, amount: e.target.value }))} placeholder="$ amount" inputMode="decimal" style={{ ...inputSt, width: 120 }} />
+                      <input value={reconAdd.memo} onChange={e => setReconAdd(d => ({ ...d, memo: e.target.value }))} placeholder="Description (e.g. check #, who)" style={{ ...inputSt, flex: 1, minWidth: 180 }} />
+                      <span style={{ fontSize: 12, fontWeight: 700, color: reconAdd.dir === "in" ? "#3a7d4a" : N.red }}>{reconAdd.dir === "in" ? "+ money in" : "− money out"}</span>
+                      <button onClick={() => addReconLine(acctId)} disabled={!(parseFloat(reconAdd.amount) > 0)} style={{ ...btnBlue, background: (parseFloat(reconAdd.amount) > 0) ? N.blue : N.mutedLite }}>Add</button>
+                    </div>
+                  </div>
+                  );
+                })()}
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, background: ok ? "#eafaf0" : "#f7fafd", border: "1px solid " + (ok ? "#bff0d3" : N.rule), borderRadius: 12, padding: "12px 16px" }}>
                   <div style={{ fontSize: 13, color: N.muted }}>Beginning <b style={{ color: N.ink }}>{money(beginning / 100)}</b> + {checkedIds.length} checked = <b style={{ color: N.ink }}>{money(clearedBal / 100)}</b>{diff != null && (ok ? <b style={{ color: N.pinkDark, marginLeft: 10 }}>✓ Reconciled — difference $0.00</b> : <span style={{ marginLeft: 10, color: "#8a5a00" }}>Difference <b>{money(diff / 100)}</b></span>)}</div>
                   <div style={{ display: "flex", gap: 8 }}>
