@@ -25,7 +25,8 @@ export default function InvoicePublic({ token }) {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const { data, error } = await supabase.rpc("get_invoice_public", { p_token: token });
+      const preview = typeof window !== "undefined" && /[?&]preview=1/.test(window.location.search);
+      const { data, error } = await supabase.rpc("get_invoice_public", { p_token: token, p_preview: preview });
       if (cancelled) return;
       if (error || !data) { setState("notfound"); return; }
       setInv(data); setState("ok");
@@ -64,12 +65,20 @@ export default function InvoicePublic({ token }) {
               </div>
             </div>
 
-            <div style={{ marginBottom: 22 }}>
-              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", color: MUTED, marginBottom: 4 }}>BILL TO</div>
-              <div style={{ fontSize: 16, fontWeight: 600 }}>{inv.customer_name}</div>
-              {inv.bill_address ? <div style={{ fontSize: 13, color: MUTED, whiteSpace: "pre-line" }}>{inv.bill_address}</div> : null}
-              {inv.customer_email ? <div style={{ fontSize: 13, color: MUTED }}>{inv.customer_email}</div> : null}
-              {inv.bill_phone ? <div style={{ fontSize: 13, color: MUTED }}>{inv.bill_phone}</div> : null}
+            <div style={{ display: "flex", gap: 40, flexWrap: "wrap", marginBottom: 22 }}>
+              <div>
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", color: MUTED, marginBottom: 4 }}>BILL TO</div>
+                <div style={{ fontSize: 16, fontWeight: 600 }}>{inv.customer_name}</div>
+                {inv.bill_address ? <div style={{ fontSize: 13, color: MUTED, whiteSpace: "pre-line" }}>{inv.bill_address}</div> : null}
+                {inv.customer_email ? <div style={{ fontSize: 13, color: MUTED }}>{inv.customer_email}</div> : null}
+                {inv.bill_phone ? <div style={{ fontSize: 13, color: MUTED }}>{inv.bill_phone}</div> : null}
+              </div>
+              {inv.ship_address ? (
+                <div>
+                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", color: MUTED, marginBottom: 4 }}>SHIP TO</div>
+                  <div style={{ fontSize: 13, color: INK, whiteSpace: "pre-line" }}>{inv.ship_address}</div>
+                </div>
+              ) : null}
             </div>
 
             <div style={{ border: "1px solid " + RULE, borderRadius: 10, overflow: "hidden", marginBottom: 16 }}>

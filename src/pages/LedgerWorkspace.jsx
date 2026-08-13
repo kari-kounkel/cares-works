@@ -348,6 +348,7 @@ function mapInvoice(v) {
     status: v.status === "in_progress" ? "In progress" : v.status === "po_sent" ? "PO sent" : cap(v.status),
     date: d ? d.toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "",
     issueDate: v.issue_date || "",
+    shipAddress: v.ship_address || "",
     createdAt: v.created_at || "", sentAt: v.sent_at || "", viewedAt: v.viewed_at || "", paidAt: v.paid_at || "",
   };
 }
@@ -476,7 +477,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [overpayFor, setOverpayFor] = useState(null); // invoice being resolved for an overpayment
   const [overpayAmt, setOverpayAmt] = useState("");
   const [showOrderForm, setShowOrderForm] = useState(false);
-  const blankOrder = { mode: "invoice", date: "", customer: "", vendor: "", email: "", taxStatus: "Exempt", lines: [{ item: "", desc: "", qty: "1", cost: "", price: "" }] };
+  const blankOrder = { mode: "invoice", date: "", customer: "", vendor: "", email: "", ship: "", taxStatus: "Exempt", lines: [{ item: "", desc: "", qty: "1", cost: "", price: "" }] };
   const [orderDraft, setOrderDraft] = useState(blankOrder);
   const [editingOrder, setEditingOrder] = useState(null);
   const [showBillForm, setShowBillForm] = useState(false);
@@ -491,7 +492,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [checkOffX, setCheckOffX] = useState(() => { try { return parseFloat(localStorage.getItem("cw_checkAlignX")) || 0; } catch (e) { return 0; } }); // inches, printer alignment nudge (remembered)
   const [checkOffY, setCheckOffY] = useState(() => { try { return parseFloat(localStorage.getItem("cw_checkAlignY")) || 0; } catch (e) { return 0; } });
   useEffect(() => { try { localStorage.setItem("cw_checkAlignX", String(checkOffX)); localStorage.setItem("cw_checkAlignY", String(checkOffY)); } catch (e) { /* storage may be blocked */ } }, [checkOffX, checkOffY]);
-  const blankInvoice = { customer: "", email: "", taxStatus: "Exempt", lines: [{ desc: "", qty: "1", price: "" }] };
+  const blankInvoice = { customer: "", email: "", ship: "", taxStatus: "Exempt", lines: [{ desc: "", qty: "1", price: "" }] };
   const [invDraft, setInvDraft] = useState(blankInvoice);
 
   const latestUpdate = entity.changelog?.[0]?.date || "";
@@ -901,6 +902,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       const { data: newInv } = await supabase.from("invoices").insert({
         org_id: liveOrgId, user_id: session.user.id, invoice_number: String(num),
         customer_name: draft.customer.trim(), customer_email: draft.email.trim() || null,
+        ship_address: (draft.ship || "").trim() || null,
         line_items: lines.map(l => ({ desc: l.desc.trim(), qty: parseInt(l.qty) || 1, price: parseFloat(l.price) || 0 })),
         tax_status: draft.taxStatus, subtotal_cents: subtotal, tax_cents: tax, total_cents: total, status: "draft",
       }).select("id").single();
@@ -1082,6 +1084,13 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     setOpenInv(null);
   }
 
+  // Open the invoice's online page directly (preview mode — doesn't mark it viewed),
+  // so nobody has to copy a link just to look at it.
+  function openOnline(v) {
+    if (!v || !v.token) { window.alert("This invoice doesn't have a share link yet — it'll get one when it's first sent."); return; }
+    window.open(window.location.origin + "/i/" + v.token + "?preview=1", "_blank", "noopener");
+  }
+
   // One-click send via the send-invoice-email Edge Function (Resend behind it).
   async function emailInvoiceNow() {
     if (!sentLink || !sentLink.invoiceId) return;
@@ -1241,8 +1250,12 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   </div>
                   <div>
                     <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", color: N.muted, marginBottom: 4 }}>SHIP TO</div>
-                    <div style={{ fontSize: 15, fontWeight: 600, color: N.ink }}>{openInv.customer}</div>
-                    {bc.billing_address ? <div style={{ fontSize: 13, color: N.muted, whiteSpace: "pre-line" }}>{bc.billing_address}</div> : <div style={{ fontSize: 12, color: N.mutedLite, fontStyle: "italic" }}>Same as billing</div>}
+                    {openInv.shipAddress ? (
+                      <div style={{ fontSize: 13, color: N.ink, whiteSpace: "pre-line" }}>{openInv.shipAddress}</div>
+                    ) : (<>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: N.ink }}>{openInv.customer}</div>
+                      {bc.billing_address ? <div style={{ fontSize: 13, color: N.muted, whiteSpace: "pre-line" }}>{bc.billing_address}</div> : <div style={{ fontSize: 12, color: N.mutedLite, fontStyle: "italic" }}>Same as billing</div>}
+                    </>)}
                   </div>
                 </div>
                 )}
@@ -1368,6 +1381,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 ) : (
                   <>
                     {openInv.status !== "Void" && <button onClick={() => { const v = openInv; setOpenInv(null); editOrder(v); }} style={btnPaper(N.muted)}>Edit</button>}
+                    <button onClick={() => openOnline(openInv)} style={btnPaper(N.blueDark)}>👁 Open online</button>
                     {openInv.status !== "In progress" && openInv.status !== "Paid" && openInv.status !== "Void" && <button onClick={() => { invoiceStatus(openInv.id, "in_progress"); setOpenInv(null); }} style={btnPaper("#8a5a00")}>Mark in progress</button>}
                     {openInv.status === "In progress" && <button onClick={() => { invoiceStatus(openInv.id, "draft"); setOpenInv(null); }} style={btnPaper(N.blue)}>Done building</button>}
                     {openInv.status !== "Void" && <button onClick={() => sendInvoice(openInv)} style={{ ...btnBlue, background: N.blue }}>{openInv.status === "Draft" ? "Send · get link" : "Copy / resend link"}</button>}
@@ -1522,6 +1536,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         tax_status: draft.taxStatus, subtotal_cents: subtotal, tax_cents: tax, total_cents: total,
       };
       if (draft.date) fields.issue_date = draft.date;
+      fields.ship_address = (draft.ship || "").trim() || null;
       if (asPo) fields.vendor_name = draft.vendor.trim() || null;
       if (editing) {
         await supabase.from("invoices").update(fields).eq("id", editing.id);
@@ -1568,7 +1583,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     setOrderDraft({
       mode: v.poNumber ? "po" : "invoice",
       date: v.issueDate || "",
-      customer: v.customer === "—" ? "" : v.customer, vendor: v.vendor || "", email: v.email || "",
+      customer: v.customer === "—" ? "" : v.customer, vendor: v.vendor || "", email: v.email || "", ship: v.shipAddress || "",
       taxStatus: v.tax || "Exempt",
       lines: (v.lines && v.lines.length ? v.lines : [{}]).map(l => ({
         item: l.item || "", desc: l.desc || "", qty: String(l.qty || 1),
@@ -2125,6 +2140,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               </div>
               <input placeholder="Customer email (optional)" value={invDraft.email} onChange={e => setInvDraft(d => ({ ...d, email: e.target.value }))} style={inputSt} />
             </div>
+            <textarea placeholder="Ship to (only if different from the customer's address)" value={invDraft.ship} onChange={e => setInvDraft(d => ({ ...d, ship: e.target.value }))} rows={2} style={{ ...inputSt, resize: "vertical", marginBottom: 12 }} />
             {invDraft.lines.map((l, i) => (
               <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 56px 96px 26px", gap: 8, marginBottom: 8 }}>
                 <div style={{ position: "relative" }}>
@@ -2187,6 +2203,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               </div>
               <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: STATUS_COLOR[v.status] || N.muted, background: (STATUS_COLOR[v.status] || N.muted) + "18", padding: "4px 10px", borderRadius: 100 }}>{v.status}</span>
               <div style={{ display: "flex", gap: 6 }}>
+                {!voided && <button onClick={e => { e.stopPropagation(); openOnline(v); }} title="Open the invoice online — no copying links" style={btnPaper(N.blueDark)}>👁 Open</button>}
                 {!voided && <button onClick={e => { e.stopPropagation(); editOrder(v); }} style={btnPaper(N.muted)}>Edit</button>}
                 {v.status !== "Paid" && !voided && <button onClick={e => { e.stopPropagation(); sendInvoice(v); }} style={btnPaper(N.blue)}>{v.status === "Draft" ? "Send" : "Resend"}</button>}
                 {(v.status === "Sent" || v.status === "Viewed") && <button onClick={e => { e.stopPropagation(); invoiceStatus(v.id, "draft"); }} style={btnPaper(N.muted)}>← Draft</button>}
@@ -2337,6 +2354,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               </div>
               )}
             </div>
+            <textarea placeholder="Ship to (only if different from the customer's address)" value={orderDraft.ship} onChange={e => setOrderDraft(d => ({ ...d, ship: e.target.value }))} rows={2} style={{ ...inputSt, resize: "vertical", marginBottom: 12 }} />
             <div style={{ display: "grid", gridTemplateColumns: cols, gap: 8, marginBottom: 4, fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", color: N.muted }}>
               <span>ITEM</span><span>DESCRIPTION (for reorders)</span><span style={{ textAlign: "center" }}>QTY</span>
               {poMode && <span style={{ textAlign: "right", color: N.blueDark }}>COST → PO</span>}
