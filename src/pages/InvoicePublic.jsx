@@ -59,7 +59,7 @@ export default function InvoicePublic({ token }) {
               </div>
               <div style={{ textAlign: "right" }}>
                 <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 26, letterSpacing: "0.16em", color: brand, fontWeight: 500 }}>INVOICE</div>
-                {inv.invoice_number ? <div style={{ fontSize: 13, marginTop: 5 }}>No. {inv.invoice_number}</div> : null}
+                {inv.invoice_number ? <div style={{ fontSize: 13, marginTop: 5 }}>No. {inv.invoice_number}{inv.revised ? <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", color: "#8a5a00", background: "#fdf5e3", border: "1px solid #f0d89a", borderRadius: 5, padding: "1px 6px", marginLeft: 7 }}>REVISED</span> : null}</div> : null}
                 <div style={{ fontSize: 12, color: MUTED, marginTop: 2 }}>Date: {fmtDate(inv.issue_date)}</div>
               </div>
             </div>
