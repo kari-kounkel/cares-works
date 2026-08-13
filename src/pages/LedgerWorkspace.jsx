@@ -420,6 +420,10 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [wide, setWide] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [helpWho, setHelpWho] = useState("dave"); // which guide: dave | betty
+  const isBetty = (session?.user?.email || "").toLowerCase().includes("races61");
+  const [recentIds, setRecentIds] = useState([]); // just-entered rows, pinned to the top until cleared
+  const markRecent = id => { if (id) setRecentIds(p => [id, ...p.filter(x => x !== id)].slice(0, 12)); };
   const [invSort, setInvSort] = useState("status"); // Invoices list sort
   const [poSort, setPoSort] = useState("vendor");    // Purchase Orders list sort
   const [logoBusy, setLogoBusy] = useState(false);
@@ -695,12 +699,13 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     setAddedCount(c => c + 1);
     if (payeeRef.current) payeeRef.current.focus();
     if (live && liveOrgId) {
-      await supabase.from("ledger_entries").insert({
+      const { data: newLine } = await supabase.from("ledger_entries").insert({
         org_id: liveOrgId, user_id: session.user.id,
         entry_date: draft.date, amount_cents: cents, direction: draft.direction,
         description: draft.payee.trim(), account_id: draft.accountId || null,
         match_status: null,
-      });
+      }).select("id").single();
+      if (newLine) markRecent(newLine.id);
       // Grow the vendor dropdown from what she actually types — a new payee
       // becomes a vendor automatically. Duplicates are rejected by the unique
       // index and the error is intentionally ignored.
@@ -889,12 +894,13 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     setShowInvForm(false);
     setInvDraft(blankInvoice);
     if (live && liveOrgId) {
-      await supabase.from("invoices").insert({
+      const { data: newInv } = await supabase.from("invoices").insert({
         org_id: liveOrgId, user_id: session.user.id, invoice_number: String(num),
         customer_name: draft.customer.trim(), customer_email: draft.email.trim() || null,
         line_items: lines.map(l => ({ desc: l.desc.trim(), qty: parseInt(l.qty) || 1, price: parseFloat(l.price) || 0 })),
         tax_status: draft.taxStatus, subtotal_cents: subtotal, tax_cents: tax, total_cents: total, status: "draft",
-      });
+      }).select("id").single();
+      if (newInv) { markRecent(newInv.id); await logDocEvent(newInv.id, "created", "Invoice created"); }
       await supabase.from("ledger_orgs").update({ next_invoice_number: num + 1 }).eq("id", liveOrgId);
       setReloadTick(t => t + 1);
     } else {
@@ -944,6 +950,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       invoice_id: inv.id, payment_id: payRow ? payRow.id : null,
     }).select("id").single();
     if (payRow && entRow) await supabase.from("ledger_payments").update({ entry_id: entRow.id }).eq("id", payRow.id);
+    if (entRow) markRecent(entRow.id);
     const newPaid = (inv.paidCents || 0) + cents;
     const totalCents = Math.round((inv.amount || 0) * 100);
     const settled = totalCents > 0 && newPaid >= totalCents;
@@ -1025,6 +1032,16 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     if (left > 0) await supabase.from("ledger_credits").update({ amount_cents: left }).eq("id", credit.id);
     else await supabase.from("ledger_credits").update({ status: "applied", applied_invoice_id: inv.id }).eq("id", credit.id);
     setReloadTick(t => t + 1);
+  }
+  // Refund a credit that's sitting on a customer's account (not on any invoice) by check.
+  // The credit is marked refunded only when the check is confirmed (cancel keeps it open).
+  function refundCredit(credit) {
+    if (!credit) return;
+    const banks = accountList.filter(a => a.type === "bank");
+    setCheckAcctId(banks[0] ? banks[0].id : "");
+    setCheckStartNum(String(entity.nextCheckNumber || 1001));
+    setSection("bills"); // the check modal lives on the Bills screen
+    setCheckFor({ checks: [{ vendor_name: credit.customer_name, amount_cents: credit.amount_cents, category: "Refund", memo: "Refund of account credit (overpayment)" }], _creditId: credit.id });
   }
 
   // Quick "Mark paid" — records the full payment AND drops a CorTrust deposit in the
@@ -1393,7 +1410,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   function helpModal() {
     if (!helpOpen) return null;
     const Chip = ({ children, c }) => <span style={{ display: "inline-block", fontSize: 12, fontWeight: 600, color: "#fff", background: c || N.blue, borderRadius: 7, padding: "3px 9px", margin: "0 3px", whiteSpace: "nowrap" }}>{children}</span>;
-    const steps = [
+    const daveSteps = [
       { n: 1, t: "Start a job", tab: "New Orders", body: (<>Go to <Chip c={N.blueDark}>New Orders</Chip>, click <Chip>+ New order</Chip>. Pick the customer, add each item and its price. If a vendor makes it, turn on <Chip c="#334155">Add a PO to a vendor</Chip> and enter the vendor + your cost. Then <Chip>Save job →</Chip>. It waits in New Orders while you build it.</>) },
       { n: 2, t: "Send the PO to your vendor", tab: "New Orders", body: (<>Open the job, hit <Chip c="#334155">View / print / email</Chip>, type the vendor's email and press <Chip>Email PO</Chip>. Once it sends, the PO moves over to <Chip c={N.blueDark}>Purchase Orders</Chip>.</>) },
       { n: 3, t: "Bill the customer when it's done", tab: "New Orders", body: (<>Open the job and click <Chip>Convert to invoice →</Chip>. Now it's a real invoice with a number.</>) },
@@ -1401,12 +1418,29 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       { n: 5, t: "Get paid", tab: "Invoices", body: (<>When the money's in, open the invoice → <Chip c={N.pinkDark}>Mark paid</Chip>. Taking a deposit up front? <Chip c={N.pinkDark}>Down payment / partial…</Chip>. Customer overpaid? <Chip c="#64748b">Overpaid…</Chip> → refund a check or keep it as their credit.</>) },
       { n: 6, t: "Pay a vendor by check", tab: "Bills", body: (<>Go to <Chip c={N.blueDark}>Bills</Chip>, check the ones you're paying, hit <Chip c={N.pinkDark}>Pay by check</Chip>. Set the check number to match your stock, nudge it to line up, and <Chip>Print</Chip>. You can print 3–4 at once.</>) },
     ];
+    const bettySteps = [
+      { n: 1, t: "Check off your bank & card lines", tab: "Notebook", body: (<>Your bank and card activity lands in the <Chip c={N.blueDark}>Notebook</Chip> — each line is money <b style={{ color: N.green }}>in</b> or money <b style={{ color: N.red }}>out</b>. When you've got the receipt or it's fine as-is, click <Chip c="#64748b">Got it</Chip>. New ones sit at the top under <b>Recently entered</b> so you can eyeball them first.</>) },
+      { n: 2, t: "Record a payment a customer sent", tab: "Invoices", body: (<>Open their invoice → <Chip c={N.pinkDark}>Mark paid</Chip> (or <Chip c={N.pinkDark}>Down payment / partial…</Chip> for a deposit). It automatically drops the matching deposit in your Notebook — you don't enter it twice.</>) },
+      { n: 3, t: "Tie a deposit to the right invoice", tab: "Notebook", body: (<>On a money-<b style={{ color: N.green }}>in</b> line, use the <Chip c="#8a5a00">What is this?</Chip> dropdown → pick the invoice it pays (or <b>Refund</b> / <b>Other income</b>). It marks that invoice paid for you.</>) },
+      { n: 4, t: "Pay a bill by check", tab: "Bills", body: (<>Go to <Chip c={N.blueDark}>Bills</Chip>, tick the ones you're paying, hit <Chip c={N.pinkDark}>Pay by check</Chip>. Set the check number to match your stock, nudge it to line up, and <Chip>Print</Chip>.</>) },
+      { n: 5, t: "Reconcile to your statement", tab: "Notebook", body: (<>In the Notebook, pick the account up top, then <Chip c={N.pink}>Reconcile</Chip>. Tick each line that's on your paper statement (it gets an <b>R</b>) until the difference reads <b>$0.00</b> — then lock it.</>) },
+      { n: 6, t: "See who still owes you", tab: "Reports", body: (<>Open <Chip c={N.blueDark}>Reports</Chip> — it starts with <b>Who owes you (A/R)</b>: every unpaid invoice and any customer credits from overpayments.</>) },
+    ];
+    const who = helpWho === "betty" ? "betty" : "dave";
+    const steps = who === "betty" ? bettySteps : daveSteps;
     return (
       <div onClick={() => setHelpOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(10,10,20,0.5)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "40px 16px", zIndex: 240, overflowY: "auto" }}>
         <div onClick={e => e.stopPropagation()} style={{ background: N.white, borderRadius: 16, width: "100%", maxWidth: 620, boxShadow: "0 24px 70px rgba(10,10,20,0.4)", overflow: "hidden" }}>
           <div style={{ padding: "22px 26px", background: "linear-gradient(120deg,#0080ff,#0057b8)", color: "#fff" }}>
-            <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 24 }}>Dave's quick guide</div>
-            <div style={{ fontSize: 13, opacity: 0.9, marginTop: 2 }}>Six steps, start to paid. Nothing here can break anything — click around.</div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
+              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 24 }}>{who === "betty" ? "Betty's quick guide" : "Dave's quick guide"}</div>
+              <div style={{ display: "flex", gap: 4, background: "rgba(255,255,255,0.18)", borderRadius: 100, padding: 3 }}>
+                {[["dave", "Dave"], ["betty", "Betty"]].map(([k, lbl]) => (
+                  <button key={k} onClick={() => setHelpWho(k)} style={{ border: "none", cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontSize: 12, fontWeight: 700, padding: "5px 14px", borderRadius: 100, background: who === k ? "#fff" : "transparent", color: who === k ? N.blueDark : "#fff" }}>{lbl}</button>
+                ))}
+              </div>
+            </div>
+            <div style={{ fontSize: 13, opacity: 0.9, marginTop: 4 }}>{who === "betty" ? "Money in, money out, and getting it all to match. Nothing here can break anything." : "Six steps, start to paid. Nothing here can break anything — click around."}</div>
           </div>
           <div style={{ padding: "18px 26px 8px", maxHeight: "62vh", overflowY: "auto" }}>
             {steps.map(s => (
@@ -1497,7 +1531,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           po_number: asPo ? String(po) : null, ...fields,
         };
         const { data: newRow } = await supabase.from("invoices").insert(insertRow).select("id").single();
-        if (newRow) await logDocEvent(newRow.id, "created", asPo ? "Job started with a PO" : "Job started");
+        if (newRow) { markRecent(newRow.id); await logDocEvent(newRow.id, "created", asPo ? "Job started with a PO" : "Job started"); }
         if (asPo) await supabase.from("ledger_orgs").update({ next_po_number: po + 1 }).eq("id", liveOrgId);
       }
       setReloadTick(t => t + 1);
@@ -1646,13 +1680,13 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   }
   // Print the check, mark every covered bill paid, book one outflow on the chosen bank,
   // stamp the check number in the reference, and advance the next check number.
-  async function confirmCheck() {
+  async function confirmCheck(doPrint = true) {
     const cf = checkFor;
     if (!cf) return;
     const checks = cf.checks || [cf._bills ? { ...cf } : cf];
     const start = parseInt(checkStartNum, 10) || entity.nextCheckNumber || 1001;
     const acct = accountList.find(a => a.id === checkAcctId);
-    window.print();
+    if (doPrint) window.print(); // sometimes they just mark paid (someone hand-wrote a check)
     if (live && liveOrgId) {
       const today = new Date().toISOString().slice(0, 10);
       for (let i = 0; i < checks.length; i++) {
@@ -1671,6 +1705,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         });
       }
       await supabase.from("ledger_orgs").update({ next_check_number: start + checks.length }).eq("id", liveOrgId);
+      if (cf._creditId) await supabase.from("ledger_credits").update({ status: "refunded" }).eq("id", cf._creditId);
       setSelectedBills({});
       setReloadTick(t => t + 1);
     }
@@ -1682,12 +1717,16 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     (!q || (x.payee + " " + x.amount + " " + x.date).toLowerCase().includes(q)) &&
     (!acctFilter || x.source === acctFilter)
   );
+  const recentRank = id => { const i = recentIds.indexOf(id); return i < 0 ? Infinity : i; };
   const visibleItems = [...filteredItems].sort((a, b) => {
+    const ra = recentRank(a.id), rb = recentRank(b.id); // just-entered float to the top
+    if (ra !== rb) return ra - rb;
     if (sortBy === "date-asc") return (a.dateISO || "").localeCompare(b.dateISO || "");
     if (sortBy === "vendor") return (a.payee || "").localeCompare(b.payee || "");
     if (sortBy === "account") return (a.source || "~").localeCompare(b.source || "~") || (b.dateISO || "").localeCompare(a.dateISO || "");
     return (b.dateISO || "").localeCompare(a.dateISO || ""); // date-desc (default)
   });
+  const recentInNotebook = filteredItems.filter(x => recentIds.includes(x.id)).length;
 
   // Everything typed anywhere becomes a payee suggestion — vendors, customers, and
   // every payee already in the notebook — de-duped and alphabetized.
@@ -1817,6 +1856,13 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             {[0, 1, 2, 3].map(i => <span key={i} style={{ width: 11, height: 11, border: "1.5px solid #b9c6ab", borderRadius: "50%" }} />)}
           </div>
 
+          {recentInNotebook > 0 && (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap", background: "#fff7e0", border: "1px solid #f0d89a", borderRadius: 8, padding: "7px 12px", margin: "0 0 8px" }}>
+              <span style={{ fontSize: 12.5, color: "#8a5a00", fontWeight: 600 }}>⬆ {recentInNotebook} just-entered {recentInNotebook === 1 ? "line is" : "lines are"} pinned up top — check them, then clear.</span>
+              <button onClick={() => setRecentIds([])} style={{ ...btnPaper("#8a5a00"), padding: "5px 12px" }}>Clear — let them sort</button>
+            </div>
+          )}
+
           {visibleItems.length === 0 && (
             <div style={{ padding: "26px 0", textAlign: "center", fontFamily: "'Figtree', sans-serif", fontSize: 22, color: "#5a6b52" }}>
               {q ? "Nothing matches that." : "All caught up — every line matched. 🎉"}
@@ -1825,12 +1871,13 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
 
           {visibleItems.map((x, i) => {
             const proposed = !!x.cleared;
+            const isRecent = recentIds.includes(x.id);
             const last = i === visibleItems.length - 1;
             const prevSrc = i > 0 ? visibleItems[i - 1].source : null;
             const showHead = sortBy === "account" && x.source !== prevSrc;
             return [
               showHead && <div key={x.id + "-hdr"} style={{ margin: "18px 0 2px", padding: "5px 2px", borderBottom: "2px solid #b8c7ab", fontFamily: "'DM Mono', monospace", fontSize: 12, letterSpacing: "0.08em", color: "#4a6a9a", fontWeight: 700 }}>{(x.source && x.source !== "—" ? x.source : "— not assigned to an account —").toUpperCase()}</div>,
-              <div key={x.id} style={{ borderBottom: last ? "none" : "1px solid #cfdcc4", background: proposed ? "#e2edf7" : "transparent", marginLeft: proposed ? -8 : 0, paddingLeft: proposed ? 8 : 0, borderRadius: proposed ? 6 : 0 }}>
+              <div key={x.id} style={{ borderBottom: last ? "none" : "1px solid #cfdcc4", background: proposed ? "#e2edf7" : (isRecent ? "#fff7e0" : "transparent"), marginLeft: (proposed || isRecent) ? -8 : 0, paddingLeft: (proposed || isRecent) ? 8 : 0, borderLeft: isRecent && !proposed ? "3px solid #eab308" : "none", borderRadius: (proposed || isRecent) ? 6 : 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 0" }}>
                   {/* LEFT — date + which bank/card */}
                   <div style={{ width: 104, marginLeft: -44, flexShrink: 0 }}>
@@ -2082,10 +2129,18 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           </div>
         )}
 
+        {invoices.filter(v => v.docType !== "order" && recentIds.includes(v.id)).length > 0 && (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap", background: "#fff7e0", border: "1px solid #f0d89a", borderRadius: 8, padding: "8px 14px", marginBottom: 10 }}>
+            <span style={{ fontSize: 12.5, color: "#8a5a00", fontWeight: 600 }}>⬆ Your just-entered invoices are pinned up top so you can check them before they sort in.</span>
+            <button onClick={() => setRecentIds([])} style={{ ...btnPaper("#8a5a00"), padding: "5px 12px" }}>Clear</button>
+          </div>
+        )}
         <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, overflow: "hidden" }}>
           {invoices.length === 0 ? (
             <div style={{ padding: "30px 20px", textAlign: "center", color: N.muted, fontSize: 14 }}>No invoices yet. Click “New invoice” to make the first one.</div>
           ) : invoices.filter(v => v.docType !== "order").sort((a, b) => {
+            const ra = recentRank(a.id), rb = recentRank(b.id); // just-created pinned to the top
+            if (ra !== rb) return ra - rb;
             if (invSort === "customer") return (a.customer || "").localeCompare(b.customer || "") || (b.issueDate || "").localeCompare(a.issueDate || "");
             if (invSort === "date") return (b.issueDate || "").localeCompare(a.issueDate || "");
             if (invSort === "amount") return (b.amount || 0) - (a.amount || 0);
@@ -2093,14 +2148,15 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             return ((a.status === "Void" ? 2 : a.status === "Paid" ? 1 : 0) - (b.status === "Void" ? 2 : b.status === "Paid" ? 1 : 0)) || (a.customer || "").localeCompare(b.customer || "");
           }).map((v, i) => {
             const voided = v.status === "Void";
+            const justAdded = recentIds.includes(v.id);
             const evs = (entity.docEvents || {})[v.id] || [];
             const ls = evs.filter(e => e.event_type === "sent").reduce((m, e) => e.created_at > m ? e.created_at : m, v.sentAt || "");
             const rev = !!(ls && evs.filter(e => e.event_type === "revised").reduce((m, e) => e.created_at > m ? e.created_at : m, "") > ls);
             return (
             <div key={v.id} onClick={() => setOpenInv(v)} title="Open invoice"
-              style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", borderBottom: i === invoices.length - 1 ? "none" : "1px solid " + N.rule, cursor: "pointer", opacity: voided ? 0.55 : 1 }}
-              onMouseEnter={e => (e.currentTarget.style.background = "#f7fafd")}
-              onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+              style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", borderBottom: i === invoices.length - 1 ? "none" : "1px solid " + N.rule, cursor: "pointer", opacity: voided ? 0.55 : 1, background: justAdded ? "#fff7e0" : "transparent", borderLeft: justAdded ? "3px solid #eab308" : "3px solid transparent" }}
+              onMouseEnter={e => (e.currentTarget.style.background = justAdded ? "#fdf0cf" : "#f7fafd")}
+              onMouseLeave={e => (e.currentTarget.style.background = justAdded ? "#fff7e0" : "transparent")}>
               <div style={{ width: 50, fontSize: 12, color: N.muted }}>{v.date}</div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 15, color: N.ink, fontWeight: 600, textDecoration: voided ? "line-through" : "none" }}>{v.number ? <span style={{ color: N.blue, fontFamily: "'DM Mono', monospace", fontSize: 13, marginRight: 7 }}>#{v.number}</span> : null}{v.customer}{rev && <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.06em", color: "#8a5a00", background: "#fdf5e3", border: "1px solid #f0d89a", borderRadius: 5, padding: "1px 6px", marginLeft: 8 }}>REVISED</span>}</div>
@@ -2506,8 +2562,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             const amt = (ck.amount_cents || 0) / 100;
             const vd = (entity.vendorList || []).find(v => (v.name || "").toLowerCase() === (ck.vendor_name || "").toLowerCase()) || {};
             const detail = `${ck.category || ""}${ck.memo ? (ck.category ? " · " : "") + ck.memo : ""}${ck.due_date ? ` · due ${ck.due_date}` : ""}` || "Payment";
-            const Stub = ({ label }) => (
-              <div style={{ height: "3.0in", padding: "0.3in 0.7in", boxSizing: "border-box", borderTop: "1px dashed #999", fontFamily: "'Figtree', sans-serif", color: "#000" }}>
+            const Stub = ({ label, push, h }) => (
+              <div style={{ height: h || "3.0in", marginTop: push || 0, padding: "0.3in 0.7in", boxSizing: "border-box", borderTop: "1px dashed #999", fontFamily: "'Figtree', sans-serif", color: "#000" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: "9pt", letterSpacing: "0.06em", color: "#666", textTransform: "uppercase", marginBottom: "0.16in" }}><span>{label}</span><span>Check #{num} · {today}</span></div>
                 <div style={{ fontSize: "12pt", fontWeight: 700 }}>{ck.vendor_name}</div>
                 {ck._bills && ck._bills.length > 1 ? (
@@ -2544,11 +2600,12 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   <span style={{ flexShrink: 0, fontWeight: 700 }}>DOLLARS</span>
                 </div>
                 {vd.billing_address ? <div style={{ ...at(1.92, 0.95), whiteSpace: "pre-line", fontSize: "10pt", lineHeight: 1.3, maxWidth: "3.4in" }}>{vd.billing_address}</div> : null}
-                <div style={at(2.98, 0.6)}>{ck.memo || ck.category || ""}</div>
-                {/* flow spacer for the check third, then the two tear-off stubs */}
+                <div style={at(2.80, 0.6)}>{ck.memo || ck.category || ""}</div>
+                {/* flow spacer for the check third, then the two tear-off stubs. File-copy stub:
+                    same total height (no overprint) but its content is pushed down ~3 lines. */}
                 <div style={{ height: "3.5in" }} />
                 <Stub label="Remittance — send with payment" />
-                <Stub label="Your file copy" />
+                <Stub label="Your file copy" push="0.45in" h="2.55in" />
               </div>
             );
           };
@@ -2576,7 +2633,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   <button onClick={() => { setCheckOffX(0); setCheckOffY(0); }} style={btnPaper(N.muted)}>Reset</button>
                 </div>
                 <span style={{ marginLeft: "auto", fontSize: 11, color: N.muted, maxWidth: 190 }}>Pre-printed stock, check on top. Nudge to line up, then print.</span>
-                <button onClick={confirmCheck} style={{ ...btnBlue, background: N.blue }}>Print{checks.length > 1 ? ` ${checks.length}` : ""} &amp; mark paid</button>
+                <button onClick={() => confirmCheck(false)} style={btnPaper(N.muted)} title="Record it as paid without printing — e.g. someone already hand-wrote the check">Just mark paid — no print</button>
+                <button onClick={() => confirmCheck(true)} style={{ ...btnBlue, background: N.blue }}>Print{checks.length > 1 ? ` ${checks.length}` : ""} &amp; mark paid</button>
                 <button onClick={() => setCheckFor(null)} style={btnPaper(N.muted)}>Cancel</button>
               </div>
 
@@ -2711,18 +2769,19 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         </div>
         {credits.length > 0 && (
           <div style={{ background: "#f6fdf9", border: "1px solid #bff0d3", borderRadius: 12, overflow: "hidden", marginBottom: 20 }}>
-            <div style={{ padding: "10px 16px", fontSize: 12, fontWeight: 700, color: N.pinkDark, borderBottom: "1px solid #bff0d3" }}>Customer credits — money on account from overpayments</div>
+            <div style={{ padding: "10px 16px", fontSize: 12, fontWeight: 700, color: N.pinkDark, borderBottom: "1px solid #bff0d3" }}>Money you owe back — customer credits from overpayments</div>
             {credits.map(c => (
-              <div key={c.id} style={{ display: "flex", justifyContent: "space-between", padding: "9px 16px", fontSize: 13, borderTop: "1px solid #dff3e6" }}>
-                <span><b style={{ color: N.ink }}>{c.customer_name}</b>{c.memo ? <span style={{ color: N.muted }}> · {c.memo}</span> : ""}</span>
-                <span style={{ fontWeight: 700, color: N.pinkDark }}>{money((c.amount_cents || 0) / 100)}</span>
+              <div key={c.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap", padding: "9px 16px", fontSize: 13, borderTop: "1px solid #dff3e6" }}>
+                <span style={{ flex: 1, minWidth: 160 }}><b style={{ color: N.ink }}>{c.customer_name}</b>{c.memo ? <span style={{ color: N.muted }}> · {c.memo}</span> : ""}</span>
+                <span style={{ fontWeight: 700, color: N.red }}>−{money((c.amount_cents || 0) / 100)}</span>
+                <button onClick={() => refundCredit(c)} style={{ ...btnBlue, background: N.pinkDark }}>Write refund check →</button>
               </div>
             ))}
-            <div style={{ padding: "8px 16px", fontSize: 11, color: N.muted, borderTop: "1px solid #dff3e6" }}>Apply a credit from any of that customer's open invoices, or refund it from the invoice's <b>Overpaid…</b> button.</div>
+            <div style={{ padding: "8px 16px", fontSize: 11, color: N.muted, borderTop: "1px solid #dff3e6" }}>This sits on the customer's account, not on an invoice. <b>Write refund check</b> cuts them a check here, or apply it to their next invoice from that invoice.</div>
           </div>
         )}
 
-        <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink, marginBottom: 4 }}>Year-end for Gary</div>
+        <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink, marginBottom: 4 }}>Year-end reports</div>
         <div style={{ fontSize: 13, color: N.muted, marginBottom: 16 }}>Fiscal year ends {entity.fiscalYearEnd}. One click for the tax-ready package.</div>
         <div style={{ display: "grid", gap: 10 }}>
           {entity.reports.map(r => (
@@ -3239,7 +3298,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               </div>
             )}
           </div>
-          <button onClick={() => setHelpOpen(true)} title="How to — a quick guide" style={{ background: "none", border: "1px solid " + N.rule, color: N.blueDark, borderRadius: 100, width: 30, height: 30, cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontSize: 15, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>?</button>
+          <button onClick={() => { setHelpWho(isBetty ? "betty" : "dave"); setHelpOpen(true); }} title="How to — a quick guide" style={{ background: "none", border: "1px solid " + N.rule, color: N.blueDark, borderRadius: 100, width: 30, height: 30, cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontSize: 15, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>?</button>
           <button onClick={() => setWide(w => !w)} title={wide ? "Show the side panels" : "Hide side panels for more room"} style={{ background: wide ? N.blue : "none", border: "1px solid " + (wide ? N.blue : N.rule), color: wide ? "#fff" : N.muted, borderRadius: 100, cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontSize: 12, fontWeight: 600, padding: "6px 12px", whiteSpace: "nowrap" }}>{wide ? "◧ Panels" : "⤢ Wide"}</button>
           <div style={{ position: "relative", whiteSpace: "nowrap" }}>
             <button onClick={() => setUserMenuOpen(o => !o)} title="Account" style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "1px solid " + N.rule, borderRadius: 100, padding: "3px 10px 3px 3px", cursor: "pointer", fontFamily: "'Figtree', sans-serif" }}>
