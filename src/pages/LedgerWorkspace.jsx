@@ -232,6 +232,7 @@ function Ico({ name, size = 18 }) {
     case "reports": return <svg {...p}><path d="M4 20V10M10 20V4M16 20v-8M22 20H2" /></svg>;
     case "documents": return <svg {...p}><path d="M4 5a2 2 0 0 1 2-2h5l2 2h5a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z" /></svg>;
     case "orders": return <svg {...p}><path d="M6 3h9l3 3v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" /><path d="M9 8h6M9 12h6M9 16h3" /></svg>;
+    case "purchaseorders": return <svg {...p}><path d="M4 4h2l2.2 11.2a1.5 1.5 0 0 0 1.5 1.2h7.4a1.5 1.5 0 0 0 1.5-1.2L21.5 8H7" /><circle cx="10" cy="20" r="1.3" /><circle cx="18" cy="20" r="1.3" /></svg>;
     case "admin": return <svg {...p}><path d="M12 3l7 4v5c0 4-3 7-7 9-4-2-7-5-7-9V7Z" /><path d="M9 12l2 2 4-4" /></svg>;
     case "items": return <svg {...p}><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0l-7-7A2 2 0 0 1 3 12V4h8a2 2 0 0 1 1.4.6l8.2 8.2a2 2 0 0 1 0 2.6Z" /><circle cx="7.5" cy="7.5" r="1.2" /></svg>;
     case "chart": return <svg {...p}><path d="M4 5h16M4 12h16M4 19h16" /><path d="M8 3v4M14 10v4M10 17v4" /></svg>;
@@ -344,7 +345,7 @@ function mapInvoice(v) {
     subtotal: (v.subtotal_cents || 0) / 100,
     tax: v.tax_status || "Exempt",
     taxAmt: (v.tax_cents || 0) / 100,
-    status: v.status === "in_progress" ? "In progress" : cap(v.status),
+    status: v.status === "in_progress" ? "In progress" : v.status === "po_sent" ? "PO sent" : cap(v.status),
     date: d ? d.toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "",
     issueDate: v.issue_date || "",
   };
@@ -1086,6 +1087,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         setPoEmailMsg({ err: msg });
       } else {
         setPoEmailMsg({ ok: data && data.to ? data.to : to });
+        // Emailing a PO counts as sending it → it moves to the Purchase Orders screen.
+        if (openInv.docType === "order") await supabase.from("invoices").update({ status: "po_sent" }).eq("id", openInv.id);
         setReloadTick(t => t + 1);
       }
     } catch (e) { setPoEmailMsg({ err: String(e) }); }
@@ -1254,7 +1257,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 {isPo ? (
                   <>
                     <button onClick={() => { const v = openInv; setOpenInv(null); editOrder(v); }} style={btnPaper(N.muted)}>Edit</button>
-                    <button onClick={() => { const v = openInv; setOpenInv(null); convertToInvoice(v); }} style={{ ...btnBlue, background: N.blue }}>Convert to invoice →</button>
+                    {openInv.status !== "PO sent" && <button onClick={() => { const v = openInv; setOpenInv(null); markPoSent(v); }} style={{ ...btnBlue, background: N.blueDark }}>Mark PO sent</button>}
+                    {openInv.customer && openInv.customer !== "—" && <button onClick={() => { const v = openInv; setOpenInv(null); convertToInvoice(v); }} style={{ ...btnBlue, background: N.blue }}>Convert to invoice →</button>}
                     <button onClick={() => { const id = openInv.id; setOpenInv(null); deleteOrder(id); }} style={btnPaper(N.pinkDark)}>Delete</button>
                   </>
                 ) : (
@@ -1353,19 +1357,20 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       if (editing) {
         await supabase.from("invoices").update(fields).eq("id", editing.id);
       } else {
+        // Every new job starts as an in-progress ORDER in New Orders (the pending customer
+        // bill) — nothing becomes an invoice or gets a number until it's billed (Convert).
         const insertRow = {
           org_id: liveOrgId, user_id: session.user.id,
-          doc_type: asPo ? "order" : "invoice", status: asPo ? "order" : "draft",
+          doc_type: "order", status: "order",
           po_number: asPo ? String(po) : null, ...fields,
         };
-        if (!asPo) insertRow.invoice_number = String(entity.nextInvoiceNumber || 1001);
         await supabase.from("invoices").insert(insertRow);
         if (asPo) await supabase.from("ledger_orgs").update({ next_po_number: po + 1 }).eq("id", liveOrgId);
-        else await supabase.from("ledger_orgs").update({ next_invoice_number: (entity.nextInvoiceNumber || 1001) + 1 }).eq("id", liveOrgId);
       }
       setReloadTick(t => t + 1);
     }
-    if (!asPo) setSection("invoices");
+    // After an edit, return to where it lives; new jobs stay on New Orders.
+    setSection(editing ? (editing.docType === "order" ? "orders" : "invoices") : "orders");
   }
 
   function editOrder(v) {
@@ -1387,6 +1392,10 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   async function deleteOrder(id) {
     if (!window.confirm("Delete this order? This can't be undone.")) return;
     if (live) { await supabase.from("invoices").delete().eq("id", id); setReloadTick(t => t + 1); }
+  }
+  // Mark a PO sent to the vendor — it then shows on the Purchase Orders screen.
+  async function markPoSent(v) {
+    if (live && liveOrgId) { await supabase.from("invoices").update({ status: "po_sent" }).eq("id", v.id); setReloadTick(t => t + 1); }
   }
 
   async function voidInvoice(v) {
@@ -2054,7 +2063,9 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   }
 
   function Orders() {
-    const orderList = invoices.filter(v => v.docType === "order");
+    // New Orders = every in-progress job (the pending customer bill), EXCEPT an in-house PO
+    // (no customer) that's already been sent — that one lives only on Purchase Orders.
+    const orderList = invoices.filter(v => v.docType === "order" && !(v.status === "PO sent" && (!v.customer || v.customer === "—")));
     const setLine = (i, patch) => setOrderDraft(d => ({ ...d, lines: d.lines.map((l, j) => (j === i ? { ...l, ...patch } : l)) }));
     const poMode = orderDraft.mode === "po";
     const sub = orderDraft.lines.reduce((s, l) => s + (parseFloat(l.price) || 0) * (parseInt(l.qty) || 1), 0);
@@ -2066,7 +2077,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, flexWrap: "wrap", gap: 10 }}>
           <div>
             <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>New Orders</div>
-            <div style={{ fontSize: 13, color: N.muted }}>Take an order and invoice it directly — or, if a vendor makes it, send a PO first and convert it later.</div>
+            <div style={{ fontSize: 13, color: N.muted }}>Every job in progress. Start it here; add a PO if a vendor makes it; hit <b style={{ color: N.blue }}>Convert to invoice</b> to bill the customer when it's done.</div>
           </div>
           <button onClick={() => { if (showOrderForm) { setShowOrderForm(false); setEditingOrder(null); setOrderDraft(blankOrder); } else { setShowOrderForm(true); } }} style={{ ...btnBlue, background: N.blue, fontSize: 14, padding: "10px 18px" }}>{showOrderForm ? "Close" : "+ New order"}</button>
         </div>
@@ -2077,7 +2088,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             <datalist id="po-vendors">{(entity.vendors || []).map(v => <option key={v} value={v} />)}</datalist>
             <datalist id="po-items">{(entity.products || []).filter(p => !p.archived).map(p => <option key={p.id} value={p.name} />)}</datalist>
             <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
-              {[["invoice", "Invoice only"], ["po", "Send a PO to a vendor first"]].map(([m, label]) => (
+              {[["invoice", "No PO — just the job"], ["po", "Add a PO to a vendor"]].map(([m, label]) => (
                 <button key={m} onClick={() => setOrderDraft(d => ({ ...d, mode: m }))} style={{ fontSize: 12.5, padding: "7px 14px", borderRadius: 100, cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontWeight: 500, border: "1px solid " + (orderDraft.mode === m ? N.blue : N.rule), background: orderDraft.mode === m ? N.blue : N.white, color: orderDraft.mode === m ? N.white : N.text }}>{label}</button>
               ))}
             </div>
@@ -2130,7 +2141,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 {poMode && <span style={{ color: N.blueDark }}>PO #{(editingOrder && editingOrder.poNumber) || entity.nextPoNumber} to vendor: <b>{money(costSub)}</b> &nbsp;·&nbsp; </span>}
                 <span style={{ color: poMode ? "#5a7a63" : N.muted }}>{poMode ? "Invoice to customer: " : "Subtotal "}{money(sub)}{orderDraft.taxStatus === "Taxable" ? ` + MN tax ${money(tax)}` : ""} · <b style={{ color: N.ink }}>{money(sub + tax)}</b></span>
               </div>
-              <button onClick={createOrder} style={{ ...btnBlue, background: N.blue, fontSize: 14, padding: "10px 18px" }}>{editingOrder ? (poMode ? "Update PO" : "Update invoice") : (poMode ? "Save order · send PO" : "Save as invoice →")}</button>
+              <button onClick={createOrder} style={{ ...btnBlue, background: N.blue, fontSize: 14, padding: "10px 18px" }}>{editingOrder ? "Update" : (poMode ? "Save job + PO →" : "Save job →")}</button>
             </div>
           </div>
         )}
@@ -2142,8 +2153,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             <div key={v.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 16px", borderBottom: i === orderList.length - 1 ? "none" : "1px solid " + N.rule, flexWrap: "wrap" }}>
               <div style={{ width: 64, fontSize: 12, color: N.muted }}>{v.poNumber ? `PO #${v.poNumber}` : "Order"}</div>
               <div style={{ flex: 1, minWidth: 150 }}>
-                <div style={{ fontSize: 15, color: N.ink, fontWeight: 600 }}>{v.customer}</div>
-                <div style={{ fontSize: 12, color: N.muted }}>{v.item}{v.vendor ? ` · vendor: ${v.vendor}` : ""}</div>
+                <div style={{ fontSize: 15, color: N.ink, fontWeight: 600 }}>{v.customer && v.customer !== "—" ? v.customer : (v.vendor ? "In-house · " + v.vendor : "Order")}</div>
+                <div style={{ fontSize: 12, color: N.muted }}>{v.item}{v.vendor && v.customer && v.customer !== "—" ? ` · vendor: ${v.vendor}` : ""}</div>
               </div>
               {(() => {
                 const costTot = (v.lines || []).reduce((s, l) => s + (l.cost || 0) * (l.qty || 1), 0);
@@ -2155,9 +2166,11 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   </div>
                 );
               })()}
+              {v.poNumber && v.status === "PO sent" && <span style={{ fontSize: 10, fontWeight: 700, color: N.blueDark, background: "#eef6ff", border: "1px solid #cfe4ff", borderRadius: 100, padding: "3px 9px", letterSpacing: "0.04em" }}>PO SENT</span>}
               <button onClick={() => editOrder(v)} style={btnPaper(N.muted)}>Edit</button>
-              <button onClick={() => setOpenInv(v)} style={btnPaper(N.text)}>View / print</button>
-              <button onClick={() => convertToInvoice(v)} style={{ ...btnBlue, background: N.blue }}>Convert to invoice →</button>
+              <button onClick={() => setOpenInv(v)} style={btnPaper(N.text)}>View / print / email</button>
+              {v.poNumber && v.status !== "PO sent" && <button onClick={() => markPoSent(v)} title="Mark the PO sent to the vendor (moves it to Purchase Orders)" style={{ ...btnBlue, background: N.blueDark }}>Mark PO sent</button>}
+              {v.customer && v.customer !== "—" && <button onClick={() => convertToInvoice(v)} style={{ ...btnBlue, background: N.blue }}>Convert to invoice →</button>}
               <button onClick={() => deleteOrder(v.id)} title="Delete order" style={{ border: "1px solid " + N.rule, background: "none", color: N.muted, cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontSize: 12, fontWeight: 600, borderRadius: 100, padding: "6px 12px" }}>Delete</button>
             </div>
           ))}
@@ -2169,7 +2182,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
 
   // Dave's purchase orders — the ones out to vendors. Its own screen so he can find them.
   function PurchaseOrders() {
-    const pos = invoices.filter(v => v.docType === "order");
+    const pos = invoices.filter(v => v.docType === "order" && v.status === "PO sent");
     const newPO = () => { setEditingOrder(null); setOrderDraft({ ...blankOrder, mode: "po" }); setShowOrderForm(true); setSection("orders"); };
     return (
       <div>
