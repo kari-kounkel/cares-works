@@ -417,6 +417,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [reconChecked, setReconChecked] = useState({});
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [wide, setWide] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const payeeRef = useRef(null);
   const amountRef = useRef(null);
   const blankAcct = { name: "", account_type: "bank", last_four: "", opening: "" };
@@ -1302,6 +1303,47 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             <button onClick={() => setOverpayFor(null)} style={btnPaper(N.muted)}>Cancel</button>
           </div>
           <div style={{ fontSize: 12, color: N.mutedLite, marginTop: 12 }}>A credit sits on their account until you apply it to a future invoice. Refund opens a check to print.</div>
+        </div>
+      </div>
+    );
+  }
+
+  function helpModal() {
+    if (!helpOpen) return null;
+    const Chip = ({ children, c }) => <span style={{ display: "inline-block", fontSize: 12, fontWeight: 600, color: "#fff", background: c || N.blue, borderRadius: 7, padding: "3px 9px", margin: "0 3px", whiteSpace: "nowrap" }}>{children}</span>;
+    const steps = [
+      { n: 1, t: "Start a job", tab: "New Orders", body: (<>Go to <Chip c={N.blueDark}>New Orders</Chip>, click <Chip>+ New order</Chip>. Pick the customer, add each item and its price. If a vendor makes it, turn on <Chip c="#334155">Add a PO to a vendor</Chip> and enter the vendor + your cost. Then <Chip>Save job →</Chip>. It waits in New Orders while you build it.</>) },
+      { n: 2, t: "Send the PO to your vendor", tab: "New Orders", body: (<>Open the job, hit <Chip c="#334155">View / print / email</Chip>, type the vendor's email and press <Chip>Email PO</Chip> — or <Chip c={N.blueDark}>Mark PO sent</Chip> if you phoned it in. It moves over to <Chip c={N.blueDark}>Purchase Orders</Chip>.</>) },
+      { n: 3, t: "Bill the customer when it's done", tab: "New Orders", body: (<>Open the job and click <Chip>Convert to invoice →</Chip>. Now it's a real invoice with a number.</>) },
+      { n: 4, t: "Send the invoice", tab: "Invoices", body: (<>Go to <Chip c={N.blueDark}>Invoices</Chip>, click <Chip>Send</Chip>. It emails the customer and gives you a link — you'll see <b style={{ color: N.blue }}>Viewed</b> when they open it.</>) },
+      { n: 5, t: "Get paid", tab: "Invoices", body: (<>When the money's in, open the invoice → <Chip c={N.pinkDark}>Mark paid</Chip>. Taking a deposit up front? <Chip c={N.pinkDark}>Down payment / partial…</Chip>. Customer overpaid? <Chip c="#64748b">Overpaid…</Chip> → refund a check or keep it as their credit.</>) },
+      { n: 6, t: "Pay a vendor by check", tab: "Bills", body: (<>Go to <Chip c={N.blueDark}>Bills</Chip>, check the ones you're paying, hit <Chip c={N.pinkDark}>Pay by check</Chip>. Set the check number to match your stock, nudge it to line up, and <Chip>Print</Chip>. You can print 3–4 at once.</>) },
+    ];
+    return (
+      <div onClick={() => setHelpOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(10,10,20,0.5)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "40px 16px", zIndex: 240, overflowY: "auto" }}>
+        <div onClick={e => e.stopPropagation()} style={{ background: N.white, borderRadius: 16, width: "100%", maxWidth: 620, boxShadow: "0 24px 70px rgba(10,10,20,0.4)", overflow: "hidden" }}>
+          <div style={{ padding: "22px 26px", background: "linear-gradient(120deg,#0080ff,#0057b8)", color: "#fff" }}>
+            <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 24 }}>Dave's quick guide</div>
+            <div style={{ fontSize: 13, opacity: 0.9, marginTop: 2 }}>Six steps, start to paid. Nothing here can break anything — click around.</div>
+          </div>
+          <div style={{ padding: "18px 26px 8px", maxHeight: "62vh", overflowY: "auto" }}>
+            {steps.map(s => (
+              <div key={s.n} style={{ display: "flex", gap: 14, marginBottom: 18 }}>
+                <div style={{ flexShrink: 0, width: 34, height: 34, borderRadius: 100, background: "#eef6ff", color: N.blueDark, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 16, fontFamily: "'DM Serif Display', serif" }}>{s.n}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, flexWrap: "wrap" }}>
+                    <span style={{ fontSize: 16, fontWeight: 700, color: N.ink }}>{s.t}</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.05em", color: N.muted, background: "#f1f5f9", borderRadius: 100, padding: "2px 8px" }}>{s.tab.toUpperCase()}</span>
+                  </div>
+                  <div style={{ fontSize: 14, color: N.text, lineHeight: 1.7 }}>{s.body}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div style={{ padding: "14px 26px", borderTop: "1px solid " + N.rule, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
+            <span style={{ fontSize: 12, color: N.muted }}>Stuck? Betty or Kari can jump in. Open this anytime with the <b style={{ color: N.blueDark }}>?</b> up top.</span>
+            <button onClick={() => setHelpOpen(false)} style={{ ...btnBlue, background: N.blue, fontSize: 14, padding: "9px 18px" }}>Got it</button>
+          </div>
         </div>
       </div>
     );
@@ -2969,6 +3011,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               </div>
             )}
           </div>
+          <button onClick={() => setHelpOpen(true)} title="How to — a quick guide" style={{ background: "none", border: "1px solid " + N.rule, color: N.blueDark, borderRadius: 100, width: 30, height: 30, cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontSize: 15, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>?</button>
           <button onClick={() => setWide(w => !w)} title={wide ? "Show the side panels" : "Hide side panels for more room"} style={{ background: wide ? N.blue : "none", border: "1px solid " + (wide ? N.blue : N.rule), color: wide ? "#fff" : N.muted, borderRadius: 100, cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontSize: 12, fontWeight: 600, padding: "6px 12px", whiteSpace: "nowrap" }}>{wide ? "◧ Panels" : "⤢ Wide"}</button>
           <div style={{ position: "relative", whiteSpace: "nowrap" }}>
             <button onClick={() => setUserMenuOpen(o => !o)} title="Account" style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "1px solid " + N.rule, borderRadius: 100, padding: "3px 10px 3px 3px", cursor: "pointer", fontFamily: "'Figtree', sans-serif" }}>
@@ -3084,6 +3127,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       {/* invoice / PO document modal — mounted once here so View / print works from any screen */}
       {docModal()}
       {overpayModal()}
+      {helpModal()}
     </div>
   );
 }
