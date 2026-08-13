@@ -2113,7 +2113,12 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                     <input value={reconTarget} onChange={e => setReconTarget(e.target.value)} placeholder="$ from statement" inputMode="decimal" style={{ ...inputSt, width: 150 }} />
                   </div>
                 </div>
-                <div style={{ fontSize: 13, color: N.muted, marginBottom: 14 }}>Click each line that's on this statement — it gets an <b style={{ color: N.pinkDark }}>R</b>. When the difference hits <b>$0.00</b>, you're reconciled.</div>
+                <div style={{ fontSize: 13, color: N.muted, marginBottom: 10 }}>Click each line that's on this statement — it gets an <b style={{ color: N.pinkDark }}>R</b>. When the difference hits <b>$0.00</b>, you're reconciled.</div>
+                <div style={{ display: "flex", gap: 8, marginBottom: 14, alignItems: "center", flexWrap: "wrap" }}>
+                  <button onClick={() => setReconChecked(Object.fromEntries(unrec.map(e => [e.id, true])))} style={btnPaper(N.pinkDark)}>✓ Check all {unrec.length}</button>
+                  <button onClick={() => setReconChecked({})} style={btnPaper(N.muted)}>Uncheck all</button>
+                  <span style={{ fontSize: 12, color: N.mutedLite }}>On a first reconcile: check all, then uncheck anything not on the statement yet.</span>
+                </div>
                 <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 16 }}>
                   <Col title="Money in — deposits" rows={moneyIn} color="#3a7d4a" />
                   <Col title="Money out — checks & payments" rows={moneyOut} color={N.red} />
