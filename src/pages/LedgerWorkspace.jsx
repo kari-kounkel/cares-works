@@ -446,7 +446,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [itemDraft, setItemDraft] = useState(blankItem);
   const [showAddItem, setShowAddItem] = useState(false);
   const [newItem, setNewItem] = useState(blankItem);
-  const blankCat = { name: "", kind: "expense" };
+  const blankCat = { name: "", kind: "expense", cat_type: "expense" };
   const [catEditId, setCatEditId] = useState(null);
   const [catDraft, setCatDraft] = useState(blankCat);
   const [showAddCat, setShowAddCat] = useState(false);
@@ -608,15 +608,19 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     }
   }
 
-  // Chart-of-accounts management (income / expense accounts = ledger_categories).
+  // Chart-of-accounts management (income / COGS / expense accounts = ledger_categories).
+  // cat_type is the detailed type shown on the chart; kind (income/expense) stays in sync.
+  const kindOf = t => (t === "income" ? "income" : "expense");
   async function addChartCat() {
     if (!newCat.name.trim() || !liveOrgId) return;
-    await supabase.from("ledger_categories").insert({ org_id: liveOrgId, user_id: session.user.id, name: newCat.name.trim(), kind: newCat.kind, sort_order: 999, archived: false });
+    const ct = newCat.cat_type || "expense";
+    await supabase.from("ledger_categories").insert({ org_id: liveOrgId, user_id: session.user.id, name: newCat.name.trim(), cat_type: ct, kind: kindOf(ct), sort_order: 999, archived: false });
     setShowAddCat(false); setNewCat(blankCat); setReloadTick(t => t + 1);
   }
   async function saveChartCat() {
     if (!catEditId || !catDraft.name.trim()) return;
-    await supabase.from("ledger_categories").update({ name: catDraft.name.trim(), kind: catDraft.kind }).eq("id", catEditId);
+    const ct = catDraft.cat_type || "expense";
+    await supabase.from("ledger_categories").update({ name: catDraft.name.trim(), cat_type: ct, kind: kindOf(ct) }).eq("id", catEditId);
     setCatEditId(null); setReloadTick(t => t + 1);
   }
   async function archiveChartCat(id) {
@@ -1535,6 +1539,25 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         if (asPo) await supabase.from("ledger_orgs").update({ next_po_number: po + 1 }).eq("id", liveOrgId);
       }
       setReloadTick(t => t + 1);
+    } else {
+      // Test / sample mode: reflect it locally so they can build multi-line docs and see it.
+      const itemStr = lines.map(l => (l.desc || l.item || "").trim()).filter(Boolean).join(", ") || "—";
+      if (editing) {
+        setInvoices(prev => prev.map(v => v.id === editing.id ? { ...v,
+          customer: draft.customer.trim() || v.customer, vendor: asPo ? (draft.vendor.trim() || v.vendor) : v.vendor,
+          email: draft.email.trim() || v.email, lines: fields.line_items, item: itemStr,
+          amount: total / 100, subtotal: subtotal / 100, tax: draft.taxStatus, taxAmt: tax / 100,
+          balanceCents: total, balance: total / 100, issueDate: draft.date || v.issueDate,
+        } : v));
+      } else {
+        setInvoices(prev => [{
+          id: "local-" + Date.now(), docType: "order", vendor: asPo ? (draft.vendor.trim() || "") : "",
+          poNumber: asPo ? String(entity.nextPoNumber || 2133) : "", number: "",
+          customer: draft.customer.trim() || "—", email: draft.email.trim() || "", item: itemStr, lines: fields.line_items,
+          amount: total / 100, subtotal: subtotal / 100, tax: draft.taxStatus, taxAmt: tax / 100,
+          status: "Order", date: "today", issueDate: draft.date || "", paidCents: 0, balanceCents: total, paid: 0, balance: total / 100, payments: [],
+        }, ...prev]);
+      }
     }
     // After an edit, return to where it lives; new jobs stay on New Orders.
     setSection(editing ? (editing.docType === "order" ? "orders" : "invoices") : "orders");
@@ -3026,12 +3049,16 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   function Chart() {
     const rows = (entity.rawCategories || []).filter(c => !c.archived);
     const byOrder = (a, b) => (a.sort_order || 0) - (b.sort_order || 0) || (a.name || "").localeCompare(b.name || "");
-    const income = rows.filter(c => c.kind === "income").sort(byOrder);
-    const expense = rows.filter(c => c.kind !== "income").sort(byOrder);
+    const typeOf = c => c.cat_type || (c.kind === "income" ? "income" : "expense");
+    const TYPE_META = { income: { label: "Sales / income", badge: "SALES", color: "#3a7d4a", bg: "#eafaf0", bd: "#bff0d3" }, cogs: { label: "Cost of goods sold", badge: "COGS", color: "#8a5a00", bg: "#fdf5e3", bd: "#f0d89a" }, expense: { label: "Expenses", badge: "EXPENSE", color: N.blueDark, bg: "#eef6ff", bd: "#cfe4ff" } };
+    const income = rows.filter(c => typeOf(c) === "income").sort(byOrder);
+    const cogs = rows.filter(c => typeOf(c) === "cogs").sort(byOrder);
+    const expense = rows.filter(c => typeOf(c) === "expense").sort(byOrder);
     const cell = { ...inputSt };
-    const group = (title, list, color) => (
+    const TypePill = ({ t }) => { const m = TYPE_META[t] || TYPE_META.expense; return <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: "0.05em", color: m.color, background: m.bg, border: "1px solid " + m.bd, borderRadius: 100, padding: "2px 8px", whiteSpace: "nowrap" }}>{m.badge}</span>; };
+    const group = (t, list) => { const m = TYPE_META[t]; return (
       <div style={{ marginBottom: 18 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color, marginBottom: 6 }}>{title} · {list.length}</div>
+        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: m.color, marginBottom: 6 }}>{m.label} · {list.length}</div>
         <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, overflow: "hidden" }}>
           {list.length === 0 && <div style={{ padding: "16px", color: N.muted, fontSize: 13 }}>None yet.</div>}
           {list.map((c, i) => (
@@ -3039,8 +3066,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               {catEditId === c.id ? (
                 <>
                   <input value={catDraft.name} onChange={e => setCatDraft(d => ({ ...d, name: e.target.value }))} style={{ ...cell, flex: 1 }} />
-                  <select value={catDraft.kind} onChange={e => setCatDraft(d => ({ ...d, kind: e.target.value }))} style={{ ...cell, width: 130 }}>
-                    <option value="income">Income</option><option value="expense">Expense</option>
+                  <select value={catDraft.cat_type} onChange={e => setCatDraft(d => ({ ...d, cat_type: e.target.value }))} style={{ ...cell, width: 150 }}>
+                    <option value="income">Sales / income</option><option value="cogs">Cost of goods sold</option><option value="expense">Expense</option>
                   </select>
                   <button onClick={saveChartCat} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "8px 12px" }}>Save</button>
                   <button onClick={() => setCatEditId(null)} style={btnPaper(N.muted)}>Cancel</button>
@@ -3048,7 +3075,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               ) : (
                 <>
                   <span style={{ flex: 1, fontSize: 14, color: N.ink }}>{c.name}</span>
-                  <button onClick={() => { setCatEditId(c.id); setCatDraft({ name: c.name, kind: c.kind || "expense" }); }} style={{ ...btnPaper(N.muted), padding: "6px 12px" }}>Edit</button>
+                  <TypePill t={typeOf(c)} />
+                  <button onClick={() => { setCatEditId(c.id); setCatDraft({ name: c.name, kind: c.kind || "expense", cat_type: typeOf(c) }); }} style={{ ...btnPaper(N.muted), padding: "6px 12px" }}>Edit</button>
                   <button onClick={() => archiveChartCat(c.id)} style={{ background: "none", border: "1px solid " + N.rule, borderRadius: 100, cursor: "pointer", color: N.muted, fontFamily: "'Figtree', sans-serif", fontSize: 12, fontWeight: 600, padding: "6px 12px" }}>Remove</button>
                 </>
               )}
@@ -3056,7 +3084,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           ))}
         </div>
       </div>
-    );
+    ); };
     return (
       <div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, flexWrap: "wrap", gap: 10 }}>
@@ -3069,14 +3097,15 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         {showAddCat && (
           <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: 14, marginBottom: 14, display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
             <input placeholder="Account name" value={newCat.name} onChange={e => setNewCat(d => ({ ...d, name: e.target.value }))} style={{ ...cell, flex: 1, minWidth: 200 }} />
-            <select value={newCat.kind} onChange={e => setNewCat(d => ({ ...d, kind: e.target.value }))} style={{ ...cell, width: 150 }}>
-              <option value="expense">Expense</option><option value="income">Income</option>
+            <select value={newCat.cat_type} onChange={e => setNewCat(d => ({ ...d, cat_type: e.target.value }))} style={{ ...cell, width: 170 }}>
+              <option value="expense">Expense</option><option value="cogs">Cost of goods sold</option><option value="income">Sales / income</option>
             </select>
             <button onClick={addChartCat} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 16px" }}>Save</button>
           </div>
         )}
-        {group("Income accounts", income, "#5a7a63")}
-        {group("Expense accounts", expense, N.blueDark)}
+        {group("income", income)}
+        {group("cogs", cogs)}
+        {group("expense", expense)}
       </div>
     );
   }
