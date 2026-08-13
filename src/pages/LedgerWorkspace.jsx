@@ -2580,8 +2580,52 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   }
 
   function Reports() {
+    const balOf = v => (v.balanceCents != null ? v.balanceCents : Math.round((v.amount || 0) * 100));
+    const ar = invoices.filter(v => v.docType !== "order" && v.status !== "Void" && v.status !== "Paid" && balOf(v) > 0)
+      .sort((a, b) => (a.customer || "").localeCompare(b.customer || "") || (a.issueDate || "").localeCompare(b.issueDate || ""));
+    const arTotal = ar.reduce((s, v) => s + balOf(v), 0);
+    const credits = (entity.credits || []);
+    const credTotal = credits.reduce((s, c) => s + (c.amount_cents || 0), 0);
     return (
       <div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10, marginBottom: 4 }}>
+          <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>Who owes you (A/R)</div>
+          <div style={{ display: "flex", gap: 18, flexWrap: "wrap" }}>
+            <div style={{ textAlign: "right" }}><div style={{ fontSize: 11, color: N.muted, letterSpacing: "0.04em" }}>OPEN RECEIVABLES</div><div style={{ fontSize: 22, fontWeight: 700, color: N.red }}>{money(arTotal / 100)}</div></div>
+            {credTotal > 0 && <div style={{ textAlign: "right" }}><div style={{ fontSize: 11, color: N.muted, letterSpacing: "0.04em" }}>CUSTOMER CREDITS</div><div style={{ fontSize: 22, fontWeight: 700, color: N.pinkDark }}>{money(credTotal / 100)}</div></div>}
+          </div>
+        </div>
+        <div style={{ fontSize: 13, color: N.muted, marginBottom: 12 }}>Every unpaid invoice with a balance, oldest per customer first. Click one to open it.</div>
+        <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, overflow: "hidden", marginBottom: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 80px 96px 96px 96px", gap: 8, padding: "9px 16px", background: "#f7fafd", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.08em", color: N.muted }}>
+            <span>CUSTOMER · INVOICE</span><span style={{ textAlign: "center" }}>DATE</span><span style={{ textAlign: "right" }}>TOTAL</span><span style={{ textAlign: "right" }}>PAID</span><span style={{ textAlign: "right" }}>BALANCE</span>
+          </div>
+          {ar.length === 0 ? (
+            <div style={{ padding: "26px 16px", textAlign: "center", color: N.muted, fontSize: 14 }}>Nothing outstanding — every invoice is paid. 🎉</div>
+          ) : ar.map((v, i) => (
+            <div key={v.id} onClick={() => setOpenInv(v)} title="Open invoice" style={{ display: "grid", gridTemplateColumns: "1fr 80px 96px 96px 96px", gap: 8, padding: "11px 16px", borderTop: "1px solid " + N.rule, fontSize: 13, cursor: "pointer", alignItems: "center" }}
+              onMouseEnter={e => (e.currentTarget.style.background = "#f7fafd")} onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+              <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}><b style={{ color: N.ink }}>{v.customer}</b>{v.number ? <span style={{ color: N.blue, fontFamily: "'DM Mono', monospace", fontSize: 12 }}> · #{v.number}</span> : ""}<span style={{ fontSize: 11, color: N.muted }}> · {v.status}</span></span>
+              <span style={{ textAlign: "center", color: N.muted }}>{v.date}</span>
+              <span style={{ textAlign: "right", color: N.muted }}>{money(v.amount)}</span>
+              <span style={{ textAlign: "right", color: "#a16207" }}>{v.paid > 0 ? money(v.paid) : "—"}</span>
+              <span style={{ textAlign: "right", fontWeight: 700, color: N.red }}>{money(balOf(v) / 100)}</span>
+            </div>
+          ))}
+        </div>
+        {credits.length > 0 && (
+          <div style={{ background: "#f6fdf9", border: "1px solid #bff0d3", borderRadius: 12, overflow: "hidden", marginBottom: 20 }}>
+            <div style={{ padding: "10px 16px", fontSize: 12, fontWeight: 700, color: N.pinkDark, borderBottom: "1px solid #bff0d3" }}>Customer credits — money on account from overpayments</div>
+            {credits.map(c => (
+              <div key={c.id} style={{ display: "flex", justifyContent: "space-between", padding: "9px 16px", fontSize: 13, borderTop: "1px solid #dff3e6" }}>
+                <span><b style={{ color: N.ink }}>{c.customer_name}</b>{c.memo ? <span style={{ color: N.muted }}> · {c.memo}</span> : ""}</span>
+                <span style={{ fontWeight: 700, color: N.pinkDark }}>{money((c.amount_cents || 0) / 100)}</span>
+              </div>
+            ))}
+            <div style={{ padding: "8px 16px", fontSize: 11, color: N.muted, borderTop: "1px solid #dff3e6" }}>Apply a credit from any of that customer's open invoices, or refund it from the invoice's <b>Overpaid…</b> button.</div>
+          </div>
+        )}
+
         <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink, marginBottom: 4 }}>Year-end for Gary</div>
         <div style={{ fontSize: 13, color: N.muted, marginBottom: 16 }}>Fiscal year ends {entity.fiscalYearEnd}. One click for the tax-ready package.</div>
         <div style={{ display: "grid", gap: 10 }}>
