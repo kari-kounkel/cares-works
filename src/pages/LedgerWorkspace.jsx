@@ -186,6 +186,7 @@ const ACCOUNT_TYPES = [
 
 const STATUS_COLOR = {
   Paid: N.green, Partial: "#eab308", Viewed: N.blue, Sent: N.blueHot, Draft: N.muted, Void: N.mutedLite,
+  "In progress": "#eab308",
 };
 
 // "Still being polished" accent — Kari wants checkboxes/checks amber, not green,
@@ -342,8 +343,9 @@ function mapInvoice(v) {
     subtotal: (v.subtotal_cents || 0) / 100,
     tax: v.tax_status || "Exempt",
     taxAmt: (v.tax_cents || 0) / 100,
-    status: cap(v.status),
+    status: v.status === "in_progress" ? "In progress" : cap(v.status),
     date: d ? d.toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "",
+    issueDate: v.issue_date || "",
   };
 }
 
@@ -356,7 +358,9 @@ function attachPayments(m, payments) {
   const paidCents = payments.length ? summed : (m.status === "Paid" ? totalCents : 0);
   const balanceCents = Math.max(0, totalCents - paidCents);
   let status = m.status;
-  if (m.status !== "Void" && m.docType !== "order") {
+  // "In progress" is Dave's own flag and wins over payment-derived status — a down
+  // payment on an in-progress job still reads "In progress" (the balance shows the deposit).
+  if (m.status !== "Void" && m.docType !== "order" && m.status !== "In progress") {
     if (totalCents > 0 && paidCents >= totalCents) status = "Paid";
     else if (paidCents > 0) status = "Partial";
   }
@@ -456,7 +460,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [payFor, setPayFor] = useState(null);
   const [invPay, setInvPay] = useState(blankInvPay);
   const [showOrderForm, setShowOrderForm] = useState(false);
-  const blankOrder = { mode: "invoice", customer: "", vendor: "", email: "", taxStatus: "Exempt", lines: [{ item: "", desc: "", qty: "1", cost: "", price: "" }] };
+  const blankOrder = { mode: "invoice", date: "", customer: "", vendor: "", email: "", taxStatus: "Exempt", lines: [{ item: "", desc: "", qty: "1", cost: "", price: "" }] };
   const [orderDraft, setOrderDraft] = useState(blankOrder);
   const [editingOrder, setEditingOrder] = useState(null);
   const [showBillForm, setShowBillForm] = useState(false);
@@ -880,7 +884,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   }
 
   async function invoiceStatus(id, status) {
-    setInvoices(prev => prev.map(v => (v.id === id ? { ...v, status: status.charAt(0).toUpperCase() + status.slice(1) } : v)));
+    const disp = status === "in_progress" ? "In progress" : status.charAt(0).toUpperCase() + status.slice(1);
+    setInvoices(prev => prev.map(v => (v.id === id ? { ...v, status: disp } : v)));
     if (live) {
       const patch = { status };
       patch.paid_at = status === "paid" ? new Date().toISOString() : null;
@@ -1181,9 +1186,12 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   </>
                 ) : (
                   <>
+                    {openInv.status !== "Void" && <button onClick={() => { const v = openInv; setOpenInv(null); editOrder(v); }} style={btnPaper(N.muted)}>Edit</button>}
+                    {openInv.status !== "In progress" && openInv.status !== "Paid" && openInv.status !== "Void" && <button onClick={() => { invoiceStatus(openInv.id, "in_progress"); setOpenInv(null); }} style={btnPaper("#8a5a00")}>Mark in progress</button>}
+                    {openInv.status === "In progress" && <button onClick={() => { invoiceStatus(openInv.id, "draft"); setOpenInv(null); }} style={btnPaper(N.blue)}>Done building</button>}
                     {openInv.status !== "Void" && <button onClick={() => sendInvoice(openInv)} style={{ ...btnBlue, background: N.blue }}>{openInv.status === "Draft" ? "Send · get link" : "Copy / resend link"}</button>}
                     {openInv.status !== "Paid" && openInv.status !== "Void" && <button onClick={() => quickMarkPaid(openInv)} style={{ ...btnBlue, background: N.pinkDark }}>Mark paid</button>}
-                    {openInv.status !== "Paid" && openInv.status !== "Void" && <button onClick={() => openPayment(openInv)} style={btnPaper(N.pinkDark)}>Partial / check…</button>}
+                    {openInv.status !== "Paid" && openInv.status !== "Void" && <button onClick={() => openPayment(openInv)} style={btnPaper(N.pinkDark)}>Down payment / partial…</button>}
                     {openInv.status === "Paid" && (openInv.payments || []).length === 0 && <button onClick={() => { invoiceStatus(openInv.id, "sent"); setOpenInv(null); }} style={btnPaper(N.muted)}>Unmark paid</button>}
                     {(openInv.status === "Sent" || openInv.status === "Viewed") && <button onClick={() => { invoiceStatus(openInv.id, "draft"); setOpenInv(null); }} style={btnPaper(N.muted)}>← Back to draft</button>}
                     {openInv.status !== "Void" && <button onClick={() => voidInvoice(openInv)} style={btnPaper(N.muted)}>Void</button>}
@@ -1235,17 +1243,23 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       if (!known && draft.customer.trim()) {
         await supabase.from("ledger_customers").insert({ org_id: liveOrgId, user_id: session.user.id, name: draft.customer.trim(), email: draft.email.trim() || null });
       }
-      const row = {
-        doc_type: asPo ? "order" : "invoice", status: asPo ? "order" : "draft",
+      // Editable content only. On edit we keep status / doc_type / invoice_number as-is
+      // (so an in-progress or paid invoice isn't reset), just updating what Dave changed.
+      const fields = {
         customer_name: draft.customer.trim() || null, customer_email: draft.email.trim() || null,
-        vendor_name: asPo ? (draft.vendor.trim() || null) : null, po_number: asPo ? String(po) : null,
         line_items: lines.map(l => ({ item: (l.item || "").trim(), desc: (l.desc || "").trim(), qty: parseInt(l.qty) || 1, cost: parseFloat(l.cost) || 0, price: parseFloat(l.price) || 0 })),
         tax_status: draft.taxStatus, subtotal_cents: subtotal, tax_cents: tax, total_cents: total,
       };
+      if (draft.date) fields.issue_date = draft.date;
+      if (asPo) fields.vendor_name = draft.vendor.trim() || null;
       if (editing) {
-        await supabase.from("invoices").update(row).eq("id", editing.id);
+        await supabase.from("invoices").update(fields).eq("id", editing.id);
       } else {
-        const insertRow = { org_id: liveOrgId, user_id: session.user.id, ...row };
+        const insertRow = {
+          org_id: liveOrgId, user_id: session.user.id,
+          doc_type: asPo ? "order" : "invoice", status: asPo ? "order" : "draft",
+          po_number: asPo ? String(po) : null, ...fields,
+        };
         if (!asPo) insertRow.invoice_number = String(entity.nextInvoiceNumber || 1001);
         await supabase.from("invoices").insert(insertRow);
         if (asPo) await supabase.from("ledger_orgs").update({ next_po_number: po + 1 }).eq("id", liveOrgId);
@@ -1260,6 +1274,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     setEditingOrder(v);
     setOrderDraft({
       mode: v.poNumber ? "po" : "invoice",
+      date: v.issueDate || "",
       customer: v.customer === "—" ? "" : v.customer, vendor: v.vendor || "", email: v.email || "",
       taxStatus: v.tax || "Exempt",
       lines: (v.lines && v.lines.length ? v.lines : [{}]).map(l => ({
@@ -1267,6 +1282,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         cost: l.cost ? String(l.cost) : "", price: l.price ? String(l.price) : "",
       })),
     });
+    setSection("orders");
     setShowOrderForm(true);
   }
 
@@ -1836,6 +1852,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               </div>
               <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: STATUS_COLOR[v.status] || N.muted, background: (STATUS_COLOR[v.status] || N.muted) + "18", padding: "4px 10px", borderRadius: 100 }}>{v.status}</span>
               <div style={{ display: "flex", gap: 6 }}>
+                {!voided && <button onClick={e => { e.stopPropagation(); editOrder(v); }} style={btnPaper(N.muted)}>Edit</button>}
                 {v.status !== "Paid" && !voided && <button onClick={e => { e.stopPropagation(); sendInvoice(v); }} style={btnPaper(N.blue)}>{v.status === "Draft" ? "Send" : "Resend"}</button>}
                 {(v.status === "Sent" || v.status === "Viewed") && <button onClick={e => { e.stopPropagation(); invoiceStatus(v.id, "draft"); }} style={btnPaper(N.muted)}>← Draft</button>}
                 {v.status !== "Paid" && !voided && <button onClick={e => { e.stopPropagation(); quickMarkPaid(v); }} style={btnPaper(N.pinkDark)}>Mark paid</button>}
@@ -1966,6 +1983,11 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 <button key={m} onClick={() => setOrderDraft(d => ({ ...d, mode: m }))} style={{ fontSize: 12.5, padding: "7px 14px", borderRadius: 100, cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontWeight: 500, border: "1px solid " + (orderDraft.mode === m ? N.blue : N.rule), background: orderDraft.mode === m ? N.blue : N.white, color: orderDraft.mode === m ? N.white : N.text }}>{label}</button>
               ))}
             </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+              <span style={{ fontSize: 12, color: N.muted }}>{poMode ? "PO date" : "Invoice date"}</span>
+              <input type="date" value={orderDraft.date || ""} onChange={e => setOrderDraft(d => ({ ...d, date: e.target.value }))} style={{ ...inputSt, width: 170 }} />
+              <span style={{ fontSize: 11, color: N.mutedLite }}>{editingOrder ? "leave to keep the original date" : "blank = today"}</span>
+            </div>
             <div style={{ display: "grid", gridTemplateColumns: orderDraft.mode === "po" ? "1fr 1fr" : "1fr", gap: 10, marginBottom: 12 }}>
               <div style={{ position: "relative" }}>
                 <input placeholder={poMode ? "Customer (leave blank if it's for you)" : "Customer"} list="po-customers" value={orderDraft.customer} onChange={e => { const val = e.target.value; const c = (entity.customers || []).find(x => x.name === val); setOrderDraft(d => ({ ...d, customer: val, email: c && c.email ? c.email : d.email })); }} style={{ ...inputSt, paddingRight: 26 }} />
@@ -2010,7 +2032,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 {poMode && <span style={{ color: N.blueDark }}>PO #{(editingOrder && editingOrder.poNumber) || entity.nextPoNumber} to vendor: <b>{money(costSub)}</b> &nbsp;·&nbsp; </span>}
                 <span style={{ color: poMode ? "#5a7a63" : N.muted }}>{poMode ? "Invoice to customer: " : "Subtotal "}{money(sub)}{orderDraft.taxStatus === "Taxable" ? ` + MN tax ${money(tax)}` : ""} · <b style={{ color: N.ink }}>{money(sub + tax)}</b></span>
               </div>
-              <button onClick={createOrder} style={{ ...btnBlue, background: N.blue, fontSize: 14, padding: "10px 18px" }}>{editingOrder ? "Update order" : (poMode ? "Save order · send PO" : "Save as invoice →")}</button>
+              <button onClick={createOrder} style={{ ...btnBlue, background: N.blue, fontSize: 14, padding: "10px 18px" }}>{editingOrder ? (poMode ? "Update PO" : "Update invoice") : (poMode ? "Save order · send PO" : "Save as invoice →")}</button>
             </div>
           </div>
         )}
