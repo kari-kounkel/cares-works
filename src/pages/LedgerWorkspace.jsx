@@ -421,6 +421,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [helpOpen, setHelpOpen] = useState(false);
   const [invSort, setInvSort] = useState("status"); // Invoices list sort
   const [poSort, setPoSort] = useState("vendor");    // Purchase Orders list sort
+  const [logoBusy, setLogoBusy] = useState(false);
   const payeeRef = useRef(null);
   const amountRef = useRef(null);
   const blankAcct = { name: "", account_type: "bank", last_four: "", opening: "" };
@@ -2579,6 +2580,65 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     );
   }
 
+  async function uploadLogo(file) {
+    if (!file || !liveOrgId) return;
+    if (file.size > 5 * 1024 * 1024) { window.alert("That image is over 5 MB — please use a smaller one."); return; }
+    setLogoBusy(true);
+    try {
+      const ext = (file.name.split(".").pop() || "png").toLowerCase().replace(/[^a-z0-9]/g, "");
+      const path = `${liveOrgId}/logo.${ext || "png"}`;
+      const { error: upErr } = await supabase.storage.from("org-assets").upload(path, file, { upsert: true, cacheControl: "3600", contentType: file.type || undefined });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("org-assets").getPublicUrl(path);
+      const url = pub.publicUrl + "?v=" + Date.now();
+      await supabase.from("ledger_orgs").update({ logo_url: url }).eq("id", liveOrgId);
+      setReloadTick(t => t + 1);
+    } catch (e) { window.alert("Couldn't upload that image: " + (e.message || e)); }
+    setLogoBusy(false);
+  }
+  async function removeLogo() {
+    if (!liveOrgId) return;
+    await supabase.from("ledger_orgs").update({ logo_url: null }).eq("id", liveOrgId);
+    setReloadTick(t => t + 1);
+  }
+  async function saveBrandColor(color) {
+    if (!liveOrgId) return;
+    await supabase.from("ledger_orgs").update({ brand_color: color }).eq("id", liveOrgId);
+    setReloadTick(t => t + 1);
+  }
+  function Settings() {
+    return (
+      <div style={{ maxWidth: 580 }}>
+        <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: N.ink, marginBottom: 2 }}>Your logo &amp; color</div>
+        <div style={{ fontSize: 13, color: N.muted, marginBottom: 16, lineHeight: 1.6 }}>Your logo shows at the top of every <b>invoice</b>, <b>purchase order</b>, and the copy your customers open online. Use a <b>PNG or JPG</b> — a wide, horizontal logo looks best. If there's no logo, your business name is shown instead.</div>
+        <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: 18, marginBottom: 14 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", color: N.muted, marginBottom: 10 }}>CURRENT LOGO</div>
+          <div style={{ minHeight: 70, display: "flex", alignItems: "center", justifyContent: "center", background: "#f7fafd", border: "1px dashed " + N.rule, borderRadius: 10, padding: 14, marginBottom: 14 }}>
+            {entity.logoUrl ? <img src={entity.logoUrl} alt={entity.name} style={{ maxHeight: 70, maxWidth: "100%", objectFit: "contain" }} /> : <span style={{ fontSize: 13, color: N.mutedLite }}>No logo yet — “{entity.short || entity.name}” shows instead.</span>}
+          </div>
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            <label style={{ ...btnBlue, background: logoBusy ? N.mutedLite : N.blue, cursor: logoBusy ? "default" : "pointer" }}>
+              {logoBusy ? "Uploading…" : (entity.logoUrl ? "Replace logo" : "Upload a logo")}
+              <input type="file" accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml" disabled={logoBusy} onChange={e => { const f = e.target.files && e.target.files[0]; e.target.value = ""; uploadLogo(f); }} style={{ display: "none" }} />
+            </label>
+            {entity.logoUrl && <button onClick={removeLogo} style={btnPaper(N.pinkDark)}>Remove</button>}
+          </div>
+        </div>
+        <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: 18 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", color: N.muted, marginBottom: 10 }}>BRAND COLOR</div>
+          <div style={{ fontSize: 13, color: N.muted, marginBottom: 12 }}>Used for the “INVOICE / PURCHASE ORDER” heading on your documents.</div>
+          <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+            <input type="color" value={entity.brandColor || "#0080ff"} onChange={e => saveBrandColor(e.target.value)} style={{ width: 46, height: 34, border: "1px solid " + N.rule, borderRadius: 8, cursor: "pointer", background: "none", padding: 2 }} />
+            <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 13, color: N.ink }}>{(entity.brandColor || "#0080ff").toUpperCase()}</span>
+            {["#0080ff", "#0a0a14", "#22a06b", "#c0392b", "#7c3aed"].map(c => (
+              <button key={c} onClick={() => saveBrandColor(c)} title={c} style={{ width: 26, height: 26, borderRadius: 100, border: "2px solid " + (((entity.brandColor || "#0080ff").toLowerCase() === c) ? N.ink : "#fff"), background: c, cursor: "pointer", boxShadow: "0 1px 3px rgba(0,0,0,0.2)" }} />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   function Reports() {
     const balOf = v => (v.balanceCents != null ? v.balanceCents : Math.round((v.amount || 0) * 100));
     const ar = invoices.filter(v => v.docType !== "order" && v.status !== "Void" && v.status !== "Paid" && balOf(v) > 0)
@@ -2974,7 +3034,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             {Chart()}
           </div>
         )}
-        {listsTab === "settings" && <div style={{ background: N.white, border: "1px dashed " + N.rule, borderRadius: 12, padding: "34px 20px", textAlign: "center", color: N.muted, fontSize: 14 }}>Users &amp; roles, logo &amp; branding, remit info, and sales-tax rate — coming here.</div>}
+        {listsTab === "settings" && Settings()}
       </div>
     );
   }
