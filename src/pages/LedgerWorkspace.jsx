@@ -408,7 +408,10 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const blankPay = { amount: "", fromId: "", toId: "", date: new Date().toISOString().slice(0, 10) };
   const [payDraft, setPayDraft] = useState(blankPay);
   const [showAddLine, setShowAddLine] = useState(false);
-  const blankLine = { date: new Date().toISOString().slice(0, 10), payee: "", amount: "", direction: "out", accountId: "" };
+  const [lastAcctId, setLastAcctId] = useState(() => { try { return localStorage.getItem("cw_lastAcct") || ""; } catch (e) { return ""; } });
+  const [bankSeenAt, setBankSeenAt] = useState(() => { try { return localStorage.getItem("cw_bankSeen") || ""; } catch (e) { return ""; } });
+  const markBankSeen = () => { const now = new Date().toISOString(); setBankSeenAt(now); try { localStorage.setItem("cw_bankSeen", now); } catch (e) { /* storage may be blocked */ } };
+  const blankLine = { date: new Date().toISOString().slice(0, 10), payee: "", amount: "", direction: "out", accountId: lastAcctId };
   const [lineDraft, setLineDraft] = useState(blankLine);
   const [editLineId, setEditLineId] = useState(null);
   const [editDraft, setEditDraft] = useState({ date: "", payee: "", amount: "", direction: "out" });
@@ -652,6 +655,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   function setAccount(id, acctId, acctName) {
     setItems(prev => prev.map(x => (x.id === id ? { ...x, accountId: acctId, source: acctName } : x)));
     setAcctOpen(null);
+    if (acctId) { setLastAcctId(acctId); try { localStorage.setItem("cw_lastAcct", acctId); } catch (e) { /* storage may be blocked */ } }
     if (live) supabase.from("ledger_entries").update({ account_id: acctId }).eq("id", id).then(() => {});
   }
 
@@ -1840,6 +1844,16 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 style={{ border: "none", outline: "none", fontSize: 13, fontFamily: "'Figtree', sans-serif", width: 200, color: N.text }} />
             </div>
           </div>
+          {(() => {
+            const newBank = (entity.rawEntries || []).filter(e => e.source_hash && (e.created_at || "") > bankSeenAt).length;
+            if (!newBank) return null;
+            return (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap", background: "#eef6ff", border: "1px solid #cfe4ff", borderRadius: 10, padding: "9px 14px", marginTop: 12 }}>
+                <span style={{ fontSize: 13, color: N.blueDark, fontWeight: 600 }}>🔔 {newBank} new transaction{newBank === 1 ? "" : "s"} came in from your bank — they're in the list below to match.</span>
+                <button onClick={markBankSeen} style={{ ...btnPaper(N.blueDark), padding: "5px 12px" }}>Got it</button>
+              </div>
+            );
+          })()}
           {/* Row 2 — controls */}
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginTop: 12 }}>
             <button onClick={() => { setShowAddLine(s => !s); setShowPayCard(false); setAddedCount(0); setTimeout(() => payeeRef.current && payeeRef.current.focus(), 40); }} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 16px" }}>{showAddLine ? "Close" : "+ Add a line"}</button>
