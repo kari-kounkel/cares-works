@@ -464,6 +464,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [emailState, setEmailState] = useState(null);
   const [poEmailTo, setPoEmailTo] = useState("");   // vendor email for the PO send box
   const [poEmailMsg, setPoEmailMsg] = useState(null); // {sending} | {ok} | {err}
+  const [receiptMsg, setReceiptMsg] = useState(null); // paid-receipt email status
   const [progOpen, setProgOpen] = useState({});
   const blankInvPay = { amount: "", method: "check", check_number: "", paid_on: "", memo: "", accountId: "" };
   const [payFor, setPayFor] = useState(null);
@@ -1113,9 +1114,29 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     } catch (e) { setPoEmailMsg({ err: String(e) }); }
   }
 
+  // Email the customer a "paid in full" receipt (they don't get one automatically).
+  async function emailReceipt(inv) {
+    if (!inv) return;
+    if (testMode) { setReceiptMsg({ ok: "nobody — test mode, not really sent" }); return; }
+    setReceiptMsg({ sending: true });
+    try {
+      const { data, error } = await supabase.functions.invoke("send-receipt-email", { body: { invoice_id: inv.id } });
+      if (error || (data && data.error)) {
+        let msg = (data && data.error) || (error && error.message) || "Send failed.";
+        try { if (error && error.context && typeof error.context.json === "function") { const b = await error.context.json(); if (b && b.error) msg = b.error; } } catch (e) { /* keep msg */ }
+        setReceiptMsg({ err: msg });
+      } else {
+        const to = data && data.to ? data.to : "the customer";
+        setReceiptMsg({ ok: to });
+        await logDocEvent(inv.id, "receipt", "Paid receipt emailed to " + to);
+        setReloadTick(t => t + 1);
+      }
+    } catch (e) { setReceiptMsg({ err: String(e) }); }
+  }
+
   // Prefill the PO email box from the vendor record whenever a PO opens.
   useEffect(() => {
-    setPoEmailMsg(null);
+    setPoEmailMsg(null); setReceiptMsg(null);
     if (openInv && openInv.docType === "order") {
       const vd = (entity.vendorList || []).find(v => (v.name || "").toLowerCase() === (openInv.vendor || "").toLowerCase()) || {};
       setPoEmailTo(vd.email || "");
@@ -1279,7 +1300,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", color: N.muted, marginBottom: 8 }}>HISTORY</div>
                   <div style={{ display: "grid", gap: 6 }}>
                     {events.slice().reverse().map(ev => {
-                      const L = { created: "Created", revised: "Revised", sent: "Sent", viewed: "Viewed by customer", billed: "Billed", payment: "Payment", paid: "Paid in full" }[ev.event_type] || ev.event_type;
+                      const L = { created: "Created", revised: "Revised", sent: "Sent", viewed: "Viewed by customer", billed: "Billed", payment: "Payment", paid: "Paid in full", receipt: "Receipt emailed" }[ev.event_type] || ev.event_type;
                       const col = ev.event_type === "viewed" ? N.blue : ev.event_type === "paid" ? N.green : ev.event_type === "revised" ? "#8a5a00" : N.muted;
                       const d = ev.created_at ? new Date(ev.created_at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "";
                       return (
@@ -1302,6 +1323,15 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   <button onClick={sendPO} disabled={!!(poEmailMsg && poEmailMsg.sending)} style={{ ...btnBlue, background: (poEmailMsg && poEmailMsg.sending) ? N.mutedLite : N.blue }}>{poEmailMsg && poEmailMsg.sending ? "Sending…" : "Email PO"}</button>
                   {poEmailMsg && poEmailMsg.ok && <span style={{ fontSize: 12, color: N.green, fontWeight: 600 }}>✓ Sent to {poEmailMsg.ok}</span>}
                   {poEmailMsg && poEmailMsg.err && <span style={{ fontSize: 12, color: N.red }}>{poEmailMsg.err}</span>}
+                </div>
+              )}
+
+              {!isPo && openInv.status === "Paid" && (
+                <div className="no-print" style={{ padding: "12px 22px", borderTop: "1px solid " + N.rule, background: N.white, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                  <span style={{ fontSize: 12, color: N.muted }}>Send the customer a paid-in-full receipt:</span>
+                  <button onClick={() => emailReceipt(openInv)} disabled={!!(receiptMsg && receiptMsg.sending)} style={{ ...btnBlue, background: (receiptMsg && receiptMsg.sending) ? N.mutedLite : N.green }}>{receiptMsg && receiptMsg.sending ? "Sending…" : "Email paid receipt"}</button>
+                  {receiptMsg && receiptMsg.ok && <span style={{ fontSize: 12, color: N.green, fontWeight: 600 }}>✓ Sent to {receiptMsg.ok}</span>}
+                  {receiptMsg && receiptMsg.err && <span style={{ fontSize: 12, color: N.red }}>{receiptMsg.err}</span>}
                 </div>
               )}
 
