@@ -94,6 +94,7 @@ export const ENTITIES = {
 const SECTIONS = [
   { key: "orders", label: "New Orders" },
   { key: "invoices", label: "Invoices" },
+  { key: "purchaseorders", label: "Purchase Orders" },
   { key: "salestax", label: "Sales tax" },
   { key: "notebook", label: "Notebook" },
   { key: "bills", label: "Bills" },
@@ -369,7 +370,7 @@ function attachPayments(m, payments) {
 
 function fmtPay(p) {
   const label = p.method === "check" ? (p.check_number ? `Check #${p.check_number}` : "Check")
-    : p.method === "ach" ? "ACH" : p.method === "cash" ? "Cash" : p.method === "card" ? "Card" : "Payment";
+    : p.method === "ach" ? "ACH" : p.method === "cash" ? "Cash" : p.method === "card" ? "Card" : p.method === "credit" ? "Account credit" : "Payment";
   const d = p.paid_on ? String(p.paid_on).split("-") : null;
   const date = d && d.length === 3 ? `${+d[1]}/${+d[2]}/${d[0].slice(2)}` : "";
   return `${label}${date ? " · " + date : ""}`;
@@ -459,6 +460,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const blankInvPay = { amount: "", method: "check", check_number: "", paid_on: "", memo: "", accountId: "" };
   const [payFor, setPayFor] = useState(null);
   const [invPay, setInvPay] = useState(blankInvPay);
+  const [overpayFor, setOverpayFor] = useState(null); // invoice being resolved for an overpayment
+  const [overpayAmt, setOverpayAmt] = useState("");
   const [showOrderForm, setShowOrderForm] = useState(false);
   const blankOrder = { mode: "invoice", date: "", customer: "", vendor: "", email: "", taxStatus: "Exempt", lines: [{ item: "", desc: "", qty: "1", cost: "", price: "" }] };
   const [orderDraft, setOrderDraft] = useState(blankOrder);
@@ -495,7 +498,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         ? (orgs || []).find(o => o.id === orgId)
         : (wantFirst ? (orgs || []).find(o => (o.name || "").toLowerCase().includes(wantFirst)) : null);
       if (!org || cancelled) return;
-      const [a, c, e, inv, ven, cust, prod, bil, pay] = await Promise.all([
+      const [a, c, e, inv, ven, cust, prod, bil, pay, cred] = await Promise.all([
         supabase.from("ledger_accounts").select("*").eq("org_id", org.id).eq("archived", false).order("created_at", { ascending: true }),
         supabase.from("ledger_categories").select("*").eq("org_id", org.id).eq("archived", false).order("sort_order", { ascending: true }),
         supabase.from("ledger_entries").select("*").eq("org_id", org.id).order("entry_date", { ascending: false }).order("created_at", { ascending: false }),
@@ -505,6 +508,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         supabase.from("ledger_products").select("*").eq("org_id", org.id).order("name", { ascending: true }),
         supabase.from("ledger_bills").select("*").eq("org_id", org.id).order("due_date", { ascending: true }).order("created_at", { ascending: false }),
         supabase.from("ledger_payments").select("*").eq("org_id", org.id).order("paid_on", { ascending: true }),
+        supabase.from("ledger_credits").select("*").eq("org_id", org.id).eq("status", "open").order("created_at", { ascending: true }),
       ]);
       if (cancelled) return;
       setLiveOrgId(org.id);
@@ -520,6 +524,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       built.bills = bil.data || [];
       built.rawCategories = c.data || [];
       built.rawEntries = e.data || [];
+      built.credits = cred.data || [];
       setDbEntity(built);
     })();
     return () => { cancelled = true; };
@@ -948,6 +953,64 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     setReloadTick(t => t + 1);
   }
 
+  // ---- Overpayments / customer credits ----------------------------------------
+  // Open the "customer overpaid" resolver. Defaults the amount to any recorded excess.
+  function openOverpay(v) {
+    const over = v.paidCents != null ? Math.max(0, v.paidCents - Math.round((v.amount || 0) * 100)) : 0;
+    setOverpayAmt(over > 0 ? String(over / 100) : "");
+    setOverpayFor(v);
+  }
+  // "Keep as account credit" — a credit on the customer they can put toward a future invoice.
+  async function keepAsCredit() {
+    const v = overpayFor;
+    const cents = Math.round((parseFloat(overpayAmt) || 0) * 100);
+    if (!v || cents <= 0 || !liveOrgId) return;
+    setOverpayFor(null); setOpenInv(null);
+    await supabase.from("ledger_credits").insert({
+      org_id: liveOrgId, user_id: session.user.id, customer_name: v.customer,
+      amount_cents: cents, memo: `Overpayment on invoice ${v.number ? "#" + v.number : ""}`.trim(),
+      source_invoice_id: v.id, status: "open",
+    });
+    setReloadTick(t => t + 1);
+  }
+  // "Refund by check" — record the credit as refunded and open the check modal to the customer.
+  async function refundOverpay() {
+    const v = overpayFor;
+    const cents = Math.round((parseFloat(overpayAmt) || 0) * 100);
+    if (!v || cents <= 0 || !liveOrgId) return;
+    setOverpayFor(null); setOpenInv(null);
+    await supabase.from("ledger_credits").insert({
+      org_id: liveOrgId, user_id: session.user.id, customer_name: v.customer,
+      amount_cents: cents, memo: `Refund of overpayment on invoice ${v.number ? "#" + v.number : ""}`.trim(),
+      source_invoice_id: v.id, status: "refunded",
+    });
+    const banks = accountList.filter(a => a.type === "bank");
+    setCheckAcctId(banks[0] ? banks[0].id : "");
+    setCheckStartNum(String(entity.nextCheckNumber || 1001));
+    setSection("bills"); // the check modal is rendered on the Bills screen
+    setCheckFor({ checks: [{ vendor_name: v.customer, amount_cents: cents, category: "Refund", memo: `Refund overpayment${v.number ? " · inv #" + v.number : ""}` }] });
+  }
+  // Apply an open credit toward an invoice with a balance (no new cash — the money already came in).
+  async function applyCredit(credit, inv) {
+    if (!credit || !inv || !liveOrgId) return;
+    const bal = inv.balanceCents != null ? inv.balanceCents : Math.round((inv.amount || 0) * 100);
+    const use = Math.min(credit.amount_cents, bal);
+    if (use <= 0) return;
+    setOpenInv(null);
+    const { data: payRow } = await supabase.from("ledger_payments").insert({
+      org_id: liveOrgId, user_id: session.user.id, invoice_id: inv.id,
+      amount_cents: use, method: "credit", paid_on: new Date().toISOString().slice(0, 10),
+      memo: `Applied credit${credit.source_invoice_id ? "" : ""}`,
+    }).select("id").single();
+    if ((inv.paidCents || 0) + use >= Math.round((inv.amount || 0) * 100)) {
+      await supabase.from("invoices").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", inv.id);
+    }
+    const left = credit.amount_cents - use;
+    if (left > 0) await supabase.from("ledger_credits").update({ amount_cents: left }).eq("id", credit.id);
+    else await supabase.from("ledger_credits").update({ status: "applied", applied_invoice_id: inv.id }).eq("id", credit.id);
+    setReloadTick(t => t + 1);
+  }
+
   // Quick "Mark paid" — records the full payment AND drops a CorTrust deposit in the
   // notebook (she deposits on her phone when she marks it). Skips if already recorded.
   async function quickMarkPaid(v) {
@@ -1049,6 +1112,10 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     const isPo = openInv.docType === "order";
     const rateOf = l => (isPo ? (l.cost || 0) : (l.price || 0));
     const docSub = invLines.reduce((s, l) => s + rateOf(l) * (l.qty || 1), 0);
+    // Open credits on this customer's account (from a past overpayment) and this invoice's balance.
+    const custCredits = (entity.credits || []).filter(cr => cr.status === "open" && (cr.customer_name || "").toLowerCase() === (openInv.customer || "").toLowerCase());
+    const creditCents = custCredits.reduce((s, cr) => s + (cr.amount_cents || 0), 0);
+    const invBalCents = openInv.balanceCents != null ? openInv.balanceCents : Math.round((openInv.amount || 0) * 100);
     return (
           <div onClick={() => setOpenInv(null)} style={{ position: "fixed", inset: 0, background: "rgba(10,10,20,0.45)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "44px 16px", zIndex: 200, overflowY: "auto" }}>
             <div onClick={e => e.stopPropagation()} className="print-doc" style={{ background: N.white, borderRadius: 12, width: "100%", maxWidth: 640, boxShadow: "0 24px 70px rgba(10,10,20,0.35)", overflow: "hidden" }}>
@@ -1102,6 +1169,12 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 </div>
                 )}
 
+                {!isPo && creditCents > 0 && (
+                  <div className="no-print" style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", background: "#eafaf0", border: "1px solid #bff0d3", borderRadius: 10, padding: "10px 14px", marginBottom: 14 }}>
+                    <span style={{ fontSize: 13, color: N.pinkDark, fontWeight: 600 }}>{openInv.customer} has a {money(creditCents / 100)} credit on file.</span>
+                    {invBalCents > 0 && <button onClick={() => applyCredit(custCredits[0], openInv)} style={{ ...btnBlue, background: N.pinkDark }}>Apply {money(Math.min(creditCents, invBalCents) / 100)} to this invoice</button>}
+                  </div>
+                )}
                 <div style={{ border: "1px solid " + N.rule, borderRadius: 10, overflow: "hidden", marginBottom: 16 }}>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 46px 86px 92px", gap: 8, padding: "10px 14px", background: "#f7fafd", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", color: N.muted }}>
                     <span>DESCRIPTION</span><span style={{ textAlign: "center" }}>QTY</span><span style={{ textAlign: "right" }}>RATE</span><span style={{ textAlign: "right" }}>AMOUNT</span>
@@ -1192,6 +1265,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                     {openInv.status !== "Void" && <button onClick={() => sendInvoice(openInv)} style={{ ...btnBlue, background: N.blue }}>{openInv.status === "Draft" ? "Send · get link" : "Copy / resend link"}</button>}
                     {openInv.status !== "Paid" && openInv.status !== "Void" && <button onClick={() => quickMarkPaid(openInv)} style={{ ...btnBlue, background: N.pinkDark }}>Mark paid</button>}
                     {openInv.status !== "Paid" && openInv.status !== "Void" && <button onClick={() => openPayment(openInv)} style={btnPaper(N.pinkDark)}>Down payment / partial…</button>}
+                    {openInv.status !== "Void" && <button onClick={() => openOverpay(openInv)} style={btnPaper(N.muted)}>Overpaid…</button>}
                     {openInv.status === "Paid" && (openInv.payments || []).length === 0 && <button onClick={() => { invoiceStatus(openInv.id, "sent"); setOpenInv(null); }} style={btnPaper(N.muted)}>Unmark paid</button>}
                     {(openInv.status === "Sent" || openInv.status === "Viewed") && <button onClick={() => { invoiceStatus(openInv.id, "draft"); setOpenInv(null); }} style={btnPaper(N.muted)}>← Back to draft</button>}
                     {openInv.status !== "Void" && <button onClick={() => voidInvoice(openInv)} style={btnPaper(N.muted)}>Void</button>}
@@ -1202,6 +1276,30 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               </div>
             </div>
           </div>
+    );
+  }
+
+  function overpayModal() {
+    if (!overpayFor) return null;
+    const v = overpayFor;
+    const cents = Math.round((parseFloat(overpayAmt) || 0) * 100);
+    return (
+      <div onClick={() => setOverpayFor(null)} style={{ position: "fixed", inset: 0, background: "rgba(10,10,20,0.45)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "70px 16px", zIndex: 230 }}>
+        <div onClick={e => e.stopPropagation()} style={{ background: N.white, borderRadius: 12, width: "100%", maxWidth: 460, boxShadow: "0 24px 70px rgba(10,10,20,0.35)", padding: 22 }}>
+          <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: N.ink, marginBottom: 4 }}>Customer overpaid</div>
+          <div style={{ fontSize: 13, color: N.muted, marginBottom: 16 }}>{v.customer}{v.number ? ` · invoice #${v.number}` : ""}. Enter how much they overpaid, then keep it as a credit or cut a refund check.</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+            <span style={{ fontSize: 13, color: N.muted }}>Overpaid by $</span>
+            <input inputMode="decimal" value={overpayAmt} onChange={e => setOverpayAmt(e.target.value)} placeholder="0.00" style={{ ...inputSt, width: 120, textAlign: "right", fontWeight: 700 }} />
+          </div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <button onClick={keepAsCredit} disabled={cents <= 0} style={{ ...btnBlue, background: cents > 0 ? N.blue : N.mutedLite }}>Keep as account credit</button>
+            <button onClick={refundOverpay} disabled={cents <= 0} style={{ ...btnBlue, background: cents > 0 ? N.pinkDark : N.mutedLite }}>Refund by check →</button>
+            <button onClick={() => setOverpayFor(null)} style={btnPaper(N.muted)}>Cancel</button>
+          </div>
+          <div style={{ fontSize: 12, color: N.mutedLite, marginTop: 12 }}>A credit sits on their account until you apply it to a future invoice. Refund opens a check to print.</div>
+        </div>
+      </div>
     );
   }
 
@@ -2069,6 +2167,45 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     );
   }
 
+  // Dave's purchase orders — the ones out to vendors. Its own screen so he can find them.
+  function PurchaseOrders() {
+    const pos = invoices.filter(v => v.docType === "order");
+    const newPO = () => { setEditingOrder(null); setOrderDraft({ ...blankOrder, mode: "po" }); setShowOrderForm(true); setSection("orders"); };
+    return (
+      <div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, flexWrap: "wrap", gap: 10 }}>
+          <div>
+            <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>Purchase Orders</div>
+            <div style={{ fontSize: 13, color: N.muted }}>Orders out to your vendors — mostly Dave's. Email or print one, then convert it to an invoice when the job's made.</div>
+          </div>
+          <button onClick={newPO} style={{ ...btnBlue, background: N.blue, fontSize: 14, padding: "10px 18px" }}>+ New purchase order</button>
+        </div>
+        <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, overflow: "hidden" }}>
+          {pos.length === 0 ? (
+            <div style={{ padding: "30px 20px", textAlign: "center", color: N.muted, fontSize: 14 }}>No purchase orders yet. Click “New purchase order” to send one to a vendor.</div>
+          ) : pos.map((v, i) => {
+            const costTot = (v.lines || []).reduce((s, l) => s + (l.cost || 0) * (l.qty || 1), 0);
+            return (
+              <div key={v.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 16px", borderBottom: i === pos.length - 1 ? "none" : "1px solid " + N.rule, flexWrap: "wrap" }}>
+                <div style={{ width: 74, fontSize: 13, color: N.blueDark, fontWeight: 700, fontFamily: "'DM Mono', monospace" }}>PO #{v.poNumber || "—"}</div>
+                <div style={{ flex: 1, minWidth: 150 }}>
+                  <div style={{ fontSize: 15, color: N.ink, fontWeight: 600 }}>{v.vendor || "— no vendor —"}</div>
+                  <div style={{ fontSize: 12, color: N.muted }}>{v.item}{v.customer && v.customer !== "—" ? ` · for ${v.customer}` : ""}</div>
+                </div>
+                <div style={{ textAlign: "right", width: 110, fontSize: 13, color: N.blueDark }}>cost <b>{money(costTot)}</b></div>
+                <button onClick={() => setOpenInv(v)} style={btnPaper(N.text)}>View / print / email</button>
+                <button onClick={() => editOrder(v)} style={btnPaper(N.muted)}>Edit</button>
+                <button onClick={() => convertToInvoice(v)} style={{ ...btnBlue, background: N.blue }}>Convert to invoice →</button>
+                <button onClick={() => deleteOrder(v.id)} title="Delete PO" style={{ border: "1px solid " + N.rule, background: "none", color: N.muted, cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontSize: 12, fontWeight: 600, borderRadius: 100, padding: "6px 12px" }}>Delete</button>
+              </div>
+            );
+          })}
+        </div>
+        <div style={{ fontSize: 12, color: N.muted, marginTop: 10 }}>Open a PO to email it to the vendor or print it. When the work comes in, <b style={{ color: N.blue }}>Convert to invoice</b> to bill the customer.</div>
+      </div>
+    );
+  }
+
   function Bills() {
     const bills = entity.bills || [];
     const unpaid = bills.filter(b => b.status !== "paid");
@@ -2533,7 +2670,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               {contactEditId === c.id ? Editor(contactDraft, setContactDraft, () => saveContact(table, false), () => setContactEditId(null), "Save") : (
                 <div style={{ display: "flex", gap: 12, alignItems: "flex-start", flexWrap: "wrap" }}>
                   <div style={{ flex: 1, minWidth: 200 }}>
-                    <div style={{ fontSize: 15, fontWeight: 600, color: N.ink }}>{c.name}{c.company ? <span style={{ color: N.muted, fontWeight: 400 }}> · {c.company}</span> : ""}{isCust && c.tax_status && c.tax_status !== "Taxable" && <span style={{ fontSize: 10, fontWeight: 700, color: N.muted, marginLeft: 6, letterSpacing: "0.04em" }}>{(c.tax_status || "").toUpperCase()}</span>}</div>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: N.ink }}>{c.name}{c.company ? <span style={{ color: N.muted, fontWeight: 400 }}> · {c.company}</span> : ""}{isCust && c.tax_status && c.tax_status !== "Taxable" && <span style={{ fontSize: 10, fontWeight: 700, color: N.muted, marginLeft: 6, letterSpacing: "0.04em" }}>{(c.tax_status || "").toUpperCase()}</span>}{isCust && (() => { const cc = (entity.credits || []).filter(cr => cr.status === "open" && (cr.customer_name || "").toLowerCase() === (c.name || "").toLowerCase()).reduce((s, cr) => s + (cr.amount_cents || 0), 0); return cc > 0 ? <span style={{ fontSize: 10, fontWeight: 700, color: N.pinkDark, background: "#eafaf0", border: "1px solid #bff0d3", borderRadius: 100, padding: "2px 8px", marginLeft: 8 }}>{money(cc / 100)} CREDIT</span> : null; })()}</div>
                     <div style={{ fontSize: 12, color: N.muted }}>{[c.email, c.phone].filter(Boolean).join(" · ") || <span style={{ color: N.mutedLite, fontStyle: "italic" }}>no email or phone yet</span>}</div>
                     {c.billing_address ? <div style={{ fontSize: 12, color: N.muted, whiteSpace: "pre-line", marginTop: 2 }}>{c.billing_address}</div> : null}
                   </div>
@@ -2766,6 +2903,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   else if (section === "notebook") body = Notebook();
   else if (section === "invoices") body = Invoices();
   else if (section === "orders") body = Orders();
+  else if (section === "purchaseorders") body = PurchaseOrders();
   else if (section === "salestax") body = SalesTax();
   else if (section === "reports") body = Reports();
   else if (section === "admin") body = Admin();
@@ -2932,6 +3070,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
 
       {/* invoice / PO document modal — mounted once here so View / print works from any screen */}
       {docModal()}
+      {overpayModal()}
     </div>
   );
 }
