@@ -663,12 +663,36 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     }
     setReloadTick(t => t + 1);
   }
+  // Reopen an invoice after a payment is pulled off it (drops it back out of "Paid").
+  async function reopenInvoice(invoiceId, removedCents) {
+    if (!invoiceId) return;
+    const inv = invoices.find(v => v.id === invoiceId);
+    if (!inv) return;
+    const totalCents = Math.round((inv.amount || 0) * 100);
+    const remaining = (inv.paidCents || 0) - (removedCents || 0);
+    if (inv.status === "Paid" || (inv.status === "Partial" && remaining <= 0) || remaining < totalCents) {
+      await supabase.from("invoices").update({ status: "sent", paid_at: null }).eq("id", invoiceId);
+    }
+  }
   async function unlinkEntryInvoice(x) {
     if (!live) return;
-    if (!window.confirm("Unlink this deposit from its invoice? The invoice payment is removed.")) return;
+    if (!window.confirm("Unlink this deposit from its invoice? The invoice payment is removed and it goes back to unpaid.")) return;
     if (x.paymentId) await supabase.from("ledger_payments").delete().eq("id", x.paymentId);
+    await reopenInvoice(x.invoiceId, Math.round((x.amount || 0) * 100));
     await supabase.from("ledger_entries").update({ invoice_id: null, payment_id: null }).eq("id", x.id);
     setReloadTick(t => t + 1);
+  }
+  // Full reverse of a customer-payment deposit: drop the payment, unmark the invoice
+  // Paid, and remove the line from the notebook — all in one click.
+  async function reverseDeposit(x) {
+    if (!window.confirm("Reverse this payment? It comes off the invoice (unmarks Paid) and out of the notebook.")) return;
+    setItems(prev => prev.filter(it => it.id !== x.id));
+    if (live) {
+      if (x.paymentId) await supabase.from("ledger_payments").delete().eq("id", x.paymentId);
+      await reopenInvoice(x.invoiceId, Math.round((x.amount || 0) * 100));
+      await supabase.from("ledger_entries").delete().eq("id", x.id);
+      setReloadTick(t => t + 1);
+    }
   }
 
   // Card payment = a TRANSFER (checking down, card down), NOT an expense.
@@ -745,8 +769,12 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
 
   // Delete a notebook line for good — a mistake, a duplicate, something that shouldn't be here.
   async function deleteLine(id) {
+    const it = items.find(x => x.id === id);
+    if (it && it.invoiceId) { // it's a customer payment — reverse it properly, not a bare delete
+      return reverseDeposit(it);
+    }
     if (!window.confirm("Delete this line? It's removed from the notebook for good.")) return;
-    setItems(prev => prev.filter(it => it.id !== id));
+    setItems(prev => prev.filter(x => x.id !== id));
     if (editLineId === id) setEditLineId(null);
     if (live) {
       await supabase.from("ledger_entries").delete().eq("id", id);
@@ -1961,9 +1989,11 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                             const linkedInv = linked ? invoices.find(v => v.id === x.invoiceId) : null;
                             const list = invoices.filter(v => v.docType !== "order" && v.status !== "Void").slice().sort((a, b) => (a.customer || "").localeCompare(b.customer || ""));
                             if (linked) return (
-                              <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, padding: "3px 8px", borderRadius: 100, border: "1px solid #bff0d3", background: "#eafaf0", color: N.pinkDark }}>
-                                ✓ {linkedInv ? `Inv #${linkedInv.number || "?"} · ${linkedInv.customer}` : "Applied"}
-                                <button onClick={() => unlinkEntryInvoice(x)} title="Unlink" style={{ border: "none", background: "none", cursor: "pointer", color: N.mutedLite, fontSize: 13, lineHeight: 1, padding: 0 }}>×</button>
+                              <span style={{ display: "inline-flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                                <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, padding: "3px 8px", borderRadius: 100, border: "1px solid #bff0d3", background: "#eafaf0", color: N.pinkDark }}>
+                                  ✓ {linkedInv ? `Inv #${linkedInv.number || "?"} · ${linkedInv.customer}` : "Applied"}
+                                </span>
+                                <button onClick={() => reverseDeposit(x)} title="Undo this payment — takes it off the invoice (unmarks Paid) and out of the notebook" style={{ border: "1px solid " + N.rule, background: N.white, cursor: "pointer", color: N.pinkDark, fontFamily: "'Figtree', sans-serif", fontSize: 10, fontWeight: 700, borderRadius: 6, padding: "3px 8px" }}>↩ Reverse</button>
                               </span>
                             );
                             return (
