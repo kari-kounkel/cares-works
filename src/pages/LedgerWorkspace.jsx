@@ -348,6 +348,7 @@ function mapInvoice(v) {
     status: v.status === "in_progress" ? "In progress" : v.status === "po_sent" ? "PO sent" : cap(v.status),
     date: d ? d.toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "",
     issueDate: v.issue_date || "",
+    createdAt: v.created_at || "", sentAt: v.sent_at || "", viewedAt: v.viewed_at || "", paidAt: v.paid_at || "",
   };
 }
 
@@ -502,7 +503,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         ? (orgs || []).find(o => o.id === orgId)
         : (wantFirst ? (orgs || []).find(o => (o.name || "").toLowerCase().includes(wantFirst)) : null);
       if (!org || cancelled) return;
-      const [a, c, e, inv, ven, cust, prod, bil, pay, cred] = await Promise.all([
+      const [a, c, e, inv, ven, cust, prod, bil, pay, cred, evts] = await Promise.all([
         supabase.from("ledger_accounts").select("*").eq("org_id", org.id).eq("archived", false).order("created_at", { ascending: true }),
         supabase.from("ledger_categories").select("*").eq("org_id", org.id).eq("archived", false).order("sort_order", { ascending: true }),
         supabase.from("ledger_entries").select("*").eq("org_id", org.id).order("entry_date", { ascending: false }).order("created_at", { ascending: false }),
@@ -513,6 +514,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         supabase.from("ledger_bills").select("*").eq("org_id", org.id).order("due_date", { ascending: true }).order("created_at", { ascending: false }),
         supabase.from("ledger_payments").select("*").eq("org_id", org.id).order("paid_on", { ascending: true }),
         supabase.from("ledger_credits").select("*").eq("org_id", org.id).eq("status", "open").order("created_at", { ascending: true }),
+        supabase.from("ledger_doc_events").select("*").eq("org_id", org.id).order("created_at", { ascending: true }),
       ]);
       if (cancelled) return;
       setLiveOrgId(org.id);
@@ -529,6 +531,9 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       built.rawCategories = c.data || [];
       built.rawEntries = e.data || [];
       built.credits = cred.data || [];
+      const evByInv = {};
+      (evts.data || []).forEach(ev => { (evByInv[ev.invoice_id] = evByInv[ev.invoice_id] || []).push(ev); });
+      built.docEvents = evByInv;
       setDbEntity(built);
     })();
     return () => { cancelled = true; };
@@ -936,9 +941,11 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     if (payRow && entRow) await supabase.from("ledger_payments").update({ entry_id: entRow.id }).eq("id", payRow.id);
     const newPaid = (inv.paidCents || 0) + cents;
     const totalCents = Math.round((inv.amount || 0) * 100);
-    if (totalCents > 0 && newPaid >= totalCents) {
+    const settled = totalCents > 0 && newPaid >= totalCents;
+    if (settled) {
       await supabase.from("invoices").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", inv.id);
     }
+    await logDocEvent(inv.id, settled ? "paid" : "payment", (settled ? "Paid in full · " : "Payment · ") + money(cents / 100) + (checkNo ? " · check #" + checkNo : ""));
     setReloadTick(t => t + 1);
   }
   async function deletePaymentRec(p, inv) {
@@ -1062,7 +1069,9 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         try { if (error && error.context && typeof error.context.json === "function") { const b = await error.context.json(); if (b && b.error) msg = b.error; } } catch (e) { /* keep msg */ }
         setEmailState({ err: msg });
       } else {
-        setEmailState({ ok: data && data.to ? data.to : sentLink.email });
+        const to = data && data.to ? data.to : sentLink.email;
+        setEmailState({ ok: to });
+        await logDocEvent(sentLink.invoiceId, "sent", "Emailed to " + (to || "customer"));
         setReloadTick(t => t + 1);
       }
     } catch (e) {
@@ -1092,6 +1101,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         setPoEmailMsg({ ok: data && data.to ? data.to : to });
         // Emailing a PO counts as sending it → it moves to the Purchase Orders screen.
         if (openInv.docType === "order") await supabase.from("invoices").update({ status: "po_sent" }).eq("id", openInv.id);
+        await logDocEvent(openInv.id, "sent", "PO emailed to " + to);
         setReloadTick(t => t + 1);
       }
     } catch (e) { setPoEmailMsg({ err: String(e) }); }
@@ -1122,6 +1132,20 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     const custCredits = (entity.credits || []).filter(cr => cr.status === "open" && (cr.customer_name || "").toLowerCase() === (openInv.customer || "").toLowerCase());
     const creditCents = custCredits.reduce((s, cr) => s + (cr.amount_cents || 0), 0);
     const invBalCents = openInv.balanceCents != null ? openInv.balanceCents : Math.round((openInv.amount || 0) * 100);
+    // Activity history: logged events + baseline entries synthesized from the invoice's own
+    // timestamps, so even imported/old docs show how they got here. Plus a "revised since
+    // last sent" flag (he keeps a whole job on one invoice).
+    const logged = (entity.docEvents || {})[openInv.id] || [];
+    const has = t => logged.some(ev => ev.event_type === t);
+    const synth = [];
+    if (!has("created") && openInv.createdAt) synth.push({ id: "s-c", event_type: "created", detail: openInv.number ? "On file (from QuickBooks)" : "Job started", created_at: openInv.createdAt });
+    if (!has("sent") && openInv.sentAt) synth.push({ id: "s-s", event_type: "sent", detail: "Sent to customer", created_at: openInv.sentAt });
+    if (!has("viewed") && openInv.viewedAt) synth.push({ id: "s-v", event_type: "viewed", detail: "Opened the link", created_at: openInv.viewedAt });
+    if (!has("paid") && !has("payment") && openInv.paidAt) synth.push({ id: "s-p", event_type: "paid", detail: "Marked paid", created_at: openInv.paidAt });
+    const events = [...synth, ...logged].sort((a, b) => (a.created_at || "").localeCompare(b.created_at || ""));
+    const lastOf = t => events.filter(ev => ev.event_type === t).reduce((m, ev) => (ev.created_at > m ? ev.created_at : m), "");
+    const lastSent = lastOf("sent");
+    const revised = !!(lastSent && lastOf("revised") > lastSent);
     return (
           <div onClick={() => setOpenInv(null)} style={{ position: "fixed", inset: 0, background: "rgba(10,10,20,0.45)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "44px 16px", zIndex: 200, overflowY: "auto" }}>
             <div onClick={e => e.stopPropagation()} className="print-doc" style={{ background: N.white, borderRadius: 12, width: "100%", maxWidth: 640, boxShadow: "0 24px 70px rgba(10,10,20,0.35)", overflow: "hidden" }}>
@@ -1134,7 +1158,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   </div>
                   <div style={{ textAlign: "right" }}>
                     <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 24, letterSpacing: "0.16em", color: brand, fontWeight: 500 }}>{isPo ? "PURCHASE ORDER" : "INVOICE"}</div>
-                    {isPo ? (openInv.poNumber && <div style={{ fontSize: 13, color: N.ink, marginTop: 5 }}>PO #{openInv.poNumber}</div>) : (openInv.number && <div style={{ fontSize: 13, color: N.ink, marginTop: 5 }}>No. {openInv.number}</div>)}
+                    {isPo ? (openInv.poNumber && <div style={{ fontSize: 13, color: N.ink, marginTop: 5 }}>PO #{openInv.poNumber}</div>) : (openInv.number && <div style={{ fontSize: 13, color: N.ink, marginTop: 5 }}>No. {openInv.number}{revised && <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", color: "#8a5a00", background: "#fdf5e3", border: "1px solid #f0d89a", borderRadius: 6, padding: "1px 7px", marginLeft: 8 }}>REVISED</span>}</div>)}
                     <div style={{ fontSize: 12, color: N.muted, marginTop: 2 }}>Date: {openInv.date}</div>
                   </div>
                 </div>
@@ -1243,6 +1267,27 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 </div>
                 )}
               </div>
+
+              {events.length > 0 && (
+                <div className="no-print" style={{ padding: "12px 26px", borderTop: "1px solid " + N.rule, background: "#fbfdff" }}>
+                  <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", color: N.muted, marginBottom: 8 }}>HISTORY</div>
+                  <div style={{ display: "grid", gap: 6 }}>
+                    {events.slice().reverse().map(ev => {
+                      const L = { created: "Created", revised: "Revised", sent: "Sent", viewed: "Viewed by customer", billed: "Billed", payment: "Payment", paid: "Paid in full" }[ev.event_type] || ev.event_type;
+                      const col = ev.event_type === "viewed" ? N.blue : ev.event_type === "paid" ? N.green : ev.event_type === "revised" ? "#8a5a00" : N.muted;
+                      const d = ev.created_at ? new Date(ev.created_at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "";
+                      return (
+                        <div key={ev.id} style={{ display: "flex", alignItems: "baseline", gap: 10, fontSize: 12.5 }}>
+                          <span style={{ width: 8, height: 8, borderRadius: 100, background: col, flexShrink: 0, alignSelf: "center" }} />
+                          <span style={{ fontWeight: 600, color: N.ink, minWidth: 116 }}>{L}</span>
+                          <span style={{ flex: 1, color: N.muted, minWidth: 0 }}>{ev.detail || ""}</span>
+                          <span style={{ color: N.mutedLite, whiteSpace: "nowrap" }}>{d}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {isPo && (
                 <div className="no-print" style={{ padding: "12px 22px", borderTop: "1px solid " + N.rule, background: N.white, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
@@ -1368,6 +1413,12 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     setCampaignBusy(false);
   }
 
+  // Append one entry to a document's history (created / revised / sent / billed / payment).
+  async function logDocEvent(invoiceId, type, detail) {
+    if (!live || !liveOrgId || !invoiceId) return;
+    try { await supabase.from("ledger_doc_events").insert({ org_id: liveOrgId, invoice_id: invoiceId, event_type: type, detail: detail || null }); } catch (e) { /* history is best-effort */ }
+  }
+
   async function createOrder() {
     const lines = orderDraft.lines.filter(l => (l.desc || "").trim() || (l.item || "").trim());
     // A PO can be for Dave himself — customer optional. An invoice still needs someone to bill.
@@ -1399,6 +1450,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       if (asPo) fields.vendor_name = draft.vendor.trim() || null;
       if (editing) {
         await supabase.from("invoices").update(fields).eq("id", editing.id);
+        await logDocEvent(editing.id, "revised", "Edited" + (editing.docType === "order" ? " order" : " invoice"));
       } else {
         // Every new job starts as an in-progress ORDER in New Orders (the pending customer
         // bill) — nothing becomes an invoice or gets a number until it's billed (Convert).
@@ -1407,7 +1459,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           doc_type: "order", status: "order",
           po_number: asPo ? String(po) : null, ...fields,
         };
-        await supabase.from("invoices").insert(insertRow);
+        const { data: newRow } = await supabase.from("invoices").insert(insertRow).select("id").single();
+        if (newRow) await logDocEvent(newRow.id, "created", asPo ? "Job started with a PO" : "Job started");
         if (asPo) await supabase.from("ledger_orgs").update({ next_po_number: po + 1 }).eq("id", liveOrgId);
       }
       setReloadTick(t => t + 1);
@@ -1452,12 +1505,14 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   async function convertToInvoice(v) {
     if (live && liveOrgId) {
       const patch = { doc_type: "invoice", status: "draft" };
+      let num = v.number;
       if (!v.number) {
-        const num = entity.nextInvoiceNumber || 1001;
+        num = entity.nextInvoiceNumber || 1001;
         patch.invoice_number = String(num);
         await supabase.from("ledger_orgs").update({ next_invoice_number: num + 1 }).eq("id", liveOrgId);
       }
       await supabase.from("invoices").update(patch).eq("id", v.id);
+      await logDocEvent(v.id, "billed", "Converted to invoice" + (num ? " #" + num : ""));
       setReloadTick(t => t + 1);
     }
     setSection("invoices");
@@ -2001,6 +2056,9 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             return ((a.status === "Void" ? 2 : a.status === "Paid" ? 1 : 0) - (b.status === "Void" ? 2 : b.status === "Paid" ? 1 : 0)) || (a.customer || "").localeCompare(b.customer || "");
           }).map((v, i) => {
             const voided = v.status === "Void";
+            const evs = (entity.docEvents || {})[v.id] || [];
+            const ls = evs.filter(e => e.event_type === "sent").reduce((m, e) => e.created_at > m ? e.created_at : m, v.sentAt || "");
+            const rev = !!(ls && evs.filter(e => e.event_type === "revised").reduce((m, e) => e.created_at > m ? e.created_at : m, "") > ls);
             return (
             <div key={v.id} onClick={() => setOpenInv(v)} title="Open invoice"
               style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", borderBottom: i === invoices.length - 1 ? "none" : "1px solid " + N.rule, cursor: "pointer", opacity: voided ? 0.55 : 1 }}
@@ -2008,7 +2066,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
               <div style={{ width: 50, fontSize: 12, color: N.muted }}>{v.date}</div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 15, color: N.ink, fontWeight: 600, textDecoration: voided ? "line-through" : "none" }}>{v.number ? <span style={{ color: N.blue, fontFamily: "'DM Mono', monospace", fontSize: 13, marginRight: 7 }}>#{v.number}</span> : null}{v.customer}</div>
+                <div style={{ fontSize: 15, color: N.ink, fontWeight: 600, textDecoration: voided ? "line-through" : "none" }}>{v.number ? <span style={{ color: N.blue, fontFamily: "'DM Mono', monospace", fontSize: 13, marginRight: 7 }}>#{v.number}</span> : null}{v.customer}{rev && <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.06em", color: "#8a5a00", background: "#fdf5e3", border: "1px solid #f0d89a", borderRadius: 5, padding: "1px 6px", marginLeft: 8 }}>REVISED</span>}</div>
                 <div style={{ fontSize: 12, color: N.muted }}>{v.item} · {v.tax}{v.taxAmt ? ` · MN tax ${money(v.taxAmt)}` : ""}{v.paidCents > 0 && v.balanceCents > 0 ? <span style={{ color: "#a16207" }}> · paid {money(v.paid)}, balance {money(v.balance)}</span> : ""}</div>
               </div>
               <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: STATUS_COLOR[v.status] || N.muted, background: (STATUS_COLOR[v.status] || N.muted) + "18", padding: "4px 10px", borderRadius: 100 }}>{v.status}</span>
@@ -2172,7 +2230,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             {orderDraft.lines.map((l, i) => (
               <div key={i} style={{ display: "grid", gridTemplateColumns: cols, gap: 8, marginBottom: 8, alignItems: "center" }}>
                 <div style={{ position: "relative" }}>
-                  <input placeholder="Item" list="po-items" value={l.item || ""} onChange={e => setLine(i, { item: e.target.value })} style={{ ...inputSt, paddingRight: 18 }} />
+                  <input placeholder="Item" list="po-items" value={l.item || ""} onChange={e => { const val = e.target.value; setLine(i, (!l.desc || l.desc === l.item) ? { item: val, desc: val } : { item: val }); }} style={{ ...inputSt, paddingRight: 18 }} />
                   <span style={{ position: "absolute", right: 7, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: N.muted, fontSize: 9 }}>▼</span>
                 </div>
                 <input placeholder="Full spec — size, color, text, so it can be reordered" value={l.desc} onChange={e => setLine(i, { desc: e.target.value })} style={inputSt} />
