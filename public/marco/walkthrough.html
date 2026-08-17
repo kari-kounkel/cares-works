@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MARCO — Document Walkthrough</title>
+<style>
+  :root{
+    --teal:#0f5c53; --tealDeep:#0b3f39; --gold:#c8901f; --paper:#f6f4ee;
+    --cream:#efece3; --ink:#1f2a28; --inkSoft:#42514e; --muted:#7c8a86;
+    --rule:#dcd8cd; --ruleSoft:#e9e5da; --meets:#2f7d5a; --meetsBg:#e4f1ea;
+    --partial:#b07d1a; --partialBg:#f7efda; --flag:#b5482e; --plan:#8a8f8b; --planBg:#ececea;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.5;}
+  a{color:var(--teal);}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 22px 80px;}
+  header.top{background:var(--tealDeep);color:#fff;padding:26px 0;}
+  header.top .wrap{padding-bottom:0;}
+  .brandrow{display:flex;align-items:center;gap:14px;}
+  .logo{width:44px;height:44px;border-radius:10px;background:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--tealDeep);font-size:13px;letter-spacing:-.5px;}
+  h1{font-size:22px;margin:0;font-weight:800;}
+  .sub{color:rgba(255,255,255,.72);font-size:13.5px;margin-top:3px;}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;margin:18px 0 0;font-size:12.5px;color:rgba(255,255,255,.9);}
+  .legend b{font-weight:700;}
+  .badge{display:inline-block;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap;}
+  .b-built{background:var(--meetsBg);color:var(--meets);}
+  .b-partial{background:var(--partialBg);color:var(--partial);}
+  .b-plan{background:var(--planBg);color:var(--plan);}
+  .b-retired{background:#efe7e4;color:var(--flag);}
+
+  /* Tidying-up panel */
+  .tidy{background:#fff;border:1px solid var(--rule);border-left:5px solid var(--gold);
+    border-radius:12px;padding:16px 20px;margin:24px 0 10px;box-shadow:0 2px 10px rgba(0,0,0,.04);}
+  .tidy h2{margin:0 0 4px;font-size:16px;color:var(--teal);}
+  .tidy .note{font-size:12.5px;color:var(--muted);margin-bottom:12px;}
+  table.tidytbl{width:100%;border-collapse:collapse;font-size:13px;}
+  table.tidytbl th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);padding:6px 10px;border-bottom:1px solid var(--rule);}
+  table.tidytbl td{padding:9px 10px;border-bottom:1px solid var(--ruleSoft);vertical-align:top;}
+  table.tidytbl td:first-child{font-weight:700;white-space:nowrap;}
+
+  /* Section */
+  .section-head{margin:34px 0 6px;font-size:19px;color:var(--teal);border-bottom:2px solid var(--gold);padding-bottom:8px;}
+
+  /* Two-column rows */
+  .colhead{display:grid;grid-template-columns:1fr 1fr;gap:16px;position:sticky;top:0;background:var(--paper);padding:12px 0 8px;z-index:5;}
+  .colhead div{font-size:11.5px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);}
+  .colhead .theirs{color:var(--inkSoft);}
+  .colhead .mine{color:var(--teal);}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px;}
+  .cell{background:#fff;border:1px solid var(--rule);border-radius:12px;padding:14px 16px;box-shadow:0 1px 6px rgba(0,0,0,.03);}
+  .cell.theirs{border-left:4px solid var(--muted);}
+  .cell.mine{border-left:4px solid var(--teal);}
+  .cell .title{font-weight:700;font-size:14.5px;margin-bottom:4px;}
+  .cell .meta{font-size:12px;color:var(--muted);margin-top:6px;}
+  .cell ul{margin:6px 0 0;padding-left:18px;}
+  .cell li{margin:3px 0;font-size:13px;}
+  .grouphead{font-weight:800;font-size:14px;color:var(--tealDeep);margin:8px 0 2px;grid-column:1 / -1;
+    background:var(--cream);border-radius:8px;padding:8px 12px;}
+  .where{display:inline-block;font-size:11.5px;color:var(--teal);background:var(--cream);border-radius:6px;padding:2px 8px;margin-top:8px;}
+  @media(max-width:760px){
+    .colhead,.row{grid-template-columns:1fr;}
+    .colhead .mine{display:none;}
+  }
+
+  /* Meeting-notes field (one per section) */
+  .mnotes{background:#fffdf6;border:1px dashed var(--gold);border-radius:12px;padding:12px 16px;margin:8px 0 20px;}
+  .mnotes-label{font-size:11.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--partial);margin-bottom:6px;}
+  .mnotes textarea{width:100%;min-height:70px;border:1px solid var(--rule);border-radius:8px;padding:10px 12px;font-family:inherit;font-size:13.5px;line-height:1.5;resize:vertical;background:#fff;color:var(--ink);}
+  .mnotes textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
+  .savednote{font-size:11px;color:var(--muted);margin-top:5px;}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="brandrow">
+      <div class="logo">MARCO</div>
+      <div>
+        <h1>RCO Certification — Document Walkthrough</h1>
+        <div class="sub">MARCO's notes (the master document) on the left · What's built in the system on the right</div>
+      </div>
+    </div>
+    <div class="legend">
+      <span><span class="badge b-built">✅ Built</span> working &amp; demoable now</span>
+      <span><span class="badge b-partial">🟡 Partial</span> function there, piece missing</span>
+      <span><span class="badge b-plan">⬜ Planned</span> named, not built yet</span>
+      <span><span class="badge b-retired">➖ Retired</span> replaced by new flow</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- TIDYING-UP PUNCH LIST -->
+  <div class="tidy">
+    <h2>🧹 Tidying up — running punch list</h2>
+    <div class="note">Small polish items we spot as we walk the document. Grows section by section.</div>
+    <table class="tidytbl">
+      <tr><th>Item</th><th>Where</th><th>Note</th></tr>
+      <tr><td>Back buttons</td><td>Everywhere we drill in</td><td>A clear "← Back" when opening a document or a sub-screen, so no one gets stranded.</td></tr>
+      <tr><td>Required fields</td><td>Self-Assessment · Application</td><td>Decide which fields are required (e.g. contact name, org name, email) and mark them.</td></tr>
+      <tr><td>Save &amp; continue later</td><td>Self-Assessment</td><td>The real SA has this at the bottom — add the explicit "save &amp; come back" affordance.</td></tr>
+      <tr><td>PDF export</td><td>Completed Self-Assessment</td><td>Turn a finished self-assessment into a printable/downloadable PDF.</td></tr>
+      <tr><td>Attach links &amp; file uploads</td><td>First Review — applicant response</td><td>The org's response is a text box today; the document wants links + document uploads on each section.</td></tr>
+      <tr><td>Feedback as a Word doc</td><td>First Review</td><td>Wendy also sends the first-review feedback as a Word document — add a Word/PDF export of the feedback.</td></tr>
+      <tr><td>"Internal — exclude by default"</td><td>Appeals · Board record &amp; vote</td><td>Board Certification Record &amp; Vote are not shared with an administrative judge unless requested — flag them excluded-by-default in the Appeals include/exclude step.</td></tr>
+    </table>
+  </div>
+
+  <!-- SECTION 1 -->
+  <div class="section-head">RCO (Organization) Documents</div>
+
+  <div class="colhead">
+    <div class="theirs">MARCO notes</div>
+    <div class="mine">My notes — how it's accounted for</div>
+  </div>
+
+  <!-- Self Assessment -->
+  <div class="row">
+    <div class="grouphead">Self-Assessment</div>
+
+    <div class="cell theirs">
+      <div class="title">Self-Assessment Form Questions</div>
+      <div class="meta">JotForm: <a href="https://form.jotform.com/260214991737159" target="_blank" rel="noopener">form.jotform.com/260214991737159</a></div>
+      <ul><li>Self-Assessment PDF version</li></ul>
+    </div>
+    <div class="cell mine">
+      <span class="badge b-built">✅ Built</span>
+      <div class="title" style="margin-top:8px;">The native Self-Assessment replaces this JotForm</div>
+      <div>All 13 sections, 90+ questions, word-for-word from your Google Sheet — Yes/No/Not&nbsp;Sure + the 4-point scale. Saves per organization. A "MARCO notes" box sits on every section.</div>
+      <div style="margin-top:8px;"><span class="badge b-partial">🟡 Partial</span> &nbsp;PDF version — the form is captured on-screen; turning a finished one into a PDF is on the punch list.</div>
+      <span class="where">MARCO Staff → Intake &amp; Self-Assessment → "Self-Assessment"</span>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="cell theirs">
+      <div class="title">Old Self-Assessment feedback document</div>
+      <div class="meta">Questions not up to date — format only</div>
+    </div>
+    <div class="cell mine">
+      <span class="badge b-retired">➖ Retired — job now built in</span>
+      <div style="margin-top:8px;">That doc was how feedback used to go back on the SA. Now there's a <b>MARCO notes box on every one of the 13 sections</b>, so the feedback function lives inside the form. The old document doesn't need to come across.</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="cell theirs">
+      <div class="title">Self-Assessment Email Template</div>
+    </div>
+    <div class="cell mine">
+      <span class="badge b-plan">⬜ Planned</span>
+      <div style="margin-top:8px;">The email sent to the org after they submit (to book the discussion meeting). Not built yet. The First Review module already has a working email-preview pattern, so this is a small add when we reach Comms.</div>
+    </div>
+  </div>
+
+  <!-- Application -->
+  <div class="row">
+    <div class="grouphead">Certification Application</div>
+
+    <div class="cell theirs">
+      <div class="title">Certification Application Questions</div>
+      <div class="meta">JotForm: <a href="https://form.jotform.com/260146481199159" target="_blank" rel="noopener">form.jotform.com/260146481199159</a></div>
+    </div>
+    <div class="cell mine">
+      <span class="badge b-built">✅ Built as the review content</span>
+      <div style="margin-top:8px;">The 15 application sections are live for both orgs — what reviewers read in the Written Application review, and what First Review gives feedback on, section by section.</div>
+      <div style="margin-top:8px;"><span class="badge b-plan">⬜ Planned</span> &nbsp;A blank form where a <b>new org types its application</b> save-as-you-go isn't a separate screen yet (content is seeded for CCC &amp; Revive). Structure is in; applicant data-entry form is planned.</div>
+      <span class="where">MARCO Staff → Applications &amp; First Review · Reviewer → Written</span>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="cell theirs">
+      <div class="title">Certification Application Questions — Word Document</div>
+      <div class="meta">Sent to applicants to help them prepare to submit the online application</div>
+    </div>
+    <div class="cell mine">
+      <span class="badge b-plan">⬜ Planned</span>
+      <div style="margin-top:8px;">A prep resource for applicants. Not loaded into the system. Would live as a downloadable resource.</div>
+    </div>
+  </div>
+
+  <!-- Resources -->
+  <div class="row">
+    <div class="grouphead">Applicant resources</div>
+
+    <div class="cell theirs">
+      <div class="title">Site Visit Overview for Organizations</div>
+    </div>
+    <div class="cell mine">
+      <span class="badge b-partial">🟡 Named, not loaded</span>
+      <div style="margin-top:8px;">It's a checkbox on the Self-Assessment <b>"resources to send back"</b> list — the system knows to send it — but the actual document isn't uploaded/attached yet.</div>
+      <span class="where">MARCO Staff → Self-Assessment → Resources to send back</span>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="cell theirs">
+      <div class="title">Certification Workbook</div>
+      <div class="meta">Old version — will be updating</div>
+    </div>
+    <div class="cell mine">
+      <span class="badge b-partial">🟡 Named, not loaded</span>
+      <div style="margin-top:8px;">Same as above — a checkbox on the SA "resources to send back" list, but the file isn't in the system (and it's being rewritten anyway).</div>
+      <span class="where">MARCO Staff → Self-Assessment → Resources to send back</span>
+    </div>
+  </div>
+
+  <!-- SECTION 2 -->
+  <div class="section-head">RCO Application First Review</div>
+
+  <div class="colhead">
+    <div class="theirs">MARCO notes</div>
+    <div class="mine">My notes — how it's accounted for</div>
+  </div>
+
+  <div class="row">
+    <div class="grouphead">First review of the application</div>
+
+    <div class="cell theirs">
+      <div class="title">Template: Email text sent to organization</div>
+      <div class="meta">Sent after MARCO's first review of the application.</div>
+    </div>
+    <div class="cell mine">
+      <span class="badge b-built">✅ Built</span>
+      <div style="margin-top:8px;">The real first-review email template is in the module — <b>"Preview first-review email"</b> opens it, populated for the org.</div>
+      <span class="where">MARCO Staff → Applications &amp; First Review → Preview first-review email</span>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="cell theirs">
+      <div class="title">First Review Form for Organization to complete</div>
+      <div class="meta">The 15 application sections, each with a "MARCO Feedback" section and space for the org to respond and add links or upload documents. Wendy builds a custom form per org — same structure, her specific feedback &amp; requests.</div>
+      <ul><li>Example submitted by Direct Recovery Support</li></ul>
+    </div>
+    <div class="cell mine">
+      <span class="badge b-built">✅ Built — this is the module</span>
+      <div style="margin-top:8px;">15 sections, each with a MARCO feedback block, a "needs follow-up" flag, a "required for certification" checkbox, and — on the applicant side — the flagged sections show the feedback with a response box and a Submit. Per-org (pick CCC/Revive), then "Send to applicant &amp; lock editing." That's Wendy's custom-per-org form, native.</div>
+      <div style="margin-top:8px;"><span class="badge b-partial">🟡 Partial</span> &nbsp;"add links or upload documents" — the org's response is a <b>text box</b> today; link + file attachments per section are on the punch list.</div>
+      <div style="margin-top:6px;"><span class="badge b-retired">➖</span> &nbsp;DRS example — reference material that shaped the build.</div>
+      <span class="where">MARCO Staff → Applications &amp; First Review · Applicant → response loop</span>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="cell theirs">
+      <div class="title">Word Document with the first-review feedback</div>
+      <div class="meta">Wendy also sends this so the org can easily see what's needed.</div>
+      <ul><li>Example Word Doc for Direct Recovery Support</li></ul>
+    </div>
+    <div class="cell mine">
+      <span class="badge b-plan">⬜ Planned</span>
+      <div style="margin-top:8px;">The module previews the <b>email</b>; a Word-doc export of the same feedback isn't built yet (on the punch list). <span class="badge b-retired">➖</span> DRS example — reference.</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="grouphead">References</div>
+
+    <div class="cell theirs">
+      <div class="title">RCO Certification References Form</div>
+      <div class="meta">Sent to references after Wendy completes the first review of the application.</div>
+    </div>
+    <div class="cell mine">
+      <span class="badge b-plan">⬜ Planned</span>
+      <div style="margin-top:8px;">On the Roadmap as the <b>References form</b> — by link, kept confidential, sent after the first review. Not built yet.</div>
+      <span class="where">MARCO Staff → 🗺 Roadmap → Planned → References form</span>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="cell theirs">
+      <div class="title">Template: Email text sent to references</div>
+    </div>
+    <div class="cell mine">
+      <span class="badge b-plan">⬜ Planned</span>
+      <div style="margin-top:8px;">Pairs with the References form — part of the Comms/templates work. Not built yet.</div>
+    </div>
+  </div>
+
+  <!-- SECTION 3 -->
+  <div class="section-head">Peer Reviewer Documents</div>
+
+  <div class="colhead">
+    <div class="theirs">MARCO notes</div>
+    <div class="mine">My notes — how it's accounted for</div>
+  </div>
+
+  <div class="row">
+    <div class="grouphead">The three review forms — the reviewer console</div>
+
+    <div class="cell theirs">
+      <div class="title">Peer Reviewer WRITTEN APPLICATION Feedback Form</div>
+    </div>
+    <div class="cell mine">
+      <span class="badge b-built">✅ Built</span>
+      <div style="margin-top:8px;">The Written tab of the reviewer console — per-criterion scoring against the 15 statute sections, with the live cohort peek.</div>
+      <span class="where">Reviewer → Written</span>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="cell theirs">
+      <div class="title">Peer Reviewer SITE VISIT Feedback Form</div>
+    </div>
+    <div class="cell mine">
+      <span class="badge b-built">✅ Built</span>
+      <div style="margin-top:8px;">The Site Visit tab — in-person or virtual, notes + summary + reflections, with the shared session bar (who's here, Join Zoom).</div>
+      <span class="where">Reviewer → Site Visit</span>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="cell theirs">
+      <div class="title">Peer Reviewer PANEL REVIEW Feedback Form</div>
+    </div>
+    <div class="cell mine">
+      <span class="badge b-built">✅ Built</span>
+      <div style="margin-top:8px;">The Panel tab — the recommendation, rationale, strengths, and concerns that roll up to the board.</div>
+      <span class="where">Reviewer → Panel</span>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="grouphead">Recruiting &amp; onboarding reviewers</div>
+
+    <div class="cell theirs">
+      <div class="title">Peer Reviewer application</div>
+      <div class="meta">Listed twice in the document — same item.</div>
+      <ul><li>Board Feedback for Peer Reviewer Interview</li></ul>
+    </div>
+    <div class="cell mine">
+      <span class="badge b-plan">⬜ Planned</span>
+      <div style="margin-top:8px;">On the Roadmap as <b>Reviewer recruiting / onboarding</b> — application → interview → 3&nbsp;Cs → training → accepted. The application form and the board's interview-feedback form both live here. Not built yet.</div>
+      <span class="where">MARCO Staff → 🗺 Roadmap → Planned → Reviewer recruiting/onboarding</span>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="cell theirs">
+      <div class="title">Rough email template to Peer Reviewers</div>
+      <div class="meta">"This will likely be significantly different with the new system."</div>
+    </div>
+    <div class="cell mine">
+      <span class="badge b-plan">⬜ Planned</span>
+      <div style="margin-top:8px;">Part of Comms. And agreed — with in-system scheduling and session links already built, the reviewer email becomes mostly automatic notices rather than a hand-written template.</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="cell theirs">
+      <div class="title">Peer Reviewer Interview Feedback</div>
+      <div class="meta">Form coming (still being built on MARCO's side).</div>
+    </div>
+    <div class="cell mine">
+      <span class="badge b-plan">⬜ Planned</span>
+      <div style="margin-top:8px;">Same recruiting/onboarding module. Since the form doesn't exist yet on your side either, we build it fresh when you're ready — no old JotForm to match.</div>
+    </div>
+  </div>
+
+  <!-- SECTION 4 -->
+  <div class="section-head">Compliance Docs <span style="font-size:13px;color:var(--muted);font-weight:400;">— Board &amp; Peer Reviewers must fill these out</span></div>
+
+  <div class="colhead">
+    <div class="theirs">MARCO notes</div>
+    <div class="mine">My notes — how it's accounted for</div>
+  </div>
+
+  <div class="row">
+    <div class="grouphead">Signed at onboarding — part of access &amp; security</div>
+
+    <div class="cell theirs">
+      <div class="title">MARCO Reviewer Confidentiality Policy and Agreement</div>
+    </div>
+    <div class="cell mine">
+      <span class="badge b-plan">⬜ Planned</span>
+      <div style="margin-top:8px;">On the Roadmap as <b>Compliance agreements</b> — signed in-system at onboarding, before a reviewer or board member can act. Not built yet.</div>
+      <span class="where">MARCO Staff → 🗺 Roadmap → Planned → Compliance agreements</span>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="cell theirs">
+      <div class="title">MARCO Reviewer Code of Conduct Agreement</div>
+    </div>
+    <div class="cell mine">
+      <span class="badge b-plan">⬜ Planned</span>
+      <div style="margin-top:8px;">Same Compliance-agreements build — sign-to-proceed at onboarding.</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="cell theirs">
+      <div class="title">MARCO Reviewer Conflict of Interest Policy and Disclosure Form</div>
+    </div>
+    <div class="cell mine">
+      <span class="badge b-partial">🟡 Partial — working version already live</span>
+      <div style="margin-top:8px;">The reviewer console <b>already has a conflict-of-interest gate</b>: a reviewer must declare and sign their conflict status before they can see the packet or the cohort. The Board module likewise runs on conflict-free voting.</div>
+      <div style="margin-top:8px;">What's <b>Planned</b>: the formal signed <i>policy document</i> itself (and the Board's own copies) folded into the Compliance-agreements build — so the disclosure and the signed policy live together.</div>
+      <span class="where">Reviewer → conflict gate (live) · 🗺 Roadmap → Compliance agreements (doc)</span>
+    </div>
+  </div>
+
+  <!-- SECTION 5 -->
+  <div class="section-head">Board Documents</div>
+
+  <div class="colhead">
+    <div class="theirs">MARCO notes</div>
+    <div class="mine">My notes — how it's accounted for</div>
+  </div>
+
+  <div class="row">
+    <div class="grouphead">The Board module — built today</div>
+
+    <div class="cell theirs">
+      <div class="title">MARCO Board Certification Record</div>
+      <div class="meta">Filled out each time the board meets to review certifications. Not part of what's shared with an administrative judge.</div>
+    </div>
+    <div class="cell mine">
+      <span class="badge b-built">✅ Built</span>
+      <div style="margin-top:8px;">The Board module <b>is</b> the record — the Peer Review Panel's recommendation, each conflict-free member's vote, the tally, the outcome, and the next step (PIP letter if not certified, certification letter if certified).</div>
+      <div style="margin-top:8px;"><span class="badge b-plan">⬜</span> "Internal — not shared with a judge": captured on the punch list to flag excluded-by-default in Appeals.</div>
+      <span class="where">MARCO Staff → Board</span>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="cell theirs">
+      <div class="title">MARCO Board Certification Vote</div>
+      <div class="meta">Sent to board members as a JotForm to record a vote when they can't vote during a meeting. The JotForm is "kind of a mess" — reused with different questions hidden each time; questions put in the doc instead. Also not shared with a judge unless requested.</div>
+    </div>
+    <div class="cell mine">
+      <span class="badge b-built">✅ Built — from these exact questions</span>
+      <div style="margin-top:8px;">The native vote replaces that reused JotForm: per org, <b>"Do you approve the recommendation to certify [ORG]?" → Yes / No / I recuse</b>, recorded live into the official record with a running tally. Built straight from the questions you put in this doc — no more hiding fields on a reused form.</div>
+      <span class="where">MARCO Board role → cast vote · MARCO Staff → Board (the record)</span>
+    </div>
+  </div>
+
+  <!-- SECTION 6 -->
+  <div class="section-head">Certification Documents <span style="font-size:13px;color:var(--muted);font-weight:400;">— if the organization is certified</span></div>
+
+  <div class="colhead">
+    <div class="theirs">MARCO notes</div>
+    <div class="mine">My notes — how it's accounted for</div>
+  </div>
+
+  <div class="row">
+    <div class="grouphead">Generated from the file when certified — templates already in hand</div>
+
+    <div class="cell theirs">
+      <div class="title">Template: Certification Notification Email</div>
+    </div>
+    <div class="cell mine">
+      <span class="badge b-plan">⬜ Planned — hooked &amp; template in hand</span>
+      <div style="margin-top:8px;">The Board module's "Certified" outcome already points here. The real template is in your Drive zip, so this becomes auto-fill-from-the-file, not a rewrite.</div>
+      <span class="where">MARCO Staff → Board → Certified outcome</span>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="cell theirs">
+      <div class="title">Template: Certification Notification Letter</div>
+    </div>
+    <div class="cell mine">
+      <span class="badge b-plan">⬜ Planned — template in hand</span>
+      <div style="margin-top:8px;">Same generation step — <i>Template: Certification Notification Letter</i> is in the zip, ready to wire in.</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="cell theirs">
+      <div class="title">Certification Agreement</div>
+    </div>
+    <div class="cell mine">
+      <span class="badge b-plan">⬜ Planned — template in hand</span>
+      <div style="margin-top:8px;">The <i>MARCO RCO Certification Agreement and Attachments</i> is in the zip — generated and sent from here once the outcome is Certified.</div>
+    </div>
+  </div>
+
+  <!-- SECTION 7 -->
+  <div class="section-head">Performance Improvement Plan Documents <span style="font-size:13px;color:var(--muted);font-weight:400;">— if the organization is not certified</span></div>
+
+  <div class="colhead">
+    <div class="theirs">MARCO notes</div>
+    <div class="mine">My notes — how it's accounted for</div>
+  </div>
+
+  <div class="row">
+    <div class="grouphead">The "not certified" path — hooked in the Board module</div>
+
+    <div class="cell theirs">
+      <div class="title">Template: Non-Certification and PIP Notification Letter</div>
+    </div>
+    <div class="cell mine">
+      <span class="badge b-plan">⬜ Planned — hooked &amp; template in hand</span>
+      <div style="margin-top:8px;">The Board module's <b>"Not certified"</b> outcome already flags that a PIP + Non-Certification notice goes back. The real letter template is in your Drive zip, ready to wire in.</div>
+      <span class="where">MARCO Staff → Board → Not-certified outcome</span>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="cell theirs">
+      <div class="title">PIP Document Example: Direct Recovery Support</div>
+    </div>
+    <div class="cell mine">
+      <span class="badge b-retired">➖ Reference</span>
+      <div style="margin-top:8px;">A real filled-out example that shows what a PIP looks like — it shapes the generated document, doesn't need to live in the system itself.</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="cell theirs">
+      <div class="title">PIP Form Example</div>
+      <div class="meta">For the org to submit when they're ready to be reviewed again (DRS example — a clone of their custom form, safe to enter test data without affecting the real link).</div>
+    </div>
+    <div class="cell mine">
+      <span class="badge b-plan">⬜ Planned</span>
+      <div style="margin-top:8px;">On the Roadmap as part of the <b>PIP package</b> — the org's re-review submission form. It's the same "sections + respond + attach" engine as the First Review form, pointed at the improvement items. The "safe clone to test without touching the live link" is exactly what a native form gives you for free.</div>
+      <span class="where">MARCO Staff → 🗺 Roadmap → Planned → PIP package</span>
+    </div>
+  </div>
+
+  <!-- SECTION 8 -->
+  <div class="section-head">Feedback Packet <span style="font-size:13px;color:var(--muted);font-weight:400;">— sent to all organizations after review, certified or not</span></div>
+
+  <div class="colhead">
+    <div class="theirs">MARCO notes</div>
+    <div class="mine">My notes — how it's accounted for</div>
+  </div>
+
+  <div class="row">
+    <div class="cell theirs">
+      <div class="title">Feedback Packet</div>
+      <div class="meta">A summary sent to every organization after the review process is completed, regardless of certification.</div>
+      <ul><li>Continuum Care Center Example</li></ul>
+    </div>
+    <div class="cell mine">
+      <span class="badge b-plan">⬜ Planned — raw material already captured</span>
+      <div style="margin-top:8px;">On the Roadmap as the <b>Feedback Packet</b>. It's a compile-and-generate step, not new data-gathering — the written scores, the panel's recommendation, and the first-review feedback are all already in the system for each org. Same family as the Final Dossier.</div>
+      <div style="margin-top:6px;"><span class="badge b-retired">➖</span> CCC example — reference for the packet's shape.</div>
+      <span class="where">MARCO Staff → 🗺 Roadmap → Planned → Feedback Packet</span>
+    </div>
+  </div>
+
+  <!-- SECTION 9 -->
+  <div class="section-head">Grievances <span style="font-size:13px;color:var(--muted);font-weight:400;">— when a grievance is reported about a MARCO-certified RCO</span></div>
+
+  <div class="colhead">
+    <div class="theirs">MARCO notes</div>
+    <div class="mine">My notes — how it's accounted for</div>
+  </div>
+
+  <div class="row">
+    <div class="cell theirs">
+      <div class="title">PDF of Grievance JotForm</div>
+      <div class="meta">There's conditional logic in the JotForm that isn't apparent in the PDF.</div>
+    </div>
+    <div class="cell mine">
+      <span class="badge b-partial">🟡 Building next</span>
+      <div style="margin-top:8px;">On the Roadmap as <b>Grievances</b> — and it's the next module I'm building. A native form handles the conditional logic properly (questions that appear based on earlier answers), plus intake + tracking of each grievance against the certified RCO. No more logic hidden inside a JotForm.</div>
+      <span class="where">MARCO Staff → 🗺 Roadmap → Planned → Grievances (up next)</span>
+    </div>
+  </div>
+
+  <!-- SECTION 10 -->
+  <div class="section-head">Master Document</div>
+
+  <div class="colhead">
+    <div class="theirs">MARCO notes</div>
+    <div class="mine">My notes — how it's accounted for</div>
+  </div>
+
+  <div class="row">
+    <div class="cell theirs">
+      <div class="title">Master Document utilized to compile all data and notes</div>
+      <div class="meta">(sample)</div>
+    </div>
+    <div class="cell mine">
+      <span class="badge b-partial">🟡 Partial — the living version is built</span>
+      <div style="margin-top:8px;">This is the <b>Record of Engagement</b> — one living record per organization instead of a spreadsheet. The notes log is live now (every "add a note" from any screen flows into it). It grows into the full CRM that compiles all of an org's data and contacts.</div>
+      <span class="where">MARCO Staff → Record of Engagement · "📝 Add a note" on every screen</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  // Notes save LIVE to the database (Supabase) as you type — no save button,
+  // reachable from any device. Nothing is stored in this browser.
+  var SB="https://qcikhcnclduakriextsz.supabase.co/rest/v1/marco_walkthrough_notes";
+  var KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaWtoY25jbGR1YWtyaWV4dHN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NTc3NDAsImV4cCI6MjA5MTIzMzc0MH0.owUv_C0b0TYisI7v3Lpb2ZGF6TMn1Gwm7oRr26yR2eI";
+  var H={ "apikey":KEY, "Authorization":"Bearer "+KEY, "Content-Type":"application/json" };
+  function slug(s){return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'').slice(0,48);}
+  var boxes={};
+  document.querySelectorAll('.section-head').forEach(function(h){
+    var key=slug(h.textContent);
+    var wrap=document.createElement('div'); wrap.className='mnotes';
+    var label=document.createElement('div'); label.className='mnotes-label';
+    label.textContent='📝 My meeting notes — '+h.textContent.replace(/\s+/g,' ').trim();
+    var ta=document.createElement('textarea'); ta.placeholder='Type notes here — saves automatically, live.';
+    var saved=document.createElement('div'); saved.className='savednote'; saved.textContent='Saves live to the database as you type.';
+    var t;
+    ta.addEventListener('input',function(){
+      saved.textContent='Saving…'; clearTimeout(t);
+      t=setTimeout(function(){
+        fetch(SB,{method:'POST',headers:Object.assign({'Prefer':'resolution=merge-duplicates'},H),
+          body:JSON.stringify({section:key,note:ta.value,updated_at:new Date().toISOString()})})
+          .then(function(r){saved.textContent=r.ok?'Saved ✓ (live)':'Save failed — will retry on next keystroke';})
+          .catch(function(){saved.textContent='Connection issue — will retry on next keystroke';});
+      },500);
+    });
+    wrap.appendChild(label);wrap.appendChild(ta);wrap.appendChild(saved);
+    h.parentNode.insertBefore(wrap,h.nextSibling);
+    boxes[key]=ta;
+  });
+  // Load any notes already saved (from any device).
+  fetch(SB+"?select=section,note",{headers:H})
+    .then(function(r){return r.json();})
+    .then(function(rows){ (rows||[]).forEach(function(row){ if(boxes[row.section]) boxes[row.section].value=row.note||""; }); })
+    .catch(function(){});
+})();
+</script>
+</body>
+</html>
