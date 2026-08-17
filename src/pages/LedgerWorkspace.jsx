@@ -55,12 +55,12 @@ export const SAMPLE_ENTITY = {
     { id: "i4", customer: "City of Richfield", item: "Park banner", amount: 895.0, tax: "Exempt", taxAmt: 0, status: "Draft", date: "Apr 18" },
   ],
   salesTax: { quarter: "Q1 · Apr – Jun", taxable: 2140.0, exempt: 8530.0, collected: 147.13 },
-  // Plain-language buckets the humans see. Each maps to Gary's chart of accounts behind the scenes —
+  // Plain-language buckets the humans see. Each maps to the chart of accounts behind the scenes —
   // they pick "Materials & supplies," never "Account 5010 · COGS."
   categories: ["Materials & supplies", "Shipping & postage", "Software & subscriptions", "Vehicle & fuel", "Equipment", "Office supplies", "Bank & card fees", "Advertising", "Meals", "Owner draw"],
   reports: [
-    { name: "Profit & Loss", sub: "Gross income and net profit for Gary" },
-    { name: "Expense detail by category", sub: "Matched to Gary's chart of accounts" },
+    { name: "Profit & Loss", sub: "Gross income and net profit" },
+    { name: "Expense detail by category", sub: "Matched to your chart of accounts" },
     { name: "Sales tax summary", sub: "Taxable, exempt, and tax collected" },
     { name: "Income by source", sub: "Card, check, cash — reconciled" },
     { name: "AR & AP snapshot", sub: "Who owes you, who you owe" },
@@ -158,7 +158,7 @@ const BUILD_PROGRESS = [
   { label: "Documents", items: [
     ["Store statements & certificates", "todo"],
   ] },
-  { label: "Year-end for Gary", items: [
+  { label: "Year-end reports", items: [
     ["April-1 opening balances", "wip"],
     ["Tax-ready package", "todo"],
   ] },
