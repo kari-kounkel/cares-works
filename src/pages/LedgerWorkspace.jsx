@@ -433,6 +433,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [invSort, setInvSort] = useState("status"); // Invoices list sort
   const [poSort, setPoSort] = useState("vendor");    // Purchase Orders list sort
   const [logoBusy, setLogoBusy] = useState(false);
+  const [docBusy, setDocBusy] = useState(false);
+  const [docCategory, setDocCategory] = useState("QuickBooks close-out");
   const payeeRef = useRef(null);
   const amountRef = useRef(null);
   const blankAcct = { name: "", account_type: "bank", last_four: "", opening: "" };
@@ -518,7 +520,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         ? (orgs || []).find(o => o.id === orgId)
         : (wantFirst ? (orgs || []).find(o => (o.name || "").toLowerCase().includes(wantFirst)) : null);
       if (!org || cancelled) return;
-      const [a, c, e, inv, ven, cust, prod, bil, pay, cred, evts] = await Promise.all([
+      const [a, c, e, inv, ven, cust, prod, bil, pay, cred, evts, docs] = await Promise.all([
         supabase.from("ledger_accounts").select("*").eq("org_id", org.id).eq("archived", false).order("created_at", { ascending: true }),
         supabase.from("ledger_categories").select("*").eq("org_id", org.id).eq("archived", false).order("sort_order", { ascending: true }),
         supabase.from("ledger_entries").select("*").eq("org_id", org.id).order("entry_date", { ascending: false }).order("created_at", { ascending: false }),
@@ -530,6 +532,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         supabase.from("ledger_payments").select("*").eq("org_id", org.id).order("paid_on", { ascending: true }),
         supabase.from("ledger_credits").select("*").eq("org_id", org.id).eq("status", "open").order("created_at", { ascending: true }),
         supabase.from("ledger_doc_events").select("*").eq("org_id", org.id).order("created_at", { ascending: true }),
+        supabase.from("ledger_documents").select("*").eq("org_id", org.id).order("created_at", { ascending: false }),
       ]);
       if (cancelled) return;
       setLiveOrgId(org.id);
@@ -549,6 +552,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       const evByInv = {};
       (evts.data || []).forEach(ev => { (evByInv[ev.invoice_id] = evByInv[ev.invoice_id] || []).push(ev); });
       built.docEvents = evByInv;
+      built.documents = docs.data || [];
       setDbEntity(built);
     })();
     return () => { cancelled = true; };
@@ -2823,6 +2827,33 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     await supabase.from("ledger_orgs").update({ logo_url: null }).eq("id", liveOrgId);
     setReloadTick(t => t + 1);
   }
+  // ---- Documents (private per-org storage) ------------------------------------
+  async function uploadDoc(file) {
+    if (!file || !liveOrgId) return;
+    if (file.size > 25 * 1024 * 1024) { window.alert("Please keep files under 25 MB."); return; }
+    setDocBusy(true);
+    try {
+      const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const path = `${liveOrgId}/${Date.now()}-${safe}`;
+      const { error: upErr } = await supabase.storage.from("org-docs").upload(path, file, { upsert: false, contentType: file.type || undefined });
+      if (upErr) throw upErr;
+      await supabase.from("ledger_documents").insert({ org_id: liveOrgId, user_id: session.user.id, name: file.name, path, size_bytes: file.size, mime: file.type || null, category: docCategory || null });
+      setReloadTick(t => t + 1);
+    } catch (e) { window.alert("Couldn't upload that file: " + (e.message || e)); }
+    setDocBusy(false);
+  }
+  async function downloadDoc(doc) {
+    const { data, error } = await supabase.storage.from("org-docs").createSignedUrl(doc.path, 300);
+    if (error || !data) { window.alert("Couldn't open that file."); return; }
+    window.open(data.signedUrl, "_blank", "noopener");
+  }
+  async function deleteDoc(doc) {
+    if (!liveOrgId) return;
+    if (!window.confirm(`Remove "${doc.name}"? This deletes the file for good.`)) return;
+    await supabase.storage.from("org-docs").remove([doc.path]);
+    await supabase.from("ledger_documents").delete().eq("id", doc.id);
+    setReloadTick(t => t + 1);
+  }
   async function saveBrandColor(color) {
     if (!liveOrgId) return;
     await supabase.from("ledger_orgs").update({ brand_color: color }).eq("id", liveOrgId);
@@ -2919,6 +2950,42 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 <div style={{ fontSize: 12, color: N.muted }}>{r.sub}</div>
               </div>
               <button style={btnPaper(N.text)}>View · PDF · CSV</button>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  function Documents() {
+    const docs = entity.documents || [];
+    const cats = ["QuickBooks close-out", "Bank / card statement", "Exemption certificate", "Tax / year-end", "Other"];
+    const fmtSize = b => (!b ? "" : b >= 1048576 ? (b / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(b / 1024)) + " KB");
+    const fmtDate = d => (d ? new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "");
+    return (
+      <div>
+        <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink, marginBottom: 4 }}>Documents</div>
+        <div style={{ fontSize: 13, color: N.muted, marginBottom: 16 }}>A safe home for your QuickBooks close-out reports, bank &amp; card statements, exemption certificates — anything you want on file. Only your team can see these.</div>
+        <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: 16, marginBottom: 16, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+          <span style={{ fontSize: 12, color: N.muted }}>File type</span>
+          <select value={docCategory} onChange={e => setDocCategory(e.target.value)} style={{ ...inputSt, width: 210 }}>{cats.map(c => <option key={c} value={c}>{c}</option>)}</select>
+          <label style={{ ...btnBlue, background: docBusy ? N.mutedLite : N.blue, cursor: docBusy ? "default" : "pointer" }}>
+            {docBusy ? "Uploading…" : "⬆ Upload a file"}
+            <input type="file" disabled={docBusy} onChange={e => { const f = e.target.files && e.target.files[0]; e.target.value = ""; uploadDoc(f); }} style={{ display: "none" }} />
+          </label>
+          <span style={{ fontSize: 11, color: N.mutedLite }}>PDF, Excel, images — up to 25 MB each.</span>
+        </div>
+        <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, overflow: "hidden" }}>
+          {docs.length === 0 ? (
+            <div style={{ padding: "30px 20px", textAlign: "center", color: N.muted, fontSize: 14 }}>Nothing here yet — upload your first document above.</div>
+          ) : docs.map((d, i) => (
+            <div key={d.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderTop: i === 0 ? "none" : "1px solid " + N.rule, flexWrap: "wrap" }}>
+              <div style={{ flex: 1, minWidth: 180 }}>
+                <div style={{ fontSize: 14, fontWeight: 600, color: N.ink, wordBreak: "break-word" }}>{d.name}</div>
+                <div style={{ fontSize: 12, color: N.muted }}>{d.category ? d.category + " · " : ""}{fmtDate(d.created_at)}{d.size_bytes ? " · " + fmtSize(d.size_bytes) : ""}</div>
+              </div>
+              <button onClick={() => downloadDoc(d)} style={btnPaper(N.blueDark)}>Open</button>
+              <button onClick={() => deleteDoc(d)} style={{ border: "1px solid " + N.rule, background: "none", color: N.pinkDark, cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontSize: 12, fontWeight: 600, borderRadius: 100, padding: "6px 12px" }}>Remove</button>
             </div>
           ))}
         </div>
@@ -3377,7 +3444,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   else if (section === "reports") body = Reports();
   else if (section === "admin") body = Admin();
   else if (section === "bills") body = Bills();
-  else if (section === "documents") body = <Stub title="Documents" note="Statements, exemption certificates, and anything you attach lives here." />;
+  else if (section === "documents") body = Documents();
 
   return (
     <div style={{ minHeight: "100vh", background: N.white, fontFamily: "'Figtree', sans-serif", color: N.text }}>
