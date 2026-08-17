@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{ --teal:#125b53; --tealDeep:#0b3d38; --tealSoft:#e7f1ef; --gold:#c2902f; --goldSoft:#f7ecd6; --ink:#1c2422; --inkSoft:#46524e; --muted:#7b8480; --rule:#e3ddd0; }
+  *{box-sizing:border-box}
+  @page{ size:letter; margin:0; }
+  html,body{margin:0;padding:0}
+  body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);line-height:1.5;font-size:12.5px}
+  .page{padding:44px 54px}
+  .hero{background:var(--teal);color:#fff;border-radius:16px;padding:26px 30px;margin-bottom:22px}
+  .hero .kicker{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.7)}
+  .hero h1{font-family:'Fraunces',serif;font-size:29px;margin:6px 0 6px;font-weight:700;line-height:1.1}
+  .hero p{margin:0;font-size:13.5px;color:rgba(255,255,255,.9);max-width:560px}
+  .hero .url{display:inline-block;margin-top:14px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:8px 14px;font-weight:700;font-size:14px}
+  h2{font-family:'Fraunces',serif;font-size:18px;color:var(--teal);margin:22px 0 8px;display:flex;align-items:center;gap:9px}
+  h2 .n{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:7px;background:var(--gold);color:#3a2c05;font-size:13px;font-weight:700;font-family:'Inter'}
+  p{margin:0 0 9px}
+  .lead{color:var(--inkSoft)}
+  .card{border:1px solid var(--rule);border-radius:12px;padding:14px 16px;margin:8px 0;background:#fff}
+  .soft{background:var(--tealSoft);border-color:#cfe0dc}
+  .gold{background:var(--goldSoft);border-color:#e9d7ac}
+  table{width:100%;border-collapse:collapse;margin:6px 0}
+  th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);padding:7px 10px;border-bottom:1.5px solid var(--rule)}
+  td{padding:9px 10px;border-bottom:1px solid #efeadd;vertical-align:top;font-size:12px}
+  td strong{color:var(--teal)}
+  ul{margin:6px 0 6px 0;padding-left:20px}
+  li{margin:4px 0}
+  .pill{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:20px}
+  .green{background:#e4f1ea;color:#2f8f5b}
+  .red{background:#fbeee9;color:#c2532f}
+  .foot{margin-top:24px;padding-top:14px;border-top:1px solid var(--rule);font-size:11px;color:var(--muted);display:flex;justify-content:space-between}
+  .big{font-family:'Fraunces',serif;font-size:15px;color:var(--gold);font-weight:600}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="hero">
+    <div class="kicker">MARCO · RCO Certification System</div>
+    <h1>Test Drive Guide</h1>
+    <p>A shared, live prototype of MARCO's certification process. Today we walk it together — everyone in the same system at once — and leave notes as we go, right inside the tool.</p>
+    <div class="url">tools.caresmn.com/marco/ &nbsp;·&nbsp; no login needed</div>
+  </div>
+
+  <h2><span class="n">1</span> Getting in</h2>
+  <p class="lead">Open the link. You'll land on <strong>“Choose your role.”</strong> Pick your role, then pick the organization you're working on. That's it — no password.</p>
+
+  <h2><span class="n">2</span> Split up — who plays what</h2>
+  <p class="lead">The magic is that we're all in it at once. For the best test, spread across the seats:</p>
+  <table>
+    <thead><tr><th>Seat</th><th>How many</th><th>What you'll do</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Peer Reviewer</strong></td><td>2 people</td><td>Read the application with the statute + documents side-by-side; score the 15 criteria. With two of you, you'll see each other's scores appear live (“the cohort”).</td></tr>
+      <tr><td><strong>MARCO Staff</strong></td><td>1 person</td><td>The command center: dashboard, intake &amp; the 13-section self-assessment, first review, scheduling &amp; links, the board record, grievances, and the roadmap of the whole system.</td></tr>
+      <tr><td><strong>MARCO Board</strong></td><td>1 person</td><td>See the panel's recommendation and cast a vote; watch the tally update live.</td></tr>
+      <tr><td><strong>RCO Applicant</strong></td><td>if you have a 5th</td><td>See the org's own application and its determination (certified / not).</td></tr>
+    </tbody>
+  </table>
+
+  <h2><span class="n">3</span> Two organizations to explore</h2>
+  <div class="card">
+    <p style="margin:0"><strong>Continuum Care Center</strong> &nbsp;<span class="pill green">Certified</span><br/><span class="lead">A completed file that made it all the way through.</span></p>
+  </div>
+  <div class="card">
+    <p style="margin:0"><strong>Revive Recovery</strong> &nbsp;<span class="pill red">Not certified</span><br/><span class="lead">A completed file that fell short — see §1 (Conflict of Interest) and §8 (Non-Discrimination) flagged “Partially Meets.”</span></p>
+  </div>
+
+  <h2><span class="n">4</span> Walk the flow</h2>
+  <div class="card soft">
+    <strong style="color:var(--teal)">As a Peer Reviewer</strong>
+    <ul>
+      <li><strong>Application Packet</strong> — expand a section: the org's answer, the <em>exact statute</em>, and the documents are all right there. On Legal Structure, click a document's <strong>“open here”</strong> — it opens inline; the page slides left, nothing hides.</li>
+      <li><strong>Written Review</strong> — click through criteria 1–15; each is scored with a comment. Change a rating — the other reviewers see it within seconds under “How the cohort scored this.”</li>
+      <li><strong>Site Visit &amp; Panel</strong> — notes and the recommendation, all editable.</li>
+    </ul>
+  </div>
+  <div class="card soft">
+    <strong style="color:var(--teal)">As MARCO Staff</strong>
+    <ul>
+      <li><strong>Dashboard</strong> — the pipeline at a glance. <strong>Schedule &amp; Links</strong> — find a time (send reviewers an availability link), then generate a per-person link that drops each person into their step.</li>
+      <li><strong>Intake &amp; Self-Assessment</strong> — <strong>“+ Add a new RCO”</strong> starts a file; flip to the <strong>Self-Assessment</strong> tab for the real 13-section intake form with a MARCO-notes box on every section and a "resources to send back" checklist.</li>
+      <li><strong>Applications &amp; First Review</strong> — the JotForm-killer: per-section feedback → the applicant responds → editing locks. Preview the real first-review email right from the screen.</li>
+      <li><strong>Board</strong> — the certification record: the panel's recommendation, each conflict-free member's vote, the tally, and the outcome (with the PIP or certification next-step).</li>
+      <li><strong>Grievances</strong> — file &amp; track a grievance about a certified RCO; each one moves New → Reviewing → Resolved.</li>
+      <li><strong>🗺 Roadmap</strong> (far-right tab) — the whole system at a glance: what's <em>Live</em>, <em>In progress</em>, and <em>Planned</em>. Start here to see everything that's built.</li>
+    </ul>
+  </div>
+  <div class="card soft">
+    <strong style="color:var(--teal)">As Board / Applicant</strong>
+    <ul>
+      <li><strong>Board</strong> — the panel's recommendation + a live tally; cast your vote.</li>
+      <li><strong>Applicant</strong> — a green <strong>Certified</strong> or red <strong>Not certified</strong> badge over the full application.</li>
+    </ul>
+  </div>
+
+  <h2><span class="n">5</span> Leave notes as you go — this matters most</h2>
+  <div class="card gold">
+    <p style="margin:0 0 6px"><span class="big">📝 Look for “Add a note” in the bottom-right of every screen.</span></p>
+    <p style="margin:0" class="lead">Anything you notice — what works, what's confusing, an idea, an edit to make — click it, <strong>put your name</strong>, and jot it down. It records <strong>who wrote it, which screen, and when.</strong> Every note lands in one place: <strong>MARCO Staff → Record of Engagement</strong> — our shared log for this test (and a preview of how the real engagement record will work).</p>
+  </div>
+
+  <h2><span class="n">6</span> Good to know</h2>
+  <ul>
+    <li><strong>It's all live.</strong> Everything anyone does syncs to everyone else in a few seconds — no refreshing.</li>
+    <li><strong>Names are placeholders.</strong> “Reviewer 1/2/3,” “Board Member 1/2/3” — obviously not real people yet.</li>
+    <li><strong>Nothing here is precious.</strong> This is a test set; we wipe it clean afterward and load the real records.</li>
+  </ul>
+
+  <div class="foot">
+    <span>Built by <strong>CARES Consulting Inc</strong> for MARCO — Clarity · Accountability · Repair · Expectations · Support</span>
+    <span>tools.caresmn.com/marco/</span>
+  </div>
+
+</div>
+</body>
+</html>
