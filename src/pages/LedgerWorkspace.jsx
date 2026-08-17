@@ -560,6 +560,14 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
 
   // Keep the notebook + invoices in sync when the data source changes (sample → live, or after a write).
   useEffect(() => { setItems(entity.notebook); setCleared([]); setInvoices(entity.invoices || []); }, [entity]);
+  // Seed the card-payoff APR / minimums from the saved account rows so they persist.
+  useEffect(() => {
+    const seed = {};
+    (entity.rawAccounts || []).forEach(a => {
+      if (a.apr != null || a.min_payment_cents != null) seed[a.name] = { apr: a.apr != null ? String(a.apr) : "", min: a.min_payment_cents != null ? String(a.min_payment_cents / 100) : "" };
+    });
+    setCardPlan(seed);
+  }, [entity]);
 
   function clearOne(id, how) {
     setItems(prev => {
@@ -732,11 +740,13 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     setShowPayCard(false);
     setPayDraft(blankPay);
     if (live && liveOrgId) {
-      const base = { org_id: liveOrgId, user_id: session.user.id, entry_date: date, amount_cents: cents, category: "Card payment", match_status: "noted" };
-      await supabase.from("ledger_entries").insert([
+      // match_status null so both sides show up in the notebook (they were hidden as "noted").
+      const base = { org_id: liveOrgId, user_id: session.user.id, entry_date: date, amount_cents: cents, category: "Card payment", match_status: null };
+      const { data: pair } = await supabase.from("ledger_entries").insert([
         { ...base, direction: "out", account_id: payDraft.fromId, description: `Payment to ${toName}` },
         { ...base, direction: "in", account_id: payDraft.toId, description: `Payment from ${fromName}` },
-      ]);
+      ]).select("id");
+      (pair || []).forEach(r => markRecent(r.id)); // pin them to the top so she sees them
       setReloadTick(t => t + 1);
     }
   }
@@ -3370,7 +3380,16 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     const totalMin = rows.reduce((s, r) => s + r.min, 0);
     const extra = Math.max(0, budget - totalMin);
     const target = ranked[0];
-    const setP = (name, k, v) => setCardPlan(prev => ({ ...prev, [name]: { ...(prev[name] || {}), [k]: v } }));
+    const setP = (name, k, v) => {
+      setCardPlan(prev => ({ ...prev, [name]: { ...(prev[name] || {}), [k]: v } }));
+      if (live && liveOrgId) {
+        const acct = (entity.rawAccounts || []).find(a => a.name === name);
+        if (acct) {
+          const patch = k === "apr" ? { apr: v === "" ? null : (parseFloat(v) || 0) } : { min_payment_cents: v === "" ? null : Math.round((parseFloat(v) || 0) * 100) };
+          supabase.from("ledger_accounts").update(patch).eq("id", acct.id).then(() => {});
+        }
+      }
+    };
     const cols = "1fr 110px 84px 96px 96px";
     return (
       <div>
