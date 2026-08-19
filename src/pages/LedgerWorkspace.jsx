@@ -97,6 +97,7 @@ const SECTIONS = [
   { key: "purchaseorders", label: "Purchase Orders" },
   { key: "salestax", label: "Sales tax" },
   { key: "notebook", label: "Notebook" },
+  { key: "giving", label: "Donations" },
   { key: "bills", label: "Bills" },
   { key: "reports", label: "Reports" },
   { key: "documents", label: "Documents" },
@@ -225,6 +226,7 @@ function amountToWords(dollars) {
 function Ico({ name, size = 18 }) {
   const p = { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.7, strokeLinecap: "round", strokeLinejoin: "round" };
   switch (name) {
+    case "giving": return <svg {...p}><path d="M20 12v9H4v-9" /><path d="M2 7h20v5H2z" /><path d="M12 21V7" /><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7Z" /><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7Z" /></svg>;
     case "notebook": return <svg {...p}><path d="M6 4h11a2 2 0 0 1 2 2v14H8a2 2 0 0 1-2-2V4Z" /><path d="M6 4a2 2 0 0 0-2 2v0a2 2 0 0 0 2 2" /><path d="M10 8h6M10 12h6" /></svg>;
     case "invoices": return <svg {...p}><path d="M6 3h9l3 3v15H6Z" /><path d="M15 3v3h3" /><path d="M9 12h6M9 16h4" /></svg>;
     case "bills": return <svg {...p}><path d="M5 3l1.5 1.5L8 3l1.5 1.5L11 3l1.5 1.5L14 3v18l-1.5-1.5L11 21l-1.5-1.5L8 21l-1.5-1.5L5 21Z" /><path d="M8 8h4M8 12h3" /></svg>;
@@ -304,6 +306,8 @@ function buildLiveEntity(org, accounts, categories, entries, session) {
     brandColor: org.brand_color || "#0080ff",
     currentUser: userName,
     fiscalYearEnd: org.fiscal_year_end_month ? `${MONTHS[org.fiscal_year_end_month]} ${org.fiscal_year_end_day || ""}`.trim() : "",
+    fyEndMonth: org.fiscal_year_end_month || 12,
+    fyEndDay: org.fiscal_year_end_day || 31,
     today: new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" }),
     users: [{ name: userName, initials: (userName[0] || "?").toUpperCase(), role: "", lands: "notebook" }],
     accounts: {
@@ -424,6 +428,10 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [sortBy, setSortBy] = useState("account");
   const [acctFilter, setAcctFilter] = useState("");
   const [regAcct, setRegAcct] = useState("");   // Register view: which account's book we're reading
+  const [soaYear, setSoaYear] = useState(null); // fiscal year shown on the nonprofit reports
+  const [showDonorForm, setShowDonorForm] = useState(false);
+  const blankDonor = { name: "", email: "", address: "" };
+  const [donorDraft, setDonorDraft] = useState(blankDonor);
   const [reconTarget, setReconTarget] = useState("");
   const [reconOpen, setReconOpen] = useState(false);
   const [reconChecked, setReconChecked] = useState({});
@@ -522,6 +530,9 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   // Never strand someone on a section their profile doesn't include.
   const activeSection = sections.some(x => x.key === section) ? section : (sections[0] ? sections[0].key : "notebook");
   const buildProgress = entity.buildProgress || BUILD_PROGRESS;
+  // Feature switch. Absent profile, or absent key, means the feature is on — so adding a
+  // new feature never silently vanishes for the tenants who already had it.
+  const featureOn = k => !(entity.features && entity.features[k] === false);
 
   // Go live when someone's logged in: load their ProGraphics ledger org from Supabase.
   useEffect(() => {
@@ -538,7 +549,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         ? (orgs || []).find(o => o.id === orgId)
         : (wantFirst ? (orgs || []).find(o => (o.name || "").toLowerCase().includes(wantFirst)) : null);
       if (!org || cancelled) return;
-      const [a, c, e, inv, ven, cust, prod, bil, pay, cred, evts, docs] = await Promise.all([
+      const [a, c, e, inv, ven, cust, prod, bil, pay, cred, evts, docs, dons] = await Promise.all([
         supabase.from("ledger_accounts").select("*").eq("org_id", org.id).eq("archived", false).order("created_at", { ascending: true }),
         supabase.from("ledger_categories").select("*").eq("org_id", org.id).eq("archived", false).order("sort_order", { ascending: true }),
         supabase.from("ledger_entries").select("*").eq("org_id", org.id).order("entry_date", { ascending: false }).order("created_at", { ascending: false }),
@@ -551,6 +562,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         supabase.from("ledger_credits").select("*").eq("org_id", org.id).eq("status", "open").order("created_at", { ascending: true }),
         supabase.from("ledger_doc_events").select("*").eq("org_id", org.id).order("created_at", { ascending: true }),
         supabase.from("ledger_documents").select("*").eq("org_id", org.id).order("created_at", { ascending: false }),
+        supabase.from("ledger_donors").select("*").eq("org_id", org.id).order("name", { ascending: true }),
       ]);
       if (cancelled) return;
       setLiveOrgId(org.id);
@@ -571,6 +583,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       (evts.data || []).forEach(ev => { (evByInv[ev.invoice_id] = evByInv[ev.invoice_id] || []).push(ev); });
       built.docEvents = evByInv;
       built.documents = docs.data || [];
+      built.donors = dons.data || [];
+      built.orgType = org.org_type || "business";
       setDbEntity(built);
     })();
     return () => { cancelled = true; };
@@ -599,6 +613,25 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         : { match_status: how === "bill attached" ? "bill" : "noted" };
       supabase.from("ledger_entries").update(patch).eq("id", id).then(() => {});
     }
+  }
+
+  // A donor record is what turns a deposit into an acknowledgable gift — without one
+  // there is nobody to address the year-end letter to.
+  async function saveDonor() {
+    const name = donorDraft.name.trim();
+    if (!name || !liveOrgId) return;
+    await supabase.from("ledger_donors").insert({
+      org_id: liveOrgId, user_id: session.user.id, name,
+      email: donorDraft.email.trim() || null, address: donorDraft.address.trim() || null,
+    });
+    setDonorDraft(blankDonor); setShowDonorForm(false); setReloadTick(t => t + 1);
+  }
+
+  // Attach (or detach) a donor on a money-in line.
+  async function setDonor(entryId, donorId) {
+    if (!live) return;
+    await supabase.from("ledger_entries").update({ donor_id: donorId || null }).eq("id", entryId);
+    setReloadTick(t => t + 1);
   }
 
   function setCategory(id, cat) {
@@ -3311,15 +3344,18 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   }
 
   function Admin() {
+    // Every panel names the feature it belongs to. A tenant profile can switch one off
+    // (config.features) and it disappears here — it is NOT deleted, so the tenants who
+    // use it keep it. Anything unlisted in `features` stays on.
     const choices = [
       { key: "customers", label: "Customers", desc: "Who you bill — names, emails, addresses", count: (entity.customers || []).length },
       { key: "vendors", label: "Vendors", desc: "Who you pay — for bills and checks", count: (entity.vendorList || []).length },
-      { key: "items", label: "Items & services", desc: "Your product/service list for invoices", count: (entity.products || []).filter(p => !p.archived).length },
+      { key: "items", feature: "items", label: "Items & services", desc: "Your product/service list for invoices", count: (entity.products || []).filter(p => !p.archived).length },
       { key: "chart", label: "Chart of accounts", desc: "Every account — banks, cards, income, expenses", count: (entity.rawCategories || []).filter(c => !c.archived).length + (entity.rawAccounts || []).length },
-      { key: "cardpayoff", label: "Card payoff plan", desc: "Smartest order to pay down the credit cards" },
-      { key: "campaigns", label: "Email campaigns", desc: "Newsletters & blasts to your customers (Constant Contact replacement)" },
+      { key: "cardpayoff", feature: "cardPayoff", label: "Card payoff plan", desc: "Smartest order to pay down the credit cards" },
+      { key: "campaigns", feature: "campaigns", label: "Email campaigns", desc: "Newsletters & blasts to your customers (Constant Contact replacement)" },
       { key: "settings", label: "Settings", desc: "Branding, users, remit, sales-tax rate" },
-    ];
+    ].filter(c => !c.feature || featureOn(c.feature));
     if (!listsTab) {
       return (
         <div>
@@ -3348,7 +3384,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         {listsTab === "customers" && ContactList("customer")}
         {listsTab === "vendors" && ContactList("vendor")}
         {listsTab === "items" && Items()}
-        {listsTab === "cardpayoff" && CardPayoff()}
+        {listsTab === "cardpayoff" && featureOn("cardPayoff") && CardPayoff()}
         {listsTab === "campaigns" && Campaigns()}
         {listsTab === "chart" && (
           <div>
@@ -3483,6 +3519,9 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       : all;
     const shown = [...rows].reverse(); // newest at the top of the screen, balances already fixed
 
+    const contributedCats = new Set((entity.rawCategories || [])
+      .filter(c => c.func_class === "contributed").map(c => c.name));
+
     const tgt = reconTarget === "" ? null : (parseFloat(reconTarget) || 0);
     const diff = tgt == null ? null : (tgt - bookCents / 100);
     const reconciled = diff != null && Math.abs(diff) < 0.005;
@@ -3586,7 +3625,19 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 return (
                   <tr key={e.id} style={{ borderBottom: "1px solid " + N.rule, background: uncoded ? "#fffdf5" : "transparent" }}>
                     <td style={{ ...cellSt, color: N.muted, whiteSpace: "nowrap" }}>{e.entry_date}</td>
-                    <td style={{ ...cellSt, fontWeight: 600, color: N.ink }}>{e.description}</td>
+                    <td style={{ ...cellSt, fontWeight: 600, color: N.ink }}>
+                      {e.description}
+                      {/* Money in, coded to contributed support → it needs a donor, or nobody gets a letter. */}
+                      {!out && featureOn("donations") && contributedCats.has(e.category) && (
+                        <select value={e.donor_id || ""} onChange={ev => setDonor(e.id, ev.target.value)}
+                          title="Who gave this? Drives the year-end acknowledgment letter."
+                          style={{ display: "block", marginTop: 4, maxWidth: 260, fontSize: 11.5, fontWeight: 600, padding: "3px 6px", borderRadius: 6, cursor: "pointer", fontFamily: "'Figtree', sans-serif",
+                            border: "1px solid " + (e.donor_id ? N.rule : "#f0d89a"), background: e.donor_id ? "#f0f7f1" : "#fdf5e3", color: e.donor_id ? "#5a7a63" : "#8a5a00" }}>
+                          <option value="">Which donor?</option>
+                          {(entity.donors || []).map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                        </select>
+                      )}
+                    </td>
                     <td style={cellSt}>
                       <select value={e.category || ""} onChange={ev => setCategory(e.id, ev.target.value)}
                         style={{ width: "100%", fontSize: 12, fontWeight: 600, padding: "5px 7px", borderRadius: 7, cursor: "pointer", fontFamily: "'Figtree', sans-serif",
@@ -3620,6 +3671,290 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     );
   }
 
+
+  // ---- Fiscal-year helpers (nonprofit reporting) --------------------------------
+  // A fiscal year is labelled by the calendar year it ENDS in, which is how a 990 and
+  // every auditor refer to it. With a Dec 31 year end this collapses to the calendar year.
+  function fyBounds(label) {
+    const m = entity.fyEndMonth || 12, d = entity.fyEndDay || 31;
+    const end = new Date(Date.UTC(label, m - 1, d));
+    const start = new Date(Date.UTC(label, m - 1, d));
+    start.setUTCDate(start.getUTCDate() + 1);
+    start.setUTCFullYear(start.getUTCFullYear() - 1);
+    return { start: start.toISOString().slice(0, 10), end: end.toISOString().slice(0, 10) };
+  }
+  function fyOf(dateISO) {
+    if (!dateISO) return null;
+    const m = entity.fyEndMonth || 12, d = entity.fyEndDay || 31;
+    const y = +dateISO.slice(0, 4);
+    const endThisYear = `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    return dateISO <= endThisYear ? y : y + 1;
+  }
+  // Every fiscal year that actually has activity, newest first.
+  function fyOptions() {
+    const set = new Set((entity.rawEntries || []).map(e => fyOf(e.entry_date)).filter(Boolean));
+    if (!set.size) set.add(fyOf(new Date().toISOString().slice(0, 10)));
+    return [...set].sort((a, b) => b - a);
+  }
+
+  // ---- Statement of Activities -------------------------------------------------
+  // The nonprofit answer to a P&L. Two things a business P&L never has to do: split
+  // revenue into contributed (gifts, grants) vs earned (fee-for-service — for this org,
+  // Medicaid peer support billing), and split expense by FUNCTION rather than only by
+  // kind. Both come from ledger_categories.func_class; anything unclassified lands in
+  // its own bucket instead of being quietly folded into a total.
+  function StatementOfActivities() {
+    const years = fyOptions();
+    const year = soaYear || years[0];
+    const { start, end } = fyBounds(year);
+
+    const meta = {};
+    (entity.rawCategories || []).forEach(c => { meta[c.name] = { kind: c.kind, fc: c.func_class || null }; });
+
+    const inWindow = (entity.rawEntries || []).filter(e => e.entry_date >= start && e.entry_date <= end);
+
+    const revenue = { contributed: {}, earned: {}, unclassified: {} };
+    const expense = { program: {}, mg: {}, fundraising: {}, unclassified: {} };
+    let uncoded = 0;
+
+    inWindow.forEach(e => {
+      const amt = e.amount_cents || 0;
+      const m = e.category ? meta[e.category] : null;
+      if (!e.category || !m) { uncoded += amt; return; }
+      if (e.direction === "in" && m.kind === "income") {
+        const b = m.fc === "contributed" ? "contributed" : m.fc === "earned" ? "earned" : "unclassified";
+        revenue[b][e.category] = (revenue[b][e.category] || 0) + amt;
+      } else if (e.direction === "out" && m.kind !== "income") {
+        const b = ["program", "mg", "fundraising"].includes(m.fc) ? m.fc : "unclassified";
+        expense[b][e.category] = (expense[b][e.category] || 0) + amt;
+      }
+    });
+
+    const sum = o => Object.values(o).reduce((a, b) => a + b, 0);
+    const revTotal = sum(revenue.contributed) + sum(revenue.earned) + sum(revenue.unclassified);
+    const expTotal = sum(expense.program) + sum(expense.mg) + sum(expense.fundraising) + sum(expense.unclassified);
+    const change = revTotal - expTotal;
+
+    const rows = o => Object.entries(o).sort((a, b) => b[1] - a[1]);
+    const Section = ({ title, note, data, accent }) => {
+      const list = rows(data);
+      if (!list.length) return null;
+      return (
+        <>
+          <tr><td colSpan={2} style={{ padding: "16px 12px 5px", fontSize: 12.5, fontWeight: 700, color: accent || N.ink }}>
+            {title}{note && <span style={{ fontWeight: 400, color: N.muted }}> · {note}</span>}
+          </td></tr>
+          {list.map(([name, cents]) => (
+            <tr key={name}>
+              <td style={{ padding: "5px 12px 5px 28px", fontSize: 13.5, color: N.text }}>{name}</td>
+              <td style={{ padding: "5px 12px", fontSize: 13.5, textAlign: "right", fontFamily: "'DM Mono', monospace" }}>{money(cents / 100)}</td>
+            </tr>
+          ))}
+          <tr>
+            <td style={{ padding: "5px 12px 8px 28px", fontSize: 12.5, fontWeight: 700, color: N.muted, borderBottom: "1px solid " + N.rule }}>Total {title.toLowerCase()}</td>
+            <td style={{ padding: "5px 12px 8px", fontSize: 13.5, textAlign: "right", fontWeight: 700, fontFamily: "'DM Mono', monospace", borderBottom: "1px solid " + N.rule }}>{money(sum(data) / 100)}</td>
+          </tr>
+        </>
+      );
+    };
+
+    return (
+      <div>
+        <div className="no-print" style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
+          <div style={{ flex: 1, minWidth: 200 }}>
+            <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>Statement of Activities</div>
+            <div style={{ fontSize: 13, color: N.muted }}>Revenue, expense by function, and the change in net assets.</div>
+          </div>
+          <select value={year} onChange={e => setSoaYear(+e.target.value)} style={{ ...inputSt, width: 190 }}>
+            {years.map(y => <option key={y} value={y}>FY {y} · {fyBounds(y).start} → {fyBounds(y).end}</option>)}
+          </select>
+          <button onClick={() => window.print()} style={btnPaper(N.blueDark)}>Print</button>
+        </div>
+
+        {uncoded > 0 && (
+          <div className="no-print" style={{ background: "#fff7e0", border: "1px solid #f0d89a", borderRadius: 10, padding: "9px 14px", marginBottom: 12, fontSize: 12.5, color: "#8a5a00" }}>
+            ⚠ {money(uncoded / 100)} of activity in this year has no category yet, so it is <b>not</b> in the totals below. Code it in the Register and this statement will balance to the books.
+          </div>
+        )}
+
+        <div className="print-doc" style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: "18px 8px 12px" }}>
+          <div style={{ textAlign: "center", marginBottom: 10 }}>
+            <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: N.ink }}>{entity.name}</div>
+            <div style={{ fontSize: 13, color: N.ink, fontWeight: 600 }}>Statement of Activities</div>
+            <div style={{ fontSize: 12, color: N.muted }}>For the year ended {fyBounds(year).end}</div>
+          </div>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <tbody>
+              <tr><td colSpan={2} style={{ padding: "6px 12px 0", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", color: N.muted }}>REVENUE &amp; SUPPORT</td></tr>
+              <Section title="Contributed support" note="gifts, grants, in-kind" data={revenue.contributed} accent={N.pinkDark} />
+              <Section title="Earned revenue" note="fee-for-service, incl. Medicaid billing" data={revenue.earned} accent={N.blueDark} />
+              <Section title="Unclassified revenue" note="set contributed vs earned in the chart of accounts" data={revenue.unclassified} accent="#8a5a00" />
+              <tr>
+                <td style={{ padding: "9px 12px", fontSize: 14, fontWeight: 700, color: N.ink }}>Total revenue &amp; support</td>
+                <td style={{ padding: "9px 12px", fontSize: 15, fontWeight: 700, textAlign: "right", fontFamily: "'DM Mono', monospace", color: N.ink }}>{money(revTotal / 100)}</td>
+              </tr>
+
+              <tr><td colSpan={2} style={{ padding: "18px 12px 0", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", color: N.muted }}>EXPENSES BY FUNCTION</td></tr>
+              <Section title="Program services" data={expense.program} accent={N.pinkDark} />
+              <Section title="Management &amp; general" data={expense.mg} accent={N.blueDark} />
+              <Section title="Fundraising" data={expense.fundraising} accent={N.blue} />
+              <Section title="Unclassified expenses" note="assign a function in the chart of accounts" data={expense.unclassified} accent="#8a5a00" />
+              <tr>
+                <td style={{ padding: "9px 12px", fontSize: 14, fontWeight: 700, color: N.ink }}>Total expenses</td>
+                <td style={{ padding: "9px 12px", fontSize: 15, fontWeight: 700, textAlign: "right", fontFamily: "'DM Mono', monospace", color: N.ink }}>{money(expTotal / 100)}</td>
+              </tr>
+
+              <tr>
+                <td style={{ padding: "14px 12px", fontSize: 15, fontWeight: 700, color: N.ink, borderTop: "2px solid " + N.ink }}>Change in net assets</td>
+                <td style={{ padding: "14px 12px", fontSize: 17, fontWeight: 700, textAlign: "right", fontFamily: "'DM Mono', monospace", color: change < 0 ? N.red : N.pinkDark, borderTop: "2px solid " + N.ink }}>{money(change / 100)}</td>
+              </tr>
+            </tbody>
+          </table>
+          {expTotal > 0 && (
+            <div style={{ fontSize: 11.5, color: N.muted, padding: "10px 12px 0" }}>
+              Program services are {Math.round((sum(expense.program) / expTotal) * 100)}% of total expenses.
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ---- Donations & year-end acknowledgments ------------------------------------
+  // Money in, coded to a contributed-support category, and tagged to a donor. The
+  // year-end letter is the IRS "contemporaneous written acknowledgment" a donor needs
+  // to deduct a gift of $250 or more — so it has to state the amount and whether
+  // anything was given in return. Gifts with no donor attached are listed separately
+  // rather than dropped, because an untagged gift is a missing letter.
+  function Giving() {
+    const years = fyOptions();
+    const year = soaYear || years[0];
+    const { start, end } = fyBounds(year);
+    const donors = entity.donors || [];
+    const byId = {}; donors.forEach(d => { byId[d.id] = d; });
+
+    const contributed = new Set((entity.rawCategories || [])
+      .filter(c => c.func_class === "contributed").map(c => c.name));
+
+    const gifts = (entity.rawEntries || []).filter(e =>
+      e.direction === "in" && e.entry_date >= start && e.entry_date <= end && e.category && contributed.has(e.category));
+
+    const grouped = {};
+    let untagged = [];
+    gifts.forEach(g => {
+      if (!g.donor_id || !byId[g.donor_id]) { untagged.push(g); return; }
+      (grouped[g.donor_id] = grouped[g.donor_id] || []).push(g);
+    });
+    const letters = Object.entries(grouped)
+      .map(([id, list]) => ({ donor: byId[id], list, total: list.reduce((s, g) => s + (g.amount_cents || 0), 0) }))
+      .sort((a, b) => b.total - a.total);
+    const grand = letters.reduce((s, l) => s + l.total, 0);
+
+    return (
+      <div>
+        <div className="no-print" style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
+          <div style={{ flex: 1, minWidth: 200 }}>
+            <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>Donations</div>
+            <div style={{ fontSize: 13, color: N.muted }}>Contributed support by donor, and the year-end letters that go with it.</div>
+          </div>
+          <select value={year} onChange={e => setSoaYear(+e.target.value)} style={{ ...inputSt, width: 190 }}>
+            {years.map(y => <option key={y} value={y}>FY {y}</option>)}
+          </select>
+          <button onClick={() => setShowDonorForm(v => !v)} style={btnPaper(N.blue)}>{showDonorForm ? "Close" : "+ Add a donor"}</button>
+          <button onClick={() => window.print()} disabled={!letters.length} style={{ ...btnBlue, background: letters.length ? N.blue : N.mutedLite, fontSize: 13, padding: "9px 16px" }}>Print all {letters.length || ""} letters</button>
+        </div>
+
+        {showDonorForm && (
+          <div className="no-print" style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: 14, marginBottom: 12, display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+            <input placeholder="Donor name" value={donorDraft.name} onChange={e => setDonorDraft(d => ({ ...d, name: e.target.value }))} style={{ ...inputSt, flex: 1, minWidth: 180 }} />
+            <input placeholder="Email" value={donorDraft.email} onChange={e => setDonorDraft(d => ({ ...d, email: e.target.value }))} style={{ ...inputSt, width: 220 }} />
+            <input placeholder="Mailing address (for the letter)" value={donorDraft.address} onChange={e => setDonorDraft(d => ({ ...d, address: e.target.value }))} style={{ ...inputSt, flex: 1, minWidth: 220 }} />
+            <button onClick={saveDonor} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 16px" }}>Save donor</button>
+          </div>
+        )}
+
+        <div className="no-print" style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
+          {[["DONORS", letters.length], ["GIFTS", gifts.length], ["TOTAL GIVEN", money(grand / 100)]].map(([l, v]) => (
+            <div key={l} style={{ background: "#f4f7fb", border: "1px solid " + N.rule, borderRadius: 10, padding: "8px 14px" }}>
+              <div style={{ fontSize: 10, color: N.muted, letterSpacing: "0.06em" }}>{l}</div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: N.ink }}>{v}</div>
+            </div>
+          ))}
+        </div>
+
+        {untagged.length > 0 && (
+          <div className="no-print" style={{ background: "#fff7e0", border: "1px solid #f0d89a", borderRadius: 10, padding: "10px 14px", marginBottom: 14, fontSize: 12.5, color: "#8a5a00" }}>
+            ⚠ {untagged.length} gift{untagged.length === 1 ? "" : "s"} totalling {money(untagged.reduce((s, g) => s + (g.amount_cents || 0), 0) / 100)} {untagged.length === 1 ? "has" : "have"} no donor attached, so no letter will print for {untagged.length === 1 ? "it" : "them"}. Attach a donor on the money-in line in the Register.
+          </div>
+        )}
+
+        {letters.length === 0 && (
+          <div className="no-print" style={{ padding: "30px 16px", textAlign: "center", color: N.muted, fontSize: 14, background: N.white, border: "1px solid " + N.rule, borderRadius: 12 }}>
+            No donor-tagged gifts in FY {year} yet. Gifts show up here once a money-in line is coded to a contributed-support category and attached to a donor.
+          </div>
+        )}
+
+        <div className="print-doc">
+          {letters.map(({ donor, list, total }) => (
+            <div key={donor.id} style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: "26px 30px", marginBottom: 14, pageBreakAfter: "always" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap" }}>
+                <div>
+                  {entity.logoUrl
+                    ? <img src={entity.logoUrl} alt={entity.name} style={{ height: 40, maxWidth: 220, objectFit: "contain", marginBottom: 6 }} />
+                    : <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 19, color: N.ink }}>{entity.name}</div>}
+                  {entity.remitAddress && <div style={{ fontSize: 12, color: N.muted, whiteSpace: "pre-line" }}>{entity.remitAddress}</div>}
+                </div>
+                <div style={{ textAlign: "right", fontSize: 12, color: N.muted }}>
+                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em" }}>FY {year} GIVING STATEMENT</div>
+                  <div>Issued {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</div>
+                </div>
+              </div>
+
+              <div style={{ marginTop: 22, fontSize: 13.5, color: N.text }}>
+                <div style={{ fontWeight: 700, color: N.ink }}>{donor.name}</div>
+                {donor.address && <div style={{ color: N.muted, whiteSpace: "pre-line" }}>{donor.address}</div>}
+              </div>
+
+              <p style={{ fontSize: 13.5, color: N.text, lineHeight: 1.65, marginTop: 18 }}>
+                Thank you for your support of {entity.name}. This letter acknowledges the contributions
+                below, received between {fyBounds(year).start} and {fyBounds(year).end}.
+              </p>
+
+              <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 12 }}>
+                <thead>
+                  <tr style={{ borderBottom: "1px solid " + N.rule }}>
+                    <th style={{ textAlign: "left", padding: "6px 0", fontFamily: "'DM Mono', monospace", fontSize: 9.5, letterSpacing: "0.1em", color: N.muted, fontWeight: 500 }}>DATE</th>
+                    <th style={{ textAlign: "left", padding: "6px 0", fontFamily: "'DM Mono', monospace", fontSize: 9.5, letterSpacing: "0.1em", color: N.muted, fontWeight: 500 }}>DESCRIPTION</th>
+                    <th style={{ textAlign: "right", padding: "6px 0", fontFamily: "'DM Mono', monospace", fontSize: 9.5, letterSpacing: "0.1em", color: N.muted, fontWeight: 500 }}>AMOUNT</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {list.slice().sort((a, b) => (a.entry_date || "").localeCompare(b.entry_date || "")).map(g => (
+                    <tr key={g.id} style={{ borderBottom: "1px solid " + N.rule }}>
+                      <td style={{ padding: "7px 0", fontSize: 13, color: N.muted, whiteSpace: "nowrap" }}>{g.entry_date}</td>
+                      <td style={{ padding: "7px 0", fontSize: 13, color: N.text }}>{g.description}{g.category ? <span style={{ color: N.muted }}> · {g.category}</span> : ""}</td>
+                      <td style={{ padding: "7px 0", fontSize: 13, textAlign: "right", fontFamily: "'DM Mono', monospace" }}>{money((g.amount_cents || 0) / 100)}</td>
+                    </tr>
+                  ))}
+                  <tr>
+                    <td colSpan={2} style={{ padding: "10px 0", fontSize: 14, fontWeight: 700, color: N.ink }}>Total contributions, FY {year}</td>
+                    <td style={{ padding: "10px 0", fontSize: 16, fontWeight: 700, textAlign: "right", fontFamily: "'DM Mono', monospace", color: N.ink }}>{money(total / 100)}</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <p style={{ fontSize: 12, color: N.muted, lineHeight: 1.6, marginTop: 16, borderTop: "1px solid " + N.rule, paddingTop: 12 }}>
+                {entity.name} is a tax-exempt organization under section 501(c)(3) of the Internal Revenue Code.
+                No goods or services were provided in exchange for these contributions, except intangible religious
+                benefits where applicable. Please retain this statement for your tax records.
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   function Connect() {
     return (
       <div style={{ maxWidth: 560, margin: "40px auto 0", textAlign: "center" }}>
@@ -3643,7 +3978,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   else if (activeSection === "orders") body = Orders();
   else if (activeSection === "purchaseorders") body = PurchaseOrders();
   else if (activeSection === "salestax") body = SalesTax();
-  else if (activeSection === "reports") body = Reports();
+  else if (activeSection === "giving") body = Giving();
+  else if (activeSection === "reports") body = entity.reportStyle === "nonprofit" ? StatementOfActivities() : Reports();
   else if (activeSection === "admin") body = Admin();
   else if (activeSection === "bills") body = Bills();
   else if (activeSection === "documents") body = Documents();
@@ -3735,11 +4071,12 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 <div style={{ fontSize: 15, fontWeight: 700 }}>{money(val / 100)}</div>
               </div>
             );
+            const has = k => sections.some(x => x.key === k);
             return (
               <>
-                {pill("OPEN INVOICES", ar, N.green, () => setSection("invoices"))}
-                {pill("OPEN BILLS", ap, N.blueDark, () => setSection("bills"))}
-                <div style={{ width: 1, background: N.rule, margin: "3px 5px" }} />
+                {has("invoices") && pill("OPEN INVOICES", ar, N.green, () => setSection("invoices"))}
+                {has("bills") && pill("OPEN BILLS", ap, N.blueDark, () => setSection("bills"))}
+                {(has("invoices") || has("bills")) && <div style={{ width: 1, background: N.rule, margin: "3px 5px" }} />}
               </>
             );
           })()}

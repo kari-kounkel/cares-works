@@ -17,9 +17,17 @@ import { N } from "../design/neon";
 const FONTS = "https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&display=swap";
 
 // Matt wanted a register, not a notebook, and next to no invoicing — so he gets
-// six sections instead of nine, and the ledger reads like a checkbook.
-const SECTIONS = ["notebook", "invoices", "bills", "reports", "documents", "admin"];
+// a trimmed nav and the ledger reads like a checkbook.
+const SECTIONS_FORPROFIT = ["notebook", "invoices", "bills", "reports", "documents", "admin"];
+// The nonprofit adds Donations (year-end acknowledgment letters) and drops invoicing:
+// its money comes in as Medicaid billing and gifts, not as invoices it sends.
+const SECTIONS_NONPROFIT = ["notebook", "giving", "bills", "reports", "documents", "admin"];
 const LABELS = { notebook: "Register", invoices: "Invoices & receipts" };
+
+// Switched off for both books. Card payoff still exists — ProGraphics uses it — it just
+// is not part of Matt's build. Same for the item catalogue and email campaigns.
+const FEATURES_FORPROFIT = { cardPayoff: false, campaigns: false };
+const FEATURES_NONPROFIT = { cardPayoff: false, campaigns: false, items: false, donations: true };
 
 const PROGRESS = [
   { label: "Two sets of books", items: [
@@ -44,6 +52,14 @@ const PROGRESS = [
     ["Split wages / taxes / net pay", "todo"],
     ["Allocate payroll across both entities", "todo"],
   ] },
+  { label: "Nonprofit reporting", items: [
+    ["Statement of Activities", "done"],
+    ["Revenue split — contributed vs Medicaid", "done"],
+    ["Expenses by function — program / M&G / fundraising", "done"],
+    ["Year-end donation letters", "done"],
+    ["Medicaid peer-support accounts", "done"],
+    ["Statement of Financial Position", "todo"],
+  ] },
   { label: "Bills & checks", items: [
     ["Record a vendor bill", "done"],
     ["Pay by printed check", "done"],
@@ -57,9 +73,8 @@ const PROGRESS = [
     ["501(c)(3) determination + filings", "todo"],
   ] },
   { label: "Reports", items: [
-    ["Profit & Loss", "todo"],
+    ["Profit & Loss (for-profit)", "todo"],
     ["Balance sheet", "todo"],
-    ["Nonprofit: contributed vs. program income", "todo"],
   ] },
 ];
 
@@ -86,7 +101,7 @@ const BOOKS = [
     kind: "For-profit",
     accent: N.blue,
     entity: stub("Emerson Services", "Emerson Services", "Workspace created — accounts and categories loaded from his account list."),
-    config: { sections: SECTIONS, labels: LABELS, ledgerStyle: "register", buildProgress: PROGRESS },
+    config: { sections: SECTIONS_FORPROFIT, labels: LABELS, ledgerStyle: "register", features: FEATURES_FORPROFIT, buildProgress: PROGRESS },
   },
   {
     key: "ssmn",
@@ -94,7 +109,10 @@ const BOOKS = [
     kind: "Nonprofit · 501(c)(3)",
     accent: N.green,
     entity: stub("Social Services of Minnesota", "Social Services of MN", "Workspace created — Premier Banks accounts and the nonprofit chart of accounts are in."),
-    config: { sections: SECTIONS, labels: LABELS, ledgerStyle: "register", buildProgress: PROGRESS },
+    config: {
+      sections: SECTIONS_NONPROFIT, labels: LABELS, ledgerStyle: "register",
+      features: FEATURES_NONPROFIT, reportStyle: "nonprofit", buildProgress: PROGRESS,
+    },
   },
 ];
 
