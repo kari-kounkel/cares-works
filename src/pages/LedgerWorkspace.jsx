@@ -328,6 +328,53 @@ function buildLiveEntity(org, accounts, categories, entries, session) {
   };
 }
 
+
+// Summarise a window of entries into the buckets a Statement of Activities needs.
+// Pure and exported so the arithmetic can be tested without rendering anything:
+// given entries + the chart of accounts, it returns what goes on each line.
+//   revenue.contributed / .earned / .unclassified — { categoryName: cents }
+//   expense.program / .mg / .fundraising / .unclassified — { categoryName: cents }
+//   uncoded — money in the window with no usable category; deliberately NOT in any
+//   total, because silently folding it in is how a statement stops tying to the books.
+export function summarizeActivities(entries, categories, start, end) {
+  const meta = {};
+  (categories || []).forEach(c => { meta[c.name] = { kind: c.kind, fc: c.func_class || null }; });
+
+  const revenue = { contributed: {}, earned: {}, unclassified: {} };
+  const expense = { program: {}, mg: {}, fundraising: {}, unclassified: {} };
+  let uncoded = 0;
+
+  (entries || []).forEach(e => {
+    if (!e.entry_date || e.entry_date < start || e.entry_date > end) return;
+    const amt = e.amount_cents || 0;
+    const m = e.category ? meta[e.category] : null;
+    if (!e.category || !m) { uncoded += amt; return; }
+    if (e.direction === "in" && m.kind === "income") {
+      const b = m.fc === "contributed" ? "contributed" : m.fc === "earned" ? "earned" : "unclassified";
+      revenue[b][e.category] = (revenue[b][e.category] || 0) + amt;
+    } else if (e.direction === "out" && m.kind !== "income") {
+      const b = ["program", "mg", "fundraising"].includes(m.fc) ? m.fc : "unclassified";
+      expense[b][e.category] = (expense[b][e.category] || 0) + amt;
+    } else {
+      // Income account paid OUT (a refunded gift) or expense account received IN (a
+      // vendor rebate). Real, and it belongs against its own line, not in a total it
+      // would inflate — so it nets against that category.
+      if (m.kind === "income") {
+        const b = m.fc === "contributed" ? "contributed" : m.fc === "earned" ? "earned" : "unclassified";
+        revenue[b][e.category] = (revenue[b][e.category] || 0) - amt;
+      } else {
+        const b = ["program", "mg", "fundraising"].includes(m.fc) ? m.fc : "unclassified";
+        expense[b][e.category] = (expense[b][e.category] || 0) - amt;
+      }
+    }
+  });
+
+  const sum = o => Object.values(o).reduce((a, b) => a + b, 0);
+  const revTotal = sum(revenue.contributed) + sum(revenue.earned) + sum(revenue.unclassified);
+  const expTotal = sum(expense.program) + sum(expense.mg) + sum(expense.fundraising) + sum(expense.unclassified);
+  return { revenue, expense, uncoded, revTotal, expTotal, change: revTotal - expTotal };
+}
+
 // Map an invoices row into the shape the Invoices tab renders.
 function mapInvoice(v) {
   const items = Array.isArray(v.line_items) ? v.line_items : [];
@@ -468,7 +515,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [itemDraft, setItemDraft] = useState(blankItem);
   const [showAddItem, setShowAddItem] = useState(false);
   const [newItem, setNewItem] = useState(blankItem);
-  const blankCat = { name: "", kind: "expense", cat_type: "expense" };
+  const blankCat = { name: "", kind: "expense", cat_type: "expense", func_class: "" };
   const [catEditId, setCatEditId] = useState(null);
   const [catDraft, setCatDraft] = useState(blankCat);
   const [showAddCat, setShowAddCat] = useState(false);
@@ -699,13 +746,13 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   async function addChartCat() {
     if (!newCat.name.trim() || !liveOrgId) return;
     const ct = newCat.cat_type || "expense";
-    await supabase.from("ledger_categories").insert({ org_id: liveOrgId, user_id: session.user.id, name: newCat.name.trim(), cat_type: ct, kind: kindOf(ct), sort_order: 999, archived: false });
+    await supabase.from("ledger_categories").insert({ org_id: liveOrgId, user_id: session.user.id, name: newCat.name.trim(), cat_type: ct, kind: kindOf(ct), func_class: newCat.func_class || null, sort_order: 999, archived: false });
     setShowAddCat(false); setNewCat(blankCat); setReloadTick(t => t + 1);
   }
   async function saveChartCat() {
     if (!catEditId || !catDraft.name.trim()) return;
     const ct = catDraft.cat_type || "expense";
-    await supabase.from("ledger_categories").update({ name: catDraft.name.trim(), cat_type: ct, kind: kindOf(ct) }).eq("id", catEditId);
+    await supabase.from("ledger_categories").update({ name: catDraft.name.trim(), cat_type: ct, kind: kindOf(ct), func_class: catDraft.func_class || null }).eq("id", catEditId);
     setCatEditId(null); setReloadTick(t => t + 1);
   }
   async function archiveChartCat(id) {
@@ -3288,6 +3335,32 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     const cogs = rows.filter(c => typeOf(c) === "cogs").sort(byOrder);
     const expense = rows.filter(c => typeOf(c) === "expense").sort(byOrder);
     const cell = { ...inputSt };
+    // Only a nonprofit needs a functional class; showing it to ProGraphics would be noise.
+    const npo = entity.reportStyle === "nonprofit";
+    const FUNC_OPTS = t => t === "income"
+      ? [["contributed", "Contributed support"], ["earned", "Earned revenue"]]
+      : [["program", "Program services"], ["mg", "Management & general"], ["fundraising", "Fundraising"]];
+    const FUNC_LABEL = { contributed: "CONTRIBUTED", earned: "EARNED", program: "PROGRAM", mg: "MGMT & GENERAL", fundraising: "FUNDRAISING" };
+    const FuncPill = ({ c }) => {
+      if (!npo) return null;
+      const v = c.func_class;
+      return (
+        <span title={v ? "Where this lands on the Statement of Activities" : "Unclassified — it will sit in its own bucket on the Statement of Activities"}
+          style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: "0.05em", whiteSpace: "nowrap", borderRadius: 100, padding: "2px 8px",
+            color: v ? N.blueDark : "#8a5a00", background: v ? "#eef6ff" : "#fdf5e3", border: "1px solid " + (v ? "#cfe4ff" : "#f0d89a") }}>
+          {v ? FUNC_LABEL[v] : "UNCLASSIFIED"}
+        </span>
+      );
+    };
+    const FuncSelect = ({ value, type, onChange }) => {
+      if (!npo) return null;
+      return (
+        <select value={value || ""} onChange={e => onChange(e.target.value)} style={{ ...cell, width: 180 }}>
+          <option value="">Unclassified…</option>
+          {FUNC_OPTS(type).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+        </select>
+      );
+    };
     const TypePill = ({ t }) => { const m = TYPE_META[t] || TYPE_META.expense; return <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: "0.05em", color: m.color, background: m.bg, border: "1px solid " + m.bd, borderRadius: 100, padding: "2px 8px", whiteSpace: "nowrap" }}>{m.badge}</span>; };
     const group = (t, list) => { const m = TYPE_META[t]; return (
       <div style={{ marginBottom: 18 }}>
@@ -3302,14 +3375,16 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   <select value={catDraft.cat_type} onChange={e => setCatDraft(d => ({ ...d, cat_type: e.target.value }))} style={{ ...cell, width: 150 }}>
                     <option value="income">Sales / income</option><option value="cogs">Cost of goods sold</option><option value="expense">Expense</option>
                   </select>
+                  <FuncSelect value={catDraft.func_class} type={catDraft.cat_type} onChange={v => setCatDraft(d => ({ ...d, func_class: v }))} />
                   <button onClick={saveChartCat} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "8px 12px" }}>Save</button>
                   <button onClick={() => setCatEditId(null)} style={btnPaper(N.muted)}>Cancel</button>
                 </>
               ) : (
                 <>
                   <span style={{ flex: 1, fontSize: 14, color: N.ink }}>{c.name}</span>
+                  <FuncPill c={c} />
                   <TypePill t={typeOf(c)} />
-                  <button onClick={() => { setCatEditId(c.id); setCatDraft({ name: c.name, kind: c.kind || "expense", cat_type: typeOf(c) }); }} style={{ ...btnPaper(N.muted), padding: "6px 12px" }}>Edit</button>
+                  <button onClick={() => { setCatEditId(c.id); setCatDraft({ name: c.name, kind: c.kind || "expense", cat_type: typeOf(c), func_class: c.func_class || "" }); }} style={{ ...btnPaper(N.muted), padding: "6px 12px" }}>Edit</button>
                   <button onClick={() => archiveChartCat(c.id)} style={{ background: "none", border: "1px solid " + N.rule, borderRadius: 100, cursor: "pointer", color: N.muted, fontFamily: "'Figtree', sans-serif", fontSize: 12, fontWeight: 600, padding: "6px 12px" }}>Remove</button>
                 </>
               )}
@@ -3323,7 +3398,10 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, flexWrap: "wrap", gap: 10 }}>
           <div>
             <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>Chart of accounts</div>
-            <div style={{ fontSize: 13, color: N.muted }}>{rows.length} accounts — the income &amp; expense accounts everything categorizes into (pulled from QuickBooks). Add, rename, or remove.</div>
+            <div style={{ fontSize: 13, color: N.muted }}>
+              {rows.length} accounts — the income &amp; expense accounts everything categorizes into (pulled from QuickBooks). Add, rename, or remove.
+              {npo && <> Each one also carries where it lands on the <b>Statement of Activities</b>: income as contributed support or earned revenue, expense as program, management &amp; general, or fundraising.</>}
+            </div>
           </div>
           <button onClick={() => { setShowAddCat(s => !s); setNewCat(blankCat); }} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 16px" }}>{showAddCat ? "Close" : "+ Add account"}</button>
         </div>
@@ -3333,6 +3411,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             <select value={newCat.cat_type} onChange={e => setNewCat(d => ({ ...d, cat_type: e.target.value }))} style={{ ...cell, width: 170 }}>
               <option value="expense">Expense</option><option value="cogs">Cost of goods sold</option><option value="income">Sales / income</option>
             </select>
+            <FuncSelect value={newCat.func_class} type={newCat.cat_type} onChange={v => setNewCat(d => ({ ...d, func_class: v }))} />
             <button onClick={addChartCat} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 16px" }}>Save</button>
           </div>
         )}
@@ -3708,32 +3787,9 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     const year = soaYear || years[0];
     const { start, end } = fyBounds(year);
 
-    const meta = {};
-    (entity.rawCategories || []).forEach(c => { meta[c.name] = { kind: c.kind, fc: c.func_class || null }; });
-
-    const inWindow = (entity.rawEntries || []).filter(e => e.entry_date >= start && e.entry_date <= end);
-
-    const revenue = { contributed: {}, earned: {}, unclassified: {} };
-    const expense = { program: {}, mg: {}, fundraising: {}, unclassified: {} };
-    let uncoded = 0;
-
-    inWindow.forEach(e => {
-      const amt = e.amount_cents || 0;
-      const m = e.category ? meta[e.category] : null;
-      if (!e.category || !m) { uncoded += amt; return; }
-      if (e.direction === "in" && m.kind === "income") {
-        const b = m.fc === "contributed" ? "contributed" : m.fc === "earned" ? "earned" : "unclassified";
-        revenue[b][e.category] = (revenue[b][e.category] || 0) + amt;
-      } else if (e.direction === "out" && m.kind !== "income") {
-        const b = ["program", "mg", "fundraising"].includes(m.fc) ? m.fc : "unclassified";
-        expense[b][e.category] = (expense[b][e.category] || 0) + amt;
-      }
-    });
-
+    const { revenue, expense, uncoded, revTotal, expTotal, change } =
+      summarizeActivities(entity.rawEntries, entity.rawCategories, start, end);
     const sum = o => Object.values(o).reduce((a, b) => a + b, 0);
-    const revTotal = sum(revenue.contributed) + sum(revenue.earned) + sum(revenue.unclassified);
-    const expTotal = sum(expense.program) + sum(expense.mg) + sum(expense.fundraising) + sum(expense.unclassified);
-    const change = revTotal - expTotal;
 
     const rows = o => Object.entries(o).sort((a, b) => b[1] - a[1]);
     const Section = ({ title, note, data, accent }) => {
