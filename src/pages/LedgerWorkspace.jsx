@@ -6,7 +6,7 @@
 // Layout mirrors the NLIC org shell: left nav + big work area, blue-dominant neon.
 // Betty lands on her stenographer Notebook; Dave lands on Invoices.
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../supabaseClient";
 import { navigate } from "../App";
@@ -88,7 +88,7 @@ function connectStub(name, short, user, initials) {
 export const ENTITIES = {
   prographics: SAMPLE_ENTITY,
   amy: connectStub("Amy's Cherished Events", "Amy's Cherished Events", "Amy", "A"),
-  matt: connectStub("Social MN", "Social MN", "Matt", "M"),
+  matt: connectStub("Social Services of Minnesota", "Social Services of MN", "Matt", "M"),
 };
 
 const SECTIONS = [
@@ -379,10 +379,15 @@ function fmtPay(p) {
   return `${label}${date ? " · " + date : ""}`;
 }
 
-export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, session }) {
+export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, session, config }) {
   const [dbEntity, setDbEntity] = useState(null);
   const [testMode, setTestMode] = useState(false); // sandbox: show real data but block every save
-  const entity = dbEntity || propEntity || ENTITIES[entityKey] || SAMPLE_ENTITY;
+  const baseEntity = dbEntity || propEntity || ENTITIES[entityKey] || SAMPLE_ENTITY;
+  // `config` is the tenant's PROFILE — which sections they get, what those sections are
+  // called, whether their ledger reads as a notebook or a register, their own punch list.
+  // It layers on top of whatever the data source produced, so nothing here is per-tenant code.
+  // Memoised because a fresh object every render would retrigger the [entity] effects forever.
+  const entity = useMemo(() => (config ? { ...baseEntity, ...config } : baseEntity), [baseEntity, config]);
   const live = !!dbEntity && !testMode; // test mode makes every write a no-op
   // Accounts available for the "Pymt by" picker and card payments. Live has real ids; sample uses names.
   // Always ordered: banks first, then cards, then loans/etc — and alphabetical within each type.
@@ -418,6 +423,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [addedCount, setAddedCount] = useState(0);
   const [sortBy, setSortBy] = useState("account");
   const [acctFilter, setAcctFilter] = useState("");
+  const [regAcct, setRegAcct] = useState("");   // Register view: which account's book we're reading
   const [reconTarget, setReconTarget] = useState("");
   const [reconOpen, setReconOpen] = useState(false);
   const [reconChecked, setReconChecked] = useState({});
@@ -504,6 +510,18 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
 
   const latestUpdate = entity.changelog?.[0]?.date || "";
   const MN_TAX_RATE = 0.0925;
+
+  // ---- Tenant profile: which sections they get, and what those sections are called ----
+  // A tenant that lists `sections` gets exactly those, in that order; everyone else gets
+  // the full set. `labels` renames a section without renaming its key — a client who wants
+  // a Register instead of a Notebook gets one from data, not from a fork of this file.
+  const sections = (entity.sections && entity.sections.length
+    ? entity.sections.map(k => SECTIONS.find(x => x.key === k)).filter(Boolean)
+    : SECTIONS
+  ).map(x => ({ ...x, label: (entity.labels && entity.labels[x.key]) || x.label }));
+  // Never strand someone on a section their profile doesn't include.
+  const activeSection = sections.some(x => x.key === section) ? section : (sections[0] ? sections[0].key : "notebook");
+  const buildProgress = entity.buildProgress || BUILD_PROGRESS;
 
   // Go live when someone's logged in: load their ProGraphics ledger org from Supabase.
   useEffect(() => {
@@ -3437,6 +3455,171 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     );
   }
 
+
+  // ---- Register — the checkbook view ------------------------------------------
+  // Same ledger_entries as the notebook, read the way a paper register reads: one
+  // account, oldest line first, running balance down the right edge. There is no
+  // "inbox to clear" here — every line that ever hit the account stays on the page,
+  // cleared or not, because that's what a register is for.
+  function Register() {
+    const acctId = regAcct || (accountList[0] ? accountList[0].id : "");
+    const acct = (entity.rawAccounts || []).find(a => a.id === acctId);
+    const opening = acct ? (acct.opening_balance_cents || 0) : 0;
+
+    // Running balance is computed over EVERY line on the account, then the search
+    // filters what's shown — filter first and the balances would all be wrong.
+    let run = opening;
+    const all = (entity.rawEntries || [])
+      .filter(e => e.account_id === acctId)
+      .slice()
+      .sort((a, b) => (a.entry_date || "").localeCompare(b.entry_date || "") || (a.created_at || "").localeCompare(b.created_at || ""))
+      .map(e => {
+        run += (e.direction === "in" ? 1 : -1) * (e.amount_cents || 0);
+        return { ...e, balanceCents: run };
+      });
+    const bookCents = run;
+    const rows = q
+      ? all.filter(e => ((e.description || "") + " " + ((e.amount_cents || 0) / 100) + " " + (e.entry_date || "") + " " + (e.category || "")).toLowerCase().includes(q))
+      : all;
+    const shown = [...rows].reverse(); // newest at the top of the screen, balances already fixed
+
+    const tgt = reconTarget === "" ? null : (parseFloat(reconTarget) || 0);
+    const diff = tgt == null ? null : (tgt - bookCents / 100);
+    const reconciled = diff != null && Math.abs(diff) < 0.005;
+
+    const head = { fontFamily: "'DM Mono', monospace", fontSize: 9.5, letterSpacing: "0.1em", color: N.muted, textTransform: "uppercase", padding: "0 8px 7px", textAlign: "left", fontWeight: 500 };
+    const cellSt = { padding: "8px", fontSize: 13, color: N.text, verticalAlign: "middle" };
+
+    return (
+      <div>
+        {/* Title + search */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 12 }}>
+          <div>
+            <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>Register</div>
+            <div style={{ fontSize: 13, color: N.muted }}>Every line on the account, oldest to newest — Today, {entity.today}</div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, background: N.white, border: "1px solid " + N.rule, borderRadius: 100, padding: "7px 12px" }}>
+            <span style={{ color: N.muted, display: "flex" }}><Ico name="search" size={15} /></span>
+            <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Find a payee, amount, or date"
+              style={{ border: "none", outline: "none", fontSize: 13, fontFamily: "'Figtree', sans-serif", width: 210, color: N.text }} />
+          </div>
+        </div>
+
+        {/* Which book am I in */}
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
+          {accountList.map(a => {
+            const on = a.id === acctId;
+            return (
+              <button key={a.id} onClick={() => { setRegAcct(a.id); setReconTarget(""); }} style={{
+                border: "1px solid " + (on ? N.blue : N.rule), background: on ? "#eef6ff" : N.white,
+                color: on ? N.blueDark : N.muted, fontWeight: on ? 700 : 500, fontSize: 13,
+                padding: "8px 14px", borderRadius: 10, cursor: "pointer", fontFamily: "'Figtree', sans-serif",
+              }}>{a.name}</button>
+            );
+          })}
+        </div>
+
+        {/* Controls + the number that matters */}
+        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginBottom: 12 }}>
+          <button onClick={() => { setShowAddLine(v => !v); setLineDraft(d => ({ ...d, accountId: acctId })); setAddedCount(0); setTimeout(() => payeeRef.current && payeeRef.current.focus(), 40); }}
+            style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 16px" }}>{showAddLine ? "Close" : "+ Write a line"}</button>
+          <span style={{ fontSize: 12.5, color: N.muted }}>Statement ending balance:</span>
+          <input value={reconTarget} onChange={e => setReconTarget(e.target.value)} placeholder="$ from statement" inputMode="decimal" style={{ ...inputSt, width: 150 }} />
+          {diff != null && (reconciled
+            ? <span style={{ fontSize: 13, fontWeight: 700, color: N.pinkDark }}>✓ Matches to the penny</span>
+            : <span style={{ fontSize: 13, color: "#8a5a00" }}>Off by <b>{money(Math.abs(diff))}</b> — {diff > 0 ? "the bank shows more" : "your book shows more"}</span>)}
+          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 12, color: N.muted }}>{all.length} line{all.length === 1 ? "" : "s"}</span>
+            <div style={{ background: bookCents < 0 ? N.red : N.blueDark, color: "#fff", borderRadius: 10, padding: "6px 14px", whiteSpace: "nowrap" }}>
+              <div style={{ fontSize: 10, letterSpacing: "0.06em", opacity: 0.9 }}>BOOK BALANCE</div>
+              <div style={{ fontSize: 16, fontWeight: 700 }}>{money(bookCents / 100)}</div>
+            </div>
+          </div>
+        </div>
+
+        {showAddLine && (
+          <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: 14, marginBottom: 12 }}>
+            <div style={{ fontSize: 13, color: N.ink, fontWeight: 600, marginBottom: 8, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+              <span>Write a line into {acct ? acct.name : "this account"} — a check, cash, or a deposit the bank feed won't catch.</span>
+              {addedCount > 0 && <span style={{ fontSize: 12, fontWeight: 700, color: "#a16207", background: "#fef9c3", border: "1px solid #fde68a", padding: "3px 10px", borderRadius: 100 }}>✓ {addedCount} added</span>}
+            </div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+              <div style={{ display: "flex", border: "1px solid " + N.rule, borderRadius: 100, overflow: "hidden" }}>
+                <button onClick={() => setLineDraft(d => ({ ...d, direction: "out" }))} style={{ border: "none", cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontSize: 13, fontWeight: 600, padding: "8px 14px", background: lineDraft.direction === "out" ? N.pinkDark : N.white, color: lineDraft.direction === "out" ? N.white : N.muted }}>Payment</button>
+                <button onClick={() => setLineDraft(d => ({ ...d, direction: "in" }))} style={{ border: "none", cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontSize: 13, fontWeight: 600, padding: "8px 14px", background: lineDraft.direction === "in" ? N.green : N.white, color: lineDraft.direction === "in" ? N.white : N.muted }}>Deposit</button>
+              </div>
+              <input type="date" value={lineDraft.date} onChange={e => setLineDraft(d => ({ ...d, date: e.target.value }))} style={{ ...inputSt, width: 150 }} />
+              <input ref={payeeRef} list="pg-vendor-list" placeholder={lineDraft.direction === "in" ? "From whom?" : "Payee"} value={lineDraft.payee} onChange={e => setLineDraft(d => ({ ...d, payee: e.target.value }))} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); amountRef.current && amountRef.current.focus(); } }} style={{ ...inputSt, flex: 1, minWidth: 200 }} />
+              <datalist id="pg-vendor-list">
+                {payeeOptions.map(v => <option key={v} value={v} />)}
+              </datalist>
+              <input ref={amountRef} placeholder="$ amount" value={lineDraft.amount} onChange={e => setLineDraft(d => ({ ...d, amount: e.target.value }))} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); createLine(); } }} style={{ ...inputSt, width: 120 }} />
+              <button onClick={createLine} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 16px" }}>Add &amp; next ↵</button>
+              <button onClick={() => setShowAddLine(false)} style={btnPaper(N.muted)}>Done</button>
+            </div>
+            <div style={{ fontSize: 11, color: N.muted, marginTop: 8 }}>Payee → <b>Enter</b> → amount → <b>Enter</b> saves and jumps to the next line.</div>
+          </div>
+        )}
+
+        {/* The register itself */}
+        <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 820 }}>
+            <thead>
+              <tr style={{ borderBottom: "1px solid " + N.rule }}>
+                <th style={{ ...head, width: 92, paddingTop: 12 }}>Date</th>
+                <th style={{ ...head, paddingTop: 12 }}>Payee / description</th>
+                <th style={{ ...head, width: 210, paddingTop: 12 }}>Category</th>
+                <th style={{ ...head, width: 108, textAlign: "right", paddingTop: 12 }}>Payment</th>
+                <th style={{ ...head, width: 108, textAlign: "right", paddingTop: 12 }}>Deposit</th>
+                <th style={{ ...head, width: 120, textAlign: "right", paddingTop: 12 }}>Balance</th>
+              </tr>
+            </thead>
+            <tbody>
+              {shown.length === 0 && (
+                <tr><td colSpan={6} style={{ padding: "34px 12px", textAlign: "center", fontSize: 14, color: N.muted }}>
+                  {q ? "Nothing matches that." : acctId ? "Nothing in this register yet — connect the bank feed or write a line." : "Add an account in Admin to start a register."}
+                </td></tr>
+              )}
+              {shown.map(e => {
+                const out = e.direction !== "in";
+                const uncoded = !e.category;
+                return (
+                  <tr key={e.id} style={{ borderBottom: "1px solid " + N.rule, background: uncoded ? "#fffdf5" : "transparent" }}>
+                    <td style={{ ...cellSt, color: N.muted, whiteSpace: "nowrap" }}>{e.entry_date}</td>
+                    <td style={{ ...cellSt, fontWeight: 600, color: N.ink }}>{e.description}</td>
+                    <td style={cellSt}>
+                      <select value={e.category || ""} onChange={ev => setCategory(e.id, ev.target.value)}
+                        style={{ width: "100%", fontSize: 12, fontWeight: 600, padding: "5px 7px", borderRadius: 7, cursor: "pointer", fontFamily: "'Figtree', sans-serif",
+                          border: "1px solid " + (uncoded ? "#f0d89a" : N.rule), background: uncoded ? "#fdf5e3" : N.white, color: uncoded ? "#8a5a00" : N.text }}>
+                        <option value="">Needs a category…</option>
+                        {(entity.categories || []).map(c => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                    </td>
+                    <td style={{ ...cellSt, textAlign: "right", fontFamily: "'DM Mono', monospace", color: out ? N.text : N.mutedLite }}>{out ? money((e.amount_cents || 0) / 100).replace("$", "") : "—"}</td>
+                    <td style={{ ...cellSt, textAlign: "right", fontFamily: "'DM Mono', monospace", color: out ? N.mutedLite : N.green, fontWeight: out ? 400 : 700 }}>{out ? "—" : money((e.amount_cents || 0) / 100).replace("$", "")}</td>
+                    <td style={{ ...cellSt, textAlign: "right", fontFamily: "'DM Mono', monospace", fontWeight: 700, color: e.balanceCents < 0 ? N.red : N.ink }}>{money(e.balanceCents / 100)}</td>
+                  </tr>
+                );
+              })}
+              {shown.length > 0 && (
+                <tr style={{ background: "#f8fafc" }}>
+                  <td style={{ ...cellSt, color: N.muted }}>—</td>
+                  <td style={{ ...cellSt, color: N.muted, fontStyle: "italic" }}>Opening balance{acct && acct.last_four ? ` · ${acct.name}` : ""}</td>
+                  <td style={cellSt} />
+                  <td style={cellSt} /><td style={cellSt} />
+                  <td style={{ ...cellSt, textAlign: "right", fontFamily: "'DM Mono', monospace", fontWeight: 700, color: N.muted }}>{money(opening / 100)}</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+        <div style={{ fontSize: 11.5, color: N.muted, marginTop: 10 }}>
+          Lines highlighted in cream still need a category. The opening balance sits at the bottom because the newest line is on top — read it upward like a bank statement.
+        </div>
+      </div>
+    );
+  }
+
   function Connect() {
     return (
       <div style={{ maxWidth: 560, margin: "40px auto 0", textAlign: "center" }}>
@@ -3455,15 +3638,15 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   // focus from the inputs (the "one letter at a time" bug). Inlining keeps focus.
   let body;
   if (entity.needsConnect) body = Connect();
-  else if (section === "notebook") body = Notebook();
-  else if (section === "invoices") body = Invoices();
-  else if (section === "orders") body = Orders();
-  else if (section === "purchaseorders") body = PurchaseOrders();
-  else if (section === "salestax") body = SalesTax();
-  else if (section === "reports") body = Reports();
-  else if (section === "admin") body = Admin();
-  else if (section === "bills") body = Bills();
-  else if (section === "documents") body = Documents();
+  else if (activeSection === "notebook") body = entity.ledgerStyle === "register" ? Register() : Notebook();
+  else if (activeSection === "invoices") body = Invoices();
+  else if (activeSection === "orders") body = Orders();
+  else if (activeSection === "purchaseorders") body = PurchaseOrders();
+  else if (activeSection === "salestax") body = SalesTax();
+  else if (activeSection === "reports") body = Reports();
+  else if (activeSection === "admin") body = Admin();
+  else if (activeSection === "bills") body = Bills();
+  else if (activeSection === "documents") body = Documents();
 
   return (
     <div style={{ minHeight: "100vh", background: N.white, fontFamily: "'Figtree', sans-serif", color: N.text }}>
@@ -3579,8 +3762,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       {/* Body: nav + work area */}
       <div style={{ display: "flex", alignItems: "flex-start", maxWidth: 1180, margin: "0 auto" }}>
         <nav style={{ width: wide ? 58 : 210, flexShrink: 0, padding: "18px 10px", position: "sticky", top: 132 }}>
-          {SECTIONS.map(s => {
-            const active = section === s.key;
+          {sections.map(s => {
+            const active = activeSection === s.key;
             return (
               <button key={s.key} onClick={() => setSection(s.key)} title={s.label} style={{
                 display: "flex", alignItems: "center", justifyContent: wide ? "center" : "flex-start", gap: 11, width: "100%", textAlign: "left",
@@ -3608,7 +3791,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   border: st === "done" ? "none" : "1.5px solid " + (st === "wip" ? AMBER : N.rule),
                   color: st === "done" ? "#fff" : N.ink, fontSize: sz - 5, fontWeight: 700 }}>{st === "done" ? "✓" : st === "wip" ? "•" : ""}</span>
               );
-              return BUILD_PROGRESS.map(g => {
+              return buildProgress.map(g => {
                 const st = progStatus(g.items);
                 const done = g.items.filter(i => i[1] === "done").length;
                 const open = progOpen[g.label] !== undefined ? progOpen[g.label] : (st === "wip");
