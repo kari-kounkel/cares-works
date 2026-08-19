@@ -48,6 +48,7 @@ import ProposalsIndex from "./pages/ProposalsIndex";
 import ProposalView from "./pages/ProposalView";
 import ProposalPublic from "./pages/ProposalPublic";
 import LedgerWorkspace from "./pages/LedgerWorkspace";
+import EmersonWorkspace from "./pages/EmersonWorkspace";
 import InvoicePublic from "./pages/InvoicePublic";
 import { FRAME_COCKPITS, CLOUD_COCKPITS } from "./cockpits/registry";
 
@@ -55,6 +56,11 @@ export function navigate(path) {
   window.history.pushState({}, "", path);
   window.dispatchEvent(new PopStateEvent("popstate"));
 }
+
+// Orgs whose workspace is a ledger door rather than an /org/:slug shell. Matt Emerson
+// runs a for-profit AND a nonprofit; membership in either lands on the one shared door.
+// Keyed by the first word of the org name — the same thing primaryOrg is derived from.
+const ORG_HOME = { emerson: "/emerson", social: "/emerson" };
 
 const COURT_SLUGS = ["prologue","chapter-1","chapter-2","chapter-3","chapter-4","chapter-5","chapter-6","chapter-7","chapter-8","chapter-9","chapter-10","chapter-11","chapter-12","chapter-13","epilogue"];
 const MEMBER_SLUGS = ["founders-series-1"];
@@ -124,7 +130,7 @@ export default function App() {
     }
     // Client-workspace users (not paid members) never see the tool library or paywall —
     // send them to their workspace instead.
-    if (memberStatus !== "member" && primaryOrg) { navigate("/" + primaryOrg); return null; }
+    if (memberStatus !== "member" && primaryOrg) { navigate(ORG_HOME[primaryOrg] || "/" + primaryOrg); return null; }
     return <Dashboard session={session} />;
   }
 
@@ -160,7 +166,7 @@ export default function App() {
   // If a member has a primary org set, root URL takes them straight to their org workspace.
   // (They can still click "CARES Works →" in the header to reach the generic library.)
   if (path === "/" && session && primaryOrg) {
-    navigate("/org/" + primaryOrg);
+    navigate(ORG_HOME[primaryOrg] || "/org/" + primaryOrg);
     return null;
   }
 
@@ -217,6 +223,12 @@ export default function App() {
   if (path === "/prographics" || path === "/preview/prographics") {
     if (!session) { navigate("/login"); return null; }
     return <LedgerWorkspace entityKey="prographics" session={session} />;
+  }
+  // Matt Emerson — one door, two sets of books (for-profit + 501(c)(3)).
+  // The shell picks the org; LedgerWorkspace is the same machine underneath.
+  if (path === "/emerson" || path === "/emerson/") {
+    if (!session) { navigate("/login"); return null; }
+    return <EmersonWorkspace session={session} />;
   }
   // Multi-tenant: /ledger/:key resolves to an entity in the registry (prographics, amy, matt, …). Login required.
   if (path.startsWith("/ledger/")) {
@@ -286,7 +298,7 @@ export default function App() {
     }
     // Non-member who belongs to a client workspace → drop them into it, not the marketing page.
     if (primaryOrg) {
-      navigate("/" + primaryOrg);
+      navigate(ORG_HOME[primaryOrg] || "/" + primaryOrg);
       return null;
     }
   }
