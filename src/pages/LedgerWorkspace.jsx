@@ -536,6 +536,11 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [helpOpen, setHelpOpen] = useState(false);
   const [helpWho, setHelpWho] = useState("dave"); // which guide: dave | betty
   const isBetty = (session?.user?.email || "").toLowerCase().includes("races61");
+  const meName = isBetty ? "Betty" : invUser ? "Dave" : (entity.currentUser || (session?.user?.email || "").split("@")[0] || "You");
+  // Little message board between Dave & Betty — "hey, could you…" notes at the top of every screen.
+  const [messages, setMessages] = useState([]);
+  const [msgDraft, setMsgDraft] = useState("");
+  const [msgOpen, setMsgOpen] = useState(false);
   const [recentIds, setRecentIds] = useState([]); // just-entered rows, pinned to the top until cleared
   const markRecent = id => { if (id) setRecentIds(p => [id, ...p.filter(x => x !== id)].slice(0, 12)); };
   const [invSort, setInvSort] = useState("status"); // Invoices list sort
@@ -690,6 +695,68 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
 
   // Keep the notebook + invoices in sync when the data source changes (sample → live, or after a write).
   useEffect(() => { setItems(entity.notebook); setCleared([]); setInvoices(entity.invoices || []); }, [entity]);
+  // Load the Dave/Betty message board for this org.
+  useEffect(() => {
+    if (!liveOrgId || testMode) { setMessages([]); return; }
+    let cancel = false;
+    supabase.from("ledger_messages").select("*").eq("org_id", liveOrgId).order("created_at", { ascending: false }).limit(50)
+      .then(({ data }) => { if (!cancel) setMessages(data || []); });
+    return () => { cancel = true; };
+  }, [liveOrgId, testMode, reloadTick]);
+  async function sendNote() {
+    const b = (msgDraft || "").trim();
+    if (!b || !liveOrgId || testMode) return;
+    setMsgDraft("");
+    await supabase.from("ledger_messages").insert({ org_id: liveOrgId, user_id: session.user.id, author: meName, body: b });
+    setReloadTick(t => t + 1);
+  }
+  async function resolveNote(id) {
+    if (!liveOrgId || testMode) return;
+    await supabase.from("ledger_messages").update({ done: true }).eq("id", id);
+    setReloadTick(t => t + 1);
+  }
+  function noteTime(ts) {
+    if (!ts) return "";
+    try { return new Date(ts).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }); } catch (e) { return ""; }
+  }
+  // Slim message board under the balances — Dave & Betty leave each other "could you…" notes.
+  function messageBar() {
+    if (!liveOrgId || testMode) return null;
+    const open = messages.filter(m => !m.done);
+    const other = meName === "Betty" ? "Dave" : "Betty";
+    return (
+      <div className="no-print" style={{ padding: "0 22px 12px" }}>
+        <div style={{ background: open.length ? "#fff7ed" : "#f7fafd", border: "1px solid " + (open.length ? "#fed7aa" : N.rule), borderRadius: 12, padding: "10px 14px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: open.length ? "#9a3412" : N.muted }}>
+              {open.length ? `✉ ${open.length} message${open.length === 1 ? "" : "s"} for the team` : "✉ Messages"}
+            </span>
+            <button onClick={() => setMsgOpen(o => !o)} style={{ ...btnPaper(N.blue), padding: "5px 12px" }}>{msgOpen ? "Close" : `＋ Message ${other}`}</button>
+          </div>
+          {open.length > 0 && (
+            <div style={{ display: "grid", gap: 6, marginTop: 10 }}>
+              {open.map(m => (
+                <div key={m.id} style={{ display: "flex", alignItems: "flex-start", gap: 10, background: N.white, border: "1px solid #fde3c6", borderRadius: 8, padding: "8px 12px" }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: N.ink }}>{m.author}</span>
+                    <span style={{ fontSize: 11, color: N.mutedLite, marginLeft: 8 }}>{noteTime(m.created_at)}</span>
+                    <div style={{ fontSize: 13.5, color: N.text, marginTop: 2, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{m.body}</div>
+                  </div>
+                  <button onClick={() => resolveNote(m.id)} title="Mark this handled — clears it for both of you" style={{ ...btnPaper(N.pinkDark), padding: "5px 10px", whiteSpace: "nowrap" }}>✓ Done</button>
+                </div>
+              ))}
+            </div>
+          )}
+          {msgOpen && (
+            <div style={{ display: "flex", gap: 8, marginTop: 10, alignItems: "center", flexWrap: "wrap" }}>
+              <input value={msgDraft} onChange={e => setMsgDraft(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); sendNote(); } }} autoFocus placeholder={`Hey ${other}, could you…`} style={{ ...inputSt, flex: 1, minWidth: 220 }} />
+              <button onClick={sendNote} disabled={!msgDraft.trim()} style={{ ...btnBlue, background: msgDraft.trim() ? N.blue : N.mutedLite }}>Send</button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
   // Seed the card-payoff APR / minimums from the saved account rows so they persist.
   useEffect(() => {
     const seed = {};
@@ -2087,6 +2154,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const payeeOptions = [...new Set([
     ...(entity.vendors || []),
     ...(entity.customers || []).map(c => c.name),
+    ...accountList.filter(a => a.type === "credit_card" || a.type === "loan").map(a => a.name), // record interest/fees straight to a card
     ...items.map(x => x.payee),
     ...cleared.map(x => x.payee),
   ].filter(Boolean))].sort((a, b) => a.localeCompare(b));
@@ -2135,9 +2203,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               <option value="vendor">Sort: Vendor (A–Z)</option>
               <option value="account">Sort: Pymt by</option>
             </select>
-            {visibleItems.length > 0 && <button onClick={clearAllVisible} title="Mark everything showing as documented" style={btnPaper(N.pinkDark)}><Ico name="check" size={14} /> Got all {visibleItems.length}{acctFilter ? " here" : ""}</button>}
             <div style={{ marginLeft: "auto", fontSize: 12, fontWeight: 700, color: N.pinkDark, background: "#eafaf0", border: "1px solid #bff0d3", padding: "7px 12px", borderRadius: 100, whiteSpace: "nowrap" }}>
-              {items.length} left to match
+              {items.length} in the notebook
             </div>
           </div>
         </div>
@@ -2312,15 +2379,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   </div>
                   {/* AMOUNT */}
                   <div style={{ fontFamily: "'Figtree', sans-serif", fontSize: 17, fontWeight: 600, color: x.direction === "in" ? N.green : "#26303f", whiteSpace: "nowrap" }}>{x.direction === "in" ? "+" + money(x.amount) : money(-x.amount)}</div>
-                  {/* ACTIONS — clear + edit/delete stacked */}
+                  {/* ACTIONS — edit/delete stacked (lines clear when you reconcile the account) */}
                   <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                    {proposed ? (
-                      <button onClick={() => clearOne(x.id, "confirmed cleared")} style={{ ...btnBlue, fontSize: 12, padding: "6px 10px" }}><Ico name="check" size={13} /> Cleared</button>
-                    ) : x.direction === "in" ? (
-                      <button onClick={() => clearOne(x.id, "deposit cleared")} style={{ ...btnPaper(N.muted), fontSize: 12, padding: "6px 10px" }}><Ico name="check" size={13} /> Cleared</button>
-                    ) : (
-                      <button onClick={() => clearOne(x.id, "has it")} title="Have a bill/receipt, or none needed" style={{ ...btnPaper(N.muted), fontSize: 12, padding: "6px 10px" }}><Ico name="check" size={13} /> Got it</button>
-                    )}
                     <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
                       <button onClick={() => { setEditLineId(x.id); setEditDraft({ date: x.dateISO || "", payee: x.payee, amount: String(x.amount), direction: x.direction || "out" }); setCatOpen(null); setAcctOpen(null); }} title="Edit" style={{ background: "none", border: "1px solid " + N.rule, borderRadius: 6, cursor: "pointer", color: N.muted, fontFamily: "'Figtree', sans-serif", fontSize: 10, fontWeight: 600, padding: "2px 9px", lineHeight: 1.3 }}>Edit</button>
                       <button onClick={() => deleteLine(x.id)} title="Delete" style={{ background: "none", border: "1px solid " + N.rule, borderRadius: 6, cursor: "pointer", color: N.pinkDark, fontFamily: "'Figtree', sans-serif", fontSize: 10, fontWeight: 600, padding: "2px 9px", lineHeight: 1.3 }}>Delete</button>
@@ -4492,6 +4552,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             </div>
           ))}
         </div>
+        {messageBar()}
       </header>
 
       {testMode && (
