@@ -10,6 +10,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../supabaseClient";
 import { navigate } from "../App";
+import QboImport from "../components/QboImport";
 import { N } from "../design/neon";
 
 const FONTS = "https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&family=Caveat:wght@500;600&display=swap";
@@ -3439,6 +3440,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       { key: "vendors", label: "Vendors", desc: "Who you pay — for bills and checks", count: (entity.vendorList || []).length },
       { key: "items", feature: "items", label: "Items & services", desc: "Your product/service list for invoices", count: (entity.products || []).filter(p => !p.archived).length },
       { key: "chart", label: "Chart of accounts", desc: "Every account — banks, cards, income, expenses", count: (entity.rawCategories || []).filter(c => !c.archived).length + (entity.rawAccounts || []).length },
+      { key: "qbo", feature: "qboImport", label: "Import from QuickBooks", desc: "Bring the history across with its coding — Transaction List, General Ledger, or Journal Entries" },
       { key: "cardpayoff", feature: "cardPayoff", label: "Card payoff plan", desc: "Smartest order to pay down the credit cards" },
       { key: "campaigns", feature: "campaigns", label: "Email campaigns", desc: "Newsletters & blasts to your customers (Constant Contact replacement)" },
       { key: "settings", label: "Settings", desc: "Branding, users, remit, sales-tax rate" },
@@ -3473,6 +3475,15 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         {listsTab === "items" && Items()}
         {listsTab === "cardpayoff" && featureOn("cardPayoff") && CardPayoff()}
         {listsTab === "campaigns" && Campaigns()}
+        {listsTab === "qbo" && featureOn("qboImport") && (
+          <QboImport
+            orgId={liveOrgId}
+            session={session}
+            accounts={entity.rawAccounts || []}
+            categories={entity.rawCategories || []}
+            onImported={() => setReloadTick(t => t + 1)}
+          />
+        )}
         {listsTab === "chart" && (
           <div>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: N.blueDark, marginBottom: 10 }}>Balance-sheet accounts — banks, cards, loans</div>
