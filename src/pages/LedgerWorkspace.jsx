@@ -514,7 +514,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [lastAcctId, setLastAcctId] = useState(() => { try { return localStorage.getItem("cw_lastAcct") || ""; } catch (e) { return ""; } });
   const [bankSeenAt, setBankSeenAt] = useState(() => { try { return localStorage.getItem("cw_bankSeen") || ""; } catch (e) { return ""; } });
   const markBankSeen = () => { const now = new Date().toISOString(); setBankSeenAt(now); try { localStorage.setItem("cw_bankSeen", now); } catch (e) { /* storage may be blocked */ } };
-  const blankLine = { date: new Date().toISOString().slice(0, 10), payee: "", amount: "", direction: "out", accountId: lastAcctId };
+  const blankLine = { date: new Date().toISOString().slice(0, 10), payee: "", amount: "", direction: "out", accountId: lastAcctId, category: "" };
   const [lineDraft, setLineDraft] = useState(blankLine);
   const [editLineId, setEditLineId] = useState(null);
   const [editDraft, setEditDraft] = useState({ date: "", payee: "", amount: "", direction: "out" });
@@ -985,6 +985,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         org_id: liveOrgId, user_id: session.user.id,
         entry_date: draft.date, amount_cents: cents, direction: draft.direction,
         description: draft.payee.trim(), account_id: draft.accountId || defaultBankId || null,
+        category: draft.category || null,
         match_status: null,
       }).select("id").single();
       if (newLine) markRecent(newLine.id);
@@ -2154,7 +2155,6 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const payeeOptions = [...new Set([
     ...(entity.vendors || []),
     ...(entity.customers || []).map(c => c.name),
-    ...accountList.filter(a => a.type === "credit_card" || a.type === "loan").map(a => a.name), // record interest/fees straight to a card
     ...items.map(x => x.payee),
     ...cleared.map(x => x.payee),
   ].filter(Boolean))].sort((a, b) => a.localeCompare(b));
@@ -2235,6 +2235,13 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             <div style={{ fontSize: 13, color: N.ink, fontWeight: 600, marginBottom: 8, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
               <span>Write lines in the notebook — a check, a cash payment, a deposit the bank feed won't catch.</span>
               {addedCount > 0 && <span style={{ fontSize: 12, fontWeight: 700, color: "#a16207", background: "#fef9c3", border: "1px solid #fde68a", padding: "3px 10px", borderRadius: 100 }}>✓ {addedCount} added</span>}
+            </div>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center", marginBottom: 8 }}>
+              <span style={{ fontSize: 11, color: N.muted, fontWeight: 600 }}>Quick fill:</span>
+              <button onClick={() => { setLineDraft(d => ({ ...d, direction: "out", payee: "Interest charged", category: "CC Interest" })); setTimeout(() => amountRef.current && amountRef.current.focus(), 30); }} style={{ ...btnPaper(lineDraft.category === "CC Interest" ? N.blue : N.muted), padding: "5px 12px" }}>Interest on a card</button>
+              <button onClick={() => { setLineDraft(d => ({ ...d, direction: "out", payee: "Bank service charge", category: "Bank charges" })); setTimeout(() => amountRef.current && amountRef.current.focus(), 30); }} style={{ ...btnPaper(lineDraft.category === "Bank charges" ? N.blue : N.muted), padding: "5px 12px" }}>Bank fee</button>
+              {lineDraft.category && <span style={{ fontSize: 12, fontWeight: 700, color: N.blueDark, background: "#eef6ff", border: "1px solid #cfe4ff", borderRadius: 100, padding: "4px 10px" }}>→ {lineDraft.category} <button onClick={() => setLineDraft(d => ({ ...d, category: "" }))} title="Clear" style={{ border: "none", background: "none", cursor: "pointer", color: N.muted, fontWeight: 700, fontSize: 13, padding: "0 0 0 4px" }}>×</button></span>}
+              {lineDraft.category === "CC Interest" && <span style={{ fontSize: 11, color: N.muted }}>Now just pick the card in <b>Pymt by</b> and enter the amount.</span>}
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
               <div style={{ display: "flex", border: "1px solid " + N.rule, borderRadius: 100, overflow: "hidden" }}>
