@@ -494,6 +494,9 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   ]).slice().sort((a, b) =>
     (ACCT_TYPE_ORDER[a.type] ?? 9) - (ACCT_TYPE_ORDER[b.type] ?? 9) || (a.name || "").localeCompare(b.name || "")
   );
+  // Card payments come out of the operating checking account by default (CorTrust for ProGraphics).
+  const bankAccts = accountList.filter(a => a.type === "bank");
+  const defaultBankId = (bankAccts.find(a => /check/i.test(a.name)) || bankAccts[0] || {}).id || "";
 
   const invUser = (session?.user?.email || "").toLowerCase().includes("prographicsinc");
   const [section, setSection] = useState(invUser ? "orders" : (entity.users?.find(u => u.name === entity.currentUser)?.lands || "notebook"));
@@ -584,6 +587,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [emailState, setEmailState] = useState(null);
   const [poEmailTo, setPoEmailTo] = useState("");   // vendor email for the PO send box
   const [poEmailMsg, setPoEmailMsg] = useState(null); // {sending} | {ok} | {err}
+  const [poSend, setPoSend] = useState(null);       // the PO being emailed from a list row (one-click send popup)
   const [receiptMsg, setReceiptMsg] = useState(null); // paid-receipt email status
   const [progOpen, setProgOpen] = useState({});
   const blankInvPay = { amount: "", method: "check", check_number: "", paid_on: "", memo: "", accountId: "" };
@@ -878,8 +882,9 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   // Records two entries tagged "Card payment" so reports exclude them from income/expense.
   async function recordCardPayment() {
     const cents = Math.round((parseFloat(payDraft.amount) || 0) * 100);
-    if (!cents || !payDraft.fromId || !payDraft.toId) return;
-    const fromName = accountList.find(a => a.id === payDraft.fromId)?.name || "checking";
+    const fromId = payDraft.fromId || defaultBankId;
+    if (!cents || !fromId || !payDraft.toId) return;
+    const fromName = accountList.find(a => a.id === fromId)?.name || "checking";
     const toName = accountList.find(a => a.id === payDraft.toId)?.name || "card";
     const date = payDraft.date;
     setShowPayCard(false);
@@ -888,7 +893,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       // match_status null so both sides show up in the notebook (they were hidden as "noted").
       const base = { org_id: liveOrgId, user_id: session.user.id, entry_date: date, amount_cents: cents, category: "Card payment", match_status: null };
       const { data: pair } = await supabase.from("ledger_entries").insert([
-        { ...base, direction: "out", account_id: payDraft.fromId, description: `Payment to ${toName}` },
+        { ...base, direction: "out", account_id: fromId, description: `Payment to ${toName}` },
         { ...base, direction: "in", account_id: payDraft.toId, description: `Payment from ${fromName}` },
       ]).select("id");
       (pair || []).forEach(r => markRecent(r.id)); // pin them to the top so she sees them
@@ -1326,18 +1331,19 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
 
   // Email a PO to the vendor. QBO didn't bring most vendor emails, so Dave can type it
   // here — we save it to the vendor record (so it's remembered) and send via the hub.
-  async function sendPO() {
-    if (!openInv) return;
-    const to = (poEmailTo || "").trim();
+  async function sendPO(orderArg, toArg) {
+    const order = orderArg || openInv;
+    if (!order) return;
+    const to = ((toArg != null ? toArg : poEmailTo) || "").trim();
     if (!to || !/.+@.+\..+/.test(to)) { setPoEmailMsg({ err: "Type the vendor's email address first." }); return; }
     if (testMode) { setPoEmailMsg({ ok: "nobody — test mode, not really sent" }); return; }
     setPoEmailMsg({ sending: true });
     try {
-      if (live && liveOrgId && openInv.vendor) {
-        await supabase.from("ledger_vendors").update({ email: to }).eq("org_id", liveOrgId).ilike("name", openInv.vendor);
+      if (live && liveOrgId && order.vendor) {
+        await supabase.from("ledger_vendors").update({ email: to }).eq("org_id", liveOrgId).ilike("name", order.vendor);
       }
       const { data, error } = await supabase.functions.invoke("send-po-email", {
-        body: { order_id: openInv.id, to, origin: window.location.origin },
+        body: { order_id: order.id, to, origin: window.location.origin },
       });
       if (error || (data && data.error)) {
         let msg = (data && data.error) || (error && error.message) || "Send failed.";
@@ -1346,11 +1352,49 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       } else {
         setPoEmailMsg({ ok: data && data.to ? data.to : to });
         // Emailing a PO counts as sending it → it moves to the Purchase Orders screen.
-        if (openInv.docType === "order") await supabase.from("invoices").update({ status: "po_sent" }).eq("id", openInv.id);
-        await logDocEvent(openInv.id, "sent", "PO emailed to " + to);
+        if (order.docType === "order") await supabase.from("invoices").update({ status: "po_sent" }).eq("id", order.id);
+        await logDocEvent(order.id, "sent", "PO emailed to " + to);
         setReloadTick(t => t + 1);
       }
     } catch (e) { setPoEmailMsg({ err: String(e) }); }
+  }
+
+  // Open the one-click "Email this PO" popup from a list row, prefilling the vendor's email.
+  function openPoSend(v) {
+    const vd = (entity.vendorList || []).find(x => (x.name || "").toLowerCase() === (v.vendor || "").toLowerCase()) || {};
+    setPoEmailTo(vd.email || "");
+    setPoEmailMsg(null);
+    setPoSend(v);
+  }
+
+  function poSendModal() {
+    if (!poSend) return null;
+    const v = poSend;
+    const costTot = (v.lines || []).reduce((s, l) => s + (l.cost || 0) * (l.qty || 1), 0);
+    return (
+      <div onClick={() => setPoSend(null)} style={{ position: "fixed", inset: 0, background: "rgba(10,10,20,0.45)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "60px 16px", zIndex: 240 }}>
+        <div onClick={e => e.stopPropagation()} style={{ background: N.white, borderRadius: 12, width: "100%", maxWidth: 520, boxShadow: "0 24px 70px rgba(10,10,20,0.35)", padding: 22 }}>
+          <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: N.ink, marginBottom: 4 }}>Email PO #{v.poNumber || "—"} to {v.vendor || "vendor"}</div>
+          <div style={{ fontSize: 13, color: N.muted, marginBottom: 14 }}>{v.item ? v.item + " · " : ""}cost {money(costTot)}. Once it sends, this PO moves to <b style={{ color: N.blueDark }}>Purchase Orders</b> and is marked sent.</div>
+          {poEmailMsg && poEmailMsg.ok ? (
+            <div style={{ background: "#eafaf0", border: "1px solid #bff0d3", borderRadius: 10, padding: 14, fontSize: 14, color: N.pinkDark, fontWeight: 600 }}>✓ PO sent to {poEmailMsg.ok}</div>
+          ) : (
+            <>
+              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", color: N.muted, marginBottom: 4 }}>VENDOR EMAIL</div>
+              <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+                <input value={poEmailTo} onChange={e => setPoEmailTo(e.target.value)} placeholder="vendor@email.com" inputMode="email" autoFocus style={{ ...inputSt, flex: 1 }} />
+                <button onClick={() => sendPO(v, poEmailTo)} disabled={!!(poEmailMsg && poEmailMsg.sending)} style={{ ...btnBlue, background: (poEmailMsg && poEmailMsg.sending) ? N.mutedLite : N.blue }}>{poEmailMsg && poEmailMsg.sending ? "Sending…" : "Send PO"}</button>
+              </div>
+              <div style={{ fontSize: 12, color: N.muted }}>We'll save this to the vendor's record so it's remembered next time.</div>
+              {poEmailMsg && poEmailMsg.err && <div style={{ fontSize: 12, color: N.red, marginTop: 8 }}>{poEmailMsg.err}</div>}
+            </>
+          )}
+          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 16 }}>
+            <button onClick={() => setPoSend(null)} style={btnPaper(N.muted)}>{poEmailMsg && poEmailMsg.ok ? "Done" : "Cancel"}</button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   // Email the customer a "paid in full" receipt (they don't get one automatically).
@@ -1563,7 +1607,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 <div className="no-print" style={{ padding: "12px 22px", borderTop: "1px solid " + N.rule, background: N.white, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
                   <span style={{ fontSize: 12, color: N.muted }}>Email this PO to the vendor:</span>
                   <input value={poEmailTo} onChange={e => setPoEmailTo(e.target.value)} placeholder="vendor@email.com" inputMode="email" style={{ ...inputSt, width: 220 }} />
-                  <button onClick={sendPO} disabled={!!(poEmailMsg && poEmailMsg.sending)} style={{ ...btnBlue, background: (poEmailMsg && poEmailMsg.sending) ? N.mutedLite : N.blue }}>{poEmailMsg && poEmailMsg.sending ? "Sending…" : "Email PO"}</button>
+                  <button onClick={() => sendPO()} disabled={!!(poEmailMsg && poEmailMsg.sending)} style={{ ...btnBlue, background: (poEmailMsg && poEmailMsg.sending) ? N.mutedLite : N.blue }}>{poEmailMsg && poEmailMsg.sending ? "Sending…" : "Email PO"}</button>
                   {poEmailMsg && poEmailMsg.ok && <span style={{ fontSize: 12, color: N.green, fontWeight: 600 }}>✓ Sent to {poEmailMsg.ok}</span>}
                   {poEmailMsg && poEmailMsg.err && <span style={{ fontSize: 12, color: N.red }}>{poEmailMsg.err}</span>}
                 </div>
@@ -2153,7 +2197,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
               <input placeholder="$ amount" value={payDraft.amount} onChange={e => setPayDraft(d => ({ ...d, amount: e.target.value }))} style={{ ...inputSt, width: 110 }} />
               <span style={{ fontSize: 13, color: N.muted }}>from</span>
-              <select value={payDraft.fromId} onChange={e => setPayDraft(d => ({ ...d, fromId: e.target.value }))} style={{ ...inputSt, width: 168 }}>
+              <select value={payDraft.fromId || defaultBankId} onChange={e => setPayDraft(d => ({ ...d, fromId: e.target.value }))} style={{ ...inputSt, width: 168 }}>
                 <option value="">Which account…</option>
                 {accountList.filter(a => a.type === "bank").map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
               </select>
@@ -2727,7 +2771,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               })()}
               {v.poNumber && v.status === "PO sent" && <span style={{ fontSize: 10, fontWeight: 700, color: N.blueDark, background: "#eef6ff", border: "1px solid #cfe4ff", borderRadius: 100, padding: "3px 9px", letterSpacing: "0.04em" }}>PO SENT</span>}
               <button onClick={() => editOrder(v)} style={btnPaper(N.muted)}>Edit</button>
-              <button onClick={() => setOpenInv(v)} style={btnPaper(N.text)}>View / print / email</button>
+              {v.poNumber && <button onClick={() => openPoSend(v)} style={btnPaper(N.blue)}>{v.status === "PO sent" ? "✉ Resend PO" : "✉ Email PO"}</button>}
+              <button onClick={() => setOpenInv(v)} style={btnPaper(N.text)}>View / print</button>
               {v.customer && v.customer !== "—" && <button onClick={() => convertToInvoice(v)} style={{ ...btnBlue, background: N.blue }}>Convert to invoice →</button>}
               <button onClick={() => deleteOrder(v.id)} title="Delete order" style={{ border: "1px solid " + N.rule, background: "none", color: N.muted, cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontSize: 12, fontWeight: 600, borderRadius: 100, padding: "6px 12px" }}>Delete</button>
             </div>
@@ -2776,7 +2821,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   <div style={{ fontSize: 12, color: N.muted }}>{v.item}{v.customer && v.customer !== "—" ? ` · for ${v.customer}` : ""}</div>
                 </div>
                 <div style={{ textAlign: "right", width: 110, fontSize: 13, color: N.blueDark }}>cost <b>{money(costTot)}</b></div>
-                <button onClick={() => setOpenInv(v)} style={btnPaper(N.text)}>View / print / email</button>
+                <button onClick={() => openPoSend(v)} style={btnPaper(N.blue)}>✉ Email</button>
+                <button onClick={() => setOpenInv(v)} style={btnPaper(N.text)}>View / print</button>
                 <button onClick={() => editOrder(v)} style={btnPaper(N.muted)}>Edit</button>
                 <button onClick={() => convertToInvoice(v)} style={{ ...btnBlue, background: N.blue }}>Convert to invoice →</button>
                 <button onClick={() => deleteOrder(v.id)} title="Delete PO" style={{ border: "1px solid " + N.rule, background: "none", color: N.muted, cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontSize: 12, fontWeight: 600, borderRadius: 100, padding: "6px 12px" }}>Delete</button>
@@ -4522,6 +4568,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       {overpayModal()}
       {helpModal()}
       {importModal()}
+      {poSendModal()}
     </div>
   );
 }
