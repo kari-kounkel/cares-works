@@ -2335,9 +2335,12 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           const moneyOut = unrec.filter(e => e.direction !== "in");
           const checkedSum = unrec.filter(e => reconChecked[e.id]).reduce((s, e) => s + (e.direction === "in" ? e.amount_cents : -e.amount_cents), 0);
           const clearedBal = beginning + checkedSum;
+          const isLiab = rawA && (rawA.account_type === "credit_card" || rawA.account_type === "loan");
           const stmt = reconTarget === "" ? null : Math.round((parseFloat(reconTarget) || 0) * 100);
-          const diff = stmt == null ? null : (stmt - clearedBal);
+          const targetSigned = stmt == null ? null : (isLiab ? -stmt : stmt);
+          const diff = targetSigned == null ? null : (targetSigned - clearedBal);
           const ok = diff != null && Math.abs(diff) < 1;
+          const owed = c => money((isLiab ? -c : c) / 100);
           const checkedIds = unrec.filter(e => reconChecked[e.id]).map(e => e.id);
           const toggle = id => setReconChecked(p => ({ ...p, [id]: !p[id] }));
           const shortD = d => { const p = (d || "").split("-"); return p.length === 3 ? `${+p[1]}/${+p[2]}` : d; };
@@ -2364,8 +2367,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 21, color: N.ink }}>Reconcile {acctFilter}</div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: N.muted, flexWrap: "wrap" }}>
                     {acctId && <button onClick={() => openImport(acctId)} title="Load this account's transactions from a bank CSV export" style={btnPaper(N.blueDark)}>⬆ Upload statement</button>}
-                    <span>Statement ending balance</span>
-                    <input value={reconTarget} onChange={e => setReconTarget(e.target.value)} placeholder="$ from statement" inputMode="decimal" style={{ ...inputSt, width: 150 }} />
+                    <span>{isLiab ? "New balance owed" : "Statement ending balance"}</span>
+                    <input value={reconTarget} onChange={e => setReconTarget(e.target.value)} placeholder={isLiab ? "$ owed on statement" : "$ from statement"} inputMode="decimal" style={{ ...inputSt, width: 150 }} />
                   </div>
                 </div>
                 <div style={{ fontSize: 13, color: N.muted, marginBottom: 10 }}>Click each line that's on this statement — it gets an <b style={{ color: N.pinkDark }}>R</b>. When the difference hits <b>$0.00</b>, you're reconciled.</div>
@@ -2399,7 +2402,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   );
                 })()}
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, background: ok ? "#eafaf0" : "#f7fafd", border: "1px solid " + (ok ? "#bff0d3" : N.rule), borderRadius: 12, padding: "12px 16px" }}>
-                  <div style={{ fontSize: 13, color: N.muted }}>Beginning <b style={{ color: N.ink }}>{money(beginning / 100)}</b> + {checkedIds.length} checked = <b style={{ color: N.ink }}>{money(clearedBal / 100)}</b>{diff != null && (ok ? <b style={{ color: N.pinkDark, marginLeft: 10 }}>✓ Reconciled — difference $0.00</b> : <span style={{ marginLeft: 10, color: "#8a5a00" }}>Difference <b>{money(diff / 100)}</b></span>)}</div>
+                  <div style={{ fontSize: 13, color: N.muted }}>Beginning <b style={{ color: N.ink }}>{owed(beginning)}{isLiab ? " owed" : ""}</b> + {checkedIds.length} checked = <b style={{ color: N.ink }}>{owed(clearedBal)}{isLiab ? " owed" : ""}</b>{diff != null && (ok ? <b style={{ color: N.pinkDark, marginLeft: 10 }}>✓ Reconciled — difference $0.00</b> : <span style={{ marginLeft: 10, color: "#8a5a00" }}>Difference <b>{money((isLiab ? -diff : diff) / 100)}</b></span>)}</div>
                   <div style={{ display: "flex", gap: 8 }}>
                     <button onClick={() => setReconOpen(false)} style={btnPaper(N.muted)}>Close</button>
                     <button onClick={() => finishReconcile(checkedIds)} disabled={checkedIds.length === 0} style={{ ...btnBlue, background: checkedIds.length ? N.blue : N.mutedLite }}>Reconcile {checkedIds.length} &amp; lock</button>
