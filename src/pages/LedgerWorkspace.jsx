@@ -430,6 +430,42 @@ function attachPayments(m, payments) {
   return { ...m, payments, paidCents, balanceCents, paid: paidCents / 100, balance: balanceCents / 100, status };
 }
 
+// Minimal RFC-4180-ish CSV parser (handles quotes, commas, escaped quotes, CRLF).
+function parseCSV(text) {
+  const rows = []; let field = "", row = [], inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQ) {
+      if (c === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else inQ = false; }
+      else field += c;
+    } else if (c === '"') inQ = true;
+    else if (c === ",") { row.push(field); field = ""; }
+    else if (c === "\r") { /* skip */ }
+    else if (c === "\n") { row.push(field); rows.push(row); row = []; field = ""; }
+    else field += c;
+  }
+  if (field.length || row.length) { row.push(field); rows.push(row); }
+  return rows.filter(r => r.some(x => (x || "").trim() !== ""));
+}
+// Parse a money string ("$1,234.56", "(45.00)" = negative) → number or null.
+function parseMoney(s) {
+  s = String(s == null ? "" : s).trim();
+  if (!s) return null;
+  const neg = /^\(.*\)$/.test(s) || /-\s*$/.test(s) || /^\s*-/.test(s);
+  const n = parseFloat(s.replace(/[()]/g, "").replace(/[^0-9.\-]/g, ""));
+  if (isNaN(n)) return null;
+  return neg && n > 0 ? -n : n;
+}
+// Parse a date cell in common bank formats → "YYYY-MM-DD" or null.
+function parseStmtDate(s) {
+  s = String(s == null ? "" : s).trim();
+  let m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+  if (m) { let [, mm, dd, yy] = m; if (yy.length === 2) yy = "20" + yy; return `${yy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}`; }
+  m = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+  if (m) { let [, y, mm, dd] = m; return `${y}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}`; }
+  return null;
+}
+
 function fmtPay(p) {
   const label = p.method === "check" ? (p.check_number ? `Check #${p.check_number}` : "Check")
     : p.method === "ach" ? "ACH" : p.method === "cash" ? "Cash" : p.method === "card" ? "Card" : p.method === "credit" ? "Account credit" : "Payment";
@@ -504,6 +540,9 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [logoBusy, setLogoBusy] = useState(false);
   const [docBusy, setDocBusy] = useState(false);
   const [docCategory, setDocCategory] = useState("QuickBooks close-out");
+  const [importAcctId, setImportAcctId] = useState(null);  // statement CSV import target account
+  const [importData, setImportData] = useState(null);      // { fileName, headers, rows, map }
+  const [importBusy, setImportBusy] = useState(false);
   const payeeRef = useRef(null);
   const amountRef = useRef(null);
   const blankAcct = { name: "", account_type: "bank", last_four: "", opening: "" };
@@ -1653,6 +1692,69 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     );
   }
 
+  function importModal() {
+    if (!importAcctId) return null;
+    const acct = accountList.find(a => a.id === importAcctId);
+    const d = importData;
+    const setMap = (k, v) => setImportData(p => ({ ...p, map: { ...p.map, [k]: v } }));
+    const prev = d ? importRowsPreview() : { entries: [], skipped: 0 };
+    const colSel = (val, on, allowNone) => (
+      <select value={val} onChange={e => on(parseInt(e.target.value, 10))} style={{ ...inputSt, width: 170 }}>
+        {allowNone && <option value={-1}>— none —</option>}
+        {d.headers.map((h, i) => <option key={i} value={i}>{h || `Column ${i + 1}`}</option>)}
+      </select>
+    );
+    return (
+      <div onClick={() => setImportAcctId(null)} style={{ position: "fixed", inset: 0, background: "rgba(10,10,20,0.5)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "40px 16px", zIndex: 240, overflowY: "auto" }}>
+        <div onClick={e => e.stopPropagation()} style={{ background: N.white, borderRadius: 14, width: "100%", maxWidth: 720, boxShadow: "0 24px 70px rgba(10,10,20,0.4)", padding: 22 }}>
+          <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 21, color: N.ink, marginBottom: 2 }}>Upload a statement — {acct ? acct.name : ""}</div>
+          <div style={{ fontSize: 13, color: N.muted, marginBottom: 16 }}>Export your transactions from the bank as a <b>CSV</b>, then drop it here. I match up the columns and load the lines onto this account. Re-uploading the same statement won't double anything.</div>
+          {!d ? (
+            <label style={{ ...btnBlue, background: N.blue, cursor: "pointer", display: "inline-flex" }}>
+              ⬆ Choose a CSV file
+              <input type="file" accept=".csv,text/csv" onChange={e => { const f = e.target.files && e.target.files[0]; e.target.value = ""; onImportFile(f); }} style={{ display: "none" }} />
+            </label>
+          ) : (<>
+            <div style={{ fontSize: 12, color: N.muted, marginBottom: 12 }}>{d.fileName} · {d.rows.length} rows</div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 10, marginBottom: 12 }}>
+              <div><div style={{ fontSize: 11, fontWeight: 700, color: N.muted, marginBottom: 4 }}>DATE COLUMN</div>{colSel(d.map.date, v => setMap("date", v))}</div>
+              <div><div style={{ fontSize: 11, fontWeight: 700, color: N.muted, marginBottom: 4 }}>DESCRIPTION COLUMN</div>{colSel(d.map.desc, v => setMap("desc", v))}</div>
+              <div><div style={{ fontSize: 11, fontWeight: 700, color: N.muted, marginBottom: 4 }}>AMOUNT COLUMN</div>{colSel(d.map.amount, v => setMap("amount", v), true)}</div>
+            </div>
+            {d.map.amount >= 0 ? (
+              <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: N.text, marginBottom: 12 }}>
+                <input type="checkbox" checked={!!d.map.posIsOut} onChange={e => setMap("posIsOut", e.target.checked)} />
+                A <b>positive</b> number means money <b>OUT</b> (typical for credit-card exports). Leave unchecked for bank exports where withdrawals are negative.
+              </label>
+            ) : (
+              <div style={{ display: "flex", gap: 14, marginBottom: 12, flexWrap: "wrap" }}>
+                <div><div style={{ fontSize: 11, fontWeight: 700, color: N.muted, marginBottom: 4 }}>WITHDRAWAL / DEBIT COL</div>{colSel(d.map.debit, v => setMap("debit", v), true)}</div>
+                <div><div style={{ fontSize: 11, fontWeight: 700, color: N.muted, marginBottom: 4 }}>DEPOSIT / CREDIT COL</div>{colSel(d.map.credit, v => setMap("credit", v), true)}</div>
+              </div>
+            )}
+            <div style={{ fontSize: 11, fontWeight: 700, color: N.muted, marginBottom: 4 }}>PREVIEW — first few lines as they'll load</div>
+            <div style={{ border: "1px solid " + N.rule, borderRadius: 10, overflow: "hidden", marginBottom: 6 }}>
+              {prev.entries.slice(0, 6).map((e, i) => (
+                <div key={i} style={{ display: "flex", gap: 10, padding: "7px 12px", borderTop: i === 0 ? "none" : "1px solid " + N.rule, fontSize: 13 }}>
+                  <span style={{ width: 78, color: N.muted }}>{e.entry_date}</span>
+                  <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{e.description}</span>
+                  <span style={{ fontWeight: 600, color: e.direction === "in" ? N.green : N.red }}>{e.direction === "in" ? "+" : "−"}{money(e.amount_cents / 100)}</span>
+                </div>
+              ))}
+              {prev.entries.length === 0 && <div style={{ padding: 14, color: N.red, fontSize: 13 }}>No transactions read yet — pick the right Date and Amount columns above.</div>}
+            </div>
+            <div style={{ fontSize: 12, color: N.muted, marginBottom: 14 }}>{prev.entries.length} transactions ready{prev.skipped > 0 ? ` · ${prev.skipped} non-transaction rows skipped` : ""}.</div>
+            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", flexWrap: "wrap" }}>
+              <button onClick={() => setImportData(null)} style={btnPaper(N.muted)}>← Choose another file</button>
+              <button onClick={runImport} disabled={importBusy || prev.entries.length === 0} style={{ ...btnBlue, background: (importBusy || !prev.entries.length) ? N.mutedLite : N.blue }}>{importBusy ? "Loading…" : `Import ${prev.entries.length} into ${acct ? acct.name : ""}`}</button>
+            </div>
+          </>)}
+          <div style={{ marginTop: 14, textAlign: "right" }}><button onClick={() => setImportAcctId(null)} style={btnPaper(N.muted)}>Close</button></div>
+        </div>
+      </div>
+    );
+  }
+
   async function sendCampaign() {
     if (testMode) { setCampaignResult({ err: "Test mode — nothing was sent." }); return; }
     if (!liveOrgId || !campaign.subject.trim() || !campaign.body.trim()) return;
@@ -2261,6 +2363,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10, marginBottom: 10 }}>
                   <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 21, color: N.ink }}>Reconcile {acctFilter}</div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: N.muted, flexWrap: "wrap" }}>
+                    {acctId && <button onClick={() => openImport(acctId)} title="Load this account's transactions from a bank CSV export" style={btnPaper(N.blueDark)}>⬆ Upload statement</button>}
                     <span>Statement ending balance</span>
                     <input value={reconTarget} onChange={e => setReconTarget(e.target.value)} placeholder="$ from statement" inputMode="decimal" style={{ ...inputSt, width: 150 }} />
                   </div>
@@ -2970,6 +3073,84 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     await supabase.from("ledger_documents").delete().eq("id", doc.id);
     setReloadTick(t => t + 1);
   }
+  // ---- Statement import (upload a bank/card CSV → transactions) ----------------
+  function openImport(acctId) { setImportData(null); setImportAcctId(acctId); }
+  function onImportFile(file) {
+    if (!file) return;
+    const rd = new FileReader();
+    rd.onload = () => {
+      const all = parseCSV(String(rd.result || ""));
+      // pick the header row = the first row whose cells mostly look like labels (has "date" or "amount"/"description")
+      let hi = 0;
+      for (let i = 0; i < Math.min(all.length, 15); i++) {
+        const low = all[i].map(c => (c || "").toLowerCase());
+        if (low.some(h => /date/.test(h)) && low.some(h => /amount|debit|credit|withdraw|deposit|balance|description|payee/.test(h))) { hi = i; break; }
+      }
+      const headers = (all[hi] || []).map(h => (h || "").trim());
+      const rows = all.slice(hi + 1);
+      if (!headers.length || !rows.length) { window.alert("Couldn't read that file — is it a CSV export from the bank?"); return; }
+      const low = headers.map(h => h.toLowerCase());
+      const find = (...keys) => { for (const k of keys) { const i = low.findIndex(h => h.includes(k)); if (i >= 0) return i; } return -1; };
+      const map = {
+        date: find("post date", "posted date", "transaction date", "date"),
+        desc: find("description", "payee", "memo", "name", "details", "merchant"),
+        amount: find("amount"),
+        debit: find("debit", "withdrawal", "payment", "charges"),
+        credit: find("credit", "deposit", "payments"),
+        // for a single signed Amount column: does a POSITIVE number mean money OUT? (true for many card exports)
+        posIsOut: false,
+      };
+      setImportData({ fileName: file.name, headers, rows, map });
+    };
+    rd.readAsText(file);
+  }
+  function importRowsPreview() {
+    if (!importData) return { entries: [], skipped: 0 };
+    const m = importData.map, out = [];
+    let skipped = 0;
+    for (const r of importData.rows) {
+      const date = parseStmtDate(r[m.date]);
+      const desc = (r[m.desc] != null ? String(r[m.desc]) : "").trim() || "Transaction";
+      let cents = null, direction = null;
+      if (m.amount >= 0 && (m.debit < 0 || m.credit < 0)) {
+        const amt = parseMoney(r[m.amount]);
+        if (amt == null || amt === 0) { skipped++; continue; }
+        const isOut = m.posIsOut ? amt > 0 : amt < 0;
+        cents = Math.round(Math.abs(amt) * 100); direction = isOut ? "out" : "in";
+      } else {
+        const deb = m.debit >= 0 ? parseMoney(r[m.debit]) : null;
+        const cred = m.credit >= 0 ? parseMoney(r[m.credit]) : null;
+        if (deb && Math.abs(deb) > 0) { cents = Math.round(Math.abs(deb) * 100); direction = "out"; }
+        else if (cred && Math.abs(cred) > 0) { cents = Math.round(Math.abs(cred) * 100); direction = "in"; }
+        else { skipped++; continue; }
+      }
+      if (!date || !cents) { skipped++; continue; }
+      out.push({ entry_date: date, amount_cents: cents, direction, description: desc });
+    }
+    return { entries: out, skipped };
+  }
+  async function runImport() {
+    const acct = accountList.find(a => a.id === importAcctId);
+    if (!importData || !acct || !liveOrgId) return;
+    if (testMode) { window.alert("Test mode — importing is off. Exit test mode to load real transactions."); return; }
+    const { entries } = importRowsPreview();
+    if (!entries.length) { window.alert("No transactions read — check that the Date and Amount columns are picked right."); return; }
+    setImportBusy(true);
+    try {
+      const withHash = entries.map(e => ({ ...e, source_hash: `csv|${acct.id}|${e.entry_date}|${e.direction}|${e.amount_cents}|${e.description}`.slice(0, 240) }));
+      const { data: existing } = await supabase.from("ledger_entries").select("source_hash").eq("org_id", liveOrgId).eq("account_id", acct.id).not("source_hash", "is", null);
+      const seen = new Set((existing || []).map(e => e.source_hash));
+      const uniq = []; const local = new Set();
+      for (const e of withHash) { if (!seen.has(e.source_hash) && !local.has(e.source_hash)) { local.add(e.source_hash); uniq.push(e); } }
+      if (uniq.length) {
+        await supabase.from("ledger_entries").insert(uniq.map(e => ({ org_id: liveOrgId, user_id: session.user.id, entry_date: e.entry_date, direction: e.direction, amount_cents: e.amount_cents, description: e.description, account_id: acct.id, source_hash: e.source_hash, match_status: null })));
+      }
+      const dup = withHash.length - uniq.length;
+      window.alert(`Imported ${uniq.length} transaction${uniq.length === 1 ? "" : "s"} into ${acct.name}.${dup > 0 ? ` (${dup} were already there and skipped.)` : ""}`);
+      setImportAcctId(null); setImportData(null); setReloadTick(t => t + 1);
+    } catch (e) { window.alert("Import failed: " + (e.message || e)); }
+    setImportBusy(false);
+  }
   async function saveBrandColor(color) {
     if (!liveOrgId) return;
     await supabase.from("ledger_orgs").update({ brand_color: color }).eq("id", liveOrgId);
@@ -3175,6 +3356,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                           <div style={{ fontSize: 15, fontWeight: 600, color: N.ink }}>{a.name}{a.last_four && <span style={{ color: N.muted, fontWeight: 400 }}> ••{a.last_four}</span>}</div>
                           <div style={{ fontSize: 12, color: N.muted }}>{typeLabel(a.account_type)} · opening {money((a.opening_balance_cents || 0) / 100)}</div>
                         </div>
+                        <button onClick={() => openImport(a.id)} title="Load transactions from a bank/card CSV export" style={{ ...btnPaper(N.blueDark), padding: "6px 12px" }}>⬆ Statement</button>
                         <button onClick={() => { setAcctEditId(a.id); setAcctDraft({ name: a.name, account_type: a.account_type, last_four: a.last_four || "", opening: String((a.opening_balance_cents || 0) / 100) }); }} style={{ ...btnPaper(N.muted), padding: "6px 12px" }}>Edit</button>
                         <button onClick={() => archiveAccount(a.id)} title="Archive" style={{ background: "none", border: "1px solid " + N.rule, borderRadius: 100, cursor: "pointer", color: N.muted, fontFamily: "'Figtree', sans-serif", fontSize: 12, fontWeight: 600, padding: "6px 12px" }}>Archive</button>
                       </div>
@@ -4336,6 +4518,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       {docModal()}
       {overpayModal()}
       {helpModal()}
+      {importModal()}
     </div>
   );
 }
