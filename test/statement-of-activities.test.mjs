@@ -87,5 +87,19 @@ eq('empty change',   empty.change, 0);
 const junk = summarizeActivities([{},{entry_date:'2026-05-05'},{entry_date:'2026-05-05',direction:'in'}], CATS, '2026-01-01','2026-12-31');
 eq('junk rows land in uncoded, no throw', junk.uncoded, 0);
 
+// --- 5. transfers are neither revenue, expense, nor uncoded ---------------------
+const CATS2 = CATS.concat([{ name: 'Transfer between our accounts', kind: 'expense', func_class: 'transfer' }]);
+const xfer = summarizeActivities([
+  E('2026-01-10','in', 500000,'Donations — individuals'),
+  E('2026-02-10','in', 175000,'Transfer between our accounts'),   // in from our other account
+  E('2026-02-10','out',175000,'Transfer between our accounts'),   // out to our other account
+  E('2026-03-10','out',300000,'Accounting fees'),
+], CATS2, '2026-01-01','2026-12-31');
+eq('transfer not in revenue', xfer.revTotal, 500000);
+eq('transfer not in expense', xfer.expTotal, 300000);
+eq('transfer not in uncoded', xfer.uncoded, 0);
+eq('transfer absent from buckets',
+   Object.keys(xfer.revenue.contributed).length + Object.keys(xfer.expense.mg).length, 2);
+
 console.log(fail ? `\n${fail} FAILURES` : '\nall pass');
 process.exit(fail ? 1 : 0);
