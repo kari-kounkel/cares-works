@@ -336,6 +336,9 @@ function buildLiveEntity(org, accounts, categories, entries, session) {
 //   expense.program / .mg / .fundraising / .unclassified — { categoryName: cents }
 //   uncoded — money in the window with no usable category; deliberately NOT in any
 //   total, because silently folding it in is how a statement stops tying to the books.
+// Categories classed "transfer" are excluded outright: money moved between the
+// org's own accounts is neither revenue nor expense. Booking those as contributions
+// is exactly the error that inflates a nonprofit's public support.
 export function summarizeActivities(entries, categories, start, end) {
   const meta = {};
   (categories || []).forEach(c => { meta[c.name] = { kind: c.kind, fc: c.func_class || null }; });
@@ -349,6 +352,10 @@ export function summarizeActivities(entries, categories, start, end) {
     const amt = e.amount_cents || 0;
     const m = e.category ? meta[e.category] : null;
     if (!e.category || !m) { uncoded += amt; return; }
+    // Moving money between the org's own accounts is not revenue and not expense.
+    // It nets to zero across the two accounts, so it belongs in neither total — and
+    // not in `uncoded` either, because it IS coded; it just doesn't hit this statement.
+    if (m.fc === "transfer") return;
     if (e.direction === "in" && m.kind === "income") {
       const b = m.fc === "contributed" ? "contributed" : m.fc === "earned" ? "earned" : "unclassified";
       revenue[b][e.category] = (revenue[b][e.category] || 0) + amt;
@@ -3337,10 +3344,11 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     const cell = { ...inputSt };
     // Only a nonprofit needs a functional class; showing it to ProGraphics would be noise.
     const npo = entity.reportStyle === "nonprofit";
-    const FUNC_OPTS = t => t === "income"
+    const FUNC_OPTS = t => (t === "income"
       ? [["contributed", "Contributed support"], ["earned", "Earned revenue"]]
-      : [["program", "Program services"], ["mg", "Management & general"], ["fundraising", "Fundraising"]];
-    const FUNC_LABEL = { contributed: "CONTRIBUTED", earned: "EARNED", program: "PROGRAM", mg: "MGMT & GENERAL", fundraising: "FUNDRAISING" };
+      : [["program", "Program services"], ["mg", "Management & general"], ["fundraising", "Fundraising"]]
+    ).concat([["transfer", "Transfer — not revenue or expense"]]);
+    const FUNC_LABEL = { contributed: "CONTRIBUTED", earned: "EARNED", program: "PROGRAM", mg: "MGMT & GENERAL", fundraising: "FUNDRAISING", transfer: "TRANSFER" };
     const FuncPill = ({ c }) => {
       if (!npo) return null;
       const v = c.func_class;
@@ -3776,6 +3784,32 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     return [...set].sort((a, b) => b - a);
   }
 
+  // How much of a fiscal year the loaded data actually covers, per account. A
+  // Statement of Activities built on three months of one account still renders a
+  // full-looking year — which is worse than showing nothing, because it invites a
+  // conclusion the data can't support. So the gaps get named on the page.
+  function coverage(start, end) {
+    const counts = {};
+    (entity.rawEntries || []).forEach(e => {
+      if (!e.entry_date || e.entry_date < start || e.entry_date > end) return;
+      counts[e.account_id || "none"] = (counts[e.account_id || "none"] || 0) + 1;
+    });
+    const today = new Date().toISOString().slice(0, 10);
+    const wantEnd = end < today ? end : today;   // an open year only needs to reach today
+    return (entity.rawAccounts || []).map(a => {
+      // data_through is the recorded fact — how far this account's records were loaded.
+      // Inferring it from the last transaction would mark a dormant account as missing.
+      const through = a.data_through || null;
+      return {
+        name: a.name,
+        n: counts[a.id] || 0,
+        through,
+        short: !through || through < wantEnd,
+        none: !through,
+      };
+    });
+  }
+
   // ---- Statement of Activities -------------------------------------------------
   // The nonprofit answer to a P&L. Two things a business P&L never has to do: split
   // revenue into contributed (gifts, grants) vs earned (fee-for-service — for this org,
@@ -3786,40 +3820,84 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     const years = fyOptions();
     const year = soaYear || years[0];
     const { start, end } = fyBounds(year);
+    // A statement with one column can't answer "is that good?". The prior year sits
+    // beside it — same shape as every audited Statement of Activities — and the
+    // change column is what actually gets read.
+    const prior = year - 1;
+    const pb = fyBounds(prior);
+    const hasPrior = years.includes(prior);
 
-    const { revenue, expense, uncoded, revTotal, expTotal, change } =
-      summarizeActivities(entity.rawEntries, entity.rawCategories, start, end);
+    const cur = summarizeActivities(entity.rawEntries, entity.rawCategories, start, end);
+    const pre = summarizeActivities(entity.rawEntries, entity.rawCategories, pb.start, pb.end);
+    const { revenue, expense, uncoded, revTotal, expTotal, change } = cur;
     const sum = o => Object.values(o).reduce((a, b) => a + b, 0);
 
-    const rows = o => Object.entries(o).sort((a, b) => b[1] - a[1]);
-    const Section = ({ title, note, data, accent }) => {
-      const list = rows(data);
+    const COLS = hasPrior ? 4 : 2;
+    const pct = (now, was) => {
+      if (!was) return now ? null : null;      // no base to compare against
+      return Math.round(((now - was) / Math.abs(was)) * 100);
+    };
+    const Delta = ({ now, was, invert }) => {
+      if (!hasPrior) return null;
+      const d = now - was;
+      const p = pct(now, was);
+      if (d === 0) return <span style={{ color: N.mutedLite }}>—</span>;
+      // On expenses, up is not good news; invert the colour so the page reads right.
+      const good = invert ? d < 0 : d > 0;
+      return (
+        <span style={{ color: good ? N.pinkDark : N.red, fontWeight: 600, whiteSpace: "nowrap" }}>
+          {d > 0 ? "+" : "−"}{money(Math.abs(d) / 100).replace(/^[−]/, "")}
+          {p !== null && <span style={{ fontWeight: 400, fontSize: 11.5, opacity: .85 }}> ({d > 0 ? "+" : "−"}{Math.abs(p)}%)</span>}
+        </span>
+      );
+    };
+
+    // Categories are unioned across both years so a line that existed last year but
+    // not this one still shows, at zero, instead of silently vanishing.
+    const nameSet = (a, b) => [...new Set([...Object.keys(a), ...Object.keys(b)])]
+      .sort((x, y) => (b[y] || 0) + (a[y] || 0) - ((b[x] || 0) + (a[x] || 0)));
+
+    const numTd = { padding: "5px 12px", fontSize: 13.5, textAlign: "right", fontFamily: "'DM Mono', monospace", fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" };
+    const Section = ({ title, note, data, was, accent, invert }) => {
+      const list = nameSet(data, was || {});
       if (!list.length) return null;
       return (
         <>
-          <tr><td colSpan={2} style={{ padding: "16px 12px 5px", fontSize: 12.5, fontWeight: 700, color: accent || N.ink }}>
+          <tr><td colSpan={COLS} style={{ padding: "16px 12px 5px", fontSize: 12.5, fontWeight: 700, color: accent || N.ink }}>
             {title}{note && <span style={{ fontWeight: 400, color: N.muted }}> · {note}</span>}
           </td></tr>
-          {list.map(([name, cents]) => (
+          {list.map(name => (
             <tr key={name}>
               <td style={{ padding: "5px 12px 5px 28px", fontSize: 13.5, color: N.text }}>{name}</td>
-              <td style={{ padding: "5px 12px", fontSize: 13.5, textAlign: "right", fontFamily: "'DM Mono', monospace" }}>{money(cents / 100)}</td>
+              <td style={numTd}>{money((data[name] || 0) / 100)}</td>
+              {hasPrior && <td style={{ ...numTd, color: N.muted }}>{money(((was || {})[name] || 0) / 100)}</td>}
+              {hasPrior && <td style={numTd}><Delta now={data[name] || 0} was={(was || {})[name] || 0} invert={invert} /></td>}
             </tr>
           ))}
           <tr>
             <td style={{ padding: "5px 12px 8px 28px", fontSize: 12.5, fontWeight: 700, color: N.muted, borderBottom: "1px solid " + N.rule }}>Total {title.toLowerCase()}</td>
-            <td style={{ padding: "5px 12px 8px", fontSize: 13.5, textAlign: "right", fontWeight: 700, fontFamily: "'DM Mono', monospace", borderBottom: "1px solid " + N.rule }}>{money(sum(data) / 100)}</td>
+            <td style={{ ...numTd, fontWeight: 700, paddingBottom: 8, borderBottom: "1px solid " + N.rule }}>{money(sum(data) / 100)}</td>
+            {hasPrior && <td style={{ ...numTd, fontWeight: 700, color: N.muted, paddingBottom: 8, borderBottom: "1px solid " + N.rule }}>{money(sum(was || {}) / 100)}</td>}
+            {hasPrior && <td style={{ ...numTd, paddingBottom: 8, borderBottom: "1px solid " + N.rule }}><Delta now={sum(data)} was={sum(was || {})} invert={invert} /></td>}
           </tr>
         </>
       );
     };
+    const TotalRow = ({ label, now, was, big, invert }) => (
+      <tr>
+        <td style={{ padding: big ? "14px 12px" : "9px 12px", fontSize: big ? 15 : 14, fontWeight: 700, color: N.ink, borderTop: big ? "2px solid " + N.ink : "none" }}>{label}</td>
+        <td style={{ ...numTd, padding: big ? "14px 12px" : "9px 12px", fontSize: big ? 17 : 15, fontWeight: 700, color: big ? (now < 0 ? N.red : N.pinkDark) : N.ink, borderTop: big ? "2px solid " + N.ink : "none" }}>{money(now / 100)}</td>
+        {hasPrior && <td style={{ ...numTd, padding: big ? "14px 12px" : "9px 12px", fontSize: big ? 15 : 14, fontWeight: 700, color: N.muted, borderTop: big ? "2px solid " + N.ink : "none" }}>{money(was / 100)}</td>}
+        {hasPrior && <td style={{ ...numTd, padding: big ? "14px 12px" : "9px 12px", borderTop: big ? "2px solid " + N.ink : "none" }}><Delta now={now} was={was} invert={invert} /></td>}
+      </tr>
+    );
 
     return (
       <div>
         <div className="no-print" style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
           <div style={{ flex: 1, minWidth: 200 }}>
             <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>Statement of Activities</div>
-            <div style={{ fontSize: 13, color: N.muted }}>Revenue, expense by function, and the change in net assets.</div>
+            <div style={{ fontSize: 13, color: N.muted }}>Revenue, expense by function, and the change in net assets{hasPrior ? " — against last year." : "."}</div>
           </div>
           <select value={year} onChange={e => setSoaYear(+e.target.value)} style={{ ...inputSt, width: 190 }}>
             {years.map(y => <option key={y} value={y}>FY {y} · {fyBounds(y).start} → {fyBounds(y).end}</option>)}
@@ -3829,46 +3907,75 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
 
         {uncoded > 0 && (
           <div className="no-print" style={{ background: "#fff7e0", border: "1px solid #f0d89a", borderRadius: 10, padding: "9px 14px", marginBottom: 12, fontSize: 12.5, color: "#8a5a00" }}>
-            ⚠ {money(uncoded / 100)} of activity in this year has no category yet, so it is <b>not</b> in the totals below. Code it in the Register and this statement will balance to the books.
+            ⚠ {money(uncoded / 100)} of activity in FY {year} has no category yet, so it is <b>not</b> in the totals below. Code it in the Register and this statement will tie to the books.
+          </div>
+        )}
+        {(() => {
+          const cov = coverage(start, end);
+          const gaps = cov.filter(c => c.short);
+          if (!gaps.length) return null;
+          return (
+            <div className="no-print" style={{ background: "#fdecea", border: "1px solid #f5b8b2", borderRadius: 10, padding: "10px 14px", marginBottom: 12, fontSize: 12.5, color: "#a32f24" }}>
+              <b>This statement covers only part of FY {year}.</b> The figures below are real, but they are not a full year — don't read them as one.
+              <div style={{ marginTop: 7, display: "grid", gap: 3 }}>
+                {cov.map(c => (
+                  <div key={c.name} style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <span style={{ minWidth: 220, fontWeight: c.short ? 700 : 400 }}>{c.name}</span>
+                    <span style={{ fontFamily: "'DM Mono', monospace" }}>
+                      {c.none
+                        ? "no records loaded"
+                        : `records through ${c.through}` + (c.n ? ` · ${c.n} line${c.n === 1 ? "" : "s"} this year` : " · no activity this year")}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+        {!hasPrior && (
+          <div className="no-print" style={{ background: "#eef6ff", border: "1px solid #cfe4ff", borderRadius: 10, padding: "9px 14px", marginBottom: 12, fontSize: 12.5, color: N.blueDark }}>
+            No FY {prior} data loaded yet, so there's nothing to compare against. Load the prior year and a comparison column appears here automatically.
           </div>
         )}
 
-        <div className="print-doc" style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: "18px 8px 12px" }}>
+        <div className="print-doc" style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: "18px 8px 12px", overflowX: "auto" }}>
           <div style={{ textAlign: "center", marginBottom: 10 }}>
             <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: N.ink }}>{entity.name}</div>
             <div style={{ fontSize: 13, color: N.ink, fontWeight: 600 }}>Statement of Activities</div>
-            <div style={{ fontSize: 12, color: N.muted }}>For the year ended {fyBounds(year).end}</div>
+            <div style={{ fontSize: 12, color: N.muted }}>
+              For the year ended {fyBounds(year).end}{hasPrior && <> — with comparative totals for the year ended {pb.end}</>}
+            </div>
           </div>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: hasPrior ? 640 : 380 }}>
+            <thead>
+              <tr>
+                <th style={{ textAlign: "left" }} />
+                <th style={{ textAlign: "right", padding: "0 12px 6px", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: ".08em", color: N.muted, fontWeight: 500 }}>FY {year}</th>
+                {hasPrior && <th style={{ textAlign: "right", padding: "0 12px 6px", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: ".08em", color: N.muted, fontWeight: 500 }}>FY {prior}</th>}
+                {hasPrior && <th style={{ textAlign: "right", padding: "0 12px 6px", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: ".08em", color: N.muted, fontWeight: 500 }}>CHANGE</th>}
+              </tr>
+            </thead>
             <tbody>
-              <tr><td colSpan={2} style={{ padding: "6px 12px 0", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", color: N.muted }}>REVENUE &amp; SUPPORT</td></tr>
-              <Section title="Contributed support" note="gifts, grants, in-kind" data={revenue.contributed} accent={N.pinkDark} />
-              <Section title="Earned revenue" note="fee-for-service, incl. Medicaid billing" data={revenue.earned} accent={N.blueDark} />
-              <Section title="Unclassified revenue" note="set contributed vs earned in the chart of accounts" data={revenue.unclassified} accent="#8a5a00" />
-              <tr>
-                <td style={{ padding: "9px 12px", fontSize: 14, fontWeight: 700, color: N.ink }}>Total revenue &amp; support</td>
-                <td style={{ padding: "9px 12px", fontSize: 15, fontWeight: 700, textAlign: "right", fontFamily: "'DM Mono', monospace", color: N.ink }}>{money(revTotal / 100)}</td>
-              </tr>
+              <tr><td colSpan={COLS} style={{ padding: "6px 12px 0", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", color: N.muted }}>REVENUE &amp; SUPPORT</td></tr>
+              <Section title="Contributed support" note="gifts, grants, in-kind" data={revenue.contributed} was={pre.revenue.contributed} accent={N.pinkDark} />
+              <Section title="Earned revenue" note="fee-for-service, incl. peer-support billing" data={revenue.earned} was={pre.revenue.earned} accent={N.blueDark} />
+              <Section title="Unclassified revenue" note="set contributed vs earned in the chart of accounts" data={revenue.unclassified} was={pre.revenue.unclassified} accent="#8a5a00" />
+              <TotalRow label="Total revenue &amp; support" now={revTotal} was={pre.revTotal} />
 
-              <tr><td colSpan={2} style={{ padding: "18px 12px 0", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", color: N.muted }}>EXPENSES BY FUNCTION</td></tr>
-              <Section title="Program services" data={expense.program} accent={N.pinkDark} />
-              <Section title="Management &amp; general" data={expense.mg} accent={N.blueDark} />
-              <Section title="Fundraising" data={expense.fundraising} accent={N.blue} />
-              <Section title="Unclassified expenses" note="assign a function in the chart of accounts" data={expense.unclassified} accent="#8a5a00" />
-              <tr>
-                <td style={{ padding: "9px 12px", fontSize: 14, fontWeight: 700, color: N.ink }}>Total expenses</td>
-                <td style={{ padding: "9px 12px", fontSize: 15, fontWeight: 700, textAlign: "right", fontFamily: "'DM Mono', monospace", color: N.ink }}>{money(expTotal / 100)}</td>
-              </tr>
+              <tr><td colSpan={COLS} style={{ padding: "18px 12px 0", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", color: N.muted }}>EXPENSES BY FUNCTION</td></tr>
+              <Section title="Program services" data={expense.program} was={pre.expense.program} accent={N.pinkDark} invert />
+              <Section title="Management &amp; general" data={expense.mg} was={pre.expense.mg} accent={N.blueDark} invert />
+              <Section title="Fundraising" data={expense.fundraising} was={pre.expense.fundraising} accent={N.blue} invert />
+              <Section title="Unclassified expenses" note="assign a function in the chart of accounts" data={expense.unclassified} was={pre.expense.unclassified} accent="#8a5a00" invert />
+              <TotalRow label="Total expenses" now={expTotal} was={pre.expTotal} invert />
 
-              <tr>
-                <td style={{ padding: "14px 12px", fontSize: 15, fontWeight: 700, color: N.ink, borderTop: "2px solid " + N.ink }}>Change in net assets</td>
-                <td style={{ padding: "14px 12px", fontSize: 17, fontWeight: 700, textAlign: "right", fontFamily: "'DM Mono', monospace", color: change < 0 ? N.red : N.pinkDark, borderTop: "2px solid " + N.ink }}>{money(change / 100)}</td>
-              </tr>
+              <TotalRow label="Change in net assets" now={change} was={pre.change} big />
             </tbody>
           </table>
           {expTotal > 0 && (
             <div style={{ fontSize: 11.5, color: N.muted, padding: "10px 12px 0" }}>
-              Program services are {Math.round((sum(expense.program) / expTotal) * 100)}% of total expenses.
+              Program services are {Math.round((sum(expense.program) / expTotal) * 100)}% of total expenses
+              {hasPrior && pre.expTotal > 0 && <> (FY {prior}: {Math.round((sum(pre.expense.program) / pre.expTotal) * 100)}%)</>}.
             </div>
           )}
         </div>

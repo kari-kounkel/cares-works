@@ -13,3 +13,7 @@ dist
 
 # Editor config
 .vscode/
+
+# Python bytecode
+__pycache__/
+*.pyc
