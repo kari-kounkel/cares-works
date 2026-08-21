@@ -917,7 +917,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       const { data: newLine } = await supabase.from("ledger_entries").insert({
         org_id: liveOrgId, user_id: session.user.id,
         entry_date: draft.date, amount_cents: cents, direction: draft.direction,
-        description: draft.payee.trim(), account_id: draft.accountId || null,
+        description: draft.payee.trim(), account_id: draft.accountId || defaultBankId || null,
         match_status: null,
       }).select("id").single();
       if (newLine) markRecent(newLine.id);
@@ -2180,7 +2180,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 {payeeOptions.map(v => <option key={v} value={v} />)}
               </datalist>
               <input ref={amountRef} placeholder="$ amount" value={lineDraft.amount} onChange={e => setLineDraft(d => ({ ...d, amount: e.target.value }))} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); createLine(); } }} style={{ ...inputSt, width: 120 }} />
-              <select value={lineDraft.accountId} onChange={e => setLineDraft(d => ({ ...d, accountId: e.target.value }))} style={{ ...inputSt, width: 168 }}>
+              <select value={lineDraft.accountId || defaultBankId} onChange={e => setLineDraft(d => ({ ...d, accountId: e.target.value }))} style={{ ...inputSt, width: 168 }}>
                 <option value="">Pymt by (bank/card)…</option>
                 {accountList.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
               </select>
