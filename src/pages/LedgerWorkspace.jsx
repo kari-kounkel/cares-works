@@ -345,6 +345,53 @@ function buildLiveEntity(org, accounts, categories, entries, session) {
 // Categories classed "transfer" are excluded outright: money moved between the
 // org's own accounts is neither revenue nor expense. Booking those as contributions
 // is exactly the error that inflates a nonprofit's public support.
+// ---- Comparing the new books against QuickBooks --------------------------------
+// A migration nobody can check is a migration nobody will trust. ledger_qbo_baseline
+// holds what QuickBooks reported month by month, frozen while the QBO subscription
+// was still live; this puts it beside what this tool now says for the same window.
+//
+// The two systems don't shelve expenses the same way. QBO files this org's program
+// costs under "Cost of Goods Sold" — a retail idea that means nothing to a nonprofit.
+// On a Statement of Activities those are program expenses, so QBO's cogs and expense
+// are added together to get the comparable total. Revenue and net map straight across.
+//
+// Only whole months that fall inside the window are counted. A part-month would make
+// the two sides differ for a reason that has nothing to do with the books being wrong,
+// which is worse than showing no comparison at all — so `partial` says so out loud.
+export function compareToQbo(baseline, entries, categories, start, end) {
+  const inWindow = (baseline || []).filter(b => b.period_start >= start && b.period_end <= end);
+  if (!inWindow.length) return null;
+
+  const qbo = inWindow.reduce((acc, b) => ({
+    revenue: acc.revenue + (b.revenue_cents || 0),
+    expense: acc.expense + (b.cogs_cents || 0) + (b.expense_cents || 0),
+  }), { revenue: 0, expense: 0 });
+  qbo.net = qbo.revenue - qbo.expense;
+
+  const s = summarizeActivities(entries, categories, start, end);
+  const book = { revenue: s.revTotal, expense: s.expTotal, net: s.change };
+
+  // Does the baseline actually span the whole window, or only part of it?
+  const covStart = inWindow[0].period_start;
+  const covEnd = inWindow[inWindow.length - 1].period_end;
+  const partial = covStart > start || covEnd < end;
+
+  return {
+    qbo, book,
+    diff: {
+      revenue: book.revenue - qbo.revenue,
+      expense: book.expense - qbo.expense,
+      net: book.net - qbo.net,
+    },
+    months: inWindow.length,
+    covStart, covEnd, partial,
+    // uncoded activity is excluded from `book` by design, so a difference that
+    // exactly matches it is explained rather than mysterious
+    uncoded: s.uncoded,
+    tie: book.revenue === qbo.revenue && book.expense === qbo.expense,
+  };
+}
+
 export function summarizeActivities(entries, categories, start, end) {
   const meta = {};
   (categories || []).forEach(c => { meta[c.name] = { kind: c.kind, fc: c.func_class || null }; });
@@ -679,7 +726,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         ? (orgs || []).find(o => o.id === orgId)
         : (wantFirst ? (orgs || []).find(o => (o.name || "").toLowerCase().includes(wantFirst)) : null);
       if (!org || cancelled) return;
-      const [a, c, e, inv, ven, cust, prod, bil, pay, cred, evts, docs, dons] = await Promise.all([
+      const [a, c, e, inv, ven, cust, prod, bil, pay, cred, evts, docs, dons, qbo] = await Promise.all([
         supabase.from("ledger_accounts").select("*").eq("org_id", org.id).eq("archived", false).order("created_at", { ascending: true }),
         supabase.from("ledger_categories").select("*").eq("org_id", org.id).eq("archived", false).order("sort_order", { ascending: true }),
         supabase.from("ledger_entries").select("*").eq("org_id", org.id).order("entry_date", { ascending: false }).order("created_at", { ascending: false }),
@@ -693,6 +740,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         supabase.from("ledger_doc_events").select("*").eq("org_id", org.id).order("created_at", { ascending: true }),
         supabase.from("ledger_documents").select("*").eq("org_id", org.id).order("created_at", { ascending: false }),
         supabase.from("ledger_donors").select("*").eq("org_id", org.id).order("name", { ascending: true }),
+        supabase.from("ledger_qbo_baseline").select("*").eq("org_id", org.id).order("period_start", { ascending: true }),
       ]);
       if (cancelled) return;
       setLiveOrgId(org.id);
@@ -714,6 +762,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       built.docEvents = evByInv;
       built.documents = docs.data || [];
       built.donors = dons.data || [];
+      built.qboBaseline = qbo.data || [];
+      built.conversionDate = org.conversion_date || null;
       built.orgType = org.org_type || "business";
       setDbEntity(built);
     })();
@@ -4744,6 +4794,66 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             </div>
           )}
         </div>
+
+        {(() => {
+          const cmp = compareToQbo(entity.qboBaseline, entity.rawEntries, entity.rawCategories, start, end);
+          if (!cmp) return null;
+          const Row = ({ label, book, qbo, diff }) => (
+            <tr>
+              <td style={{ padding: "6px 12px", fontSize: 13.5, color: N.text }}>{label}</td>
+              <td style={{ ...numTd }}>{money(book / 100)}</td>
+              <td style={{ ...numTd, color: N.muted }}>{money(qbo / 100)}</td>
+              <td style={{ ...numTd, fontWeight: diff ? 700 : 400, color: diff ? N.red : N.mutedLite }}>
+                {diff ? (diff > 0 ? "+" : "\u2212") + money(Math.abs(diff) / 100).replace(/^[\u2212]/, "") : "\u2014"}
+              </td>
+            </tr>
+          );
+          return (
+            <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: "16px 8px 12px", marginTop: 14 }}>
+              <div style={{ padding: "0 12px 10px" }}>
+                <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 17, color: N.ink }}>Against QuickBooks</div>
+                <div style={{ fontSize: 12.5, color: N.muted }}>
+                  What QuickBooks reported for the same window, captured from the live QBO file on {(entity.qboBaseline[0] || {}).captured_at?.slice(0, 10) || "import"}.
+                  {" "}QBO's &ldquo;cost of goods sold&rdquo; is this org's program cost, so it is added into expenses here.
+                </div>
+              </div>
+              {cmp.partial && (
+                <div style={{ margin: "0 12px 10px", background: "#fff7e0", border: "1px solid #f0d89a", borderRadius: 9, padding: "8px 12px", fontSize: 12, color: "#8a5a00" }}>
+                  QuickBooks figures cover {cmp.covStart} → {cmp.covEnd} ({cmp.months} month{cmp.months === 1 ? "" : "s"}), not the whole fiscal year. Compare the shape, not the totals.
+                </div>
+              )}
+              <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 480 }}>
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: "left" }} />
+                    {["THIS TOOL", "QUICKBOOKS", "DIFFERENCE"].map(h => (
+                      <th key={h} style={{ textAlign: "right", padding: "0 12px 6px", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: ".08em", color: N.muted, fontWeight: 500 }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  <Row label="Total revenue" book={cmp.book.revenue} qbo={cmp.qbo.revenue} diff={cmp.diff.revenue} />
+                  <Row label="Total expenses" book={cmp.book.expense} qbo={cmp.qbo.expense} diff={cmp.diff.expense} />
+                  <tr>
+                    <td style={{ padding: "10px 12px", fontSize: 14, fontWeight: 700, color: N.ink, borderTop: "2px solid " + N.ink }}>Net</td>
+                    <td style={{ ...numTd, padding: "10px 12px", fontSize: 15, fontWeight: 700, color: cmp.book.net < 0 ? N.red : N.pinkDark, borderTop: "2px solid " + N.ink }}>{money(cmp.book.net / 100)}</td>
+                    <td style={{ ...numTd, padding: "10px 12px", fontSize: 14, fontWeight: 700, color: N.muted, borderTop: "2px solid " + N.ink }}>{money(cmp.qbo.net / 100)}</td>
+                    <td style={{ ...numTd, padding: "10px 12px", fontWeight: 700, color: cmp.diff.net ? N.red : N.mutedLite, borderTop: "2px solid " + N.ink }}>
+                      {cmp.diff.net ? (cmp.diff.net > 0 ? "+" : "\u2212") + money(Math.abs(cmp.diff.net) / 100).replace(/^[\u2212]/, "") : "\u2014"}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <div style={{ fontSize: 11.5, color: N.muted, padding: "10px 12px 0", lineHeight: 1.5 }}>
+                {cmp.tie
+                  ? "These books tie to QuickBooks for this period."
+                  : cmp.uncoded > 0
+                    ? <>The difference is not yet explained. {money(cmp.uncoded / 100)} of activity in this window has no category, so it sits outside the totals above — code it and the gap should close.</>
+                    : "The difference is not yet explained. Either transactions are missing on one side, or the same transaction is coded differently in each."}
+              </div>
+            </div>
+          );
+        })()}
       </div>
     );
   }
