@@ -4789,7 +4789,17 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           {[...entity.accounts.banks, ...entity.accounts.cards, ...entity.accounts.loans].slice().sort((a, b) => (a.name || "").localeCompare(b.name || "", undefined, { numeric: true })).map(a => (
             <div key={a.name} style={{ background: "#f4f7fb", border: "1px solid " + N.rule, borderRadius: 10, padding: "6px 11px", whiteSpace: "nowrap" }}>
               <div style={{ fontSize: 10, color: N.muted, letterSpacing: "0.04em" }}>{a.name.toUpperCase()}</div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: N.ink }}>{money(Math.abs(a.balance))}</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: N.ink, display: "flex", alignItems: "center", gap: 5 }}>
+                {money(Math.abs(a.balance))}
+                {(() => {
+                  const ra = (entity.rawAccounts || []).find(x => x.name === a.name);
+                  const rec = ra ? reconHist.find(r => r.account_id === ra.id) : null;
+                  if (!rec || !rec.statement_ending_date) return ra && ["bank", "credit_card", "loan"].includes(ra.account_type) ? <span title="Not reconciled yet" style={{ fontSize: 11, color: N.mutedLite }}>○</span> : null;
+                  const days = Math.floor((Date.now() - new Date(rec.statement_ending_date + "T00:00:00").getTime()) / 86400000);
+                  const fresh = days <= 40;
+                  return <span title={`Reconciled through ${fmtStmtDate(rec.statement_ending_date)} — ${days} day${days === 1 ? "" : "s"} ago${fresh ? "" : " (a new statement may be due)"}`} style={{ fontSize: 13, fontWeight: 700, color: fresh ? N.green : "#b45309" }}>{fresh ? "✓" : "⚠"}</span>;
+                })()}
+              </div>
             </div>
           ))}
         </div>
