@@ -820,7 +820,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   useEffect(() => {
     const seed = {};
     (entity.rawAccounts || []).forEach(a => {
-      if (a.apr != null || a.min_payment_cents != null || a.promo_end) seed[a.name] = { apr: a.apr != null ? String(a.apr) : "", min: a.min_payment_cents != null ? String(a.min_payment_cents / 100) : "", promo: a.promo_end || "" };
+      if (a.apr != null || a.min_payment_cents != null || a.promo_end || a.credit_limit_cents != null) seed[a.name] = { apr: a.apr != null ? String(a.apr) : "", min: a.min_payment_cents != null ? String(a.min_payment_cents / 100) : "", promo: a.promo_end || "", limit: a.credit_limit_cents != null ? String(a.credit_limit_cents / 100) : "" };
     });
     setCardPlan(seed);
   }, [entity]);
@@ -4195,7 +4195,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   function CardPayoff() {
     const cards = (entity.accounts?.cards || []).map(c => ({ name: c.name, owed: Math.max(0, -(c.balance || 0)) })).filter(c => c.owed > 0);
     const total = cards.reduce((s, c) => s + c.owed, 0);
-    const rows = cards.map(c => { const p = cardPlan[c.name] || {}; return { ...c, apr: (p.apr !== undefined && p.apr !== "") ? parseFloat(p.apr) : null, min: parseFloat(p.min) || 0 }; });
+    const rows = cards.map(c => { const p = cardPlan[c.name] || {}; return { ...c, apr: (p.apr !== undefined && p.apr !== "") ? parseFloat(p.apr) : null, min: parseFloat(p.min) || 0, limit: parseFloat(p.limit) || 0 }; });
+    const totalLimit = rows.reduce((s, r) => s + (r.limit || 0), 0);
     const anyApr = rows.some(r => r.apr != null);
     const ranked = [...rows].sort((a, b) => anyApr ? ((b.apr || 0) - (a.apr || 0)) : (a.owed - b.owed));
     const method = anyApr ? "highest interest first — the avalanche, saves the most money" : "smallest balance first — the snowball, quick wins that free up a minimum payment";
@@ -4214,6 +4215,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         if (acct) {
           const patch = k === "apr" ? { apr: v === "" ? null : (parseFloat(v) || 0) }
             : k === "promo" ? { promo_end: v || null }
+            : k === "limit" ? { credit_limit_cents: v === "" ? null : Math.round((parseFloat(v) || 0) * 100) }
             : { min_payment_cents: v === "" ? null : Math.round((parseFloat(v) || 0) * 100) };
           supabase.from("ledger_accounts").update(patch).eq("id", acct.id).then(() => {});
         }
@@ -4253,6 +4255,12 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: 16 }}>
                 <div style={{ fontSize: 11, color: N.muted, letterSpacing: "0.04em" }}>TOTAL CARD DEBT</div>
                 <div style={{ fontSize: 24, fontWeight: 700, color: N.red }}>{money(total)}</div>
+                {totalLimit > 0 && (
+                  <div style={{ marginTop: 8, fontSize: 12, color: N.muted, lineHeight: 1.5 }}>
+                    of <b style={{ color: N.ink }}>{money(totalLimit)}</b> credit line<br />
+                    <b style={{ color: total / totalLimit > 0.5 ? "#b45309" : "#3a7d4a" }}>{money(totalLimit - total)} available</b> · {Math.round((total / totalLimit) * 100)}% used
+                  </div>
+                )}
               </div>
               <div style={{ background: "#eef6ff", border: "1px solid #cfe4ff", borderRadius: 12, padding: 16 }}>
                 <div style={{ fontSize: 11, color: N.blueDark, fontWeight: 700, letterSpacing: "0.06em" }}>THE PLAN</div>
@@ -4277,9 +4285,11 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 return (
                 <div key={r.name} style={{ display: "grid", gridTemplateColumns: cols, gap: 8, padding: "9px 16px", borderTop: "1px solid " + N.rule, alignItems: "center" }}>
                   <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: N.ink }}>{r.name}</div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: N.ink }}>{r.name}{r.limit > 0 ? <span style={{ fontSize: 11, fontWeight: 600, color: (r.owed / r.limit) > 0.5 ? "#b45309" : N.mutedLite, marginLeft: 8 }}>{Math.round((r.owed / r.limit) * 100)}% used</span> : null}</div>
                     <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 3, flexWrap: "wrap" }}>
-                      <span style={{ fontSize: 10, color: N.muted }}>0% until</span>
+                      <span style={{ fontSize: 10, color: N.muted }}>credit line $</span>
+                      <input value={(cardPlan[r.name] || {}).limit || ""} onChange={e => setP(r.name, "limit", e.target.value)} placeholder="—" inputMode="decimal" style={{ ...inputSt, width: 90, padding: "4px 6px", fontSize: 11 }} />
+                      <span style={{ fontSize: 10, color: N.muted }}>· 0% until</span>
                       <input type="date" value={promo} onChange={e => setP(r.name, "promo", e.target.value)} style={{ ...inputSt, width: 138, padding: "4px 6px", fontSize: 11 }} />
                     </div>
                     {promo && (mo != null) && (
