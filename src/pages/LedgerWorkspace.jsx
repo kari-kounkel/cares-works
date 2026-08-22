@@ -589,6 +589,18 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const blankContact = { name: "", company: "", email: "", phone: "", billing_address: "", tax_status: "Taxable", notes: "" };
   const [contactEditId, setContactEditId] = useState(null);
   const [contactDraft, setContactDraft] = useState(blankContact);
+  const [vendorTxOpen, setVendorTxOpen] = useState(null); // vendor id whose payment history is expanded
+  const [mergeVendorId, setMergeVendorId] = useState(null); // vendor being merged away
+  const [mergeInto, setMergeInto] = useState(""); // target vendor name for the merge
+  // Merge a duplicate vendor into another: move its bills + rename its check lines, then remove it.
+  async function mergeVendor(fromId, fromName, toName) {
+    if (!liveOrgId || !fromName || !toName || fromName === toName) return;
+    if (!window.confirm(`Merge "${fromName}" into "${toName}"? Its bills and check lines move to "${toName}", and "${fromName}" is removed.`)) return;
+    await supabase.from("ledger_bills").update({ vendor_name: toName }).eq("org_id", liveOrgId).eq("vendor_name", fromName);
+    await supabase.from("ledger_entries").update({ description: toName }).eq("org_id", liveOrgId).eq("description", fromName);
+    await supabase.from("ledger_vendors").delete().eq("id", fromId);
+    setMergeVendorId(null); setMergeInto(""); setReloadTick(t => t + 1);
+  }
   const [showAddContact, setShowAddContact] = useState(false);
   const [newContact, setNewContact] = useState(blankContact);
   const [contactErr, setContactErr] = useState("");
@@ -3825,6 +3837,15 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     const table = isCust ? "ledger_customers" : "ledger_vendors";
     const rows = ((isCust ? entity.customers : entity.vendorList) || []).slice().sort((a, b) => (a.name || "").localeCompare(b.name || ""));
     const title = isCust ? "Customers" : "Vendors";
+    // All money-out lines whose description mentions this vendor (loose name match).
+    const vendorTx = name => {
+      const nm = (name || "").toLowerCase().trim();
+      if (!nm || nm.length < 3) return { total: 0, list: [] };
+      const list = (entity.rawEntries || []).filter(e => e.direction === "out" && (e.description || "").toLowerCase().includes(nm)).sort((a, b) => (b.entry_date || "").localeCompare(a.entry_date || ""));
+      return { total: list.reduce((s, e) => s + (e.amount_cents || 0), 0), list };
+    };
+    const acctById = {}; (entity.rawAccounts || []).forEach(a => { acctById[a.id] = a.name; });
+    const shortD = d => { const p = (d || "").split("-"); return p.length === 3 ? `${+p[1]}/${+p[2]}` : d; };
     const cell = { ...inputSt };
     const startEdit = c => { setContactErr(""); setContactEditId(c.id); setContactDraft({ name: c.name || "", company: c.company || "", email: c.email || "", phone: c.phone || "", billing_address: c.billing_address || "", tax_status: c.tax_status || "Taxable", notes: c.notes || "" }); };
     const Editor = (src, set, onSave, onCancel, saveLabel) => (
@@ -3871,17 +3892,50 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           {rows.map((c, i) => (
             <div key={c.id} style={{ padding: "12px 16px", borderTop: i === 0 ? "none" : "1px solid " + N.rule }}>
               {contactEditId === c.id ? Editor(contactDraft, setContactDraft, () => saveContact(table, false), () => setContactEditId(null), "Save") : (
+                <>
                 <div style={{ display: "flex", gap: 12, alignItems: "flex-start", flexWrap: "wrap" }}>
                   <div style={{ flex: 1, minWidth: 200 }}>
                     <div style={{ fontSize: 15, fontWeight: 600, color: N.ink }}>{c.name}{c.company ? <span style={{ color: N.muted, fontWeight: 400 }}> · {c.company}</span> : ""}{isCust && c.tax_status && c.tax_status !== "Taxable" && <span style={{ fontSize: 10, fontWeight: 700, color: N.muted, marginLeft: 6, letterSpacing: "0.04em" }}>{(c.tax_status || "").toUpperCase()}</span>}{isCust && (() => { const cc = (entity.credits || []).filter(cr => cr.status === "open" && (cr.customer_name || "").toLowerCase() === (c.name || "").toLowerCase()).reduce((s, cr) => s + (cr.amount_cents || 0), 0); return cc > 0 ? <span style={{ fontSize: 10, fontWeight: 700, color: N.pinkDark, background: "#eafaf0", border: "1px solid #bff0d3", borderRadius: 100, padding: "2px 8px", marginLeft: 8 }}>{money(cc / 100)} CREDIT</span> : null; })()}</div>
                     <div style={{ fontSize: 12, color: N.muted }}>{[c.email, c.phone].filter(Boolean).join(" · ") || <span style={{ color: N.mutedLite, fontStyle: "italic" }}>no email or phone yet</span>}</div>
                     {c.billing_address ? <div style={{ fontSize: 12, color: N.muted, whiteSpace: "pre-line", marginTop: 2 }}>{c.billing_address}</div> : null}
+                    {!isCust && (() => { const { total, list } = vendorTx(c.name); return (
+                      <div style={{ fontSize: 12, marginTop: 4 }}>
+                        {list.length > 0
+                          ? <button onClick={() => setVendorTxOpen(vendorTxOpen === c.id ? null : c.id)} style={{ background: "none", border: "none", color: N.blue, cursor: "pointer", fontWeight: 600, fontFamily: "'Figtree', sans-serif", fontSize: 12, padding: 0 }}>💵 {money(total / 100)} paid · {list.length} payment{list.length === 1 ? "" : "s"} {vendorTxOpen === c.id ? "▲" : "▾"}</button>
+                          : <span style={{ color: N.mutedLite }}>no payments recorded yet</span>}
+                      </div>
+                    ); })()}
                   </div>
                   <div style={{ display: "flex", gap: 6 }}>
                     <button onClick={() => startEdit(c)} style={{ ...btnPaper(N.muted), padding: "6px 12px" }}>Edit</button>
+                    {!isCust && <button onClick={() => { setMergeVendorId(mergeVendorId === c.id ? null : c.id); setMergeInto(""); }} style={{ ...btnPaper(N.blueDark), padding: "6px 12px" }}>Merge</button>}
                     <button onClick={() => deleteContact(table, c.id, c.name)} style={{ background: "none", border: "1px solid " + N.rule, borderRadius: 100, cursor: "pointer", color: N.pinkDark, fontFamily: "'Figtree', sans-serif", fontSize: 12, fontWeight: 600, padding: "6px 12px" }}>Remove</button>
                   </div>
                 </div>
+                {!isCust && mergeVendorId === c.id && (
+                  <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginTop: 10, background: "#eef6ff", border: "1px solid #cfe4ff", borderRadius: 10, padding: "10px 12px" }}>
+                    <span style={{ fontSize: 13, color: N.blueDark, fontWeight: 600 }}>Merge <b>{c.name}</b> into:</span>
+                    <select value={mergeInto} onChange={e => setMergeInto(e.target.value)} style={{ ...inputSt, width: 220 }}>
+                      <option value="">Pick the vendor to keep…</option>
+                      {rows.filter(v => v.id !== c.id).map(v => <option key={v.id} value={v.name}>{v.name}</option>)}
+                    </select>
+                    <button onClick={() => mergeVendor(c.id, c.name, mergeInto)} disabled={!mergeInto} style={{ ...btnBlue, background: mergeInto ? N.blue : N.mutedLite }}>Merge &amp; remove duplicate</button>
+                    <button onClick={() => { setMergeVendorId(null); setMergeInto(""); }} style={btnPaper(N.muted)}>Cancel</button>
+                  </div>
+                )}
+                {!isCust && vendorTxOpen === c.id && (() => { const { list } = vendorTx(c.name); return (
+                  <div style={{ marginTop: 10, border: "1px solid " + N.rule, borderRadius: 10, overflow: "hidden", maxHeight: "40vh", overflowY: "auto" }}>
+                    {list.map((e, k) => (
+                      <div key={e.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 12px", borderTop: k === 0 ? "none" : "1px solid " + N.rule, fontSize: 13, background: "#fafbfc" }}>
+                        <span style={{ width: 42, color: N.muted, fontSize: 12 }}>{shortD(e.entry_date)}</span>
+                        <span style={{ flex: 1, minWidth: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{e.description}</span>
+                        <span style={{ color: N.mutedLite, fontSize: 11, whiteSpace: "nowrap" }}>{acctById[e.account_id] || ""}{e.match_status === "reconciled" ? " · R" : ""}</span>
+                        <span style={{ fontWeight: 600, color: N.red, whiteSpace: "nowrap" }}>{money((e.amount_cents || 0) / 100)}</span>
+                      </div>
+                    ))}
+                  </div>
+                ); })()}
+                </>
               )}
             </div>
           ))}
