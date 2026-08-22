@@ -529,6 +529,9 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [reconTarget, setReconTarget] = useState("");
   const [reconDate, setReconDate] = useState(""); // statement ending date for this reconciliation
   const [reconHist, setReconHist] = useState([]); // saved reconciliations, for "last reconciled" + report
+  const [reconStmtDoc, setReconStmtDoc] = useState(null); // {id, name} PDF/CSV statement attached to this rec
+  const [reconStmtBusy, setReconStmtBusy] = useState(false);
+  const [reconSeeCleared, setReconSeeCleared] = useState(false); // show already-reconciled lines in the recon window
   const [reconOpen, setReconOpen] = useState(false);
   const [reconChecked, setReconChecked] = useState({});
   const blankReconAdd = { amount: "", dir: "out", category: "", memo: "" };
@@ -873,9 +876,10 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           statement_ending_balance_cents: rec.endingCents,
           beginning_balance_cents: rec.beginningCents,
           item_count: ids.length,
+          document_id: reconStmtDoc ? reconStmtDoc.id : null,
         });
       }
-      setReconDate("");
+      setReconDate(""); setReconTarget(""); setReconStmtDoc(null);
       setReloadTick(t => t + 1);
     }
   }
@@ -2246,7 +2250,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               <option value="">All accounts</option>
               {accountList.map(a => <option key={a.id} value={a.name}>{a.name}</option>)}
             </select>
-            <button onClick={() => { if (!acctFilter) { window.alert("Pick one account in the dropdown to the left, then Reconcile."); return; } setReconChecked({}); setReconOpen(true); }} title="Reconcile the selected account against its statement" style={{ ...btnBlue, background: acctFilter ? N.green : N.mutedLite, fontSize: 13, padding: "9px 16px", cursor: acctFilter ? "pointer" : "not-allowed" }}>Reconcile{acctFilter ? " " + acctFilter : "…"}</button>
+            <button onClick={() => { if (!acctFilter) { window.alert("Pick one account in the dropdown to the left, then Reconcile."); return; } setReconChecked({}); setReconTarget(""); setReconDate(""); setReconStmtDoc(null); setReconOpen(true); }} title="Reconcile the selected account against its statement" style={{ ...btnBlue, background: acctFilter ? N.green : N.mutedLite, fontSize: 13, padding: "9px 16px", cursor: acctFilter ? "pointer" : "not-allowed" }}>Reconcile{acctFilter ? " " + acctFilter : "…"}</button>
             <select value={sortBy} onChange={e => setSortBy(e.target.value)} title="Sort the notebook" style={{ ...inputSt, padding: "8px 10px", fontSize: 12 }}>
               <option value="date-desc">Sort: Date (newest)</option>
               <option value="date-asc">Sort: Date (oldest)</option>
@@ -2389,6 +2393,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                     <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 3, flexWrap: "wrap" }}>
                       {proposed ? (
                         <span style={{ fontSize: 11, color: N.blue, display: "flex", alignItems: "center", gap: 4 }}><Ico name="bank" size={12} />Bank says cleared · {x.cleared.bank} · {x.cleared.date}</span>
+                      ) : x.category === "Card payment" ? (
+                        <span style={{ fontSize: 11, fontWeight: 600, padding: "3px 8px", borderRadius: 100, border: "1px solid #cfe4ff", background: "#eef6ff", color: N.blueDark }}>↔ Card payment · transfer, not income</span>
                       ) : (
                         <>
                           {!x.invoiceId && (() => {
@@ -2544,6 +2550,9 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                     <input type="date" value={reconDate} onChange={e => setReconDate(e.target.value)} title="Only lines on or before this date can be checked" style={{ ...inputSt, width: 150 }} />
                     <span>{isLiab ? "New balance owed" : "Ending balance"}</span>
                     <input value={reconTarget} onChange={e => setReconTarget(e.target.value)} placeholder={isLiab ? "$ owed on statement" : "$ from statement"} inputMode="decimal" style={{ ...inputSt, width: 140 }} />
+                    {reconStmtDoc
+                      ? <span style={{ fontSize: 12, fontWeight: 600, color: N.pinkDark, background: "#eafaf0", border: "1px solid #bff0d3", borderRadius: 100, padding: "5px 10px" }}>📎 {reconStmtDoc.name} <button onClick={() => setReconStmtDoc(null)} title="Remove" style={{ border: "none", background: "none", color: N.muted, cursor: "pointer", fontWeight: 700 }}>×</button></span>
+                      : <label style={{ ...btnPaper(N.blueDark), cursor: reconStmtBusy ? "default" : "pointer", opacity: reconStmtBusy ? 0.6 : 1 }}>{reconStmtBusy ? "Attaching…" : "📎 Attach statement"}<input type="file" accept=".pdf,.csv,application/pdf,text/csv" disabled={reconStmtBusy} onChange={e => { const f = e.target.files && e.target.files[0]; e.target.value = ""; attachReconStatement(f); }} style={{ display: "none" }} /></label>}
                   </div>
                 </div>
                 <div style={{ fontSize: 13, color: N.muted, marginBottom: 10 }}>Click each line that's on this statement — it gets an <b style={{ color: N.pinkDark }}>R</b>. When the difference hits <b>$0.00</b>, you're reconciled.</div>
@@ -2557,6 +2566,27 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   <Col title="Money in — deposits" rows={moneyIn} color="#3a7d4a" />
                   <Col title="Money out — checks & payments" rows={moneyOut} color={N.red} />
                 </div>
+                {(() => {
+                  const clearedList = all.filter(e => e.match_status === "reconciled").sort((a, b) => (b.entry_date || "").localeCompare(a.entry_date || ""));
+                  if (!clearedList.length) return null;
+                  return (
+                    <div style={{ marginBottom: 16 }}>
+                      <button onClick={() => setReconSeeCleared(v => !v)} style={{ ...btnPaper(N.muted), fontSize: 12 }}>{reconSeeCleared ? "Hide" : "See"} {clearedList.length} already-reconciled item{clearedList.length === 1 ? "" : "s"} (locked)</button>
+                      {reconSeeCleared && (
+                        <div style={{ border: "1px solid " + N.rule, borderRadius: 10, overflow: "hidden", marginTop: 8, maxHeight: "34vh", overflowY: "auto" }}>
+                          {clearedList.map((e, i) => (
+                            <div key={e.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 12px", borderTop: i === 0 ? "none" : "1px solid " + N.rule, background: "#fafbfc" }}>
+                              <span style={{ width: 16, height: 16, borderRadius: 4, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: N.pinkDark, color: "#fff", fontSize: 10, fontWeight: 700 }}>R</span>
+                              <span style={{ width: 42, fontSize: 12, color: N.muted }}>{shortD(e.entry_date)}</span>
+                              <span style={{ flex: 1, minWidth: 0, fontSize: 13, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{e.description}</span>
+                              <span style={{ fontSize: 13, fontWeight: 600, color: e.direction === "in" ? "#3a7d4a" : N.red }}>{e.direction === "in" ? "+" : "−"}{money((e.amount_cents || 0) / 100)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
                 {(() => {
                   const presets = [["Deposit", { dir: "in", category: "", memo: "" }], ["Check / payment", { dir: "out", category: "", memo: "" }], ["Bank fee", { dir: "out", category: "Bank charges", memo: "Bank service charge" }], ["Interest", { dir: "in", category: "Interest income", memo: "Interest earned" }]];
                   const activeIdx = presets.findIndex(([, p]) => p.dir === reconAdd.dir && (p.category || "") === (reconAdd.category || ""));
@@ -2591,17 +2621,23 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                       <button onClick={() => printReconHistory(acctFilter, acctRecs, isLiab)} style={btnPaper(N.blueDark)}>🖨 Print report</button>
                     </div>
                     <div style={{ border: "1px solid " + N.rule, borderRadius: 10, overflow: "hidden" }}>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 90px 90px", gap: 8, padding: "8px 12px", background: "#f7fafd", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.08em", color: N.muted }}>
-                        <span>STATEMENT DATE</span><span style={{ textAlign: "right" }}>ENDING BALANCE</span><span style={{ textAlign: "right" }}>ITEMS</span><span style={{ textAlign: "right" }}>RECONCILED</span>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 70px 110px 80px", gap: 8, padding: "8px 12px", background: "#f7fafd", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.08em", color: N.muted }}>
+                        <span>STATEMENT DATE</span><span style={{ textAlign: "right" }}>ENDING BALANCE</span><span style={{ textAlign: "right" }}>ITEMS</span><span style={{ textAlign: "center" }}>STATEMENT</span><span style={{ textAlign: "right" }}>DONE</span>
                       </div>
-                      {acctRecs.map((r, i) => (
-                        <div key={r.id} style={{ display: "grid", gridTemplateColumns: "1fr 1fr 90px 90px", gap: 8, padding: "8px 12px", borderTop: "1px solid " + N.rule, fontSize: 13, alignItems: "center" }}>
+                      {acctRecs.map((r, i) => {
+                        const doc = r.document_id ? (entity.documents || []).find(d => d.id === r.document_id) : null;
+                        return (
+                        <div key={r.id} style={{ display: "grid", gridTemplateColumns: "1fr 1fr 70px 110px 80px", gap: 8, padding: "8px 12px", borderTop: "1px solid " + N.rule, fontSize: 13, alignItems: "center" }}>
                           <span style={{ fontWeight: 600, color: N.ink }}>{fmtStmtDate(r.statement_ending_date)}</span>
                           <span style={{ textAlign: "right" }}>{owed(r.statement_ending_balance_cents)}{isLiab ? " owed" : ""}</span>
                           <span style={{ textAlign: "right", color: N.muted }}>{r.item_count || 0}</span>
+                          <span style={{ textAlign: "center" }}>{doc
+                            ? <button onClick={() => downloadDoc(doc)} title={doc.name} style={{ ...btnPaper(N.blueDark), padding: "3px 8px", fontSize: 11 }}>📎 Open</button>
+                            : <label style={{ ...btnPaper(N.muted), padding: "3px 8px", fontSize: 11, cursor: "pointer" }}>＋ Attach<input type="file" accept=".pdf,.csv,application/pdf,text/csv" onChange={e => { const f = e.target.files && e.target.files[0]; e.target.value = ""; attachStatementToRec(r.id, f); }} style={{ display: "none" }} /></label>}</span>
                           <span style={{ textAlign: "right", color: N.mutedLite, fontSize: 11 }}>{r.reconciled_at || r.created_at ? new Date(r.reconciled_at || r.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : ""}</span>
                         </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -3263,6 +3299,42 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     } catch (e) { window.alert("Couldn't upload that file: " + (e.message || e)); }
     setDocBusy(false);
   }
+  // Attach the actual statement (PDF or CSV) to a reconciliation — filed in Documents and linked to the rec.
+  async function attachReconStatement(file) {
+    if (!file || !liveOrgId) return;
+    const isOk = /\.(pdf|csv)$/i.test(file.name) || file.type === "application/pdf" || file.type === "text/csv";
+    if (!isOk) { window.alert("The statement needs to be a PDF or a CSV."); return; }
+    if (file.size > 25 * 1024 * 1024) { window.alert("Please keep files under 25 MB."); return; }
+    setReconStmtBusy(true);
+    try {
+      const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const path = `${liveOrgId}/statements/${Date.now()}-${safe}`;
+      const { error: upErr } = await supabase.storage.from("org-docs").upload(path, file, { upsert: false, contentType: file.type || undefined });
+      if (upErr) throw upErr;
+      const { data, error } = await supabase.from("ledger_documents").insert({ org_id: liveOrgId, user_id: session.user.id, name: file.name, path, size_bytes: file.size, mime: file.type || null, category: "Bank statement" }).select("id, name").single();
+      if (error) throw error;
+      setReconStmtDoc({ id: data.id, name: data.name });
+      setReloadTick(t => t + 1);
+    } catch (e) { window.alert("Couldn't attach that file: " + (e.message || e)); }
+    setReconStmtBusy(false);
+  }
+  // Attach a statement PDF/CSV to an existing (past) reconciliation from the history.
+  async function attachStatementToRec(recId, file) {
+    if (!file || !liveOrgId || !recId) return;
+    const isOk = /\.(pdf|csv)$/i.test(file.name) || file.type === "application/pdf" || file.type === "text/csv";
+    if (!isOk) { window.alert("The statement needs to be a PDF or a CSV."); return; }
+    if (file.size > 25 * 1024 * 1024) { window.alert("Please keep files under 25 MB."); return; }
+    try {
+      const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const path = `${liveOrgId}/statements/${Date.now()}-${safe}`;
+      const { error: upErr } = await supabase.storage.from("org-docs").upload(path, file, { upsert: false, contentType: file.type || undefined });
+      if (upErr) throw upErr;
+      const { data, error } = await supabase.from("ledger_documents").insert({ org_id: liveOrgId, user_id: session.user.id, name: file.name, path, size_bytes: file.size, mime: file.type || null, category: "Bank statement" }).select("id").single();
+      if (error) throw error;
+      await supabase.from("ledger_reconciliations").update({ document_id: data.id }).eq("id", recId);
+      setReloadTick(t => t + 1);
+    } catch (e) { window.alert("Couldn't attach that file: " + (e.message || e)); }
+  }
   async function downloadDoc(doc) {
     const { data, error } = await supabase.storage.from("org-docs").createSignedUrl(doc.path, 300);
     if (error || !data) { window.alert("Couldn't open that file."); return; }
@@ -3824,6 +3896,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       { key: "vendors", label: "Vendors", desc: "Who you pay — for bills and checks", count: (entity.vendorList || []).length },
       { key: "items", feature: "items", label: "Items & services", desc: "Your product/service list for invoices", count: (entity.products || []).filter(p => !p.archived).length },
       { key: "chart", label: "Chart of accounts", desc: "Every account — banks, cards, income, expenses", count: (entity.rawCategories || []).filter(c => !c.archived).length + (entity.rawAccounts || []).length },
+      { key: "recons", label: "Bank reconciliations", desc: "Statement history by account — balances, dates, attached statements", count: reconHist.length },
       { key: "qbo", feature: "qboImport", label: "Import from QuickBooks", desc: "Bring the history across with its coding — Transaction List, General Ledger, or Journal Entries" },
       { key: "cardpayoff", feature: "cardPayoff", label: "Card payoff plan", desc: "Smartest order to pay down the credit cards" },
       { key: "campaigns", feature: "campaigns", label: "Email campaigns", desc: "Newsletters & blasts to your customers (Constant Contact replacement)" },
@@ -3876,7 +3949,57 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             {Chart()}
           </div>
         )}
+        {listsTab === "recons" && Reconciliations()}
         {listsTab === "settings" && Settings()}
+      </div>
+    );
+  }
+
+  // Bank reconciliation history — every reconciliation, by account, with its statement.
+  function Reconciliations() {
+    const accts = (entity.rawAccounts || []).filter(a => ["bank", "credit_card", "loan"].includes(a.account_type))
+      .slice().sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+    const isLiabT = t => t === "credit_card" || t === "loan";
+    return (
+      <div>
+        <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink, marginBottom: 2 }}>Bank reconciliations</div>
+        <div style={{ fontSize: 13, color: N.muted, marginBottom: 16 }}>Every reconciliation you've locked, newest first — with the statement it tied out to. Attach a PDF/CSV where one's missing.</div>
+        {accts.map(a => {
+          const recs = reconHist.filter(r => r.account_id === a.id);
+          const isLiab = isLiabT(a.account_type);
+          const owedT = c => money((isLiab ? -c : c) / 100);
+          return (
+            <div key={a.id} style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, marginBottom: 14, overflow: "hidden" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: "#f7fafd", borderBottom: recs.length ? "1px solid " + N.rule : "none" }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: N.ink }}>{a.name}{a.last_four ? <span style={{ color: N.muted, fontWeight: 400 }}> ••{a.last_four}</span> : null}</div>
+                {recs.length > 0 && <button onClick={() => printReconHistory(a.name, recs, isLiab)} style={btnPaper(N.blueDark)}>🖨 Print report</button>}
+              </div>
+              {recs.length === 0 ? (
+                <div style={{ padding: "16px", fontSize: 13, color: N.muted }}>No reconciliations yet. Reconcile this account from the notebook.</div>
+              ) : (
+                <div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 70px 130px 90px", gap: 8, padding: "8px 16px", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.08em", color: N.muted }}>
+                    <span>STATEMENT DATE</span><span style={{ textAlign: "right" }}>ENDING BALANCE</span><span style={{ textAlign: "right" }}>ITEMS</span><span style={{ textAlign: "center" }}>STATEMENT</span><span style={{ textAlign: "right" }}>DONE</span>
+                  </div>
+                  {recs.map(r => {
+                    const doc = r.document_id ? (entity.documents || []).find(d => d.id === r.document_id) : null;
+                    return (
+                      <div key={r.id} style={{ display: "grid", gridTemplateColumns: "1fr 1fr 70px 130px 90px", gap: 8, padding: "9px 16px", borderTop: "1px solid " + N.rule, fontSize: 13, alignItems: "center" }}>
+                        <span style={{ fontWeight: 600, color: N.ink }}>{fmtStmtDate(r.statement_ending_date)}</span>
+                        <span style={{ textAlign: "right" }}>{owedT(r.statement_ending_balance_cents)}{isLiab ? " owed" : ""}</span>
+                        <span style={{ textAlign: "right", color: N.muted }}>{r.item_count || 0}</span>
+                        <span style={{ textAlign: "center" }}>{doc
+                          ? <button onClick={() => downloadDoc(doc)} title={doc.name} style={{ ...btnPaper(N.blueDark), padding: "3px 8px", fontSize: 11 }}>📎 Open</button>
+                          : <label style={{ ...btnPaper(N.muted), padding: "3px 8px", fontSize: 11, cursor: "pointer" }}>＋ Attach PDF<input type="file" accept=".pdf,.csv,application/pdf,text/csv" onChange={e => { const f = e.target.files && e.target.files[0]; e.target.value = ""; attachStatementToRec(r.id, f); }} style={{ display: "none" }} /></label>}</span>
+                        <span style={{ textAlign: "right", color: N.mutedLite, fontSize: 11 }}>{r.reconciled_at || r.created_at ? new Date(r.reconciled_at || r.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : ""}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     );
   }
