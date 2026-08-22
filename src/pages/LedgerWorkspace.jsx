@@ -2496,26 +2496,38 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           })}
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 12 }}>
-          <div style={{ fontSize: 12, color: N.muted }}>Matched lines move to Cleared — nothing is ever lost.</div>
-          <button onClick={() => setShowCleared(s => !s)} style={{ background: "none", border: "none", color: N.blue, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'Figtree', sans-serif" }}>
-            {showCleared ? "Hide" : "See"} cleared items ({cleared.length}) →
-          </button>
-        </div>
-
-        {showCleared && (
-          <div style={{ marginTop: 10, background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: "8px 14px" }}>
-            {cleared.length === 0 && <div style={{ fontSize: 13, color: N.muted, padding: "10px 0" }}>Nothing cleared yet — match a line above and it lands here.</div>}
-            {cleared.map(c => (
-              <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "1px solid " + N.rule }}>
-                <span style={{ color: AMBER, display: "flex" }}><Ico name="check" size={16} /></span>
-                <div style={{ flex: 1, fontSize: 14, color: N.text }}>{c.payee}</div>
-                <div style={{ fontSize: 12, color: N.muted }}>{c.how}</div>
-                <div style={{ fontSize: 14, color: c.direction === "in" ? N.green : N.text, fontWeight: 600 }}>{c.direction === "in" ? "+" + money(c.amount) : money(-c.amount)}</div>
+        {(() => {
+          const acctById = {}; (entity.rawAccounts || []).forEach(a => { acctById[a.id] = a.name; });
+          const filterId = acctFilter ? (entity.rawAccounts || []).find(a => a.name === acctFilter)?.id : null;
+          const clearedEntries = (entity.rawEntries || [])
+            .filter(e => e.match_status === "reconciled" && (!acctFilter || e.account_id === filterId))
+            .sort((a, b) => (b.entry_date || "").localeCompare(a.entry_date || ""));
+          const shortD = d => { const p = (d || "").split("-"); return p.length === 3 ? `${+p[1]}/${+p[2]}` : d; };
+          return (
+            <>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 12 }}>
+                <div style={{ fontSize: 12, color: N.muted }}>Reconciled lines move to Cleared — locked, never lost.</div>
+                <button onClick={() => setShowCleared(s => !s)} style={{ background: "none", border: "none", color: N.blue, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'Figtree', sans-serif" }}>
+                  {showCleared ? "Hide" : "See"} cleared items ({clearedEntries.length}){acctFilter ? " · " + acctFilter : ""} →
+                </button>
               </div>
-            ))}
-          </div>
-        )}
+              {showCleared && (
+                <div style={{ marginTop: 10, background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: "8px 14px", maxHeight: "50vh", overflowY: "auto" }}>
+                  {clearedEntries.length === 0 && <div style={{ fontSize: 13, color: N.muted, padding: "10px 0" }}>Nothing reconciled yet{acctFilter ? " on " + acctFilter : ""} — reconcile an account and its lines land here, locked.</div>}
+                  {clearedEntries.map(e => (
+                    <div key={e.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "1px solid " + N.rule }}>
+                      <span style={{ width: 16, height: 16, borderRadius: 4, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: N.pinkDark, color: "#fff", fontSize: 10, fontWeight: 700 }}>R</span>
+                      <span style={{ width: 42, fontSize: 12, color: N.muted }}>{shortD(e.entry_date)}</span>
+                      <div style={{ flex: 1, minWidth: 0, fontSize: 14, color: N.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{e.description}</div>
+                      {!acctFilter && <span style={{ fontSize: 11, color: N.mutedLite, whiteSpace: "nowrap" }}>{acctById[e.account_id] || ""}</span>}
+                      <div style={{ fontSize: 14, color: e.direction === "in" ? N.green : N.text, fontWeight: 600, whiteSpace: "nowrap" }}>{e.direction === "in" ? "+" + money((e.amount_cents || 0) / 100) : money(-(e.amount_cents || 0) / 100)}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          );
+        })()}
 
         {reconOpen && acctFilter && (() => {
           const acct = accountList.find(a => a.name === acctFilter);
@@ -2775,7 +2787,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               <div style={{ width: 50, fontSize: 12, color: N.muted }}>{v.date}</div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 15, color: N.ink, fontWeight: 600, textDecoration: voided ? "line-through" : "none" }}>{v.number ? <span style={{ color: N.blue, fontFamily: "'DM Mono', monospace", fontSize: 13, marginRight: 7 }}>#{v.number}</span> : null}{v.customer}{rev && <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.06em", color: "#8a5a00", background: "#fdf5e3", border: "1px solid #f0d89a", borderRadius: 5, padding: "1px 6px", marginLeft: 8 }}>REVISED</span>}</div>
-                <div style={{ fontSize: 12, color: N.muted }}>{v.item} · {v.tax}{v.taxAmt ? ` · MN tax ${money(v.taxAmt)}` : ""}{v.paidCents > 0 && v.balanceCents > 0 ? <span style={{ color: "#a16207" }}> · paid {money(v.paid)}, balance {money(v.balance)}</span> : ""}</div>
+                <div style={{ fontSize: 12, color: N.muted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{v.item}{v.paidCents > 0 && v.balanceCents > 0 ? <span style={{ color: "#a16207" }}> · paid {money(v.paid)}, balance {money(v.balance)}</span> : ""}</div>
               </div>
               <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: STATUS_COLOR[v.status] || N.muted, background: (STATUS_COLOR[v.status] || N.muted) + "18", padding: "4px 10px", borderRadius: 100 }}>{v.status}</span>
               <div style={{ display: "flex", gap: 6 }}>
