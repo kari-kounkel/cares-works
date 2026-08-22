@@ -259,7 +259,11 @@ const MONTHS = ["", "January", "February", "March", "April", "May", "June", "Jul
 // into the same entity shape the workspace renders. No new data model — just a view.
 function buildLiveEntity(org, accounts, categories, entries, session) {
   const email = session?.user?.email || "";
-  const userName = session?.user?.user_metadata?.name || (email ? email.split("@")[0] : "You");
+  const emailLc = email.toLowerCase();
+  const userName = session?.user?.user_metadata?.name
+    || (emailLc.includes("races61") ? "Betty Erickson"
+      : emailLc.includes("prographics") ? "Dave Erickson"
+      : (email ? email.split("@")[0] : "You"));
 
   const bal = {};
   accounts.forEach(a => { bal[a.id] = a.opening_balance_cents || 0; });
@@ -2242,7 +2246,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           {/* Row 1 — title + search */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
             <div>
-              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>{entity.currentUser ? `${entity.currentUser}'s notebook` : "Notebook"}</div>
+              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>{entity.currentUser ? `${entity.currentUser.split(" ")[0]}'s notebook` : "Notebook"}</div>
               <div style={{ fontSize: 13, color: N.muted }}>Today — {entity.today}</div>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 6, background: N.white, border: "1px solid " + N.rule, borderRadius: 100, padding: "7px 12px" }}>
@@ -4782,7 +4786,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               </>
             );
           })()}
-          {[...entity.accounts.banks, ...entity.accounts.cards, ...entity.accounts.loans].map(a => (
+          {[...entity.accounts.banks, ...entity.accounts.cards, ...entity.accounts.loans].slice().sort((a, b) => (a.name || "").localeCompare(b.name || "", undefined, { numeric: true })).map(a => (
             <div key={a.name} style={{ background: "#f4f7fb", border: "1px solid " + N.rule, borderRadius: 10, padding: "6px 11px", whiteSpace: "nowrap" }}>
               <div style={{ fontSize: 10, color: N.muted, letterSpacing: "0.04em" }}>{a.name.toUpperCase()}</div>
               <div style={{ fontSize: 14, fontWeight: 700, color: N.ink }}>{money(Math.abs(a.balance))}</div>
