@@ -4228,8 +4228,18 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       if (t.getDate() < now.getDate()) mo -= 1;
       return mo;
     };
-    // What to pay each card THIS month: its (est.) minimum, plus the extra budget on the target.
-    const payNow = r => Math.min(r.owed, effMin(r) + (r.name === target.name ? extra : 0));
+    // Waterfall the extra budget down the ranked list: fill the first card to payoff, then
+    // roll whatever's left to the next, and so on — so a big budget isn't stranded on one card.
+    const extraAlloc = {};
+    let pool = extra;
+    for (const r of ranked) {
+      const room = Math.max(0, r.owed - effMin(r));
+      const give = Math.max(0, Math.min(pool, room));
+      extraAlloc[r.name] = give;
+      pool -= give;
+      if (pool <= 0.005) break;
+    }
+    const payNow = r => Math.min(r.owed, effMin(r) + (extraAlloc[r.name] || 0));
     const cols = "1.4fr 92px 62px 78px 92px 62px";
     return (
       <div>
@@ -4253,7 +4263,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14, flexWrap: "wrap", fontSize: 13, color: N.muted }}>
               <span>If you can put</span>
               <input value={payoffBudget} onChange={e => setPayoffBudget(e.target.value)} placeholder="$ / month" inputMode="decimal" style={{ ...inputSt, width: 120 }} />
-              <span>toward cards this month{totalMin > 0 ? ` (minimums total ${money(totalMin)})` : ""}{extra > 0 ? <> — that's <b style={{ color: N.blueDark }}>{money(extra)} extra</b>, all to {target.name}.</> : "."}</span>
+              <span>toward cards this month{totalMin > 0 ? ` (minimums total ${money(totalMin)})` : ""}{extra > 0 ? <> — that's <b style={{ color: N.blueDark }}>{money(extra)} extra</b>, starting with {target.name} and rolling down as each clears.</> : "."}</span>
             </div>
 
             <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, overflow: "hidden" }}>
@@ -4281,7 +4291,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   <span style={{ textAlign: "right", fontSize: 14, color: N.red }}>{money(r.owed)}</span>
                   <input value={(cardPlan[r.name] || {}).apr || ""} onChange={e => setP(r.name, "apr", e.target.value)} placeholder="—" inputMode="decimal" style={{ ...inputSt, textAlign: "right", padding: "6px 8px" }} />
                   <input value={(cardPlan[r.name] || {}).min || ""} onChange={e => setP(r.name, "min", e.target.value)} placeholder="$" inputMode="decimal" style={{ ...inputSt, textAlign: "right", padding: "6px 8px" }} />
-                  <span style={{ textAlign: "right", fontSize: 14, fontWeight: 700, color: r.name === target.name ? N.pinkDark : N.ink }}>{money(payNow(r))}</span>
+                  <span style={{ textAlign: "right", fontSize: 14, fontWeight: 700, color: (extraAlloc[r.name] || 0) > 0 ? N.pinkDark : N.ink }}>{money(payNow(r))}</span>
                   <span style={{ textAlign: "right" }}>{i === 0 ? <span style={{ fontSize: 9.5, fontWeight: 700, color: "#fff", background: N.pinkDark, padding: "3px 8px", borderRadius: 100 }}>PAY FIRST</span> : <span style={{ fontSize: 12, color: N.mutedLite }}>#{i + 1}</span>}</span>
                 </div>
                 );
