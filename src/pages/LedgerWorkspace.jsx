@@ -268,6 +268,7 @@ function buildLiveEntity(org, accounts, categories, entries, session) {
   const bal = {};
   accounts.forEach(a => { bal[a.id] = a.opening_balance_cents || 0; });
   entries.forEach(e => {
+    if (e.match_status === "noted") return; // hidden / set-aside lines are not part of the live balance
     if (e.account_id && e.account_id in bal) bal[e.account_id] += (e.direction === "in" ? 1 : -1) * (e.amount_cents || 0);
   });
   const acctName = {};
