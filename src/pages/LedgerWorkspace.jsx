@@ -2557,7 +2557,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           const checkedIds = unrec.filter(e => reconChecked[e.id]).map(e => e.id);
           const toggle = id => setReconChecked(p => ({ ...p, [id]: !p[id] }));
           const shortD = d => { const p = (d || "").split("-"); return p.length === 3 ? `${+p[1]}/${+p[2]}` : d; };
-          const Col = ({ title, rows, color }) => (
+          const renderCol = (title, rows, color) => (
             <div style={{ flex: 1, minWidth: 260 }}>
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color, marginBottom: 6 }}>{title} · {rows.length}</div>
               <div style={{ border: "1px solid " + N.rule, borderRadius: 10, overflow: "hidden", maxHeight: "42vh", overflowY: "auto" }}>
@@ -2604,8 +2604,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   {hiddenAfter > 0 && <span style={{ fontSize: 12, fontWeight: 600, color: N.blueDark, background: "#eef6ff", border: "1px solid #cfe4ff", padding: "3px 10px", borderRadius: 100 }}>{hiddenAfter} line{hiddenAfter === 1 ? "" : "s"} after {fmtStmtDate(reconDate)} hidden</span>}
                 </div>
                 <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 16 }}>
-                  <Col title="Money in — deposits" rows={moneyIn} color="#3a7d4a" />
-                  <Col title="Money out — checks & payments" rows={moneyOut} color={N.red} />
+                  {renderCol("Money in — deposits", moneyIn, "#3a7d4a")}
+                  {renderCol("Money out — checks & payments", moneyOut, N.red)}
                 </div>
                 {(() => {
                   const clearedList = all.filter(e => e.match_status === "reconciled").sort((a, b) => (b.entry_date || "").localeCompare(a.entry_date || ""));
