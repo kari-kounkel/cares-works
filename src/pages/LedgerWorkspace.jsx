@@ -883,6 +883,25 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       setReloadTick(t => t + 1);
     }
   }
+  // Lock a reconciliation. If it balances, lock it. If it's off, offer to post the
+  // difference to a Suspense account (flagged) — never silently reconcile an out-of-balance.
+  async function attemptReconcile(ids, ctx, diffCents, targetSignedCents) {
+    if (!ids || ids.length === 0 || targetSignedCents == null) return;
+    if (Math.abs(diffCents) < 1) { finishReconcile(ids, { ...ctx, endingCents: targetSignedCents }); return; }
+    const amt = money(Math.abs(diffCents) / 100);
+    if (!window.confirm(`This statement is off by ${amt}.\n\nPost the difference to a Suspense account and lock it? It'll sit in Suspense — flagged — until you track it down.\n\nCancel to keep working and find it now.`)) return;
+    let ids2 = ids;
+    if (live && liveOrgId) {
+      const { data } = await supabase.from("ledger_entries").insert({
+        org_id: liveOrgId, user_id: session.user.id, entry_date: ctx.statementDate || new Date().toISOString().slice(0, 10),
+        direction: diffCents > 0 ? "in" : "out", amount_cents: Math.abs(diffCents),
+        description: "Reconciliation difference — posted to Suspense", category: "Suspense",
+        account_id: ctx.acctId, match_status: null,
+      }).select("id").single();
+      if (data) ids2 = [...ids, data.id];
+    }
+    finishReconcile(ids2, { ...ctx, endingCents: targetSignedCents });
+  }
   // Add a line (deposit / check / bank fee / interest) that's on the statement but not yet in
   // the books, right from the reconcile screen. It becomes a notebook line on that account and
   // is auto-checked into this reconciliation.
@@ -890,7 +909,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     const cents = Math.round((parseFloat(reconAdd.amount) || 0) * 100);
     if (!cents || !acctId || !liveOrgId) return;
     const { data } = await supabase.from("ledger_entries").insert({
-      org_id: liveOrgId, user_id: session.user.id, entry_date: new Date().toISOString().slice(0, 10),
+      org_id: liveOrgId, user_id: session.user.id, entry_date: reconDate || new Date().toISOString().slice(0, 10),
       direction: reconAdd.dir === "in" ? "in" : "out", amount_cents: cents,
       description: reconAdd.memo.trim() || (reconAdd.dir === "in" ? "Deposit" : "Payment"),
       category: reconAdd.category || null, account_id: acctId, match_status: null,
@@ -2588,7 +2607,9 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   );
                 })()}
                 {(() => {
-                  const presets = [["Deposit", { dir: "in", category: "", memo: "" }], ["Check / payment", { dir: "out", category: "", memo: "" }], ["Bank fee", { dir: "out", category: "Bank charges", memo: "Bank service charge" }], ["Interest", { dir: "in", category: "Interest income", memo: "Interest earned" }]];
+                  const presets = isLiab
+                    ? [["Payment", { dir: "in", category: "", memo: "Payment" }], ["Charge", { dir: "out", category: "", memo: "" }], ["Interest charged", { dir: "out", category: "CC Interest", memo: "Interest charged" }], ["Fee", { dir: "out", category: "Banking costs", memo: "Fee" }]]
+                    : [["Deposit", { dir: "in", category: "", memo: "" }], ["Check / payment", { dir: "out", category: "", memo: "" }], ["Bank fee", { dir: "out", category: "Banking costs", memo: "Bank service charge" }], ["Interest earned", { dir: "in", category: "Interest income", memo: "Interest earned" }]];
                   const activeIdx = presets.findIndex(([, p]) => p.dir === reconAdd.dir && (p.category || "") === (reconAdd.category || ""));
                   return (
                   <div style={{ border: "1px solid " + N.rule, borderRadius: 10, padding: "12px 14px", marginBottom: 16, background: "#fbfdff" }}>
@@ -2611,7 +2632,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   <div style={{ fontSize: 13, color: N.muted }}>Beginning <b style={{ color: N.ink }}>{owed(beginning)}{isLiab ? " owed" : ""}</b> + {checkedIds.length} checked = <b style={{ color: N.ink }}>{owed(clearedBal)}{isLiab ? " owed" : ""}</b>{diff != null && (ok ? <b style={{ color: N.pinkDark, marginLeft: 10 }}>✓ Reconciled — difference $0.00</b> : <span style={{ marginLeft: 10, color: "#8a5a00" }}>Difference <b>{money((isLiab ? -diff : diff) / 100)}</b></span>)}</div>
                   <div style={{ display: "flex", gap: 8 }}>
                     <button onClick={() => setReconOpen(false)} style={btnPaper(N.muted)}>Close</button>
-                    <button onClick={() => finishReconcile(checkedIds, { acctId, statementDate: reconDate, endingCents: clearedBal, beginningCents: beginning })} disabled={checkedIds.length === 0} style={{ ...btnBlue, background: checkedIds.length ? N.blue : N.mutedLite }}>Reconcile {checkedIds.length} &amp; lock</button>
+                    <button onClick={() => attemptReconcile(checkedIds, { acctId, statementDate: reconDate, beginningCents: beginning }, diff, targetSigned)} disabled={checkedIds.length === 0 || diff == null} title={diff == null ? "Enter the statement ending balance first." : (!ok ? "Off — you'll be asked to post the difference to Suspense." : "")} style={{ ...btnBlue, background: (checkedIds.length && diff != null) ? (ok ? N.blue : "#b45309") : N.mutedLite, cursor: (checkedIds.length && diff != null) ? "pointer" : "not-allowed" }}>{diff == null ? "Enter a balance" : ok ? `Reconcile ${checkedIds.length} & lock` : `Post ${money(Math.abs(diff) / 100)} to suspense & lock`}</button>
                   </div>
                 </div>
                 {acctRecs.length > 0 && (
