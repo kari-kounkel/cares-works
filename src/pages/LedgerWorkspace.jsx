@@ -2654,7 +2654,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                           <span style={{ textAlign: "right", color: N.muted }}>{r.item_count || 0}</span>
                           <span style={{ textAlign: "center" }}>{doc
                             ? <button onClick={() => downloadDoc(doc)} title={doc.name} style={{ ...btnPaper(N.blueDark), padding: "3px 8px", fontSize: 11 }}>📎 Open</button>
-                            : <label style={{ ...btnPaper(N.muted), padding: "3px 8px", fontSize: 11, cursor: "pointer" }}>＋ Attach<input type="file" accept=".pdf,.csv,application/pdf,text/csv" onChange={e => { const f = e.target.files && e.target.files[0]; e.target.value = ""; attachStatementToRec(r.id, f); }} style={{ display: "none" }} /></label>}</span>
+                            : <span style={{ color: N.mutedLite, fontSize: 11 }}>—</span>}</span>
                           <span style={{ textAlign: "right", color: N.mutedLite, fontSize: 11 }}>{r.reconciled_at || r.created_at ? new Date(r.reconciled_at || r.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : ""}</span>
                         </div>
                         );
