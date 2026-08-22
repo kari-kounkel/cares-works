@@ -2206,7 +2206,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           direction: "out", amount_cents: ck.amount_cents, description: ck.vendor_name || "Check",
           category: bills.length === 1 ? (bills[0].category || null) : null,
           account_id: (acct && acct.id && String(acct.id).length > 20) ? acct.id : null,
-          reference: "Check #" + num, match_status: "noted",
+          reference: "Check #" + num, match_status: null,
         });
       }
       await supabase.from("ledger_orgs").update({ next_check_number: start + checks.length }).eq("id", liveOrgId);
