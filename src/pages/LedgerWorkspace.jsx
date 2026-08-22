@@ -4200,7 +4200,11 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     const ranked = [...rows].sort((a, b) => anyApr ? ((b.apr || 0) - (a.apr || 0)) : (a.owed - b.owed));
     const method = anyApr ? "highest interest first — the avalanche, saves the most money" : "smallest balance first — the snowball, quick wins that free up a minimum payment";
     const budget = parseFloat(payoffBudget) || 0;
-    const totalMin = rows.reduce((s, r) => s + r.min, 0);
+    // A card's minimum: what you entered, or an estimate (2% of the balance, floor $25) so
+    // every card shows a real number before exact minimums are typed in.
+    const effMin = r => (r.min && r.min > 0) ? r.min : Math.max(25, Math.round(r.owed * 0.02));
+    const anyEstimated = rows.some(r => !(r.min && r.min > 0));
+    const totalMin = rows.reduce((s, r) => s + effMin(r), 0);
     const extra = Math.max(0, budget - totalMin);
     const target = ranked[0];
     const setP = (name, k, v) => {
@@ -4224,8 +4228,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       if (t.getDate() < now.getDate()) mo -= 1;
       return mo;
     };
-    // What to pay each card THIS month: its minimum, plus the extra budget on the target.
-    const payNow = r => Math.min(r.owed, (r.min || 0) + (r.name === target.name ? extra : 0));
+    // What to pay each card THIS month: its (est.) minimum, plus the extra budget on the target.
+    const payNow = r => Math.min(r.owed, effMin(r) + (r.name === target.name ? extra : 0));
     const cols = "1.4fr 92px 62px 78px 92px 62px";
     return (
       <div>
@@ -4283,7 +4287,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 );
               })}
             </div>
-            <div style={{ fontSize: 12, color: N.muted, marginTop: 10 }}>Balances come straight from your accounts. Enter APRs to switch from "smallest balance first" to "highest interest first" (saves more money over time). When you pay a card, record it in the notebook as <b>Pay a card</b> — it books a transfer, not an expense.</div>
+            <div style={{ fontSize: 12, color: N.muted, marginTop: 10 }}>{anyEstimated ? <><b style={{ color: "#8a5a00" }}>PAY NOW uses an estimated minimum (~2% of the balance) for any card without a MIN PMT entered</b> — type the real minimum from the statement to make it exact. </> : ""}Balances come straight from your accounts. Enter APRs to switch from "smallest balance first" to "highest interest first". When you pay a card, record it in the notebook as <b>Pay a card</b> — it books a transfer, not an expense.</div>
           </>
         )}
       </div>
