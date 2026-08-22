@@ -820,7 +820,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   useEffect(() => {
     const seed = {};
     (entity.rawAccounts || []).forEach(a => {
-      if (a.apr != null || a.min_payment_cents != null) seed[a.name] = { apr: a.apr != null ? String(a.apr) : "", min: a.min_payment_cents != null ? String(a.min_payment_cents / 100) : "" };
+      if (a.apr != null || a.min_payment_cents != null || a.promo_end) seed[a.name] = { apr: a.apr != null ? String(a.apr) : "", min: a.min_payment_cents != null ? String(a.min_payment_cents / 100) : "", promo: a.promo_end || "" };
     });
     setCardPlan(seed);
   }, [entity]);
@@ -1797,7 +1797,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 <span style={{ marginRight: "auto", fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: STATUS_COLOR[openInv.status] || N.muted }}>{openInv.status}</span>
                 <button onClick={printDoc} style={{ ...btnBlue, background: N.blue }}>Print / Save PDF</button>
                 <button onClick={() => setPackMode(m => !m)} title="Show a packing slip — items & quantities, no prices" style={btnPaper(packMode ? N.pinkDark : N.blueDark)}>{packMode ? `← Back to ${isPo ? "PO" : "invoice"}` : "📦 Packing slip"}</button>
-                {isPo ? (
+                {!packMode && (isPo ? (
                   <>
                     <button onClick={() => { const v = openInv; setOpenInv(null); editOrder(v); }} style={btnPaper(N.muted)}>Edit</button>
                     {openInv.customer && openInv.customer !== "—" && <button onClick={() => { const v = openInv; setOpenInv(null); convertToInvoice(v); }} style={{ ...btnBlue, background: N.blue }}>Convert to invoice →</button>}
@@ -1818,7 +1818,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                     {openInv.status !== "Void" && <button onClick={() => voidInvoice(openInv)} style={btnPaper(N.muted)}>Void</button>}
                     <button onClick={() => deleteInvoice(openInv)} style={btnPaper(N.pinkDark)}>Delete</button>
                   </>
-                )}
+                ))}
                 <button onClick={() => setOpenInv(null)} style={btnPaper(N.muted)}>Close</button>
               </div>
             </div>
@@ -4208,12 +4208,25 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       if (live && liveOrgId) {
         const acct = (entity.rawAccounts || []).find(a => a.name === name);
         if (acct) {
-          const patch = k === "apr" ? { apr: v === "" ? null : (parseFloat(v) || 0) } : { min_payment_cents: v === "" ? null : Math.round((parseFloat(v) || 0) * 100) };
+          const patch = k === "apr" ? { apr: v === "" ? null : (parseFloat(v) || 0) }
+            : k === "promo" ? { promo_end: v || null }
+            : { min_payment_cents: v === "" ? null : Math.round((parseFloat(v) || 0) * 100) };
           supabase.from("ledger_accounts").update(patch).eq("id", acct.id).then(() => {});
         }
       }
     };
-    const cols = "1fr 110px 84px 96px 96px";
+    // How many whole months from today to a promo end date.
+    const monthsUntil = d => {
+      if (!d) return null;
+      const p = String(d).split("-"); if (p.length !== 3) return null;
+      const t = new Date(+p[0], +p[1] - 1, +p[2]); const now = new Date();
+      let mo = (t.getFullYear() - now.getFullYear()) * 12 + (t.getMonth() - now.getMonth());
+      if (t.getDate() < now.getDate()) mo -= 1;
+      return mo;
+    };
+    // What to pay each card THIS month: its minimum, plus the extra budget on the target.
+    const payNow = r => Math.min(r.owed, (r.min || 0) + (r.name === target.name ? extra : 0));
+    const cols = "1.4fr 92px 62px 78px 92px 62px";
     return (
       <div>
         <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink, marginBottom: 2 }}>Credit-card payoff plan</div>
@@ -4241,17 +4254,34 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
 
             <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, overflow: "hidden" }}>
               <div style={{ display: "grid", gridTemplateColumns: cols, gap: 8, padding: "10px 16px", background: "#f7fafd", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.08em", color: N.muted }}>
-                <span>CARD</span><span style={{ textAlign: "right" }}>OWED</span><span style={{ textAlign: "right" }}>APR %</span><span style={{ textAlign: "right" }}>MIN PMT</span><span style={{ textAlign: "right" }}>ORDER</span>
+                <span>CARD</span><span style={{ textAlign: "right" }}>OWED</span><span style={{ textAlign: "right" }}>APR %</span><span style={{ textAlign: "right" }}>MIN PMT</span><span style={{ textAlign: "right" }}>PAY NOW</span><span style={{ textAlign: "right" }}>ORDER</span>
               </div>
-              {ranked.map((r, i) => (
+              {ranked.map((r, i) => {
+                const promo = (cardPlan[r.name] || {}).promo || "";
+                const mo = monthsUntil(promo);
+                const toClear = (mo && mo > 0) ? r.owed / mo : null;
+                return (
                 <div key={r.name} style={{ display: "grid", gridTemplateColumns: cols, gap: 8, padding: "9px 16px", borderTop: "1px solid " + N.rule, alignItems: "center" }}>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: N.ink }}>{r.name}</span>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: N.ink }}>{r.name}</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 3, flexWrap: "wrap" }}>
+                      <span style={{ fontSize: 10, color: N.muted }}>0% until</span>
+                      <input type="date" value={promo} onChange={e => setP(r.name, "promo", e.target.value)} style={{ ...inputSt, width: 138, padding: "4px 6px", fontSize: 11 }} />
+                    </div>
+                    {promo && (mo != null) && (
+                      <div style={{ fontSize: 11, marginTop: 3, color: mo <= 0 ? N.red : "#8a5a00" }}>
+                        {mo <= 0 ? "⚠ 0% has ended — interest applies now" : <>To clear before 0% ends: <b>{money(toClear)}/mo</b> for {mo} mo</>}
+                      </div>
+                    )}
+                  </div>
                   <span style={{ textAlign: "right", fontSize: 14, color: N.red }}>{money(r.owed)}</span>
                   <input value={(cardPlan[r.name] || {}).apr || ""} onChange={e => setP(r.name, "apr", e.target.value)} placeholder="—" inputMode="decimal" style={{ ...inputSt, textAlign: "right", padding: "6px 8px" }} />
                   <input value={(cardPlan[r.name] || {}).min || ""} onChange={e => setP(r.name, "min", e.target.value)} placeholder="$" inputMode="decimal" style={{ ...inputSt, textAlign: "right", padding: "6px 8px" }} />
+                  <span style={{ textAlign: "right", fontSize: 14, fontWeight: 700, color: r.name === target.name ? N.pinkDark : N.ink }}>{money(payNow(r))}</span>
                   <span style={{ textAlign: "right" }}>{i === 0 ? <span style={{ fontSize: 9.5, fontWeight: 700, color: "#fff", background: N.pinkDark, padding: "3px 8px", borderRadius: 100 }}>PAY FIRST</span> : <span style={{ fontSize: 12, color: N.mutedLite }}>#{i + 1}</span>}</span>
                 </div>
-              ))}
+                );
+              })}
             </div>
             <div style={{ fontSize: 12, color: N.muted, marginTop: 10 }}>Balances come straight from your accounts. Enter APRs to switch from "smallest balance first" to "highest interest first" (saves more money over time). When you pay a card, record it in the notebook as <b>Pay a card</b> — it books a transfer, not an expense.</div>
           </>
