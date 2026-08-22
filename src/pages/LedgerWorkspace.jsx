@@ -527,6 +527,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const blankDonor = { name: "", email: "", address: "" };
   const [donorDraft, setDonorDraft] = useState(blankDonor);
   const [reconTarget, setReconTarget] = useState("");
+  const [reconDate, setReconDate] = useState(""); // statement ending date for this reconciliation
+  const [reconHist, setReconHist] = useState([]); // saved reconciliations, for "last reconciled" + report
   const [reconOpen, setReconOpen] = useState(false);
   const [reconChecked, setReconChecked] = useState({});
   const blankReconAdd = { amount: "", dir: "out", category: "", memo: "" };
@@ -703,6 +705,14 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       .then(({ data }) => { if (!cancel) setMessages(data || []); });
     return () => { cancel = true; };
   }, [liveOrgId, testMode, reloadTick]);
+  // Load saved reconciliations (for "last reconciled" and the history report).
+  useEffect(() => {
+    if (!liveOrgId || testMode) { setReconHist([]); return; }
+    let cancel = false;
+    supabase.from("ledger_reconciliations").select("*").eq("org_id", liveOrgId).order("statement_ending_date", { ascending: false }).limit(200)
+      .then(({ data }) => { if (!cancel) setReconHist(data || []); });
+    return () => { cancel = true; };
+  }, [liveOrgId, testMode, reloadTick]);
   async function sendNote() {
     const b = (msgDraft || "").trim();
     if (!b || !liveOrgId || testMode) return;
@@ -718,6 +728,32 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   function noteTime(ts) {
     if (!ts) return "";
     try { return new Date(ts).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }); } catch (e) { return ""; }
+  }
+  function fmtStmtDate(d) {
+    if (!d) return "—";
+    const p = String(d).split("-");
+    return p.length === 3 ? `${+p[1]}/${+p[2]}/${p[0]}` : d;
+  }
+  function printReconHistory(acctName, recs, isLiab) {
+    const rows = (recs || []).map(r => {
+      const bal = money((isLiab ? -(r.statement_ending_balance_cents || 0) : (r.statement_ending_balance_cents || 0)) / 100) + (isLiab ? " owed" : "");
+      const on = (r.reconciled_at || r.created_at) ? new Date(r.reconciled_at || r.created_at).toLocaleDateString("en-US") : "";
+      return `<tr><td>${fmtStmtDate(r.statement_ending_date)}</td><td class=r>${bal}</td><td class=r>${r.item_count || 0}</td><td class=r>${on}</td></tr>`;
+    }).join("");
+    const html = `<!doctype html><html><head><meta charset="utf-8"><title>Reconciliation history — ${acctName}</title>
+      <style>body{font-family:Arial,Helvetica,sans-serif;color:#0f172a;padding:32px;max-width:720px;margin:0 auto}
+      h1{font-size:20px;margin:0 0 2px}h2{font-size:14px;color:#64748b;font-weight:600;margin:0 0 18px}
+      table{border-collapse:collapse;width:100%;font-size:13px}th,td{padding:7px 10px;border-bottom:1px solid #e2e8f0;text-align:left}
+      th{font-size:10px;letter-spacing:.08em;color:#64748b;text-transform:uppercase}.r{text-align:right}
+      .foot{margin-top:16px;font-size:11px;color:#94a3b8}</style></head>
+      <body><h1>${entity.name || ""}</h1><h2>Reconciliation history — ${acctName}</h2>
+      <table><thead><tr><th>Statement date</th><th class=r>Ending balance</th><th class=r>Items</th><th class=r>Reconciled on</th></tr></thead>
+      <tbody>${rows || '<tr><td colspan=4>No reconciliations yet.</td></tr>'}</tbody></table>
+      <div class="foot">Printed ${new Date().toLocaleDateString("en-US")} · CARES Works</div></body></html>`;
+    const w = window.open("", "_blank");
+    if (!w) { window.alert("Allow pop-ups to print the report."); return; }
+    w.document.write(html); w.document.close(); w.focus();
+    setTimeout(() => { try { w.print(); } catch (e) { /* user can print manually */ } }, 350);
   }
   // Slim message board under the balances — Dave & Betty leave each other "could you…" notes.
   function messageBar() {
@@ -822,12 +858,26 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
 
   // Reconcile: mark the checked transactions reconciled (locks them with an R) and
   // drops them out of the "to match" notebook.
-  async function finishReconcile(ids) {
+  async function finishReconcile(ids, rec) {
     if (!ids || ids.length === 0) { setReconOpen(false); return; }
     setReconOpen(false); setReconChecked({}); setReconAdd(blankReconAdd);
     const idset = new Set(ids);
     setItems(prev => prev.filter(x => !idset.has(x.id)));
-    if (live) { await supabase.from("ledger_entries").update({ match_status: "reconciled", cleared_confirmed: true }).in("id", ids); setReloadTick(t => t + 1); }
+    if (live) {
+      await supabase.from("ledger_entries").update({ match_status: "reconciled", cleared_confirmed: true }).in("id", ids);
+      // Save the reconciliation record (statement date + balances) so there's a history/report.
+      if (rec && rec.acctId && liveOrgId) {
+        await supabase.from("ledger_reconciliations").insert({
+          org_id: liveOrgId, account_id: rec.acctId, user_id: session.user.id,
+          statement_ending_date: rec.statementDate || null,
+          statement_ending_balance_cents: rec.endingCents,
+          beginning_balance_cents: rec.beginningCents,
+          item_count: ids.length,
+        });
+      }
+      setReconDate("");
+      setReloadTick(t => t + 1);
+    }
   }
   // Add a line (deposit / check / bank fee / interest) that's on the statement but not yet in
   // the books, right from the reconcile screen. It becomes a notebook line on that account and
@@ -2441,7 +2491,12 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           const all = (entity.rawEntries || []).filter(e => e.account_id === acctId);
           const reconciledSum = all.filter(e => e.match_status === "reconciled").reduce((s, e) => s + (e.direction === "in" ? e.amount_cents : -e.amount_cents), 0);
           const beginning = opening + reconciledSum;
-          const unrec = all.filter(e => e.match_status !== "reconciled").sort((a, b) => (a.entry_date || "").localeCompare(b.entry_date || ""));
+          // The statement end date filters out anything dated after it, so only lines on/before the
+          // statement close are eligible to check.
+          const unrec = all.filter(e => e.match_status !== "reconciled" && (!reconDate || (e.entry_date || "") <= reconDate)).sort((a, b) => (a.entry_date || "").localeCompare(b.entry_date || ""));
+          const hiddenAfter = reconDate ? all.filter(e => e.match_status !== "reconciled" && (e.entry_date || "") > reconDate).length : 0;
+          const acctRecs = reconHist.filter(r => r.account_id === acctId);
+          const lastRec = acctRecs[0] || null;
           const moneyIn = unrec.filter(e => e.direction === "in");
           const moneyOut = unrec.filter(e => e.direction !== "in");
           const checkedSum = unrec.filter(e => reconChecked[e.id]).reduce((s, e) => s + (e.direction === "in" ? e.amount_cents : -e.amount_cents), 0);
@@ -2475,18 +2530,28 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             <div onClick={() => setReconOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(10,10,20,0.5)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "36px 16px", zIndex: 220, overflowY: "auto" }}>
               <div onClick={ev => ev.stopPropagation()} style={{ background: N.white, borderRadius: 14, width: "100%", maxWidth: 880, boxShadow: "0 24px 70px rgba(10,10,20,0.35)", padding: 22 }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10, marginBottom: 10 }}>
-                  <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 21, color: N.ink }}>Reconcile {acctFilter}</div>
+                  <div>
+                    <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 21, color: N.ink }}>Reconcile {acctFilter}</div>
+                    <div style={{ fontSize: 12, color: N.muted, marginTop: 2 }}>
+                      {lastRec
+                        ? <>Last reconciled: <b style={{ color: N.ink }}>{owed(lastRec.statement_ending_balance_cents)}{isLiab ? " owed" : ""}</b> · statement {fmtStmtDate(lastRec.statement_ending_date)}</>
+                        : "No prior reconciliation on this account yet."}
+                    </div>
+                  </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: N.muted, flexWrap: "wrap" }}>
                     {acctId && <button onClick={() => openImport(acctId)} title="Load this account's transactions from a bank CSV export" style={btnPaper(N.blueDark)}>⬆ Upload statement</button>}
-                    <span>{isLiab ? "New balance owed" : "Statement ending balance"}</span>
-                    <input value={reconTarget} onChange={e => setReconTarget(e.target.value)} placeholder={isLiab ? "$ owed on statement" : "$ from statement"} inputMode="decimal" style={{ ...inputSt, width: 150 }} />
+                    <span>Statement date</span>
+                    <input type="date" value={reconDate} onChange={e => setReconDate(e.target.value)} title="Only lines on or before this date can be checked" style={{ ...inputSt, width: 150 }} />
+                    <span>{isLiab ? "New balance owed" : "Ending balance"}</span>
+                    <input value={reconTarget} onChange={e => setReconTarget(e.target.value)} placeholder={isLiab ? "$ owed on statement" : "$ from statement"} inputMode="decimal" style={{ ...inputSt, width: 140 }} />
                   </div>
                 </div>
                 <div style={{ fontSize: 13, color: N.muted, marginBottom: 10 }}>Click each line that's on this statement — it gets an <b style={{ color: N.pinkDark }}>R</b>. When the difference hits <b>$0.00</b>, you're reconciled.</div>
                 <div style={{ display: "flex", gap: 8, marginBottom: 14, alignItems: "center", flexWrap: "wrap" }}>
                   <button onClick={() => setReconChecked(Object.fromEntries(unrec.map(e => [e.id, true])))} style={btnPaper(N.pinkDark)}>✓ Check all {unrec.length}</button>
                   <button onClick={() => setReconChecked({})} style={btnPaper(N.muted)}>Uncheck all</button>
-                  <span style={{ fontSize: 12, color: N.mutedLite }}>On a first reconcile: check all, then uncheck anything not on the statement yet.</span>
+                  <span style={{ fontSize: 12, color: N.mutedLite }}>{reconDate ? "Set a statement date, then Check all — everything shown is on/before it." : "Tip: set the statement date above and lines after it drop off the list."}</span>
+                  {hiddenAfter > 0 && <span style={{ fontSize: 12, fontWeight: 600, color: N.blueDark, background: "#eef6ff", border: "1px solid #cfe4ff", padding: "3px 10px", borderRadius: 100 }}>{hiddenAfter} line{hiddenAfter === 1 ? "" : "s"} after {fmtStmtDate(reconDate)} hidden</span>}
                 </div>
                 <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 16 }}>
                   <Col title="Money in — deposits" rows={moneyIn} color="#3a7d4a" />
@@ -2516,9 +2581,30 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   <div style={{ fontSize: 13, color: N.muted }}>Beginning <b style={{ color: N.ink }}>{owed(beginning)}{isLiab ? " owed" : ""}</b> + {checkedIds.length} checked = <b style={{ color: N.ink }}>{owed(clearedBal)}{isLiab ? " owed" : ""}</b>{diff != null && (ok ? <b style={{ color: N.pinkDark, marginLeft: 10 }}>✓ Reconciled — difference $0.00</b> : <span style={{ marginLeft: 10, color: "#8a5a00" }}>Difference <b>{money((isLiab ? -diff : diff) / 100)}</b></span>)}</div>
                   <div style={{ display: "flex", gap: 8 }}>
                     <button onClick={() => setReconOpen(false)} style={btnPaper(N.muted)}>Close</button>
-                    <button onClick={() => finishReconcile(checkedIds)} disabled={checkedIds.length === 0} style={{ ...btnBlue, background: checkedIds.length ? N.blue : N.mutedLite }}>Reconcile {checkedIds.length} &amp; lock</button>
+                    <button onClick={() => finishReconcile(checkedIds, { acctId, statementDate: reconDate, endingCents: clearedBal, beginningCents: beginning })} disabled={checkedIds.length === 0} style={{ ...btnBlue, background: checkedIds.length ? N.blue : N.mutedLite }}>Reconcile {checkedIds.length} &amp; lock</button>
                   </div>
                 </div>
+                {acctRecs.length > 0 && (
+                  <div style={{ marginTop: 16, borderTop: "1px solid " + N.rule, paddingTop: 14 }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: N.muted }}>Reconciliation history — {acctFilter}</div>
+                      <button onClick={() => printReconHistory(acctFilter, acctRecs, isLiab)} style={btnPaper(N.blueDark)}>🖨 Print report</button>
+                    </div>
+                    <div style={{ border: "1px solid " + N.rule, borderRadius: 10, overflow: "hidden" }}>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 90px 90px", gap: 8, padding: "8px 12px", background: "#f7fafd", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.08em", color: N.muted }}>
+                        <span>STATEMENT DATE</span><span style={{ textAlign: "right" }}>ENDING BALANCE</span><span style={{ textAlign: "right" }}>ITEMS</span><span style={{ textAlign: "right" }}>RECONCILED</span>
+                      </div>
+                      {acctRecs.map((r, i) => (
+                        <div key={r.id} style={{ display: "grid", gridTemplateColumns: "1fr 1fr 90px 90px", gap: 8, padding: "8px 12px", borderTop: "1px solid " + N.rule, fontSize: 13, alignItems: "center" }}>
+                          <span style={{ fontWeight: 600, color: N.ink }}>{fmtStmtDate(r.statement_ending_date)}</span>
+                          <span style={{ textAlign: "right" }}>{owed(r.statement_ending_balance_cents)}{isLiab ? " owed" : ""}</span>
+                          <span style={{ textAlign: "right", color: N.muted }}>{r.item_count || 0}</span>
+                          <span style={{ textAlign: "right", color: N.mutedLite, fontSize: 11 }}>{r.reconciled_at || r.created_at ? new Date(r.reconciled_at || r.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : ""}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           );
