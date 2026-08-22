@@ -1459,6 +1459,14 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     setOpenInv(null);
   }
 
+  // Print just the open document. The app (header + body) is hidden during the print so
+  // the tall page behind the modal doesn't spill out as blank/extra pages.
+  function printDoc() {
+    const els = Array.from(document.querySelectorAll(".app-print-hide"));
+    const prev = els.map(el => el.style.display);
+    els.forEach(el => { el.style.display = "none"; });
+    try { window.print(); } finally { els.forEach((el, i) => { el.style.display = prev[i]; }); }
+  }
   // Open the invoice's online page directly (preview mode — doesn't mark it viewed),
   // so nobody has to copy a link just to look at it.
   function openOnline(v) {
@@ -1787,7 +1795,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
 
               <div className="no-print" style={{ padding: "14px 22px", borderTop: "1px solid " + N.rule, background: "#f7fafd", display: "flex", gap: 8, justifyContent: "flex-end", alignItems: "center", flexWrap: "wrap" }}>
                 <span style={{ marginRight: "auto", fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: STATUS_COLOR[openInv.status] || N.muted }}>{openInv.status}</span>
-                <button onClick={() => window.print()} style={{ ...btnBlue, background: N.blue }}>Print / Save PDF</button>
+                <button onClick={printDoc} style={{ ...btnBlue, background: N.blue }}>Print / Save PDF</button>
                 <button onClick={() => setPackMode(m => !m)} title="Show a packing slip — items & quantities, no prices" style={btnPaper(packMode ? N.pinkDark : N.blueDark)}>{packMode ? `← Back to ${isPo ? "PO" : "invoice"}` : "📦 Packing slip"}</button>
                 {isPo ? (
                   <>
@@ -4837,7 +4845,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       `}</style>
 
       {/* Header */}
-      <header style={{ position: "sticky", top: 0, zIndex: 50, background: N.white, borderBottom: "1px solid " + N.rule }}>
+      <header className="app-print-hide" style={{ position: "sticky", top: 0, zIndex: 50, background: N.white, borderBottom: "1px solid " + N.rule }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 22px", gap: 16 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 0 }}>
             {entity.logoUrl
@@ -4945,7 +4953,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       )}
 
       {/* Body: nav + work area */}
-      <div style={{ display: "flex", alignItems: "flex-start", maxWidth: 1180, margin: "0 auto" }}>
+      <div className="app-print-hide" style={{ display: "flex", alignItems: "flex-start", maxWidth: 1180, margin: "0 auto" }}>
         <nav style={{ width: wide ? 58 : 210, flexShrink: 0, padding: "18px 10px", position: "sticky", top: 132 }}>
           {sections.map(s => {
             const active = activeSection === s.key;
