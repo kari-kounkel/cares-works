@@ -3385,6 +3385,13 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       setReloadTick(t => t + 1);
     } catch (e) { window.alert("Couldn't attach that file: " + (e.message || e)); }
   }
+  // Remove the statement attached to a reconciliation (unlinks it so a new one can go on).
+  async function detachStatementFromRec(recId) {
+    if (!liveOrgId || !recId) return;
+    if (!window.confirm("Remove this statement from the reconciliation? You can upload the right one after.")) return;
+    await supabase.from("ledger_reconciliations").update({ document_id: null }).eq("id", recId);
+    setReloadTick(t => t + 1);
+  }
   async function downloadDoc(doc) {
     const { data, error } = await supabase.storage.from("org-docs").createSignedUrl(doc.path, 300);
     if (error || !data) { window.alert("Couldn't open that file."); return; }
@@ -4038,8 +4045,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                         <span style={{ fontWeight: 600, color: N.ink }}>{fmtStmtDate(r.statement_ending_date)}</span>
                         <span style={{ textAlign: "right" }}>{owedT(r.statement_ending_balance_cents)}{isLiab ? " owed" : ""}</span>
                         <span style={{ textAlign: "right", color: N.muted }}>{r.item_count || 0}</span>
-                        <span style={{ textAlign: "center" }}>{doc
-                          ? <button onClick={() => downloadDoc(doc)} title={doc.name} style={{ ...btnPaper(N.blueDark), padding: "3px 8px", fontSize: 11 }}>📎 Open</button>
+                        <span style={{ textAlign: "center", display: "inline-flex", gap: 4, justifyContent: "center", alignItems: "center" }}>{doc
+                          ? <><button onClick={() => downloadDoc(doc)} title={doc.name} style={{ ...btnPaper(N.blueDark), padding: "3px 8px", fontSize: 11 }}>📎 Open</button><button onClick={() => detachStatementFromRec(r.id)} title="Remove this statement" style={{ border: "1px solid " + N.rule, background: "none", color: N.muted, cursor: "pointer", borderRadius: 6, fontSize: 12, fontWeight: 700, padding: "2px 7px" }}>✕</button></>
                           : <label style={{ ...btnPaper(N.muted), padding: "3px 8px", fontSize: 11, cursor: "pointer" }}>＋ Attach PDF<input type="file" accept=".pdf,.csv,application/pdf,text/csv" onChange={e => { const f = e.target.files && e.target.files[0]; e.target.value = ""; attachStatementToRec(r.id, f); }} style={{ display: "none" }} /></label>}</span>
                         <span style={{ textAlign: "right", color: N.mutedLite, fontSize: 11 }}>{r.reconciled_at || r.created_at ? new Date(r.reconciled_at || r.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : ""}</span>
                       </div>
