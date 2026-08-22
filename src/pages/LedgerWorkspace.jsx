@@ -557,6 +557,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [logoBusy, setLogoBusy] = useState(false);
   const [docBusy, setDocBusy] = useState(false);
   const [docCategory, setDocCategory] = useState("QuickBooks close-out");
+  const [docFilter, setDocFilter] = useState(null); // Documents dashboard: which category is open
   const [importAcctId, setImportAcctId] = useState(null);  // statement CSV import target account
   const [importData, setImportData] = useState(null);      // { fileName, headers, rows, map }
   const [importBusy, setImportBusy] = useState(false);
@@ -3603,20 +3604,63 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           </label>
           <span style={{ fontSize: 11, color: N.mutedLite }}>PDF, Excel, images — up to 25 MB each.</span>
         </div>
-        <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, overflow: "hidden" }}>
-          {docs.length === 0 ? (
-            <div style={{ padding: "30px 20px", textAlign: "center", color: N.muted, fontSize: 14 }}>Nothing here yet — upload your first document above.</div>
-          ) : docs.map((d, i) => (
-            <div key={d.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderTop: i === 0 ? "none" : "1px solid " + N.rule, flexWrap: "wrap" }}>
-              <div style={{ flex: 1, minWidth: 180 }}>
-                <div style={{ fontSize: 14, fontWeight: 600, color: N.ink, wordBreak: "break-word" }}>{d.name}</div>
-                <div style={{ fontSize: 12, color: N.muted }}>{d.category ? d.category + " · " : ""}{fmtDate(d.created_at)}{d.size_bytes ? " · " + fmtSize(d.size_bytes) : ""}</div>
+        {(() => {
+          const groups = [
+            { key: "statements", label: "Bank & card statements", icon: "🏦", match: c => /statement|bank|card/i.test(c || "") },
+            { key: "quickbooks", label: "QuickBooks", icon: "📗", match: c => /quickbook/i.test(c || "") },
+            { key: "tax", label: "Tax / year-end", icon: "🧾", match: c => /tax|year/i.test(c || "") },
+            { key: "exemption", label: "Exemption certificates", icon: "📄", match: c => /exempt/i.test(c || "") },
+            { key: "other", label: "Other", icon: "📁", match: () => true },
+          ];
+          const groupOf = d => (groups.find(g => g.match(d.category)) || groups[groups.length - 1]).key;
+          if (docs.length === 0) {
+            return <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: "30px 20px", textAlign: "center", color: N.muted, fontSize: 14 }}>Nothing here yet — upload your first document above.</div>;
+          }
+          if (!docFilter) {
+            // Dashboard: category tiles, so a full drawer of files isn't dumped on screen.
+            return (
+              <>
+                <div style={{ fontSize: 12, color: N.muted, marginBottom: 10 }}>Pick what you want to see:</div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12 }}>
+                  {groups.map(g => {
+                    const n = docs.filter(d => groupOf(d) === g.key).length;
+                    if (!n) return null;
+                    return (
+                      <button key={g.key} onClick={() => setDocFilter(g.key)} style={{ textAlign: "left", background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: "16px 18px", cursor: "pointer", fontFamily: "'Figtree', sans-serif" }}>
+                        <div style={{ fontSize: 24 }}>{g.icon}</div>
+                        <div style={{ fontSize: 15, fontWeight: 700, color: N.ink, marginTop: 6 }}>{g.label}</div>
+                        <div style={{ fontSize: 12, color: N.muted, marginTop: 2 }}>{n} file{n === 1 ? "" : "s"} →</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            );
+          }
+          const g = groups.find(x => x.key === docFilter) || groups[groups.length - 1];
+          const shown = docs.filter(d => groupOf(d) === g.key).sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
+          return (
+            <>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
+                <button onClick={() => setDocFilter(null)} style={btnPaper(N.muted)}>← All categories</button>
+                <span style={{ fontSize: 15, fontWeight: 700, color: N.ink }}>{g.icon} {g.label}</span>
+                <span style={{ fontSize: 12, color: N.muted }}>{shown.length} file{shown.length === 1 ? "" : "s"}</span>
               </div>
-              <button onClick={() => downloadDoc(d)} style={btnPaper(N.blueDark)}>Open</button>
-              <button onClick={() => deleteDoc(d)} style={{ border: "1px solid " + N.rule, background: "none", color: N.pinkDark, cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontSize: 12, fontWeight: 600, borderRadius: 100, padding: "6px 12px" }}>Remove</button>
-            </div>
-          ))}
-        </div>
+              <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, overflow: "hidden" }}>
+                {shown.map((d, i) => (
+                  <div key={d.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderTop: i === 0 ? "none" : "1px solid " + N.rule, flexWrap: "wrap" }}>
+                    <div style={{ flex: 1, minWidth: 180 }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: N.ink, wordBreak: "break-word" }}>{d.name}</div>
+                      <div style={{ fontSize: 12, color: N.muted }}>{d.category ? d.category + " · " : ""}{fmtDate(d.created_at)}{d.size_bytes ? " · " + fmtSize(d.size_bytes) : ""}</div>
+                    </div>
+                    <button onClick={() => downloadDoc(d)} style={btnPaper(N.blueDark)}>Open</button>
+                    <button onClick={() => deleteDoc(d)} style={{ border: "1px solid " + N.rule, background: "none", color: N.pinkDark, cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontSize: 12, fontWeight: 600, borderRadius: 100, padding: "6px 12px" }}>Remove</button>
+                  </div>
+                ))}
+              </div>
+            </>
+          );
+        })()}
       </div>
     );
   }
