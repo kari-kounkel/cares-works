@@ -2564,14 +2564,14 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                     </div>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: N.muted, flexWrap: "wrap" }}>
-                    {acctId && <button onClick={() => openImport(acctId)} title="Load this account's transactions from a bank CSV export" style={btnPaper(N.blueDark)}>⬆ Upload statement</button>}
+                    {acctId && <button onClick={() => openImport(acctId)} title="Import the transaction lines from a bank/card CSV export" style={btnPaper(N.blueDark)}>⬆ Upload transactions</button>}
                     <span>Statement date</span>
                     <input type="date" value={reconDate} onChange={e => setReconDate(e.target.value)} title="Only lines on or before this date can be checked" style={{ ...inputSt, width: 150 }} />
                     <span>{isLiab ? "New balance owed" : "Ending balance"}</span>
                     <input value={reconTarget} onChange={e => setReconTarget(e.target.value)} placeholder={isLiab ? "$ owed on statement" : "$ from statement"} inputMode="decimal" style={{ ...inputSt, width: 140 }} />
                     {reconStmtDoc
                       ? <span style={{ fontSize: 12, fontWeight: 600, color: N.pinkDark, background: "#eafaf0", border: "1px solid #bff0d3", borderRadius: 100, padding: "5px 10px" }}>📎 {reconStmtDoc.name} <button onClick={() => setReconStmtDoc(null)} title="Remove" style={{ border: "none", background: "none", color: N.muted, cursor: "pointer", fontWeight: 700 }}>×</button></span>
-                      : <label style={{ ...btnPaper(N.blueDark), cursor: reconStmtBusy ? "default" : "pointer", opacity: reconStmtBusy ? 0.6 : 1 }}>{reconStmtBusy ? "Attaching…" : "📎 Attach statement"}<input type="file" accept=".pdf,.csv,application/pdf,text/csv" disabled={reconStmtBusy} onChange={e => { const f = e.target.files && e.target.files[0]; e.target.value = ""; attachReconStatement(f); }} style={{ display: "none" }} /></label>}
+                      : <label style={{ ...btnPaper(N.green), cursor: reconStmtBusy ? "default" : "pointer", opacity: reconStmtBusy ? 0.6 : 1 }}>{reconStmtBusy ? "Uploading…" : "📎 Upload statement"}<input type="file" accept=".pdf,.csv,application/pdf,text/csv" disabled={reconStmtBusy} onChange={e => { const f = e.target.files && e.target.files[0]; e.target.value = ""; attachReconStatement(f); }} style={{ display: "none" }} /></label>}
                   </div>
                 </div>
                 <div style={{ fontSize: 13, color: N.muted, marginBottom: 10 }}>Click each line that's on this statement — it gets an <b style={{ color: N.pinkDark }}>R</b>. When the difference hits <b>$0.00</b>, you're reconciled.</div>
@@ -3651,7 +3651,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                           <div style={{ fontSize: 15, fontWeight: 600, color: N.ink }}>{a.name}{a.last_four && <span style={{ color: N.muted, fontWeight: 400 }}> ••{a.last_four}</span>}</div>
                           <div style={{ fontSize: 12, color: N.muted }}>{typeLabel(a.account_type)} · opening {money((a.opening_balance_cents || 0) / 100)}</div>
                         </div>
-                        <button onClick={() => openImport(a.id)} title="Load transactions from a bank/card CSV export" style={{ ...btnPaper(N.blueDark), padding: "6px 12px" }}>⬆ Statement</button>
+                        <button onClick={() => openImport(a.id)} title="Import transaction lines from a bank/card CSV export" style={{ ...btnPaper(N.blueDark), padding: "6px 12px" }}>⬆ Upload transactions</button>
                         <button onClick={() => { setAcctEditId(a.id); setAcctDraft({ name: a.name, account_type: a.account_type, last_four: a.last_four || "", opening: String((a.opening_balance_cents || 0) / 100) }); }} style={{ ...btnPaper(N.muted), padding: "6px 12px" }}>Edit</button>
                         <button onClick={() => archiveAccount(a.id)} title="Archive" style={{ background: "none", border: "1px solid " + N.rule, borderRadius: 100, cursor: "pointer", color: N.muted, fontFamily: "'Figtree', sans-serif", fontSize: 12, fontWeight: 600, padding: "6px 12px" }}>Archive</button>
                       </div>
