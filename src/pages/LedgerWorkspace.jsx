@@ -597,6 +597,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [reloadTick, setReloadTick] = useState(0);
   const [showInvForm, setShowInvForm] = useState(false);
   const [openInv, setOpenInv] = useState(null);
+  const [packMode, setPackMode] = useState(false); // render the open doc as a packing slip (items + qty, no prices)
   const [sentLink, setSentLink] = useState(null);
   const [emailState, setEmailState] = useState(null);
   const [poEmailTo, setPoEmailTo] = useState("");   // vendor email for the PO send box
@@ -638,7 +639,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const sections = (entity.sections && entity.sections.length
     ? entity.sections.map(k => SECTIONS.find(x => x.key === k)).filter(Boolean)
     : SECTIONS
-  ).map(x => ({ ...x, label: (entity.labels && entity.labels[x.key]) || x.label }));
+  ).filter(x => x.key !== "giving" || entity.orgType === "nonprofit" || (entity.features && entity.features.donations === true))
+   .map(x => ({ ...x, label: (entity.labels && entity.labels[x.key]) || x.label }));
   // Never strand someone on a section their profile doesn't include.
   const activeSection = sections.some(x => x.key === section) ? section : (sections[0] ? sections[0].key : "notebook");
   const buildProgress = entity.buildProgress || BUILD_PROGRESS;
@@ -1564,7 +1566,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
 
   // Prefill the PO email box from the vendor record whenever a PO opens.
   useEffect(() => {
-    setPoEmailMsg(null); setReceiptMsg(null);
+    setPoEmailMsg(null); setReceiptMsg(null); setPackMode(false);
     if (openInv && openInv.docType === "order") {
       const vd = (entity.vendorList || []).find(v => (v.name || "").toLowerCase() === (openInv.vendor || "").toLowerCase()) || {};
       setPoEmailTo(vd.email || "");
@@ -1612,7 +1614,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                     <div style={{ fontSize: 12, color: N.muted, marginTop: 3 }}>Minnesota{entity.fiscalYearEnd ? ` · fiscal year ends ${entity.fiscalYearEnd}` : ""}</div>
                   </div>
                   <div style={{ textAlign: "right" }}>
-                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 24, letterSpacing: "0.16em", color: brand, fontWeight: 500 }}>{isPo ? "PURCHASE ORDER" : "INVOICE"}</div>
+                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 24, letterSpacing: "0.16em", color: brand, fontWeight: 500 }}>{packMode ? "PACKING SLIP" : (isPo ? "PURCHASE ORDER" : "INVOICE")}</div>
                     {isPo ? (openInv.poNumber && <div style={{ fontSize: 13, color: N.ink, marginTop: 5 }}>PO #{openInv.poNumber}</div>) : (openInv.number && <div style={{ fontSize: 13, color: N.ink, marginTop: 5 }}>No. {openInv.number}{revised && <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", color: "#8a5a00", background: "#fdf5e3", border: "1px solid #f0d89a", borderRadius: 6, padding: "1px 7px", marginLeft: 8 }}>REVISED</span>}</div>)}
                     <div style={{ fontSize: 12, color: N.muted, marginTop: 2 }}>Date: {openInv.date}</div>
                   </div>
@@ -1665,20 +1667,20 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   </div>
                 )}
                 <div style={{ border: "1px solid " + N.rule, borderRadius: 10, overflow: "hidden", marginBottom: 16 }}>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 46px 86px 92px", gap: 8, padding: "10px 14px", background: "#f7fafd", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", color: N.muted }}>
-                    <span>DESCRIPTION</span><span style={{ textAlign: "center" }}>QTY</span><span style={{ textAlign: "right" }}>RATE</span><span style={{ textAlign: "right" }}>AMOUNT</span>
+                  <div style={{ display: "grid", gridTemplateColumns: packMode ? "1fr 60px" : "1fr 46px 86px 92px", gap: 8, padding: "10px 14px", background: "#f7fafd", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", color: N.muted }}>
+                    <span>DESCRIPTION</span><span style={{ textAlign: "center" }}>QTY</span>{!packMode && <><span style={{ textAlign: "right" }}>RATE</span><span style={{ textAlign: "right" }}>AMOUNT</span></>}
                   </div>
                   {invLines.map((l, i) => (
-                    <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 46px 86px 92px", gap: 8, padding: "11px 14px", borderTop: "1px solid " + N.rule, fontSize: 14, color: N.text }}>
-                      <span>{cleanDesc(l.desc)}{isPo && l.item ? <span style={{ color: N.mutedLite }}> · {l.item}</span> : null}</span>
-                      <span style={{ textAlign: "center", color: N.muted }}>{l.qty || 1}</span>
-                      <span style={{ textAlign: "right", color: N.muted }}>{money(rateOf(l))}</span>
-                      <span style={{ textAlign: "right", fontWeight: 500, color: N.ink }}>{money(rateOf(l) * (l.qty || 1))}</span>
+                    <div key={i} style={{ display: "grid", gridTemplateColumns: packMode ? "1fr 60px" : "1fr 46px 86px 92px", gap: 8, padding: "11px 14px", borderTop: "1px solid " + N.rule, fontSize: 14, color: N.text }}>
+                      <span>{cleanDesc(l.desc)}{(isPo || packMode) && l.item ? <span style={{ color: N.mutedLite }}> · {l.item}</span> : null}</span>
+                      <span style={{ textAlign: "center", color: packMode ? N.ink : N.muted, fontWeight: packMode ? 700 : 400 }}>{l.qty || 1}</span>
+                      {!packMode && <><span style={{ textAlign: "right", color: N.muted }}>{money(rateOf(l))}</span>
+                      <span style={{ textAlign: "right", fontWeight: 500, color: N.ink }}>{money(rateOf(l) * (l.qty || 1))}</span></>}
                     </div>
                   ))}
                 </div>
 
-                <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                {!packMode && <div style={{ display: "flex", justifyContent: "flex-end" }}>
                   {isPo ? (
                   <div style={{ width: 250 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", fontSize: 18, fontWeight: 700, color: N.ink, padding: "9px 0 0", borderTop: "2px solid " + N.ink }}><span>PO total</span><span>{money(docSub)}</span></div>
@@ -1706,9 +1708,9 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                     })()}
                   </div>
                   )}
-                </div>
+                </div>}
 
-                {isPo ? (
+                {!packMode ? (isPo ? (
                 <div style={{ marginTop: 22, paddingTop: 16, borderTop: "1px solid " + N.rule, fontSize: 12, color: N.muted, lineHeight: 1.6 }}>
                   <div style={{ fontWeight: 700, color: N.text, marginBottom: 2 }}>Ship to</div>
                   <div style={{ whiteSpace: "pre-line", color: N.text }}>{entity.remitAddress || entity.name}</div>
@@ -1724,6 +1726,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   ) : null}
                   {entity.customerNote ? <div style={{ marginTop: 10, fontStyle: "italic", color: N.text }}>{entity.customerNote}</div> : null}
                 </div>
+                )) : (
+                <div style={{ marginTop: 22, paddingTop: 16, borderTop: "1px solid " + N.rule, fontSize: 12, color: N.text, lineHeight: 1.6 }}><b>Packing slip</b> — prices omitted. Please check off every item above as you pack, and verify on receipt.</div>
                 )}
               </div>
 
@@ -1770,6 +1774,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               <div className="no-print" style={{ padding: "14px 22px", borderTop: "1px solid " + N.rule, background: "#f7fafd", display: "flex", gap: 8, justifyContent: "flex-end", alignItems: "center", flexWrap: "wrap" }}>
                 <span style={{ marginRight: "auto", fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: STATUS_COLOR[openInv.status] || N.muted }}>{openInv.status}</span>
                 <button onClick={() => window.print()} style={{ ...btnBlue, background: N.blue }}>Print / Save PDF</button>
+                <button onClick={() => setPackMode(m => !m)} title="Show a packing slip — items & quantities, no prices" style={btnPaper(packMode ? N.pinkDark : N.blueDark)}>{packMode ? `← Back to ${isPo ? "PO" : "invoice"}` : "📦 Packing slip"}</button>
                 {isPo ? (
                   <>
                     <button onClick={() => { const v = openInv; setOpenInv(null); editOrder(v); }} style={btnPaper(N.muted)}>Edit</button>
