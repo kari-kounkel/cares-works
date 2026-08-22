@@ -2781,24 +2781,32 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             const rev = !!(ls && evs.filter(e => e.event_type === "revised").reduce((m, e) => e.created_at > m ? e.created_at : m, "") > ls);
             return (
             <div key={v.id} onClick={() => setOpenInv(v)} title="Open invoice"
-              style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", borderBottom: i === invoices.length - 1 ? "none" : "1px solid " + N.rule, cursor: "pointer", opacity: voided ? 0.55 : 1, background: justAdded ? "#fff7e0" : "transparent", borderLeft: justAdded ? "3px solid #eab308" : "3px solid transparent" }}
+              style={{ padding: "12px 16px", borderBottom: i === invoices.length - 1 ? "none" : "1px solid " + N.rule, cursor: "pointer", opacity: voided ? 0.55 : 1, background: justAdded ? "#fff7e0" : "transparent", borderLeft: justAdded ? "3px solid #eab308" : "3px solid transparent" }}
               onMouseEnter={e => (e.currentTarget.style.background = justAdded ? "#fdf0cf" : "#f7fafd")}
               onMouseLeave={e => (e.currentTarget.style.background = justAdded ? "#fff7e0" : "transparent")}>
-              <div style={{ width: 50, fontSize: 12, color: N.muted }}>{v.date}</div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 15, color: N.ink, fontWeight: 600, textDecoration: voided ? "line-through" : "none" }}>{v.number ? <span style={{ color: N.blue, fontFamily: "'DM Mono', monospace", fontSize: 13, marginRight: 7 }}>#{v.number}</span> : null}{v.customer}{rev && <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.06em", color: "#8a5a00", background: "#fdf5e3", border: "1px solid #f0d89a", borderRadius: 5, padding: "1px 6px", marginLeft: 8 }}>REVISED</span>}</div>
-                <div style={{ fontSize: 12, color: N.muted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{v.item}{v.paidCents > 0 && v.balanceCents > 0 ? <span style={{ color: "#a16207" }}> · paid {money(v.paid)}, balance {money(v.balance)}</span> : ""}</div>
+              {/* Customer name across the top */}
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                <div style={{ fontSize: 16, color: N.ink, fontWeight: 700, textDecoration: voided ? "line-through" : "none", minWidth: 0 }}>
+                  {v.number ? <span style={{ color: N.blue, fontFamily: "'DM Mono', monospace", fontSize: 13, marginRight: 8 }}>#{v.number}</span> : null}{v.customer}{rev && <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.06em", color: "#8a5a00", background: "#fdf5e3", border: "1px solid #f0d89a", borderRadius: 5, padding: "1px 6px", marginLeft: 8 }}>REVISED</span>}
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, whiteSpace: "nowrap" }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: STATUS_COLOR[v.status] || N.muted, background: (STATUS_COLOR[v.status] || N.muted) + "18", padding: "4px 10px", borderRadius: 100 }}>{v.status}</span>
+                  <span style={{ fontSize: 16, fontWeight: 700, color: voided ? N.mutedLite : N.ink, textDecoration: voided ? "line-through" : "none" }}>{money(v.amount)}</span>
+                </div>
               </div>
-              <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: STATUS_COLOR[v.status] || N.muted, background: (STATUS_COLOR[v.status] || N.muted) + "18", padding: "4px 10px", borderRadius: 100 }}>{v.status}</span>
-              <div style={{ display: "flex", gap: 6 }}>
-                {!voided && <button onClick={e => { e.stopPropagation(); openOnline(v); }} title="Open the invoice online — no copying links" style={btnPaper(N.blueDark)}>👁 Open</button>}
-                {!voided && <button onClick={e => { e.stopPropagation(); editOrder(v); }} style={btnPaper(N.muted)}>Edit</button>}
-                {v.status !== "Paid" && !voided && <button onClick={e => { e.stopPropagation(); sendInvoice(v); }} style={btnPaper(N.blue)}>{v.status === "Draft" ? "Send" : "Resend"}</button>}
-                {(v.status === "Sent" || v.status === "Viewed") && <button onClick={e => { e.stopPropagation(); invoiceStatus(v.id, "draft"); }} style={btnPaper(N.muted)}>← Draft</button>}
-                {v.status !== "Paid" && !voided && <button onClick={e => { e.stopPropagation(); quickMarkPaid(v); }} style={btnPaper(N.pinkDark)}>Mark paid</button>}
-                {v.status !== "Paid" && !voided && <button onClick={e => { e.stopPropagation(); openPayment(v); }} style={btnPaper(N.muted)}>Payment…</button>}
-              </div>
-              <div style={{ fontSize: 16, fontWeight: 600, color: voided ? N.mutedLite : N.ink, width: 90, textAlign: "right", textDecoration: voided ? "line-through" : "none" }}>{money(v.amount)}</div>
+              {/* date + item + partial */}
+              <div style={{ fontSize: 12, color: N.muted, marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{v.date} · {v.item}{v.paidCents > 0 && v.balanceCents > 0 ? <span style={{ color: "#a16207" }}> · paid {money(v.paid)}, balance {money(v.balance)}</span> : ""}</div>
+              {/* action buttons underneath */}
+              {!voided && (
+                <div style={{ display: "flex", gap: 6, marginTop: 9, flexWrap: "wrap" }}>
+                  <button onClick={e => { e.stopPropagation(); openOnline(v); }} title="Open the invoice online — no copying links" style={btnPaper(N.blueDark)}>👁 Open</button>
+                  <button onClick={e => { e.stopPropagation(); editOrder(v); }} style={btnPaper(N.muted)}>Edit</button>
+                  {v.status !== "Paid" && <button onClick={e => { e.stopPropagation(); sendInvoice(v); }} style={btnPaper(N.blue)}>{v.status === "Draft" ? "Send" : "Resend"}</button>}
+                  {(v.status === "Sent" || v.status === "Viewed") && <button onClick={e => { e.stopPropagation(); invoiceStatus(v.id, "draft"); }} style={btnPaper(N.muted)}>← Draft</button>}
+                  {v.status !== "Paid" && <button onClick={e => { e.stopPropagation(); quickMarkPaid(v); }} style={btnPaper(N.pinkDark)}>Mark paid</button>}
+                  {v.status !== "Paid" && <button onClick={e => { e.stopPropagation(); openPayment(v); }} style={btnPaper(N.muted)}>Payment…</button>}
+                </div>
+              )}
             </div>
             );
           })}
