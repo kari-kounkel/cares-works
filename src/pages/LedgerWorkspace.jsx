@@ -553,6 +553,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [msgOpen, setMsgOpen] = useState(false);
   const [replyTo, setReplyTo] = useState(null); // message id being replied to
   const [replyDraft, setReplyDraft] = useState("");
+  const [msgArchive, setMsgArchive] = useState(false); // show resolved (done) messages
   const [recentIds, setRecentIds] = useState([]); // just-entered rows, pinned to the top until cleared
   const markRecent = id => { if (id) setRecentIds(p => [id, ...p.filter(x => x !== id)].slice(0, 12)); };
   const [invSort, setInvSort] = useState("status"); // Invoices list sort
@@ -751,6 +752,11 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     await supabase.from("ledger_messages").update({ done: true }).eq("id", id);
     setReloadTick(t => t + 1);
   }
+  async function reopenNote(id) {
+    if (!liveOrgId || testMode) return;
+    await supabase.from("ledger_messages").update({ done: false }).eq("id", id);
+    setReloadTick(t => t + 1);
+  }
   function noteTime(ts) {
     if (!ts) return "";
     try { return new Date(ts).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }); } catch (e) { return ""; }
@@ -785,6 +791,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   function messageBar() {
     if (!liveOrgId || testMode) return null;
     const open = messages.filter(m => !m.done && !m.reply_to);
+    const doneMsgs = messages.filter(m => m.done && !m.reply_to).sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
     const repliesOf = id => messages.filter(r => r.reply_to === id).sort((a, b) => (a.created_at || "").localeCompare(b.created_at || ""));
     const other = meName === "Betty" ? "Dave" : "Betty";
     return (
@@ -795,7 +802,29 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               {open.length ? `🔔 ${open.length} NEW MESSAGE${open.length === 1 ? "" : "S"} — please read` : "✉ Messages"}
             </span>
             <button onClick={() => setMsgOpen(o => !o)} style={{ ...btnPaper(N.blue), padding: "5px 12px" }}>{msgOpen ? "Close" : `＋ Message ${other}`}</button>
+            {doneMsgs.length > 0 && <button onClick={() => setMsgArchive(a => !a)} style={{ ...btnPaper(N.muted), padding: "5px 12px" }}>{msgArchive ? "Hide archive" : `📁 Archive (${doneMsgs.length})`}</button>}
           </div>
+          {msgArchive && doneMsgs.length > 0 && (
+            <div style={{ marginTop: 10, borderTop: "1px solid " + N.rule, paddingTop: 10, display: "grid", gap: 6 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: N.muted }}>Handled messages</div>
+              {doneMsgs.map(m => {
+                const replies = repliesOf(m.id);
+                return (
+                  <div key={m.id} style={{ background: "#fafbfc", border: "1px solid " + N.rule, borderRadius: 8, padding: "7px 12px", opacity: 0.9 }}>
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{ fontSize: 12.5, fontWeight: 700, color: N.muted }}>{m.author}</span>
+                        <span style={{ fontSize: 10.5, color: N.mutedLite, marginLeft: 6 }}>{noteTime(m.created_at)}</span>
+                        <div style={{ fontSize: 13, color: N.text, marginTop: 1, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{m.body}</div>
+                        {replies.map(r => <div key={r.id} style={{ fontSize: 12, color: N.muted, marginTop: 3, marginLeft: 10, borderLeft: "2px solid " + N.rule, paddingLeft: 8 }}><b style={{ color: N.blueDark }}>{r.author}:</b> {r.body}</div>)}
+                      </div>
+                      <button onClick={() => reopenNote(m.id)} title="Bring this back to the active list" style={{ ...btnPaper(N.blue), padding: "4px 9px", whiteSpace: "nowrap", fontSize: 11 }}>↩ Reopen</button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
           {open.length > 0 && (
             <div style={{ display: "grid", gap: 6, marginTop: 10 }}>
               {open.map(m => {
