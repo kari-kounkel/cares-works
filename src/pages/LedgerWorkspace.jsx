@@ -739,6 +739,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
 
   // Keep the notebook + invoices in sync when the data source changes (sample → live, or after a write).
   useEffect(() => { setItems(entity.notebook); setCleared([]); setInvoices(entity.invoices || []); }, [entity]);
+  // Name the browser tab after the tenant, so a wall of tabs is distinguishable.
+  useEffect(() => { document.title = (entity.short || entity.name || "CARES Works") + " — Books"; }, [entity.short, entity.name]);
   // Load the team message board for this org (+ signed URLs for any attached screenshots).
   useEffect(() => {
     if (!liveOrgId || testMode) { setMessages([]); return; }
