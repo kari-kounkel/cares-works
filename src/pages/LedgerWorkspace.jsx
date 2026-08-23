@@ -2479,7 +2479,10 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
 
         {showPayCard && (
           <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: 14, marginBottom: 12 }}>
-            <div style={{ fontSize: 13, color: N.ink, fontWeight: 600, marginBottom: 8 }}>Record a card payment — this is a transfer, not an expense.</div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: 8 }}>
+              <div style={{ fontSize: 13, color: N.ink, fontWeight: 600 }}>Record a card payment — this is a transfer, not an expense.</div>
+              <button onClick={() => { setSection("admin"); setListsTab("recons"); }} style={{ ...btnPaper(N.blueDark), fontSize: 12, padding: "5px 10px" }}>📄 Statements & reconciliations →</button>
+            </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
               <input placeholder="$ amount" value={payDraft.amount} onChange={e => setPayDraft(d => ({ ...d, amount: e.target.value }))} style={{ ...inputSt, width: 110 }} />
               <span style={{ fontSize: 13, color: N.muted }}>from</span>
@@ -4349,7 +4352,10 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     const cols = "1.4fr 92px 62px 78px 92px 62px";
     return (
       <div>
-        <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink, marginBottom: 2 }}>Credit-card payoff plan</div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10, marginBottom: 2 }}>
+          <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>Credit-card payoff plan</div>
+          <button onClick={() => { setSection("admin"); setListsTab("recons"); }} style={btnPaper(N.blueDark)}>📄 Statements & reconciliations →</button>
+        </div>
         <div style={{ fontSize: 13, color: N.muted, marginBottom: 16 }}>Live from your card balances. Add each card's interest rate for the smartest payoff order.</div>
         {cards.length === 0 ? (
           <div style={{ background: N.white, border: "1px dashed " + N.rule, borderRadius: 12, padding: "34px 20px", textAlign: "center", color: N.muted, fontSize: 14 }}>No card balances owed — nothing to pay down. 🎉</div>
