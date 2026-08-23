@@ -345,6 +345,53 @@ function buildLiveEntity(org, accounts, categories, entries, session) {
 // Categories classed "transfer" are excluded outright: money moved between the
 // org's own accounts is neither revenue nor expense. Booking those as contributions
 // is exactly the error that inflates a nonprofit's public support.
+// ---- Comparing the new books against QuickBooks --------------------------------
+// A migration nobody can check is a migration nobody will trust. ledger_qbo_baseline
+// holds what QuickBooks reported month by month, frozen while the QBO subscription
+// was still live; this puts it beside what this tool now says for the same window.
+//
+// The two systems don't shelve expenses the same way. QBO files this org's program
+// costs under "Cost of Goods Sold" — a retail idea that means nothing to a nonprofit.
+// On a Statement of Activities those are program expenses, so QBO's cogs and expense
+// are added together to get the comparable total. Revenue and net map straight across.
+//
+// Only whole months that fall inside the window are counted. A part-month would make
+// the two sides differ for a reason that has nothing to do with the books being wrong,
+// which is worse than showing no comparison at all — so `partial` says so out loud.
+export function compareToQbo(baseline, entries, categories, start, end) {
+  const inWindow = (baseline || []).filter(b => b.period_start >= start && b.period_end <= end);
+  if (!inWindow.length) return null;
+
+  const qbo = inWindow.reduce((acc, b) => ({
+    revenue: acc.revenue + (b.revenue_cents || 0),
+    expense: acc.expense + (b.cogs_cents || 0) + (b.expense_cents || 0),
+  }), { revenue: 0, expense: 0 });
+  qbo.net = qbo.revenue - qbo.expense;
+
+  const s = summarizeActivities(entries, categories, start, end);
+  const book = { revenue: s.revTotal, expense: s.expTotal, net: s.change };
+
+  // Does the baseline actually span the whole window, or only part of it?
+  const covStart = inWindow[0].period_start;
+  const covEnd = inWindow[inWindow.length - 1].period_end;
+  const partial = covStart > start || covEnd < end;
+
+  return {
+    qbo, book,
+    diff: {
+      revenue: book.revenue - qbo.revenue,
+      expense: book.expense - qbo.expense,
+      net: book.net - qbo.net,
+    },
+    months: inWindow.length,
+    covStart, covEnd, partial,
+    // uncoded activity is excluded from `book` by design, so a difference that
+    // exactly matches it is explained rather than mysterious
+    uncoded: s.uncoded,
+    tie: book.revenue === qbo.revenue && book.expense === qbo.expense,
+  };
+}
+
 export function summarizeActivities(entries, categories, start, end) {
   const meta = {};
   (categories || []).forEach(c => { meta[c.name] = { kind: c.kind, fc: c.func_class || null }; });
@@ -680,7 +727,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         ? (orgs || []).find(o => o.id === orgId)
         : (wantFirst ? (orgs || []).find(o => (o.name || "").toLowerCase().includes(wantFirst)) : null);
       if (!org || cancelled) return;
-      const [a, c, e, inv, ven, cust, prod, bil, pay, cred, evts, docs, dons] = await Promise.all([
+      const [a, c, e, inv, ven, cust, prod, bil, pay, cred, evts, docs, dons, qbo] = await Promise.all([
         supabase.from("ledger_accounts").select("*").eq("org_id", org.id).eq("archived", false).order("created_at", { ascending: true }),
         supabase.from("ledger_categories").select("*").eq("org_id", org.id).eq("archived", false).order("sort_order", { ascending: true }),
         supabase.from("ledger_entries").select("*").eq("org_id", org.id).order("entry_date", { ascending: false }).order("created_at", { ascending: false }),
@@ -694,6 +741,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         supabase.from("ledger_doc_events").select("*").eq("org_id", org.id).order("created_at", { ascending: true }),
         supabase.from("ledger_documents").select("*").eq("org_id", org.id).order("created_at", { ascending: false }),
         supabase.from("ledger_donors").select("*").eq("org_id", org.id).order("name", { ascending: true }),
+        supabase.from("ledger_qbo_baseline").select("*").eq("org_id", org.id).order("period_start", { ascending: true }),
       ]);
       if (cancelled) return;
       setLiveOrgId(org.id);
@@ -715,6 +763,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       built.docEvents = evByInv;
       built.documents = docs.data || [];
       built.donors = dons.data || [];
+      built.qboBaseline = qbo.data || [];
+      built.conversionDate = org.conversion_date || null;
       built.orgType = org.org_type || "business";
       setDbEntity(built);
     })();
@@ -2609,164 +2659,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           );
         })()}
 
-        {reconOpen && acctFilter && (() => {
-          const acct = accountList.find(a => a.name === acctFilter);
-          const acctId = acct ? acct.id : null;
-          const rawA = (entity.rawAccounts || []).find(a => a.id === acctId);
-          const opening = rawA ? (rawA.opening_balance_cents || 0) : 0;
-          const all = (entity.rawEntries || []).filter(e => e.account_id === acctId);
-          const reconciledSum = all.filter(e => e.match_status === "reconciled").reduce((s, e) => s + (e.direction === "in" ? e.amount_cents : -e.amount_cents), 0);
-          const beginning = opening + reconciledSum;
-          // The statement end date filters out anything dated after it, so only lines on/before the
-          // statement close are eligible to check.
-          const unrec = all.filter(e => e.match_status !== "reconciled" && (!reconDate || (e.entry_date || "") <= reconDate)).sort((a, b) => (a.entry_date || "").localeCompare(b.entry_date || ""));
-          const hiddenAfter = reconDate ? all.filter(e => e.match_status !== "reconciled" && (e.entry_date || "") > reconDate).length : 0;
-          const acctRecs = reconHist.filter(r => r.account_id === acctId);
-          const lastRec = acctRecs[0] || null;
-          const moneyIn = unrec.filter(e => e.direction === "in");
-          const moneyOut = unrec.filter(e => e.direction !== "in");
-          const checkedSum = unrec.filter(e => reconChecked[e.id]).reduce((s, e) => s + (e.direction === "in" ? e.amount_cents : -e.amount_cents), 0);
-          const clearedBal = beginning + checkedSum;
-          const isLiab = rawA && (rawA.account_type === "credit_card" || rawA.account_type === "loan");
-          const stmt = reconTarget === "" ? null : Math.round((parseFloat(reconTarget) || 0) * 100);
-          const targetSigned = stmt == null ? null : (isLiab ? -stmt : stmt);
-          const diff = targetSigned == null ? null : (targetSigned - clearedBal);
-          const ok = diff != null && Math.abs(diff) < 1;
-          const owed = c => money((isLiab ? -c : c) / 100);
-          const checkedIds = unrec.filter(e => reconChecked[e.id]).map(e => e.id);
-          const toggle = id => setReconChecked(p => ({ ...p, [id]: !p[id] }));
-          const shortD = d => { const p = (d || "").split("-"); return p.length === 3 ? `${+p[1]}/${+p[2]}` : d; };
-          const renderCol = (title, rows, color) => (
-            <div style={{ flex: 1, minWidth: 260 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color, marginBottom: 6 }}>{title} · {rows.length}</div>
-              <div style={{ border: "1px solid " + N.rule, borderRadius: 10, overflow: "hidden", maxHeight: "42vh", overflowY: "auto" }}>
-                {rows.length === 0 && <div style={{ padding: 14, color: N.muted, fontSize: 13 }}>None.</div>}
-                {rows.map((e, i) => (
-                  <div key={e.id} onClick={() => toggle(e.id)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", borderTop: i === 0 ? "none" : "1px solid " + N.rule, cursor: "pointer", background: reconChecked[e.id] ? "#eafaf0" : "transparent" }}>
-                    <span style={{ width: 18, height: 18, borderRadius: 4, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: reconChecked[e.id] ? N.pinkDark : "transparent", border: reconChecked[e.id] ? "none" : "1.5px solid " + N.rule, color: "#fff", fontSize: 11, fontWeight: 700 }}>{reconChecked[e.id] ? "R" : ""}</span>
-                    <span style={{ width: 42, fontSize: 12, color: N.muted }}>{shortD(e.entry_date)}</span>
-                    <span style={{ flex: 1, minWidth: 0, fontSize: 13, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{e.description}</span>
-                    <span style={{ fontSize: 13, fontWeight: 600, color }}>{money((e.amount_cents || 0) / 100)}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          );
-          return (
-            <div onClick={() => setReconOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(10,10,20,0.5)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "36px 16px", zIndex: 220, overflowY: "auto" }}>
-              <div onClick={ev => ev.stopPropagation()} style={{ background: N.white, borderRadius: 14, width: "100%", maxWidth: 880, boxShadow: "0 24px 70px rgba(10,10,20,0.35)", padding: 22 }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10, marginBottom: 10 }}>
-                  <div>
-                    <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 21, color: N.ink }}>Reconcile {acctFilter}</div>
-                    <div style={{ fontSize: 12, color: N.muted, marginTop: 2 }}>
-                      {lastRec
-                        ? <>Last reconciled: <b style={{ color: N.ink }}>{owed(lastRec.statement_ending_balance_cents)}{isLiab ? " owed" : ""}</b> · statement {fmtStmtDate(lastRec.statement_ending_date)}</>
-                        : "No prior reconciliation on this account yet."}
-                    </div>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: N.muted, flexWrap: "wrap" }}>
-                    {acctId && <button onClick={() => openImport(acctId)} title="Import the transaction lines from a bank/card CSV export" style={btnPaper(N.blueDark)}>⬆ Upload transactions</button>}
-                    <span>Statement date</span>
-                    <input type="date" value={reconDate} onChange={e => setReconDate(e.target.value)} title="Only lines on or before this date can be checked" style={{ ...inputSt, width: 150 }} />
-                    <span>{isLiab ? "New balance owed" : "Ending balance"}</span>
-                    <input value={reconTarget} onChange={e => setReconTarget(e.target.value)} placeholder={isLiab ? "$ owed on statement" : "$ from statement"} inputMode="decimal" style={{ ...inputSt, width: 140 }} />
-                    {reconStmtDoc
-                      ? <span style={{ fontSize: 12, fontWeight: 600, color: N.pinkDark, background: "#eafaf0", border: "1px solid #bff0d3", borderRadius: 100, padding: "5px 10px" }}>📎 {reconStmtDoc.name} <button onClick={() => setReconStmtDoc(null)} title="Remove" style={{ border: "none", background: "none", color: N.muted, cursor: "pointer", fontWeight: 700 }}>×</button></span>
-                      : <label style={{ ...btnPaper(N.green), cursor: reconStmtBusy ? "default" : "pointer", opacity: reconStmtBusy ? 0.6 : 1 }}>{reconStmtBusy ? "Uploading…" : "📎 Upload statement"}<input type="file" accept=".pdf,.csv,application/pdf,text/csv" disabled={reconStmtBusy} onChange={e => { const f = e.target.files && e.target.files[0]; e.target.value = ""; attachReconStatement(f); }} style={{ display: "none" }} /></label>}
-                  </div>
-                </div>
-                <div style={{ fontSize: 13, color: N.muted, marginBottom: 10 }}>Click each line that's on this statement — it gets an <b style={{ color: N.pinkDark }}>R</b>. When the difference hits <b>$0.00</b>, you're reconciled.</div>
-                <div style={{ display: "flex", gap: 8, marginBottom: 14, alignItems: "center", flexWrap: "wrap" }}>
-                  <button onClick={() => setReconChecked(Object.fromEntries(unrec.map(e => [e.id, true])))} style={btnPaper(N.pinkDark)}>✓ Check all {unrec.length}</button>
-                  <button onClick={() => setReconChecked({})} style={btnPaper(N.muted)}>Uncheck all</button>
-                  <span style={{ fontSize: 12, color: N.mutedLite }}>{reconDate ? "Set a statement date, then Check all — everything shown is on/before it." : "Tip: set the statement date above and lines after it drop off the list."}</span>
-                  {hiddenAfter > 0 && <span style={{ fontSize: 12, fontWeight: 600, color: N.blueDark, background: "#eef6ff", border: "1px solid #cfe4ff", padding: "3px 10px", borderRadius: 100 }}>{hiddenAfter} line{hiddenAfter === 1 ? "" : "s"} after {fmtStmtDate(reconDate)} hidden</span>}
-                </div>
-                <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 16 }}>
-                  {renderCol("Money in — deposits", moneyIn, "#3a7d4a")}
-                  {renderCol("Money out — checks & payments", moneyOut, N.red)}
-                </div>
-                {(() => {
-                  const clearedList = all.filter(e => e.match_status === "reconciled").sort((a, b) => (b.entry_date || "").localeCompare(a.entry_date || ""));
-                  if (!clearedList.length) return null;
-                  return (
-                    <div style={{ marginBottom: 16 }}>
-                      <button onClick={() => setReconSeeCleared(v => !v)} style={{ ...btnPaper(N.muted), fontSize: 12 }}>{reconSeeCleared ? "Hide" : "See"} {clearedList.length} already-reconciled item{clearedList.length === 1 ? "" : "s"} (locked)</button>
-                      {reconSeeCleared && (
-                        <div style={{ border: "1px solid " + N.rule, borderRadius: 10, overflow: "hidden", marginTop: 8, maxHeight: "34vh", overflowY: "auto" }}>
-                          {clearedList.map((e, i) => (
-                            <div key={e.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 12px", borderTop: i === 0 ? "none" : "1px solid " + N.rule, background: "#fafbfc" }}>
-                              <span style={{ width: 16, height: 16, borderRadius: 4, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: N.pinkDark, color: "#fff", fontSize: 10, fontWeight: 700 }}>R</span>
-                              <span style={{ width: 42, fontSize: 12, color: N.muted }}>{shortD(e.entry_date)}</span>
-                              <span style={{ flex: 1, minWidth: 0, fontSize: 13, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{e.description}</span>
-                              <span style={{ fontSize: 13, fontWeight: 600, color: e.direction === "in" ? "#3a7d4a" : N.red }}>{e.direction === "in" ? "+" : "−"}{money((e.amount_cents || 0) / 100)}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })()}
-                {(() => {
-                  const presets = isLiab
-                    ? [["Payment", { dir: "in", category: "", memo: "Payment" }], ["Charge", { dir: "out", category: "", memo: "" }], ["Interest charged", { dir: "out", category: "CC Interest", memo: "Interest charged" }], ["Fee", { dir: "out", category: "Banking costs", memo: "Fee" }]]
-                    : [["Deposit", { dir: "in", category: "", memo: "" }], ["Check / payment", { dir: "out", category: "", memo: "" }], ["Bank fee", { dir: "out", category: "Banking costs", memo: "Bank service charge" }], ["Interest earned", { dir: "in", category: "Interest income", memo: "Interest earned" }]];
-                  const activeIdx = presets.findIndex(([, p]) => p.dir === reconAdd.dir && (p.category || "") === (reconAdd.category || ""));
-                  return (
-                  <div style={{ border: "1px solid " + N.rule, borderRadius: 10, padding: "12px 14px", marginBottom: 16, background: "#fbfdff" }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: N.muted, marginBottom: 8 }}>On the statement but not in your books? Add it here — it gets an R automatically.</div>
-                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
-                      {presets.map(([lbl, p], k) => (
-                        <button key={lbl} onClick={() => setReconAdd(d => ({ ...d, ...p }))} style={{ fontSize: 12, fontWeight: 600, padding: "5px 11px", borderRadius: 100, cursor: "pointer", fontFamily: "'Figtree', sans-serif", border: "1px solid " + (activeIdx === k ? N.blue : N.rule), background: activeIdx === k ? N.blue : N.white, color: activeIdx === k ? "#fff" : N.text }}>{lbl}</button>
-                      ))}
-                    </div>
-                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-                      <input value={reconAdd.amount} onChange={e => setReconAdd(d => ({ ...d, amount: e.target.value }))} placeholder="$ amount" inputMode="decimal" style={{ ...inputSt, width: 120 }} />
-                      <input value={reconAdd.memo} onChange={e => setReconAdd(d => ({ ...d, memo: e.target.value }))} placeholder="Description (e.g. check #, who)" style={{ ...inputSt, flex: 1, minWidth: 180 }} />
-                      <span style={{ fontSize: 12, fontWeight: 700, color: reconAdd.dir === "in" ? "#3a7d4a" : N.red }}>{reconAdd.dir === "in" ? "+ money in" : "− money out"}</span>
-                      <button onClick={() => addReconLine(acctId)} disabled={!(parseFloat(reconAdd.amount) > 0)} style={{ ...btnBlue, background: (parseFloat(reconAdd.amount) > 0) ? N.blue : N.mutedLite }}>Add</button>
-                    </div>
-                  </div>
-                  );
-                })()}
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, background: ok ? "#eafaf0" : "#f7fafd", border: "1px solid " + (ok ? "#bff0d3" : N.rule), borderRadius: 12, padding: "12px 16px" }}>
-                  <div style={{ fontSize: 13, color: N.muted }}>Beginning <b style={{ color: N.ink }}>{owed(beginning)}{isLiab ? " owed" : ""}</b> + {checkedIds.length} checked = <b style={{ color: N.ink }}>{owed(clearedBal)}{isLiab ? " owed" : ""}</b>{diff != null && (ok ? <b style={{ color: N.pinkDark, marginLeft: 10 }}>✓ Reconciled — difference $0.00</b> : <span style={{ marginLeft: 10, color: "#8a5a00" }}>Difference <b>{money((isLiab ? -diff : diff) / 100)}</b></span>)}</div>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <button onClick={() => setReconOpen(false)} style={btnPaper(N.muted)}>Close</button>
-                    <button onClick={() => attemptReconcile(checkedIds, { acctId, statementDate: reconDate, beginningCents: beginning }, diff, targetSigned)} disabled={checkedIds.length === 0 || diff == null} title={diff == null ? "Enter the statement ending balance first." : (!ok ? "Off — you'll be asked to post the difference to Suspense." : "")} style={{ ...btnBlue, background: (checkedIds.length && diff != null) ? (ok ? N.blue : "#b45309") : N.mutedLite, cursor: (checkedIds.length && diff != null) ? "pointer" : "not-allowed" }}>{diff == null ? "Enter a balance" : ok ? `Reconcile ${checkedIds.length} & lock` : `Post ${money(Math.abs(diff) / 100)} to suspense & lock`}</button>
-                  </div>
-                </div>
-                {acctRecs.length > 0 && (
-                  <div style={{ marginTop: 16, borderTop: "1px solid " + N.rule, paddingTop: 14 }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: N.muted }}>Reconciliation history — {acctFilter}</div>
-                      <button onClick={() => printReconHistory(acctFilter, acctRecs, isLiab)} style={btnPaper(N.blueDark)}>🖨 Print report</button>
-                    </div>
-                    <div style={{ border: "1px solid " + N.rule, borderRadius: 10, overflow: "hidden" }}>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 70px 110px 80px", gap: 8, padding: "8px 12px", background: "#f7fafd", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.08em", color: N.muted }}>
-                        <span>STATEMENT DATE</span><span style={{ textAlign: "right" }}>ENDING BALANCE</span><span style={{ textAlign: "right" }}>ITEMS</span><span style={{ textAlign: "center" }}>STATEMENT</span><span style={{ textAlign: "right" }}>DONE</span>
-                      </div>
-                      {acctRecs.map((r, i) => {
-                        const doc = r.document_id ? (entity.documents || []).find(d => d.id === r.document_id) : null;
-                        return (
-                        <div key={r.id} style={{ display: "grid", gridTemplateColumns: "1fr 1fr 70px 110px 80px", gap: 8, padding: "8px 12px", borderTop: "1px solid " + N.rule, fontSize: 13, alignItems: "center" }}>
-                          <span style={{ fontWeight: 600, color: N.ink }}>{fmtStmtDate(r.statement_ending_date)}</span>
-                          <span style={{ textAlign: "right" }}>{owed(r.statement_ending_balance_cents)}{isLiab ? " owed" : ""}</span>
-                          <span style={{ textAlign: "right", color: N.muted }}>{r.item_count || 0}</span>
-                          <span style={{ textAlign: "center" }}>{doc
-                            ? <button onClick={() => downloadDoc(doc)} title={doc.name} style={{ ...btnPaper(N.blueDark), padding: "3px 8px", fontSize: 11 }}>📎 Open</button>
-                            : <span style={{ color: N.mutedLite, fontSize: 11 }}>—</span>}</span>
-                          <span style={{ textAlign: "right", color: N.mutedLite, fontSize: 11 }}>{r.reconciled_at || r.created_at ? new Date(r.reconciled_at || r.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : ""}</span>
-                        </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          );
-        })()}
+        {reconOpen && acctFilter && ReconcilePanel((accountList.find(a => a.name === acctFilter) || {}).id, acctFilter)}
       </div>
     );
   }
@@ -4378,6 +4271,169 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   // account, oldest line first, running balance down the right edge. There is no
   // "inbox to clear" here — every line that ever hit the account stays on the page,
   // cleared or not, because that's what a register is for.
+  // The reconcile screen. It is shared because Emerson's books render the Register
+  // rather than the Notebook (ledgerStyle "register"), and while this lived inside
+  // Notebook() those books had no way to reconcile at all.
+  function ReconcilePanel(acctId, acctName) {
+    if (!acctId) return null;
+    return (() => {
+          const rawA = (entity.rawAccounts || []).find(a => a.id === acctId);
+          const opening = rawA ? (rawA.opening_balance_cents || 0) : 0;
+          const all = (entity.rawEntries || []).filter(e => e.account_id === acctId);
+          const reconciledSum = all.filter(e => e.match_status === "reconciled").reduce((s, e) => s + (e.direction === "in" ? e.amount_cents : -e.amount_cents), 0);
+          const beginning = opening + reconciledSum;
+          // The statement end date filters out anything dated after it, so only lines on/before the
+          // statement close are eligible to check.
+          const unrec = all.filter(e => e.match_status !== "reconciled" && (!reconDate || (e.entry_date || "") <= reconDate)).sort((a, b) => (a.entry_date || "").localeCompare(b.entry_date || ""));
+          const hiddenAfter = reconDate ? all.filter(e => e.match_status !== "reconciled" && (e.entry_date || "") > reconDate).length : 0;
+          const acctRecs = reconHist.filter(r => r.account_id === acctId);
+          const lastRec = acctRecs[0] || null;
+          const moneyIn = unrec.filter(e => e.direction === "in");
+          const moneyOut = unrec.filter(e => e.direction !== "in");
+          const checkedSum = unrec.filter(e => reconChecked[e.id]).reduce((s, e) => s + (e.direction === "in" ? e.amount_cents : -e.amount_cents), 0);
+          const clearedBal = beginning + checkedSum;
+          const isLiab = rawA && (rawA.account_type === "credit_card" || rawA.account_type === "loan");
+          const stmt = reconTarget === "" ? null : Math.round((parseFloat(reconTarget) || 0) * 100);
+          const targetSigned = stmt == null ? null : (isLiab ? -stmt : stmt);
+          const diff = targetSigned == null ? null : (targetSigned - clearedBal);
+          const ok = diff != null && Math.abs(diff) < 1;
+          const owed = c => money((isLiab ? -c : c) / 100);
+          const checkedIds = unrec.filter(e => reconChecked[e.id]).map(e => e.id);
+          const toggle = id => setReconChecked(p => ({ ...p, [id]: !p[id] }));
+          const shortD = d => { const p = (d || "").split("-"); return p.length === 3 ? `${+p[1]}/${+p[2]}` : d; };
+          const renderCol = (title, rows, color) => (
+            <div style={{ flex: 1, minWidth: 260 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color, marginBottom: 6 }}>{title} · {rows.length}</div>
+              <div style={{ border: "1px solid " + N.rule, borderRadius: 10, overflow: "hidden", maxHeight: "42vh", overflowY: "auto" }}>
+                {rows.length === 0 && <div style={{ padding: 14, color: N.muted, fontSize: 13 }}>None.</div>}
+                {rows.map((e, i) => (
+                  <div key={e.id} onClick={() => toggle(e.id)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", borderTop: i === 0 ? "none" : "1px solid " + N.rule, cursor: "pointer", background: reconChecked[e.id] ? "#eafaf0" : "transparent" }}>
+                    <span style={{ width: 18, height: 18, borderRadius: 4, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: reconChecked[e.id] ? N.pinkDark : "transparent", border: reconChecked[e.id] ? "none" : "1.5px solid " + N.rule, color: "#fff", fontSize: 11, fontWeight: 700 }}>{reconChecked[e.id] ? "R" : ""}</span>
+                    <span style={{ width: 42, fontSize: 12, color: N.muted }}>{shortD(e.entry_date)}</span>
+                    <span style={{ flex: 1, minWidth: 0, fontSize: 13, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{e.description}</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color }}>{money((e.amount_cents || 0) / 100)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+          return (
+            <div onClick={() => setReconOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(10,10,20,0.5)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "36px 16px", zIndex: 220, overflowY: "auto" }}>
+              <div onClick={ev => ev.stopPropagation()} style={{ background: N.white, borderRadius: 14, width: "100%", maxWidth: 880, boxShadow: "0 24px 70px rgba(10,10,20,0.35)", padding: 22 }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10, marginBottom: 10 }}>
+                  <div>
+                    <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 21, color: N.ink }}>Reconcile {acctName}</div>
+                    <div style={{ fontSize: 12, color: N.muted, marginTop: 2 }}>
+                      {lastRec
+                        ? <>Last reconciled: <b style={{ color: N.ink }}>{owed(lastRec.statement_ending_balance_cents)}{isLiab ? " owed" : ""}</b> · statement {fmtStmtDate(lastRec.statement_ending_date)}</>
+                        : "No prior reconciliation on this account yet."}
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: N.muted, flexWrap: "wrap" }}>
+                    {acctId && <button onClick={() => openImport(acctId)} title="Import the transaction lines from a bank/card CSV export" style={btnPaper(N.blueDark)}>⬆ Upload transactions</button>}
+                    <span>Statement date</span>
+                    <input type="date" value={reconDate} onChange={e => setReconDate(e.target.value)} title="Only lines on or before this date can be checked" style={{ ...inputSt, width: 150 }} />
+                    <span>{isLiab ? "New balance owed" : "Ending balance"}</span>
+                    <input value={reconTarget} onChange={e => setReconTarget(e.target.value)} placeholder={isLiab ? "$ owed on statement" : "$ from statement"} inputMode="decimal" style={{ ...inputSt, width: 140 }} />
+                    {reconStmtDoc
+                      ? <span style={{ fontSize: 12, fontWeight: 600, color: N.pinkDark, background: "#eafaf0", border: "1px solid #bff0d3", borderRadius: 100, padding: "5px 10px" }}>📎 {reconStmtDoc.name} <button onClick={() => setReconStmtDoc(null)} title="Remove" style={{ border: "none", background: "none", color: N.muted, cursor: "pointer", fontWeight: 700 }}>×</button></span>
+                      : <label style={{ ...btnPaper(N.green), cursor: reconStmtBusy ? "default" : "pointer", opacity: reconStmtBusy ? 0.6 : 1 }}>{reconStmtBusy ? "Uploading…" : "📎 Upload statement"}<input type="file" accept=".pdf,.csv,application/pdf,text/csv" disabled={reconStmtBusy} onChange={e => { const f = e.target.files && e.target.files[0]; e.target.value = ""; attachReconStatement(f); }} style={{ display: "none" }} /></label>}
+                  </div>
+                </div>
+                <div style={{ fontSize: 13, color: N.muted, marginBottom: 10 }}>Click each line that's on this statement — it gets an <b style={{ color: N.pinkDark }}>R</b>. When the difference hits <b>$0.00</b>, you're reconciled.</div>
+                <div style={{ display: "flex", gap: 8, marginBottom: 14, alignItems: "center", flexWrap: "wrap" }}>
+                  <button onClick={() => setReconChecked(Object.fromEntries(unrec.map(e => [e.id, true])))} style={btnPaper(N.pinkDark)}>✓ Check all {unrec.length}</button>
+                  <button onClick={() => setReconChecked({})} style={btnPaper(N.muted)}>Uncheck all</button>
+                  <span style={{ fontSize: 12, color: N.mutedLite }}>{reconDate ? "Set a statement date, then Check all — everything shown is on/before it." : "Tip: set the statement date above and lines after it drop off the list."}</span>
+                  {hiddenAfter > 0 && <span style={{ fontSize: 12, fontWeight: 600, color: N.blueDark, background: "#eef6ff", border: "1px solid #cfe4ff", padding: "3px 10px", borderRadius: 100 }}>{hiddenAfter} line{hiddenAfter === 1 ? "" : "s"} after {fmtStmtDate(reconDate)} hidden</span>}
+                </div>
+                <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 16 }}>
+                  {renderCol("Money in — deposits", moneyIn, "#3a7d4a")}
+                  {renderCol("Money out — checks & payments", moneyOut, N.red)}
+                </div>
+                {(() => {
+                  const clearedList = all.filter(e => e.match_status === "reconciled").sort((a, b) => (b.entry_date || "").localeCompare(a.entry_date || ""));
+                  if (!clearedList.length) return null;
+                  return (
+                    <div style={{ marginBottom: 16 }}>
+                      <button onClick={() => setReconSeeCleared(v => !v)} style={{ ...btnPaper(N.muted), fontSize: 12 }}>{reconSeeCleared ? "Hide" : "See"} {clearedList.length} already-reconciled item{clearedList.length === 1 ? "" : "s"} (locked)</button>
+                      {reconSeeCleared && (
+                        <div style={{ border: "1px solid " + N.rule, borderRadius: 10, overflow: "hidden", marginTop: 8, maxHeight: "34vh", overflowY: "auto" }}>
+                          {clearedList.map((e, i) => (
+                            <div key={e.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 12px", borderTop: i === 0 ? "none" : "1px solid " + N.rule, background: "#fafbfc" }}>
+                              <span style={{ width: 16, height: 16, borderRadius: 4, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: N.pinkDark, color: "#fff", fontSize: 10, fontWeight: 700 }}>R</span>
+                              <span style={{ width: 42, fontSize: 12, color: N.muted }}>{shortD(e.entry_date)}</span>
+                              <span style={{ flex: 1, minWidth: 0, fontSize: 13, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{e.description}</span>
+                              <span style={{ fontSize: 13, fontWeight: 600, color: e.direction === "in" ? "#3a7d4a" : N.red }}>{e.direction === "in" ? "+" : "−"}{money((e.amount_cents || 0) / 100)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+                {(() => {
+                  const presets = isLiab
+                    ? [["Payment", { dir: "in", category: "", memo: "Payment" }], ["Charge", { dir: "out", category: "", memo: "" }], ["Interest charged", { dir: "out", category: "CC Interest", memo: "Interest charged" }], ["Fee", { dir: "out", category: "Banking costs", memo: "Fee" }]]
+                    : [["Deposit", { dir: "in", category: "", memo: "" }], ["Check / payment", { dir: "out", category: "", memo: "" }], ["Bank fee", { dir: "out", category: "Banking costs", memo: "Bank service charge" }], ["Interest earned", { dir: "in", category: "Interest income", memo: "Interest earned" }]];
+                  const activeIdx = presets.findIndex(([, p]) => p.dir === reconAdd.dir && (p.category || "") === (reconAdd.category || ""));
+                  return (
+                  <div style={{ border: "1px solid " + N.rule, borderRadius: 10, padding: "12px 14px", marginBottom: 16, background: "#fbfdff" }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: N.muted, marginBottom: 8 }}>On the statement but not in your books? Add it here — it gets an R automatically.</div>
+                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
+                      {presets.map(([lbl, p], k) => (
+                        <button key={lbl} onClick={() => setReconAdd(d => ({ ...d, ...p }))} style={{ fontSize: 12, fontWeight: 600, padding: "5px 11px", borderRadius: 100, cursor: "pointer", fontFamily: "'Figtree', sans-serif", border: "1px solid " + (activeIdx === k ? N.blue : N.rule), background: activeIdx === k ? N.blue : N.white, color: activeIdx === k ? "#fff" : N.text }}>{lbl}</button>
+                      ))}
+                    </div>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                      <input value={reconAdd.amount} onChange={e => setReconAdd(d => ({ ...d, amount: e.target.value }))} placeholder="$ amount" inputMode="decimal" style={{ ...inputSt, width: 120 }} />
+                      <input value={reconAdd.memo} onChange={e => setReconAdd(d => ({ ...d, memo: e.target.value }))} placeholder="Description (e.g. check #, who)" style={{ ...inputSt, flex: 1, minWidth: 180 }} />
+                      <span style={{ fontSize: 12, fontWeight: 700, color: reconAdd.dir === "in" ? "#3a7d4a" : N.red }}>{reconAdd.dir === "in" ? "+ money in" : "− money out"}</span>
+                      <button onClick={() => addReconLine(acctId)} disabled={!(parseFloat(reconAdd.amount) > 0)} style={{ ...btnBlue, background: (parseFloat(reconAdd.amount) > 0) ? N.blue : N.mutedLite }}>Add</button>
+                    </div>
+                  </div>
+                  );
+                })()}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, background: ok ? "#eafaf0" : "#f7fafd", border: "1px solid " + (ok ? "#bff0d3" : N.rule), borderRadius: 12, padding: "12px 16px" }}>
+                  <div style={{ fontSize: 13, color: N.muted }}>Beginning <b style={{ color: N.ink }}>{owed(beginning)}{isLiab ? " owed" : ""}</b> + {checkedIds.length} checked = <b style={{ color: N.ink }}>{owed(clearedBal)}{isLiab ? " owed" : ""}</b>{diff != null && (ok ? <b style={{ color: N.pinkDark, marginLeft: 10 }}>✓ Reconciled — difference $0.00</b> : <span style={{ marginLeft: 10, color: "#8a5a00" }}>Difference <b>{money((isLiab ? -diff : diff) / 100)}</b></span>)}</div>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button onClick={() => setReconOpen(false)} style={btnPaper(N.muted)}>Close</button>
+                    <button onClick={() => attemptReconcile(checkedIds, { acctId, statementDate: reconDate, beginningCents: beginning }, diff, targetSigned)} disabled={checkedIds.length === 0 || diff == null} title={diff == null ? "Enter the statement ending balance first." : (!ok ? "Off — you'll be asked to post the difference to Suspense." : "")} style={{ ...btnBlue, background: (checkedIds.length && diff != null) ? (ok ? N.blue : "#b45309") : N.mutedLite, cursor: (checkedIds.length && diff != null) ? "pointer" : "not-allowed" }}>{diff == null ? "Enter a balance" : ok ? `Reconcile ${checkedIds.length} & lock` : `Post ${money(Math.abs(diff) / 100)} to suspense & lock`}</button>
+                  </div>
+                </div>
+                {acctRecs.length > 0 && (
+                  <div style={{ marginTop: 16, borderTop: "1px solid " + N.rule, paddingTop: 14 }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: N.muted }}>Reconciliation history — {acctName}</div>
+                      <button onClick={() => printReconHistory(acctName, acctRecs, isLiab)} style={btnPaper(N.blueDark)}>🖨 Print report</button>
+                    </div>
+                    <div style={{ border: "1px solid " + N.rule, borderRadius: 10, overflow: "hidden" }}>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 70px 110px 80px", gap: 8, padding: "8px 12px", background: "#f7fafd", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.08em", color: N.muted }}>
+                        <span>STATEMENT DATE</span><span style={{ textAlign: "right" }}>ENDING BALANCE</span><span style={{ textAlign: "right" }}>ITEMS</span><span style={{ textAlign: "center" }}>STATEMENT</span><span style={{ textAlign: "right" }}>DONE</span>
+                      </div>
+                      {acctRecs.map((r, i) => {
+                        const doc = r.document_id ? (entity.documents || []).find(d => d.id === r.document_id) : null;
+                        return (
+                        <div key={r.id} style={{ display: "grid", gridTemplateColumns: "1fr 1fr 70px 110px 80px", gap: 8, padding: "8px 12px", borderTop: "1px solid " + N.rule, fontSize: 13, alignItems: "center" }}>
+                          <span style={{ fontWeight: 600, color: N.ink }}>{fmtStmtDate(r.statement_ending_date)}</span>
+                          <span style={{ textAlign: "right" }}>{owed(r.statement_ending_balance_cents)}{isLiab ? " owed" : ""}</span>
+                          <span style={{ textAlign: "right", color: N.muted }}>{r.item_count || 0}</span>
+                          <span style={{ textAlign: "center" }}>{doc
+                            ? <button onClick={() => downloadDoc(doc)} title={doc.name} style={{ ...btnPaper(N.blueDark), padding: "3px 8px", fontSize: 11 }}>📎 Open</button>
+                            : <span style={{ color: N.mutedLite, fontSize: 11 }}>—</span>}</span>
+                          <span style={{ textAlign: "right", color: N.mutedLite, fontSize: 11 }}>{r.reconciled_at || r.created_at ? new Date(r.reconciled_at || r.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : ""}</span>
+                        </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+      })();
+  }
+
   function Register() {
     const acctId = regAcct || (accountList[0] ? accountList[0].id : "");
     const acct = (entity.rawAccounts || []).find(a => a.id === acctId);
@@ -4403,6 +4459,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     const contributedCats = new Set((entity.rawCategories || [])
       .filter(c => c.func_class === "contributed").map(c => c.name));
 
+    const unreconciledCount = all.filter(e => e.match_status !== "reconciled").length;
     const tgt = reconTarget === "" ? null : (parseFloat(reconTarget) || 0);
     const diff = tgt == null ? null : (tgt - bookCents / 100);
     const reconciled = diff != null && Math.abs(diff) < 0.005;
@@ -4425,12 +4482,14 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           </div>
         </div>
 
+        {reconOpen && ReconcilePanel(acctId, acct ? acct.name : "this account")}
+
         {/* Which book am I in */}
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
           {accountList.map(a => {
             const on = a.id === acctId;
             return (
-              <button key={a.id} onClick={() => { setRegAcct(a.id); setReconTarget(""); }} style={{
+              <button key={a.id} onClick={() => { setRegAcct(a.id); setReconTarget(""); setReconDate(""); setReconOpen(false); }} style={{
                 border: "1px solid " + (on ? N.blue : N.rule), background: on ? "#eef6ff" : N.white,
                 color: on ? N.blueDark : N.muted, fontWeight: on ? 700 : 500, fontSize: 13,
                 padding: "8px 14px", borderRadius: 10, cursor: "pointer", fontFamily: "'Figtree', sans-serif",
@@ -4443,7 +4502,13 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginBottom: 12 }}>
           <button onClick={() => { setShowAddLine(v => !v); setLineDraft(d => ({ ...d, accountId: acctId })); setAddedCount(0); setTimeout(() => payeeRef.current && payeeRef.current.focus(), 40); }}
             style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 16px" }}>{showAddLine ? "Close" : "+ Write a line"}</button>
-          <span style={{ fontSize: 12.5, color: N.muted }}>Statement ending balance:</span>
+          <button onClick={() => { setReconChecked({}); setReconTarget(""); setReconDate(""); setReconOpen(true); }}
+            title="Reconcile this account against a statement, and attach the statement to it"
+            style={{ ...btnBlue, background: N.green, fontSize: 13, padding: "9px 16px" }}>Reconcile…</button>
+          {unreconciledCount > 0 && (
+            <span style={{ fontSize: 12.5, color: N.muted }}>{unreconciledCount} line{unreconciledCount === 1 ? "" : "s"} not yet reconciled</span>
+          )}
+          <span style={{ fontSize: 12.5, color: N.muted }}>Balance today vs statement:</span>
           <input value={reconTarget} onChange={e => setReconTarget(e.target.value)} placeholder="$ from statement" inputMode="decimal" style={{ ...inputSt, width: 150 }} />
           {diff != null && (reconciled
             ? <span style={{ fontSize: 13, fontWeight: 700, color: N.pinkDark }}>✓ Matches to the penny</span>
@@ -4773,6 +4838,66 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             </div>
           )}
         </div>
+
+        {(() => {
+          const cmp = compareToQbo(entity.qboBaseline, entity.rawEntries, entity.rawCategories, start, end);
+          if (!cmp) return null;
+          const Row = ({ label, book, qbo, diff }) => (
+            <tr>
+              <td style={{ padding: "6px 12px", fontSize: 13.5, color: N.text }}>{label}</td>
+              <td style={{ ...numTd }}>{money(book / 100)}</td>
+              <td style={{ ...numTd, color: N.muted }}>{money(qbo / 100)}</td>
+              <td style={{ ...numTd, fontWeight: diff ? 700 : 400, color: diff ? N.red : N.mutedLite }}>
+                {diff ? (diff > 0 ? "+" : "\u2212") + money(Math.abs(diff) / 100).replace(/^[\u2212]/, "") : "\u2014"}
+              </td>
+            </tr>
+          );
+          return (
+            <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: "16px 8px 12px", marginTop: 14 }}>
+              <div style={{ padding: "0 12px 10px" }}>
+                <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 17, color: N.ink }}>Against QuickBooks</div>
+                <div style={{ fontSize: 12.5, color: N.muted }}>
+                  What QuickBooks reported for the same window, captured from the live QBO file on {(entity.qboBaseline[0] || {}).captured_at?.slice(0, 10) || "import"}.
+                  {" "}QBO's &ldquo;cost of goods sold&rdquo; is this org's program cost, so it is added into expenses here.
+                </div>
+              </div>
+              {cmp.partial && (
+                <div style={{ margin: "0 12px 10px", background: "#fff7e0", border: "1px solid #f0d89a", borderRadius: 9, padding: "8px 12px", fontSize: 12, color: "#8a5a00" }}>
+                  QuickBooks figures cover {cmp.covStart} → {cmp.covEnd} ({cmp.months} month{cmp.months === 1 ? "" : "s"}), not the whole fiscal year. Compare the shape, not the totals.
+                </div>
+              )}
+              <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 480 }}>
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: "left" }} />
+                    {["THIS TOOL", "QUICKBOOKS", "DIFFERENCE"].map(h => (
+                      <th key={h} style={{ textAlign: "right", padding: "0 12px 6px", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: ".08em", color: N.muted, fontWeight: 500 }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  <Row label="Total revenue" book={cmp.book.revenue} qbo={cmp.qbo.revenue} diff={cmp.diff.revenue} />
+                  <Row label="Total expenses" book={cmp.book.expense} qbo={cmp.qbo.expense} diff={cmp.diff.expense} />
+                  <tr>
+                    <td style={{ padding: "10px 12px", fontSize: 14, fontWeight: 700, color: N.ink, borderTop: "2px solid " + N.ink }}>Net</td>
+                    <td style={{ ...numTd, padding: "10px 12px", fontSize: 15, fontWeight: 700, color: cmp.book.net < 0 ? N.red : N.pinkDark, borderTop: "2px solid " + N.ink }}>{money(cmp.book.net / 100)}</td>
+                    <td style={{ ...numTd, padding: "10px 12px", fontSize: 14, fontWeight: 700, color: N.muted, borderTop: "2px solid " + N.ink }}>{money(cmp.qbo.net / 100)}</td>
+                    <td style={{ ...numTd, padding: "10px 12px", fontWeight: 700, color: cmp.diff.net ? N.red : N.mutedLite, borderTop: "2px solid " + N.ink }}>
+                      {cmp.diff.net ? (cmp.diff.net > 0 ? "+" : "\u2212") + money(Math.abs(cmp.diff.net) / 100).replace(/^[\u2212]/, "") : "\u2014"}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <div style={{ fontSize: 11.5, color: N.muted, padding: "10px 12px 0", lineHeight: 1.5 }}>
+                {cmp.tie
+                  ? "These books tie to QuickBooks for this period."
+                  : cmp.uncoded > 0
+                    ? <>The difference is not yet explained. {money(cmp.uncoded / 100)} of activity in this window has no category, so it sits outside the totals above — code it and the gap should close.</>
+                    : "The difference is not yet explained. Either transactions are missing on one side, or the same transaction is coded differently in each."}
+              </div>
+            </div>
+          );
+        })()}
       </div>
     );
   }
