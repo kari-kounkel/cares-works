@@ -1867,7 +1867,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               <div className="no-print" style={{ padding: "14px 22px", borderTop: "1px solid " + N.rule, background: "#f7fafd", display: "flex", gap: 8, justifyContent: "flex-end", alignItems: "center", flexWrap: "wrap" }}>
                 <span style={{ marginRight: "auto", fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: STATUS_COLOR[openInv.status] || N.muted }}>{openInv.status}</span>
                 <button onClick={printDoc} style={{ ...btnBlue, background: N.blue }}>Print / Save PDF</button>
-                <button onClick={() => setPackMode(m => !m)} title="Show a packing slip — items & quantities, no prices" style={btnPaper(packMode ? N.pinkDark : N.blueDark)}>{packMode ? `← Back to ${isPo ? "PO" : "invoice"}` : "📦 Packing slip"}</button>
+                <button onClick={() => setPackMode(m => !m)} title="Show a packing slip — items & quantities, no prices" style={{ ...btnBlue, background: N.blue }}>{packMode ? `← Back to ${isPo ? "PO" : "invoice"}` : "📦 Packing slip"}</button>
                 {!packMode && (isPo ? (
                   <>
                     <button onClick={() => { const v = openInv; setOpenInv(null); editOrder(v); }} style={btnPaper(N.muted)}>Edit</button>
@@ -2934,16 +2934,12 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 {!sentLink.email && <div style={{ fontSize: 12, color: N.muted, marginTop: 6 }}>We'll use the email on the customer's record if the invoice doesn't have one.</div>}
               </div>
 
-              <div style={{ fontSize: 12, color: N.muted, marginBottom: 8 }}>…or copy the link and send it yourself:</div>
-              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", color: N.muted, marginBottom: 3 }}>INVOICE LINK</div>
+              <div style={{ fontSize: 11, color: N.muted, marginBottom: 6 }}>Or copy the link to text/share it:</div>
               <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
                 <input readOnly value={sentLink.url} onFocus={e => e.target.select()} style={{ ...inputSt, fontSize: 13 }} />
                 <button onClick={() => { try { navigator.clipboard.writeText(sentLink.url); } catch (e) {} }} style={{ ...btnBlue, background: N.blue }}>Copy</button>
               </div>
-              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", color: N.muted, marginBottom: 3 }}>READY-TO-PASTE EMAIL</div>
-              <textarea readOnly value={sentLink.emailText} rows={6} onFocus={e => e.target.select()} style={{ ...inputSt, fontSize: 13, lineHeight: 1.5, resize: "vertical", marginBottom: 14 }} />
               <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-                <button onClick={() => { try { navigator.clipboard.writeText(sentLink.emailText); } catch (e) {} }} style={btnPaper(N.blue)}>Copy email</button>
                 <button onClick={() => setSentLink(null)} style={btnPaper(N.muted)}>Done</button>
               </div>
             </div>
