@@ -1024,6 +1024,16 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     }
     finishReconcile(ids2, { ...ctx, endingCents: targetSignedCents });
   }
+  // Delete leftover strays from the reconcile screen — unchecked lines that aren't on the
+  // statement (duplicates, mistakes). Only unreconciled lines; never touches locked ones.
+  async function deleteStrays(ids) {
+    if (!ids || !ids.length || !liveOrgId) return;
+    if (!window.confirm(`Delete ${ids.length} leftover line${ids.length === 1 ? "" : "s"}?\n\nOnly do this for strays or duplicates that are NOT on the statement. This can't be undone.`)) return;
+    setItems(prev => prev.filter(x => !ids.includes(x.id)));
+    setReconChecked(p => { const n = { ...p }; ids.forEach(id => delete n[id]); return n; });
+    await supabase.from("ledger_entries").delete().in("id", ids);
+    setReloadTick(t => t + 1);
+  }
   // Add a line (deposit / check / bank fee / interest) that's on the statement but not yet in
   // the books, right from the reconcile screen. It becomes a notebook line on that account and
   // is auto-checked into this reconciliation.
@@ -2746,6 +2756,16 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   {renderCol("Money in — deposits", moneyIn, "#3a7d4a")}
                   {renderCol("Money out — checks & payments", moneyOut, N.red)}
                 </div>
+                {ok && (() => {
+                  const leftovers = unrec.filter(e => !reconChecked[e.id]);
+                  if (!leftovers.length) return null;
+                  return (
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 10, padding: "10px 14px", marginBottom: 16 }}>
+                      <span style={{ fontSize: 13, color: "#9a3412" }}><b>{leftovers.length}</b> line{leftovers.length === 1 ? "" : "s"} on/before this statement {leftovers.length === 1 ? "is" : "are"} still unchecked. If they're strays or duplicates not on the statement, clear them out:</span>
+                      <button onClick={() => deleteStrays(leftovers.map(e => e.id))} style={btnPaper(N.pinkDark)}>🗑 Delete {leftovers.length} stray{leftovers.length === 1 ? "" : "s"}</button>
+                    </div>
+                  );
+                })()}
                 {(() => {
                   const clearedList = all.filter(e => e.match_status === "reconciled").sort((a, b) => (b.entry_date || "").localeCompare(a.entry_date || ""));
                   if (!clearedList.length) return null;
