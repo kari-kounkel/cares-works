@@ -551,6 +551,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [messages, setMessages] = useState([]);
   const [msgDraft, setMsgDraft] = useState("");
   const [msgOpen, setMsgOpen] = useState(false);
+  const [replyTo, setReplyTo] = useState(null); // message id being replied to
+  const [replyDraft, setReplyDraft] = useState("");
   const [recentIds, setRecentIds] = useState([]); // just-entered rows, pinned to the top until cleared
   const markRecent = id => { if (id) setRecentIds(p => [id, ...p.filter(x => x !== id)].slice(0, 12)); };
   const [invSort, setInvSort] = useState("status"); // Invoices list sort
@@ -736,13 +738,14 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       .then(({ data }) => { if (!cancel) setReconHist(data || []); });
     return () => { cancel = true; };
   }, [liveOrgId, testMode, reloadTick]);
-  async function sendNote() {
-    const b = (msgDraft || "").trim();
+  async function postNote(body, replyToId) {
+    const b = (body || "").trim();
     if (!b || !liveOrgId || testMode) return;
-    setMsgDraft("");
-    await supabase.from("ledger_messages").insert({ org_id: liveOrgId, user_id: session.user.id, author: meName, body: b });
+    await supabase.from("ledger_messages").insert({ org_id: liveOrgId, user_id: session.user.id, author: meName, body: b, reply_to: replyToId || null });
     setReloadTick(t => t + 1);
   }
+  async function sendNote() { const b = msgDraft; setMsgDraft(""); await postNote(b, null); }
+  async function sendReply(id) { const b = replyDraft; setReplyDraft(""); setReplyTo(null); await postNote(b, id); }
   async function resolveNote(id) {
     if (!liveOrgId || testMode) return;
     await supabase.from("ledger_messages").update({ done: true }).eq("id", id);
@@ -781,29 +784,55 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   // Slim message board under the balances — Dave & Betty leave each other "could you…" notes.
   function messageBar() {
     if (!liveOrgId || testMode) return null;
-    const open = messages.filter(m => !m.done);
+    const open = messages.filter(m => !m.done && !m.reply_to);
+    const repliesOf = id => messages.filter(r => r.reply_to === id).sort((a, b) => (a.created_at || "").localeCompare(b.created_at || ""));
     const other = meName === "Betty" ? "Dave" : "Betty";
     return (
       <div className="no-print" style={{ padding: "0 22px 12px" }}>
-        <div style={{ background: open.length ? "#fff7ed" : "#f7fafd", border: "1px solid " + (open.length ? "#fed7aa" : N.rule), borderRadius: 12, padding: "10px 14px" }}>
+        <div style={{ background: open.length ? "#fff7ed" : "#f7fafd", border: "1px solid " + (open.length ? "#fed7aa" : N.rule), borderRadius: 12, padding: "10px 14px", animation: open.length ? "msgPulse 1.3s ease-in-out infinite" : "none" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-            <span style={{ fontSize: 13, fontWeight: 700, color: open.length ? "#9a3412" : N.muted }}>
-              {open.length ? `✉ ${open.length} message${open.length === 1 ? "" : "s"} for the team` : "✉ Messages"}
+            <span style={{ fontSize: 14, fontWeight: 800, color: open.length ? "#9a3412" : N.muted }}>
+              {open.length ? `🔔 ${open.length} NEW MESSAGE${open.length === 1 ? "" : "S"} — please read` : "✉ Messages"}
             </span>
             <button onClick={() => setMsgOpen(o => !o)} style={{ ...btnPaper(N.blue), padding: "5px 12px" }}>{msgOpen ? "Close" : `＋ Message ${other}`}</button>
           </div>
           {open.length > 0 && (
             <div style={{ display: "grid", gap: 6, marginTop: 10 }}>
-              {open.map(m => (
-                <div key={m.id} style={{ display: "flex", alignItems: "flex-start", gap: 10, background: N.white, border: "1px solid #fde3c6", borderRadius: 8, padding: "8px 12px" }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: N.ink }}>{m.author}</span>
-                    <span style={{ fontSize: 11, color: N.mutedLite, marginLeft: 8 }}>{noteTime(m.created_at)}</span>
-                    <div style={{ fontSize: 13.5, color: N.text, marginTop: 2, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{m.body}</div>
+              {open.map(m => {
+                const replies = repliesOf(m.id);
+                return (
+                <div key={m.id} style={{ background: N.white, border: "1px solid #fde3c6", borderRadius: 8, padding: "8px 12px" }}>
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: N.ink }}>{m.author}</span>
+                      <span style={{ fontSize: 11, color: N.mutedLite, marginLeft: 8 }}>{noteTime(m.created_at)}</span>
+                      <div style={{ fontSize: 13.5, color: N.text, marginTop: 2, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{m.body}</div>
+                    </div>
+                    <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                      <button onClick={() => { setReplyTo(replyTo === m.id ? null : m.id); setReplyDraft(""); }} style={{ ...btnPaper(N.blue), padding: "5px 10px", whiteSpace: "nowrap" }}>↩ Reply</button>
+                      <button onClick={() => resolveNote(m.id)} title="Mark this handled — clears it for both of you" style={{ ...btnPaper(N.pinkDark), padding: "5px 10px", whiteSpace: "nowrap" }}>✓ Done</button>
+                    </div>
                   </div>
-                  <button onClick={() => resolveNote(m.id)} title="Mark this handled — clears it for both of you" style={{ ...btnPaper(N.pinkDark), padding: "5px 10px", whiteSpace: "nowrap" }}>✓ Done</button>
+                  {replies.length > 0 && (
+                    <div style={{ marginTop: 8, marginLeft: 12, paddingLeft: 12, borderLeft: "2px solid #fde3c6", display: "grid", gap: 6 }}>
+                      {replies.map(r => (
+                        <div key={r.id}>
+                          <span style={{ fontSize: 12.5, fontWeight: 700, color: N.blueDark }}>{r.author}</span>
+                          <span style={{ fontSize: 10.5, color: N.mutedLite, marginLeft: 6 }}>{noteTime(r.created_at)}</span>
+                          <div style={{ fontSize: 13, color: N.text, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{r.body}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {replyTo === m.id && (
+                    <div style={{ display: "flex", gap: 8, marginTop: 8, alignItems: "center", flexWrap: "wrap" }}>
+                      <input value={replyDraft} onChange={e => setReplyDraft(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); sendReply(m.id); } }} autoFocus placeholder={`Reply to ${m.author}…`} style={{ ...inputSt, flex: 1, minWidth: 200 }} />
+                      <button onClick={() => sendReply(m.id)} disabled={!replyDraft.trim()} style={{ ...btnBlue, background: replyDraft.trim() ? N.blue : N.mutedLite }}>Reply</button>
+                    </div>
+                  )}
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
           {msgOpen && (
@@ -4890,6 +4919,10 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         input[type="checkbox"] { accent-color: ${AMBER}; }
         /* datalist inputs draw a native dropdown arrow in Chrome/Edge — hide it so only our custom ▼ shows (no double arrow) */
         input[list]::-webkit-calendar-picker-indicator { display: none !important; opacity: 0; }
+        @keyframes msgPulse {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(234,88,12,0); border-color: #fed7aa; }
+          50% { box-shadow: 0 0 0 5px rgba(234,88,12,0.30); border-color: #fb923c; }
+        }
         @media print {
           body * { visibility: hidden !important; }
           .print-doc, .print-doc * { visibility: visible !important; }
