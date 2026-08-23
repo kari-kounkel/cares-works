@@ -2970,11 +2970,9 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               {!voided && (
                 <div style={{ display: "flex", gap: 6, marginTop: 9, flexWrap: "wrap" }}>
                   <button onClick={e => { e.stopPropagation(); openOnline(v); }} title="Open the invoice online — no copying links" style={btnPaper(N.blueDark)}>👁 Open</button>
-                  <button onClick={e => { e.stopPropagation(); editOrder(v); }} style={btnPaper(N.muted)}>Edit</button>
                   {v.status !== "Paid" && <button onClick={e => { e.stopPropagation(); sendInvoice(v); }} style={btnPaper(N.blue)}>{v.status === "Draft" ? "Send" : "Resend"}</button>}
-                  {(v.status === "Sent" || v.status === "Viewed") && <button onClick={e => { e.stopPropagation(); invoiceStatus(v.id, "draft"); }} style={btnPaper(N.muted)}>← Draft</button>}
-                  {v.status !== "Paid" && <button onClick={e => { e.stopPropagation(); quickMarkPaid(v); }} style={btnPaper(N.pinkDark)}>Mark paid</button>}
-                  {v.status !== "Paid" && <button onClick={e => { e.stopPropagation(); openPayment(v); }} style={btnPaper(N.muted)}>Payment…</button>}
+                  {v.status !== "Paid" && <button onClick={e => { e.stopPropagation(); openPayment(v); }} title="Full, partial, or over — type the amount received" style={btnPaper(N.pinkDark)}>💵 Payment</button>}
+                  <button onClick={e => { e.stopPropagation(); editOrder(v); }} style={btnPaper(N.muted)}>Edit</button>
                 </div>
               )}
             </div>
