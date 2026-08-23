@@ -785,6 +785,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     const b = (body || "").trim();
     if ((!b && !imagePath) || !liveOrgId || testMode) return;
     await supabase.from("ledger_messages").insert({ org_id: liveOrgId, user_id: session.user.id, author: meName, body: b || "(screenshot)", reply_to: replyToId || null, image_path: imagePath || null });
+    // A reply brings its thread back to the active list, so an answer never gets buried in Archive.
+    if (replyToId) await supabase.from("ledger_messages").update({ done: false }).eq("id", replyToId);
     setReloadTick(t => t + 1);
   }
   async function sendNote() { const b = msgDraft, img = msgImagePath; setMsgDraft(""); setMsgImagePath(null); await postNote(b, null, img); }
