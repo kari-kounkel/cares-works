@@ -627,6 +627,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [showInvForm, setShowInvForm] = useState(false);
   const [openInv, setOpenInv] = useState(null);
   const [packMode, setPackMode] = useState(false); // render the open doc as a packing slip (items + qty, no prices)
+  const [docMoreOpen, setDocMoreOpen] = useState(false); // reveal the secondary actions on the doc modal
   const [sentLink, setSentLink] = useState(null);
   const [emailState, setEmailState] = useState(null);
   const [poEmailTo, setPoEmailTo] = useState("");   // vendor email for the PO send box
@@ -1658,7 +1659,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
 
   // Prefill the PO email box from the vendor record whenever a PO opens.
   useEffect(() => {
-    setPoEmailMsg(null); setReceiptMsg(null); setPackMode(false);
+    setPoEmailMsg(null); setReceiptMsg(null); setPackMode(false); setDocMoreOpen(false);
     if (openInv && openInv.docType === "order") {
       const vd = (entity.vendorList || []).find(v => (v.name || "").toLowerCase() === (openInv.vendor || "").toLowerCase()) || {};
       setPoEmailTo(vd.email || "");
@@ -1875,18 +1876,24 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   </>
                 ) : (
                   <>
-                    {openInv.status !== "Void" && <button onClick={() => { const v = openInv; setOpenInv(null); editOrder(v); }} style={btnPaper(N.muted)}>Edit</button>}
-                    <button onClick={() => openOnline(openInv)} style={btnPaper(N.blueDark)}>👁 Open online</button>
-                    {openInv.status !== "In progress" && openInv.status !== "Paid" && openInv.status !== "Void" && <button onClick={() => { invoiceStatus(openInv.id, "in_progress"); setOpenInv(null); }} style={btnPaper("#8a5a00")}>Mark in progress</button>}
-                    {openInv.status === "In progress" && <button onClick={() => { invoiceStatus(openInv.id, "draft"); setOpenInv(null); }} style={btnPaper(N.blue)}>Done building</button>}
-                    {openInv.status !== "Void" && <button onClick={() => sendInvoice(openInv)} style={{ ...btnBlue, background: N.blue }}>{openInv.status === "Draft" ? "Send · get link" : "Copy / resend link"}</button>}
+                    {/* Primary — the everyday actions */}
+                    {openInv.status !== "Paid" && openInv.status !== "Void" && <button onClick={() => sendInvoice(openInv)} style={{ ...btnBlue, background: N.blue }}>{openInv.status === "Draft" ? "Send · get link" : "Copy / resend link"}</button>}
                     {openInv.status !== "Paid" && openInv.status !== "Void" && <button onClick={() => quickMarkPaid(openInv)} style={{ ...btnBlue, background: N.pinkDark }}>Mark paid</button>}
-                    {openInv.status !== "Paid" && openInv.status !== "Void" && <button onClick={() => openPayment(openInv)} style={btnPaper(N.pinkDark)}>Down payment / partial…</button>}
-                    {openInv.status !== "Void" && <button onClick={() => openOverpay(openInv)} style={btnPaper(N.muted)}>Overpaid…</button>}
-                    {openInv.status === "Paid" && (openInv.payments || []).length === 0 && <button onClick={() => { invoiceStatus(openInv.id, "sent"); setOpenInv(null); }} style={btnPaper(N.muted)}>Unmark paid</button>}
-                    {(openInv.status === "Sent" || openInv.status === "Viewed") && <button onClick={() => { invoiceStatus(openInv.id, "draft"); setOpenInv(null); }} style={btnPaper(N.muted)}>← Back to draft</button>}
-                    {openInv.status !== "Void" && <button onClick={() => voidInvoice(openInv)} style={btnPaper(N.muted)}>Void</button>}
-                    <button onClick={() => deleteInvoice(openInv)} style={btnPaper(N.pinkDark)}>Delete</button>
+                    {openInv.status !== "Void" && <button onClick={() => { const v = openInv; setOpenInv(null); editOrder(v); }} style={btnPaper(N.muted)}>Edit</button>}
+                    <button onClick={() => setDocMoreOpen(o => !o)} style={btnPaper(N.blueDark)}>⋯ More</button>
+                    {docMoreOpen && (
+                      <>
+                        <button onClick={() => openOnline(openInv)} style={btnPaper(N.blueDark)}>👁 Open online</button>
+                        {openInv.status !== "Paid" && openInv.status !== "Void" && <button onClick={() => openPayment(openInv)} style={btnPaper(N.pinkDark)}>Down payment / partial…</button>}
+                        {openInv.status !== "Void" && <button onClick={() => openOverpay(openInv)} style={btnPaper(N.muted)}>Overpaid…</button>}
+                        {openInv.status !== "In progress" && openInv.status !== "Paid" && openInv.status !== "Void" && <button onClick={() => { invoiceStatus(openInv.id, "in_progress"); setOpenInv(null); }} style={btnPaper("#8a5a00")}>Mark in progress</button>}
+                        {openInv.status === "In progress" && <button onClick={() => { invoiceStatus(openInv.id, "draft"); setOpenInv(null); }} style={btnPaper(N.blue)}>Done building</button>}
+                        {openInv.status === "Paid" && (openInv.payments || []).length === 0 && <button onClick={() => { invoiceStatus(openInv.id, "sent"); setOpenInv(null); }} style={btnPaper(N.muted)}>Unmark paid</button>}
+                        {(openInv.status === "Sent" || openInv.status === "Viewed") && <button onClick={() => { invoiceStatus(openInv.id, "draft"); setOpenInv(null); }} style={btnPaper(N.muted)}>← Back to draft</button>}
+                        {openInv.status !== "Void" && <button onClick={() => voidInvoice(openInv)} style={btnPaper(N.muted)}>Void</button>}
+                        <button onClick={() => deleteInvoice(openInv)} style={btnPaper(N.pinkDark)}>Delete</button>
+                      </>
+                    )}
                   </>
                 ))}
                 <button onClick={() => setOpenInv(null)} style={btnPaper(N.muted)}>Close</button>
