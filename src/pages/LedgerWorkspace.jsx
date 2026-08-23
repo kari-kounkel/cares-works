@@ -566,6 +566,9 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [replyTo, setReplyTo] = useState(null); // message id being replied to
   const [replyDraft, setReplyDraft] = useState("");
   const [msgArchive, setMsgArchive] = useState(false); // show resolved (done) messages
+  const [msgImagePath, setMsgImagePath] = useState(null); // screenshot attached to the message being composed
+  const [msgImgBusy, setMsgImgBusy] = useState(false);
+  const [msgImgUrls, setMsgImgUrls] = useState({}); // path -> signed URL, for showing message images
   const [recentIds, setRecentIds] = useState([]); // just-entered rows, pinned to the top until cleared
   const markRecent = id => { if (id) setRecentIds(p => [id, ...p.filter(x => x !== id)].slice(0, 12)); };
   const [invSort, setInvSort] = useState("status"); // Invoices list sort
@@ -736,14 +739,37 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
 
   // Keep the notebook + invoices in sync when the data source changes (sample → live, or after a write).
   useEffect(() => { setItems(entity.notebook); setCleared([]); setInvoices(entity.invoices || []); }, [entity]);
-  // Load the Dave/Betty message board for this org.
+  // Load the team message board for this org (+ signed URLs for any attached screenshots).
   useEffect(() => {
     if (!liveOrgId || testMode) { setMessages([]); return; }
     let cancel = false;
     supabase.from("ledger_messages").select("*").eq("org_id", liveOrgId).order("created_at", { ascending: false }).limit(50)
-      .then(({ data }) => { if (!cancel) setMessages(data || []); });
+      .then(async ({ data }) => {
+        if (cancel) return;
+        setMessages(data || []);
+        const paths = (data || []).map(m => m.image_path).filter(Boolean);
+        if (paths.length) {
+          const { data: signed } = await supabase.storage.from("org-docs").createSignedUrls(paths, 3600);
+          if (!cancel && signed) { const map = {}; signed.forEach(s => { if (s.path && s.signedUrl) map[s.path] = s.signedUrl; }); setMsgImgUrls(map); }
+        }
+      });
     return () => { cancel = true; };
   }, [liveOrgId, testMode, reloadTick]);
+  // Attach a screenshot/image to the message being composed.
+  async function attachMsgImage(file) {
+    if (!file || !liveOrgId) return;
+    if (!/^image\//.test(file.type || "")) { window.alert("Please pick an image (screenshot)."); return; }
+    if (file.size > 10 * 1024 * 1024) { window.alert("Keep the image under 10 MB."); return; }
+    setMsgImgBusy(true);
+    try {
+      const safe = (file.name || "screenshot.png").replace(/[^a-zA-Z0-9._-]/g, "_");
+      const path = `${liveOrgId}/messages/${Date.now()}-${safe}`;
+      const { error } = await supabase.storage.from("org-docs").upload(path, file, { upsert: false, contentType: file.type || undefined });
+      if (error) throw error;
+      setMsgImagePath(path);
+    } catch (e) { window.alert("Couldn't attach that image: " + (e.message || e)); }
+    setMsgImgBusy(false);
+  }
   // Load saved reconciliations (for "last reconciled" and the history report).
   useEffect(() => {
     if (!liveOrgId || testMode) { setReconHist([]); return; }
@@ -752,13 +778,13 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       .then(({ data }) => { if (!cancel) setReconHist(data || []); });
     return () => { cancel = true; };
   }, [liveOrgId, testMode, reloadTick]);
-  async function postNote(body, replyToId) {
+  async function postNote(body, replyToId, imagePath) {
     const b = (body || "").trim();
-    if (!b || !liveOrgId || testMode) return;
-    await supabase.from("ledger_messages").insert({ org_id: liveOrgId, user_id: session.user.id, author: meName, body: b, reply_to: replyToId || null });
+    if ((!b && !imagePath) || !liveOrgId || testMode) return;
+    await supabase.from("ledger_messages").insert({ org_id: liveOrgId, user_id: session.user.id, author: meName, body: b || "(screenshot)", reply_to: replyToId || null, image_path: imagePath || null });
     setReloadTick(t => t + 1);
   }
-  async function sendNote() { const b = msgDraft; setMsgDraft(""); await postNote(b, null); }
+  async function sendNote() { const b = msgDraft, img = msgImagePath; setMsgDraft(""); setMsgImagePath(null); await postNote(b, null, img); }
   async function sendReply(id) { const b = replyDraft; setReplyDraft(""); setReplyTo(null); await postNote(b, id); }
   async function resolveNote(id) {
     if (!liveOrgId || testMode) return;
@@ -814,7 +840,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             <span style={{ fontSize: 14, fontWeight: 800, color: open.length ? "#9a3412" : N.muted }}>
               {open.length ? `🔔 ${open.length} NEW MESSAGE${open.length === 1 ? "" : "S"} — please read` : "✉ Messages"}
             </span>
-            <button onClick={() => setMsgOpen(o => !o)} style={{ ...btnPaper(N.blue), padding: "5px 12px" }}>{msgOpen ? "Close" : `＋ Message ${other}`}</button>
+            <button onClick={() => setMsgOpen(o => !o)} style={{ ...btnPaper(N.blue), padding: "5px 12px" }}>{msgOpen ? "Close" : "＋ New message"}</button>
             {doneMsgs.length > 0 && <button onClick={() => setMsgArchive(a => !a)} style={{ ...btnPaper(N.muted), padding: "5px 12px" }}>{msgArchive ? "Hide archive" : `📁 Archive (${doneMsgs.length})`}</button>}
           </div>
           {msgArchive && doneMsgs.length > 0 && (
@@ -849,6 +875,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                       <span style={{ fontSize: 13, fontWeight: 700, color: N.ink }}>{m.author}</span>
                       <span style={{ fontSize: 11, color: N.mutedLite, marginLeft: 8 }}>{noteTime(m.created_at)}</span>
                       <div style={{ fontSize: 13.5, color: N.text, marginTop: 2, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{m.body}</div>
+                      {m.image_path && msgImgUrls[m.image_path] && <a href={msgImgUrls[m.image_path]} target="_blank" rel="noopener"><img src={msgImgUrls[m.image_path]} alt="screenshot" style={{ maxWidth: "100%", maxHeight: 260, borderRadius: 8, border: "1px solid " + N.rule, marginTop: 6, display: "block" }} /></a>}
                     </div>
                     <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
                       <button onClick={() => { setReplyTo(replyTo === m.id ? null : m.id); setReplyDraft(""); }} style={{ ...btnPaper(N.blue), padding: "5px 10px", whiteSpace: "nowrap" }}>↩ Reply</button>
@@ -878,9 +905,13 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             </div>
           )}
           {msgOpen && (
-            <div style={{ display: "flex", gap: 8, marginTop: 10, alignItems: "center", flexWrap: "wrap" }}>
-              <input value={msgDraft} onChange={e => setMsgDraft(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); sendNote(); } }} autoFocus placeholder={`Hey ${other}, could you…`} style={{ ...inputSt, flex: 1, minWidth: 220 }} />
-              <button onClick={sendNote} disabled={!msgDraft.trim()} style={{ ...btnBlue, background: msgDraft.trim() ? N.blue : N.mutedLite }}>Send</button>
+            <div style={{ marginTop: 10 }}>
+              <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                <input value={msgDraft} onChange={e => setMsgDraft(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); sendNote(); } }} autoFocus placeholder={`Hey ${other}, could you…`} style={{ ...inputSt, flex: 1, minWidth: 220 }} />
+                <label style={{ ...btnPaper(N.blueDark), cursor: msgImgBusy ? "default" : "pointer", opacity: msgImgBusy ? 0.6 : 1 }}>{msgImgBusy ? "…" : "📷 Screenshot"}<input type="file" accept="image/*" disabled={msgImgBusy} onChange={e => { const f = e.target.files && e.target.files[0]; e.target.value = ""; attachMsgImage(f); }} style={{ display: "none" }} /></label>
+                <button onClick={sendNote} disabled={!msgDraft.trim() && !msgImagePath} style={{ ...btnBlue, background: (msgDraft.trim() || msgImagePath) ? N.blue : N.mutedLite }}>Send</button>
+              </div>
+              {msgImagePath && <div style={{ fontSize: 12, color: N.pinkDark, fontWeight: 600, marginTop: 6 }}>📷 Screenshot attached <button onClick={() => setMsgImagePath(null)} style={{ border: "none", background: "none", color: N.muted, cursor: "pointer", fontWeight: 700 }}>×</button></div>}
             </div>
           )}
         </div>
