@@ -22,7 +22,11 @@ const SECTIONS_FORPROFIT = ["notebook", "invoices", "bills", "reports", "documen
 // The nonprofit adds Donations (year-end acknowledgment letters) and drops invoicing:
 // its money comes in as Medicaid billing and gifts, not as invoices it sends.
 const SECTIONS_NONPROFIT = ["notebook", "giving", "bills", "reports", "documents", "admin"];
-const LABELS = { notebook: "Register", invoices: "Invoices & receipts" };
+// Nav labels per book. "Reports" is right for a business; a charity's are named for
+// what they actually are — the statements a board, an auditor and the 990 preparer
+// ask for by name. Labels only; the sections themselves are the same machine.
+const LABELS_FORPROFIT = { notebook: "Register", invoices: "Invoices & receipts" };
+const LABELS_NONPROFIT = { notebook: "Register", reports: "Financial statements", giving: "Donors & giving" };
 
 // Switched off for both books. Card payoff still exists — ProGraphics uses it — it just
 // is not part of Matt's build. Same for the item catalogue and email campaigns.
@@ -101,7 +105,7 @@ const BOOKS = [
     kind: "For-profit",
     accent: N.blue,
     entity: stub("Emerson Services", "Emerson Services", "Workspace created — accounts and categories loaded from his account list."),
-    config: { sections: SECTIONS_FORPROFIT, labels: LABELS, ledgerStyle: "register", features: FEATURES_FORPROFIT, buildProgress: PROGRESS },
+    config: { sections: SECTIONS_FORPROFIT, labels: LABELS_FORPROFIT, ledgerStyle: "register", features: FEATURES_FORPROFIT, buildProgress: PROGRESS },
   },
   {
     key: "ssmn",
@@ -110,7 +114,7 @@ const BOOKS = [
     accent: N.green,
     entity: stub("Social Services of Minnesota", "Social Services of MN", "Workspace created — Premier Banks accounts and the nonprofit chart of accounts are in."),
     config: {
-      sections: SECTIONS_NONPROFIT, labels: LABELS, ledgerStyle: "register",
+      sections: SECTIONS_NONPROFIT, labels: LABELS_NONPROFIT, ledgerStyle: "register",
       features: FEATURES_NONPROFIT, reportStyle: "nonprofit", buildProgress: PROGRESS,
     },
   },

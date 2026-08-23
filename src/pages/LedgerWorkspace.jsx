@@ -4545,7 +4545,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                     <td style={{ ...cellSt, fontWeight: 600, color: N.ink }}>
                       {e.description}
                       {/* Money in, coded to contributed support → it needs a donor, or nobody gets a letter. */}
-                      {!out && featureOn("donations") && contributedCats.has(e.category) && (
+                      {!out && featureOn("donations") && (contributedCats.has(e.category) || !e.category) && (
                         <select value={e.donor_id || ""} onChange={ev => setDonor(e.id, ev.target.value)}
                           title="Who gave this? Drives the year-end acknowledgment letter."
                           style={{ display: "block", marginTop: 4, maxWidth: 260, fontSize: 11.5, fontWeight: 600, padding: "3px 6px", borderRadius: 6, cursor: "pointer", fontFamily: "'Figtree', sans-serif",
