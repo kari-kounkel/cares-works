@@ -1352,10 +1352,15 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   async function saveContact(table, isNew) {
     const src = isNew ? newContact : contactDraft;
     if (!liveOrgId) return;
-    // A name alone is useless — we need to be able to reach them.
     if (!src.name.trim()) { setContactErr("Name is required."); return; }
-    if (!(src.email || "").trim() || !/.+@.+\..+/.test((src.email || "").trim())) { setContactErr("A valid email is required — we can't send invoices or POs without one."); return; }
-    if (!(src.phone || "").trim()) { setContactErr("A phone number is required."); return; }
+    // Customers get invoiced, so they need an email + phone. Vendors often have neither —
+    // don't block saving one just to fix a name.
+    if (table === "ledger_customers") {
+      if (!(src.email || "").trim() || !/.+@.+\..+/.test((src.email || "").trim())) { setContactErr("A valid email is required — we can't send invoices without one."); return; }
+      if (!(src.phone || "").trim()) { setContactErr("A phone number is required."); return; }
+    } else if ((src.email || "").trim() && !/.+@.+\..+/.test((src.email || "").trim())) {
+      setContactErr("That email doesn't look valid — fix it or leave it blank."); return;
+    }
     setContactErr("");
     const row = table === "ledger_customers"
       ? { name: src.name.trim(), company: (src.company || "").trim() || null, email: (src.email || "").trim() || null, phone: (src.phone || "").trim() || null, billing_address: (src.billing_address || "").trim() || null, tax_status: src.tax_status || null, notes: (src.notes || "").trim() || null }
