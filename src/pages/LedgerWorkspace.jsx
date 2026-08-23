@@ -1440,7 +1440,16 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     if (settled) {
       await supabase.from("invoices").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", inv.id);
     }
-    await logDocEvent(inv.id, settled ? "paid" : "payment", (settled ? "Paid in full · " : "Payment · ") + money(cents / 100) + (checkNo ? " · check #" + checkNo : ""));
+    // Overpayment → drop the excess onto the customer as an open credit (refund or apply later).
+    const excess = newPaid - totalCents;
+    if (excess > 0 && totalCents > 0) {
+      await supabase.from("ledger_credits").insert({
+        org_id: liveOrgId, user_id: session.user.id, customer_name: inv.customer,
+        amount_cents: excess, memo: `Overpayment on invoice ${inv.number ? "#" + inv.number : ""}`.trim(),
+        source_invoice_id: inv.id, status: "open",
+      });
+    }
+    await logDocEvent(inv.id, settled ? "paid" : "payment", (settled ? "Paid in full · " : "Payment · ") + money(cents / 100) + (excess > 0 ? ` (${money(excess / 100)} credit)` : "") + (checkNo ? " · check #" + checkNo : ""));
     setReloadTick(t => t + 1);
   }
   async function deletePaymentRec(p, inv) {
@@ -1909,14 +1918,12 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   <>
                     {/* Primary — the everyday actions */}
                     {openInv.status !== "Paid" && openInv.status !== "Void" && <button onClick={() => sendInvoice(openInv)} style={{ ...btnBlue, background: N.blue }}>{openInv.status === "Draft" ? "Send · get link" : "Copy / resend link"}</button>}
-                    {openInv.status !== "Paid" && openInv.status !== "Void" && <button onClick={() => quickMarkPaid(openInv)} style={{ ...btnBlue, background: N.pinkDark }}>Mark paid</button>}
+                    {openInv.status !== "Void" && <button onClick={() => openPayment(openInv)} title="Full, partial, or over — type the amount received" style={{ ...btnBlue, background: N.pinkDark }}>💵 Payment</button>}
                     {openInv.status !== "Void" && <button onClick={() => { const v = openInv; setOpenInv(null); editOrder(v); }} style={btnPaper(N.muted)}>Edit</button>}
                     <button onClick={() => setDocMoreOpen(o => !o)} style={btnPaper(N.blueDark)}>⋯ More</button>
                     {docMoreOpen && (
                       <>
                         <button onClick={() => openOnline(openInv)} style={btnPaper(N.blueDark)}>👁 Open online</button>
-                        {openInv.status !== "Paid" && openInv.status !== "Void" && <button onClick={() => openPayment(openInv)} style={btnPaper(N.pinkDark)}>Down payment / partial…</button>}
-                        {openInv.status !== "Void" && <button onClick={() => openOverpay(openInv)} style={btnPaper(N.muted)}>Overpaid…</button>}
                         {openInv.status !== "In progress" && openInv.status !== "Paid" && openInv.status !== "Void" && <button onClick={() => { invoiceStatus(openInv.id, "in_progress"); setOpenInv(null); }} style={btnPaper("#8a5a00")}>Mark in progress</button>}
                         {openInv.status === "In progress" && <button onClick={() => { invoiceStatus(openInv.id, "draft"); setOpenInv(null); }} style={btnPaper(N.blue)}>Done building</button>}
                         {openInv.status === "Paid" && (openInv.payments || []).length === 0 && <button onClick={() => { invoiceStatus(openInv.id, "sent"); setOpenInv(null); }} style={btnPaper(N.muted)}>Unmark paid</button>}
