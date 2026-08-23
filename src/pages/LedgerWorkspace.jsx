@@ -566,6 +566,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [replyTo, setReplyTo] = useState(null); // message id being replied to
   const [replyDraft, setReplyDraft] = useState("");
   const [msgArchive, setMsgArchive] = useState(false); // show resolved (done) messages
+  const [msgCollapsed, setMsgCollapsed] = useState(false); // hide the message board without resolving anything
   const [msgImagePath, setMsgImagePath] = useState(null); // screenshot attached to the message being composed
   const [msgImgBusy, setMsgImgBusy] = useState(false);
   const [msgImgUrls, setMsgImgUrls] = useState({}); // path -> signed URL, for showing message images
@@ -838,6 +839,16 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     const doneMsgs = messages.filter(m => m.done && !m.reply_to).sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
     const repliesOf = id => messages.filter(r => r.reply_to === id).sort((a, b) => (a.created_at || "").localeCompare(b.created_at || ""));
     const other = meName === "Betty" ? "Dave" : "Betty";
+    if (msgCollapsed) {
+      return (
+        <div className="no-print" style={{ padding: "0 22px 12px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, background: open.length ? "#fff7ed" : "#f7fafd", border: "1px solid " + (open.length ? "#fed7aa" : N.rule), borderRadius: 12, padding: "7px 14px" }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: open.length ? "#9a3412" : N.muted }}>{open.length ? `🔔 ${open.length} message${open.length === 1 ? "" : "s"} waiting` : "✉ Messages"}</span>
+            <button onClick={() => setMsgCollapsed(false)} style={{ ...btnPaper(N.blue), padding: "4px 12px", marginLeft: "auto" }}>Show ▾</button>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="no-print" style={{ padding: "0 22px 12px" }}>
         <div style={{ background: open.length ? "#fff7ed" : "#f7fafd", border: "1px solid " + (open.length ? "#fed7aa" : N.rule), borderRadius: 12, padding: "10px 14px", animation: open.length ? "msgPulse 1.3s ease-in-out infinite" : "none" }}>
@@ -847,6 +858,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             </span>
             <button onClick={() => setMsgOpen(o => !o)} style={{ ...btnPaper(N.blue), padding: "5px 12px" }}>{msgOpen ? "Close" : "＋ New message"}</button>
             {doneMsgs.length > 0 && <button onClick={() => setMsgArchive(a => !a)} style={{ ...btnPaper(N.muted), padding: "5px 12px" }}>{msgArchive ? "Hide archive" : `📁 Archive (${doneMsgs.length})`}</button>}
+            <button onClick={() => setMsgCollapsed(true)} title="Hide the message board — nothing gets marked done" style={{ ...btnPaper(N.muted), padding: "5px 12px", marginLeft: "auto" }}>▲ Hide board</button>
           </div>
           {msgArchive && doneMsgs.length > 0 && (
             <div style={{ marginTop: 10, borderTop: "1px solid " + N.rule, paddingTop: 10, display: "grid", gap: 6 }}>
