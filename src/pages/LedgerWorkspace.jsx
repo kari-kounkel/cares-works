@@ -656,6 +656,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [checkAcctId, setCheckAcctId] = useState("");
   const [checkStartNum, setCheckStartNum] = useState(""); // editable first check number for the batch
   const [selectedBills, setSelectedBills] = useState({}); // { billId: true }
+  const [showPaidBills, setShowPaidBills] = useState(false); // collapse the paid bills out of the main list
   const [checkOffX, setCheckOffX] = useState(() => { try { return parseFloat(localStorage.getItem("cw_checkAlignX")) || 0; } catch (e) { return 0; } }); // inches, printer alignment nudge (remembered)
   const [checkOffY, setCheckOffY] = useState(() => { try { return parseFloat(localStorage.getItem("cw_checkAlignY")) || 0; } catch (e) { return 0; } });
   useEffect(() => { try { localStorage.setItem("cw_checkAlignX", String(checkOffX)); localStorage.setItem("cw_checkAlignY", String(checkOffY)); } catch (e) { /* storage may be blocked */ } }, [checkOffX, checkOffY]);
@@ -3241,7 +3242,10 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   function Bills() {
     const bills = entity.bills || [];
     const unpaid = bills.filter(b => b.status !== "paid");
+    const paidBills = bills.filter(b => b.status === "paid");
+    const openCredits = (entity.credits || []).filter(c => c.status === "open");
     const owed = unpaid.reduce((s, b) => s + (b.amount_cents || 0), 0);
+    const refundsDue = openCredits.reduce((s, c) => s + (c.amount_cents || 0), 0);
     const selBills = unpaid.filter(b => selectedBills[b.id]);
     const selTotal = selBills.reduce((s, b) => s + (b.amount_cents || 0), 0);
     const toggleBill = id => setSelectedBills(p => ({ ...p, [id]: !p[id] }));
@@ -3250,7 +3254,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, flexWrap: "wrap", gap: 10 }}>
           <div>
             <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>Bills</div>
-            <div style={{ fontSize: 13, color: N.muted }}>What you owe vendors. {unpaid.length} unpaid · {money(owed / 100)} outstanding.</div>
+            <div style={{ fontSize: 13, color: N.muted }}>What you owe vendors. {unpaid.length} unpaid · {money(owed / 100)} outstanding{refundsDue > 0 ? ` · ${openCredits.length} refund${openCredits.length === 1 ? "" : "s"} due (${money(refundsDue / 100)})` : ""}.</div>
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {selBills.length > 0 && <button onClick={() => payBillsByCheck(selBills)} style={{ ...btnBlue, background: N.pinkDark, fontSize: 14, padding: "10px 16px" }}>Pay {selBills.length} by check · {money(selTotal / 100)}</button>}
@@ -3283,28 +3287,63 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           </div>
         )}
         <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, overflow: "hidden" }}>
-          {bills.length === 0 ? (
-            <div style={{ padding: "30px 20px", textAlign: "center", color: N.muted, fontSize: 14 }}>No bills yet. Record what you owe a vendor, then mark it paid (or pay it by check).</div>
-          ) : bills.map((b, i) => {
-            const paid = b.status === "paid";
-            return (
+          {unpaid.length === 0 && openCredits.length === 0 ? (
+            <div style={{ padding: "30px 20px", textAlign: "center", color: N.muted, fontSize: 14 }}>Nothing to pay right now.{paidBills.length > 0 ? " Paid bills are tucked below." : " Record what you owe a vendor, then pay it by check."}</div>
+          ) : (<>
+            {/* Refunds owed to customers (open overpayment credits) — pay one by check */}
+            {openCredits.map((cr, i) => (
+              <div key={cr.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 16px", borderBottom: "1px solid " + N.rule, background: "#fff7ed" }}>
+                <span style={{ width: 16 }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: N.ink }}>↩ Refund — {cr.customer_name}</div>
+                  <div style={{ fontSize: 12, color: N.muted }}>Customer overpayment{cr.memo ? ` · ${cr.memo}` : ""}</div>
+                </div>
+                <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "#9a3412", background: "#fed7aa", padding: "4px 10px", borderRadius: 100 }}>Refund due</span>
+                <button onClick={() => refundCredit(cr)} style={btnPaper(N.pinkDark)}>Refund by check</button>
+                <div style={{ fontSize: 16, fontWeight: 600, color: N.ink, width: 90, textAlign: "right" }}>{money((cr.amount_cents || 0) / 100)}</div>
+              </div>
+            ))}
+            {unpaid.length === 0 && openCredits.length > 0 && <div style={{ padding: "14px 16px", color: N.muted, fontSize: 13 }}>No vendor bills to pay.</div>}
+            {unpaid.map((b, i) => (
               <div key={b.id} onClick={() => { setOpenBill(b); setBillEdit(null); }} title="Open bill"
-                style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 16px", borderBottom: i === bills.length - 1 ? "none" : "1px solid " + N.rule, opacity: paid ? 0.6 : 1, cursor: "pointer", background: selectedBills[b.id] ? "#eef6ff" : "transparent" }}
+                style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 16px", borderBottom: i === unpaid.length - 1 ? "none" : "1px solid " + N.rule, cursor: "pointer", background: selectedBills[b.id] ? "#eef6ff" : "transparent" }}
                 onMouseEnter={e => (e.currentTarget.style.background = selectedBills[b.id] ? "#e3eefc" : "#f7fafd")}
                 onMouseLeave={e => (e.currentTarget.style.background = selectedBills[b.id] ? "#eef6ff" : "transparent")}>
-                {!paid ? <input type="checkbox" checked={!!selectedBills[b.id]} onClick={e => e.stopPropagation()} onChange={() => toggleBill(b.id)} title="Select to pay with one check" style={{ width: 16, height: 16, cursor: "pointer", accentColor: N.blue }} /> : <span style={{ width: 16 }} />}
+                <input type="checkbox" checked={!!selectedBills[b.id]} onClick={e => e.stopPropagation()} onChange={() => toggleBill(b.id)} title="Select to pay with one check" style={{ width: 16, height: 16, cursor: "pointer", accentColor: N.blue }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 15, fontWeight: 600, color: N.ink }}>{b.vendor_name || "—"}</div>
                   <div style={{ fontSize: 12, color: N.muted }}>{b.category || "Uncategorized"}{b.due_date ? ` · due ${b.due_date}` : ""}{b.memo ? ` · ${b.memo}` : ""}</div>
                 </div>
-                <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: paid ? N.green : N.red, background: (paid ? N.green : N.red) + "18", padding: "4px 10px", borderRadius: 100 }}>{paid ? "Paid" : "Unpaid"}</span>
-                {!paid && <button onClick={e => { e.stopPropagation(); payBillByCheck(b); }} style={btnPaper(N.text)}>Pay by check</button>}
-                <button onClick={e => { e.stopPropagation(); paid ? reprintCheck(b) : markBillPaid(b.id, true); }} style={btnPaper(paid ? N.blue : N.pinkDark)}>{paid ? "Reprint / edit check" : "Mark paid"}</button>
+                <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: N.red, background: N.red + "18", padding: "4px 10px", borderRadius: 100 }}>Unpaid</span>
+                <button onClick={e => { e.stopPropagation(); payBillByCheck(b); }} style={btnPaper(N.text)}>Pay by check</button>
+                <button onClick={e => { e.stopPropagation(); markBillPaid(b.id, true); }} style={btnPaper(N.pinkDark)}>Mark paid</button>
                 <div style={{ fontSize: 16, fontWeight: 600, color: N.ink, width: 90, textAlign: "right" }}>{money((b.amount_cents || 0) / 100)}</div>
               </div>
-            );
-          })}
+            ))}
+          </>)}
         </div>
+
+        {paidBills.length > 0 && (
+          <div style={{ marginTop: 14 }}>
+            <button onClick={() => setShowPaidBills(s => !s)} style={{ background: "none", border: "none", color: N.blue, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'Figtree', sans-serif", padding: 0 }}>{showPaidBills ? "▲ Hide" : "▾ Show"} paid bills ({paidBills.length})</button>
+            {showPaidBills && (
+              <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, overflow: "hidden", marginTop: 8 }}>
+                {paidBills.map((b, i) => (
+                  <div key={b.id} onClick={() => { setOpenBill(b); setBillEdit(null); }} title="Open bill"
+                    style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderBottom: i === paidBills.length - 1 ? "none" : "1px solid " + N.rule, opacity: 0.7, cursor: "pointer" }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: N.ink }}>{b.vendor_name || "—"}</div>
+                      <div style={{ fontSize: 12, color: N.muted }}>{b.category || "Uncategorized"}{b.paid_at ? ` · paid ${new Date(b.paid_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}` : ""}{b.memo ? ` · ${b.memo}` : ""}</div>
+                    </div>
+                    <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: N.green, background: N.green + "18", padding: "4px 10px", borderRadius: 100 }}>Paid</span>
+                    <button onClick={e => { e.stopPropagation(); reprintCheck(b); }} style={btnPaper(N.blue)}>Reprint / edit check</button>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: N.muted, width: 90, textAlign: "right" }}>{money((b.amount_cents || 0) / 100)}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {openBill && (() => {
           const b = openBill; const paid = b.status === "paid"; const editing = billEdit && billEdit.id === b.id;
