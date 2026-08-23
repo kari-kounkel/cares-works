@@ -1364,9 +1364,12 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       setContactErr("That email doesn't look valid — fix it or leave it blank."); return;
     }
     setContactErr("");
+    // Clean vendor names to a single consistent form so re-entries don't create
+    // "Spec." vs "spec" vs "SPEC" duplicates: title case, no periods/commas, single spaces.
+    const cleanVendorName = s => (s || "").trim().replace(/\s+/g, " ").replace(/[.,]/g, "").toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
     const row = table === "ledger_customers"
       ? { name: src.name.trim(), company: (src.company || "").trim() || null, email: (src.email || "").trim() || null, phone: (src.phone || "").trim() || null, billing_address: (src.billing_address || "").trim() || null, tax_status: src.tax_status || null, notes: (src.notes || "").trim() || null }
-      : { name: src.name.trim(), email: (src.email || "").trim() || null, phone: (src.phone || "").trim() || null, billing_address: (src.billing_address || "").trim() || null };
+      : { name: cleanVendorName(src.name), email: (src.email || "").trim() || null, phone: (src.phone || "").trim() || null, billing_address: (src.billing_address || "").trim() || null };
     if (isNew) {
       await supabase.from(table).insert({ org_id: liveOrgId, user_id: session.user.id, ...row });
       setShowAddContact(false); setNewContact(blankContact);
@@ -4048,10 +4051,10 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                     <div style={{ fontSize: 15, fontWeight: 600, color: N.ink }}>{c.name}{c.company ? <span style={{ color: N.muted, fontWeight: 400 }}> · {c.company}</span> : ""}{isCust && c.tax_status && c.tax_status !== "Taxable" && <span style={{ fontSize: 10, fontWeight: 700, color: N.muted, marginLeft: 6, letterSpacing: "0.04em" }}>{(c.tax_status || "").toUpperCase()}</span>}{isCust && (() => { const cc = (entity.credits || []).filter(cr => cr.status === "open" && (cr.customer_name || "").toLowerCase() === (c.name || "").toLowerCase()).reduce((s, cr) => s + (cr.amount_cents || 0), 0); return cc > 0 ? <span style={{ fontSize: 10, fontWeight: 700, color: N.pinkDark, background: "#eafaf0", border: "1px solid #bff0d3", borderRadius: 100, padding: "2px 8px", marginLeft: 8 }}>{money(cc / 100)} CREDIT</span> : null; })()}</div>
                     <div style={{ fontSize: 12, color: N.muted }}>{[c.email, c.phone].filter(Boolean).join(" · ") || <span style={{ color: N.mutedLite, fontStyle: "italic" }}>no email or phone yet</span>}</div>
                     {c.billing_address ? <div style={{ fontSize: 12, color: N.muted, whiteSpace: "pre-line", marginTop: 2 }}>{c.billing_address}</div> : null}
-                    {!isCust && (() => { const { total, list } = vendorTx(c.name); return (
+                    {!isCust && (() => { const { list } = vendorTx(c.name); const last = list[0]; return (
                       <div style={{ fontSize: 12, marginTop: 4 }}>
-                        {list.length > 0
-                          ? <button onClick={() => setVendorTxOpen(vendorTxOpen === c.id ? null : c.id)} style={{ background: "none", border: "none", color: N.blue, cursor: "pointer", fontWeight: 600, fontFamily: "'Figtree', sans-serif", fontSize: 12, padding: 0 }}>💵 {money(total / 100)} paid · {list.length} payment{list.length === 1 ? "" : "s"} {vendorTxOpen === c.id ? "▲" : "▾"}</button>
+                        {last
+                          ? <button onClick={() => setVendorTxOpen(vendorTxOpen === c.id ? null : c.id)} style={{ background: "none", border: "none", color: N.blue, cursor: "pointer", fontWeight: 600, fontFamily: "'Figtree', sans-serif", fontSize: 12, padding: 0 }}>🧾 Last: {money((last.amount_cents || 0) / 100)} · {shortD(last.entry_date)}{list.length > 1 ? ` · ${list.length} total` : ""} {vendorTxOpen === c.id ? "▲ hide history" : "▾ see history"}</button>
                           : <span style={{ color: N.mutedLite }}>no payments recorded yet</span>}
                       </div>
                     ); })()}
