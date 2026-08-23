@@ -140,7 +140,7 @@ const BUILD_PROGRESS = [
     ["Off-balance → Suspense, never silent", "done"],
     ["Attach the statement PDF / CSV", "done"],
     ["Reconciliation history + printable report", "done"],
-    ["All cards + CorTrust reconciled", "wip"],
+    ["All cards + CorTrust reconciled", "done"],
   ] },
   { label: "Bills", items: [
     ["Record a vendor bill", "done"],
