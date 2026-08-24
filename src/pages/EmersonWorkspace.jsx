@@ -105,7 +105,7 @@ const BOOKS = [
     kind: "For-profit",
     accent: N.blue,
     entity: stub("Emerson Services", "Emerson Services", "Workspace created — accounts and categories loaded from his account list."),
-    config: { sections: SECTIONS_FORPROFIT, labels: LABELS_FORPROFIT, ledgerStyle: "register", features: FEATURES_FORPROFIT, buildProgress: PROGRESS },
+    config: { sections: SECTIONS_FORPROFIT, labels: LABELS_FORPROFIT, ledgerStyle: "register", features: FEATURES_FORPROFIT, buildProgress: PROGRESS, financials: FINANCIALS },
   },
   {
     key: "ssmn",
@@ -115,10 +115,19 @@ const BOOKS = [
     entity: stub("Social Services of Minnesota", "Social Services of MN", "Workspace created — Premier Banks accounts and the nonprofit chart of accounts are in."),
     config: {
       sections: SECTIONS_NONPROFIT, labels: LABELS_NONPROFIT, ledgerStyle: "register",
-      features: FEATURES_NONPROFIT, reportStyle: "nonprofit", buildProgress: PROGRESS,
+      features: FEATURES_NONPROFIT, reportStyle: "nonprofit", buildProgress: PROGRESS, financials: FINANCIALS,
     },
   },
 ];
+
+// Both books, for the "Get Financials" picker. `name` must match the org name in
+// Supabase — that is what resolves it, so no ids are hardcoded here either.
+const FINANCIALS = {
+  books: [
+    { key: "services", label: "Emerson Services", name: "Emerson Services" },
+    { key: "ssmn", label: "Social Services of MN", name: "Social Services of Minnesota", reportStyle: "nonprofit" },
+  ],
+};
 
 const REMEMBER = "cw_emerson_book";
 

@@ -345,6 +345,41 @@ function buildLiveEntity(org, accounts, categories, entries, session) {
 // Categories classed "transfer" are excluded outright: money moved between the
 // org's own accounts is neither revenue nor expense. Booking those as contributions
 // is exactly the error that inflates a nonprofit's public support.
+// ---- Financials for one set of books -------------------------------------------
+// Flattens summarizeActivities into a plain income statement: revenue by category,
+// expense by category, and the net between them. The functional buckets are kept
+// alongside, because a nonprofit's statement needs them and a business's does not —
+// same numbers either way, so the two entities can be read side by side and, when
+// both are asked for, added together honestly.
+//
+// Uncoded money stays OUT of the totals and is reported separately, exactly as it is
+// on the Statement of Activities. A financial statement that quietly absorbs
+// uncategorised money is worse than one that admits the gap.
+export function financialSummary(entries, categories, start, end) {
+  const s = summarizeActivities(entries, categories, start, end);
+  const merge = objs => {
+    const out = {};
+    objs.forEach(o => Object.entries(o || {}).forEach(([k, v]) => { out[k] = (out[k] || 0) + v; }));
+    return out;
+  };
+  return {
+    revenue: merge([s.revenue.contributed, s.revenue.earned, s.revenue.unclassified]),
+    expense: merge([s.expense.program, s.expense.mg, s.expense.fundraising, s.expense.unclassified]),
+    revTotal: s.revTotal,
+    expTotal: s.expTotal,
+    net: s.change,
+    uncoded: s.uncoded,
+    byFunction: {
+      program: Object.values(s.expense.program).reduce((a, b) => a + b, 0),
+      mg: Object.values(s.expense.mg).reduce((a, b) => a + b, 0),
+      fundraising: Object.values(s.expense.fundraising).reduce((a, b) => a + b, 0),
+      unclassified: Object.values(s.expense.unclassified).reduce((a, b) => a + b, 0),
+    },
+    contributed: Object.values(s.revenue.contributed).reduce((a, b) => a + b, 0),
+    earned: Object.values(s.revenue.earned).reduce((a, b) => a + b, 0),
+  };
+}
+
 // ---- Comparing the new books against QuickBooks --------------------------------
 // A migration nobody can check is a migration nobody will trust. ledger_qbo_baseline
 // holds what QuickBooks reported month by month, frozen while the QBO subscription
@@ -588,6 +623,15 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [reconChecked, setReconChecked] = useState({});
   const blankReconAdd = { amount: "", dir: "out", category: "", memo: "" };
   const [reconAdd, setReconAdd] = useState(blankReconAdd);
+  // "Get Financials" — pick one set of books or both, and a period. Only appears when
+  // the tenant config supplies the list of books it can reach (entity.financials).
+  const [finOpen, setFinOpen] = useState(false);
+  const [finPick, setFinPick] = useState({});
+  const [finPeriod, setFinPeriod] = useState("thisfy");
+  const [finFrom, setFinFrom] = useState("");
+  const [finTo, setFinTo] = useState("");
+  const [finBusy, setFinBusy] = useState(false);
+  const [finResult, setFinResult] = useState(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [wide, setWide] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
@@ -1016,6 +1060,49 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     if (data) setReconChecked(p => ({ ...p, [data.id]: true })); // pre-checked — it's on the statement
     setReconAdd(blankReconAdd);
     setReloadTick(t => t + 1);
+  }
+
+  // Pull each selected set of books straight from the database and run the same
+  // summary over each. Deliberately one query per book: these are legally separate
+  // entities with separate returns, so "both" is two statements that can be added,
+  // never one query spanning two orgs.
+  async function runFinancials() {
+    const books = (entity.financials && entity.financials.books) || [];
+    const chosen = books.filter(b => finPick[b.key]);
+    if (!chosen.length) return;
+    const { start, end } = finBounds();
+    if (!start || !end) return;
+    setFinBusy(true);
+    try {
+      const { data: orgs } = await supabase.from("ledger_orgs").select("id,name,org_type");
+      const out = [];
+      for (const b of chosen) {
+        const org = (orgs || []).find(o => (o.name || "").toLowerCase() === b.name.toLowerCase());
+        if (!org) { out.push({ book: b, missing: true }); continue; }
+        const [ent, cat] = await Promise.all([
+          supabase.from("ledger_entries").select("entry_date,direction,amount_cents,category").eq("org_id", org.id),
+          supabase.from("ledger_categories").select("name,kind,func_class").eq("org_id", org.id).eq("archived", false),
+        ]);
+        out.push({
+          book: b, org,
+          sum: financialSummary(ent.data || [], cat.data || [], start, end),
+        });
+      }
+      setFinResult({ start, end, books: out });
+    } finally {
+      setFinBusy(false);
+    }
+  }
+  // Resolve the chosen period to a real window. Fiscal years come from the org's own
+  // year-end, not from January, because Matt's charity and his LLC need not share one.
+  function finBounds() {
+    const today = new Date().toISOString().slice(0, 10);
+    const thisFy = fyOf(today);
+    if (finPeriod === "thisfy") return fyBounds(thisFy);
+    if (finPeriod === "lastfy") return fyBounds(thisFy - 1);
+    if (finPeriod === "ytd") return { start: fyBounds(thisFy).start, end: today };
+    if (finPeriod === "cal") return { start: today.slice(0, 4) + "-01-01", end: today };
+    return { start: finFrom, end: finTo };
   }
 
   // Add a brand-new account to the chart on the fly (from the "which account?"
@@ -4242,6 +4329,159 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   // account, oldest line first, running balance down the right edge. There is no
   // "inbox to clear" here — every line that ever hit the account stays on the page,
   // cleared or not, because that's what a register is for.
+  // The Get Financials panel: which books, what period, then the statements. Drops
+  // out of the header so it is on the same line it was launched from.
+  function financialsPanel() {
+    const books = (entity.financials && entity.financials.books) || [];
+    const anyPicked = books.some(b => finPick[b.key]);
+    const { start, end } = finBounds();
+    const PERIODS = [
+      ["thisfy", "This fiscal year"],
+      ["lastfy", "Last fiscal year"],
+      ["ytd", "Fiscal year to date"],
+      ["cal", "Calendar year to date"],
+      ["custom", "Pick the dates"],
+    ];
+    const lbl = { display: "block", fontFamily: "'DM Mono', monospace", fontSize: 9.5, letterSpacing: "0.12em", color: N.muted, marginBottom: 6 };
+
+    return (
+      <div style={{ borderTop: "1px solid " + N.rule, background: "#f7fafd", padding: "14px 22px 18px" }}>
+        <div style={{ display: "flex", gap: 26, flexWrap: "wrap", alignItems: "flex-start" }}>
+          <div>
+            <span style={lbl}>WHICH BOOKS</span>
+            <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
+              {books.map(b => {
+                const on = !!finPick[b.key];
+                return (
+                  <button key={b.key} onClick={() => { setFinPick(p2 => ({ ...p2, [b.key]: !p2[b.key] })); setFinResult(null); }}
+                    style={{ border: "1px solid " + (on ? N.blue : N.rule), background: on ? "#eef6ff" : N.white,
+                      color: on ? N.blueDark : N.muted, fontWeight: on ? 700 : 500, fontSize: 13,
+                      padding: "8px 14px", borderRadius: 9, cursor: "pointer", fontFamily: "'Figtree', sans-serif" }}>
+                    {on ? "\u2713 " : ""}{b.label}
+                  </button>
+                );
+              })}
+              <button onClick={() => { setFinPick(Object.fromEntries(books.map(b => [b.key, true]))); setFinResult(null); }}
+                style={{ border: "1px dashed " + N.rule, background: "none", color: N.muted, fontSize: 12.5,
+                  padding: "8px 14px", borderRadius: 9, cursor: "pointer", fontFamily: "'Figtree', sans-serif" }}>
+                Both
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <span style={lbl}>PERIOD</span>
+            <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+              <select value={finPeriod} onChange={e => { setFinPeriod(e.target.value); setFinResult(null); }} style={{ ...inputSt, width: 190 }}>
+                {PERIODS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+              </select>
+              {finPeriod === "custom" && (
+                <>
+                  <input type="date" value={finFrom} onChange={e => { setFinFrom(e.target.value); setFinResult(null); }} style={{ ...inputSt, width: 150 }} />
+                  <span style={{ fontSize: 12, color: N.muted }}>to</span>
+                  <input type="date" value={finTo} onChange={e => { setFinTo(e.target.value); setFinResult(null); }} style={{ ...inputSt, width: 150 }} />
+                </>
+              )}
+            </div>
+            {start && end && <div style={{ fontSize: 11.5, color: N.muted, marginTop: 6 }}>{start} &rarr; {end}</div>}
+          </div>
+
+          <div style={{ alignSelf: "flex-end", display: "flex", gap: 8 }}>
+            <button onClick={runFinancials} disabled={!anyPicked || finBusy || !start || !end}
+              style={{ ...btnBlue, background: (anyPicked && !finBusy && start && end) ? N.blue : N.mutedLite, fontSize: 13, padding: "10px 20px" }}>
+              {finBusy ? "Pulling\u2026" : "Get financials"}
+            </button>
+            {finResult && <button onClick={() => window.print()} style={btnPaper(N.blueDark)}>Print</button>}
+          </div>
+        </div>
+
+        {!anyPicked && <div style={{ fontSize: 12.5, color: N.muted, marginTop: 12 }}>Pick one set of books, or Both.</div>}
+
+        {finResult && (
+          <div className="print-doc" style={{ marginTop: 16, display: "grid", gap: 14 }}>
+            {finResult.books.map(({ book, sum, missing }) => (
+              <div key={book.key} style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: "16px 18px" }}>
+                <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: N.ink }}>{book.label}</div>
+                <div style={{ fontSize: 12, color: N.muted, marginBottom: 10 }}>
+                  {book.reportStyle === "nonprofit" ? "Statement of Activities" : "Profit & Loss"} · {finResult.start} to {finResult.end}
+                </div>
+                {missing
+                  ? <div style={{ fontSize: 13, color: "#a32f24" }}>No books found under this name yet.</div>
+                  : finStatement(sum, book)}
+              </div>
+            ))}
+            {finResult.books.filter(b => b.sum).length > 1 && (() => {
+              const rows = finResult.books.filter(b => b.sum);
+              const t = rows.reduce((a, r) => ({
+                rev: a.rev + r.sum.revTotal, exp: a.exp + r.sum.expTotal, net: a.net + r.sum.net, unc: a.unc + r.sum.uncoded,
+              }), { rev: 0, exp: 0, net: 0, unc: 0 });
+              return (
+                <div style={{ background: N.white, border: "2px solid " + N.ink, borderRadius: 12, padding: "16px 18px" }}>
+                  <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: N.ink }}>Both books combined</div>
+                  <div style={{ fontSize: 12, color: N.muted, marginBottom: 10 }}>
+                    Added together for convenience. These are separate legal entities that file separately — this total is not a consolidation.
+                  </div>
+                  {finRow("Total revenue", t.rev)}
+                  {finRow("Total expenses", t.exp)}
+                  {finRow("Net", t.net, true)}
+                  {t.unc > 0 && <div style={{ fontSize: 11.5, color: "#8a5a00", marginTop: 8 }}>{money(t.unc / 100)} of activity is uncategorised and sits outside these totals.</div>}
+                </div>
+              );
+            })()}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  const finNum = { padding: "4px 0", fontSize: 13.5, textAlign: "right", fontFamily: "'DM Mono', monospace", fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" };
+  function finRow(label, cents, big) {
+    return (
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "baseline",
+        borderTop: big ? "2px solid " + N.ink : "none", marginTop: big ? 8 : 0, paddingTop: big ? 8 : 0 }}>
+        <span style={{ fontSize: big ? 14.5 : 13.5, fontWeight: big ? 700 : 400, color: big ? N.ink : N.text }}>{label}</span>
+        <span style={{ ...finNum, fontSize: big ? 16 : 13.5, fontWeight: big ? 700 : 400, color: big ? (cents < 0 ? N.red : N.pinkDark) : N.ink }}>{money(cents / 100)}</span>
+      </div>
+    );
+  }
+  function finStatement(sum, book) {
+    const section = (title, obj) => {
+      const names = Object.keys(obj).sort((a, b) => (obj[b] || 0) - (obj[a] || 0));
+      if (!names.length) return null;
+      return (
+        <>
+          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9.5, letterSpacing: "0.12em", color: N.muted, marginTop: 10, marginBottom: 2 }}>{title}</div>
+          {names.map(n => (
+            <div key={n} style={{ display: "flex", justifyContent: "space-between", gap: 16 }}>
+              <span style={{ fontSize: 13, color: N.text, paddingLeft: 10 }}>{n}</span>
+              <span style={finNum}>{money((obj[n] || 0) / 100)}</span>
+            </div>
+          ))}
+        </>
+      );
+    };
+    return (
+      <div>
+        {section("REVENUE", sum.revenue)}
+        {finRow("Total revenue", sum.revTotal)}
+        {section("EXPENSES", sum.expense)}
+        {finRow("Total expenses", sum.expTotal)}
+        {finRow(book.reportStyle === "nonprofit" ? "Change in net assets" : "Net profit", sum.net, true)}
+        {book.reportStyle === "nonprofit" && sum.expTotal > 0 && (
+          <div style={{ fontSize: 11.5, color: N.muted, marginTop: 8 }}>
+            Program {Math.round((sum.byFunction.program / sum.expTotal) * 100)}% · management &amp; general {Math.round((sum.byFunction.mg / sum.expTotal) * 100)}% · fundraising {Math.round((sum.byFunction.fundraising / sum.expTotal) * 100)}%
+            {sum.byFunction.unclassified > 0 && <> · <span style={{ color: "#8a5a00" }}>unclassified {Math.round((sum.byFunction.unclassified / sum.expTotal) * 100)}%</span></>}
+          </div>
+        )}
+        {sum.uncoded > 0 && (
+          <div style={{ fontSize: 11.5, color: "#8a5a00", marginTop: 6 }}>
+            {money(sum.uncoded / 100)} uncategorised — not in the totals above.
+          </div>
+        )}
+      </div>
+    );
+  }
+
   // The reconcile screen. It is shared because Emerson's books render the Register
   // rather than the Notebook (ledgerStyle "register"), and while this lived inside
   // Notebook() those books had no way to reconcile at all.
@@ -5153,7 +5393,19 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               </div>
             </div>
           ))}
+          {/* Far right of the balances line — same row as OPEN BILLS and the accounts. */}
+          {entity.financials && (
+            <button onClick={() => { setFinResult(null); setFinOpen(o => !o); }}
+              title="Profit &amp; loss for one set of books or both, for any period"
+              style={{ marginLeft: "auto", alignSelf: "center", background: finOpen ? N.blueDark : N.white,
+                color: finOpen ? "#fff" : N.blueDark, border: "1px solid " + N.blueDark, borderRadius: 10,
+                padding: "8px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer",
+                fontFamily: "'Figtree', sans-serif", whiteSpace: "nowrap", flexShrink: 0 }}>
+              Get Financials
+            </button>
+          )}
         </div>
+        {finOpen && entity.financials && financialsPanel()}
         {messageBar()}
       </header>
 
