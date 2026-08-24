@@ -172,6 +172,7 @@ const BUILD_PROGRESS = [
     ["Printable filing report", "todo"],
   ] },
   { label: "Reports", items: [
+    ["Prior-year P&L (from filed return)", "done"],
     ["Profit & Loss — from April 1", "todo"],
     ["Opening balances / trial balance", "done"],
     ["Balance sheet — fiscal year", "todo"],
@@ -699,7 +700,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         ? (orgs || []).find(o => o.id === orgId)
         : (wantFirst ? (orgs || []).find(o => (o.name || "").toLowerCase().includes(wantFirst)) : null);
       if (!org || cancelled) return;
-      const [a, c, e, inv, ven, cust, prod, bil, pay, cred, evts, docs, dons] = await Promise.all([
+      const [a, c, e, inv, ven, cust, prod, bil, pay, cred, evts, docs, dons, stmts] = await Promise.all([
         supabase.from("ledger_accounts").select("*").eq("org_id", org.id).eq("archived", false).order("created_at", { ascending: true }),
         supabase.from("ledger_categories").select("*").eq("org_id", org.id).eq("archived", false).order("sort_order", { ascending: true }),
         supabase.from("ledger_entries").select("*").eq("org_id", org.id).order("entry_date", { ascending: false }).order("created_at", { ascending: false }),
@@ -713,6 +714,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         supabase.from("ledger_doc_events").select("*").eq("org_id", org.id).order("created_at", { ascending: true }),
         supabase.from("ledger_documents").select("*").eq("org_id", org.id).order("created_at", { ascending: false }),
         supabase.from("ledger_donors").select("*").eq("org_id", org.id).order("name", { ascending: true }),
+        supabase.from("ledger_statements").select("*").eq("org_id", org.id).order("period_end", { ascending: false }),
       ]);
       if (cancelled) return;
       setLiveOrgId(org.id);
@@ -734,6 +736,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       built.docEvents = evByInv;
       built.documents = docs.data || [];
       built.donors = dons.data || [];
+      built.statements = stmts.data || [];
       built.orgType = org.org_type || "business";
       setDbEntity(built);
     })();
@@ -4271,6 +4274,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       { key: "chart", label: "Chart of accounts", desc: "Every account — banks, cards, income, expenses", count: (entity.rawCategories || []).filter(c => !c.archived).length + (entity.rawAccounts || []).length },
       { key: "recons", label: "Bank reconciliations", desc: "Statement history by account — balances, dates, attached statements", count: reconHist.length },
       { key: "opening", label: "Opening balances", desc: "Your starting trial balance — the CPA-ready anchor. Flags anything still needing info." },
+      { key: "priorpl", label: "Prior-year P&L (filed)", desc: "Profit & loss from the filed tax return — fiscal years ending 3/31", count: (entity.statements || []).filter(s => s.kind === "pl").length || null },
       { key: "qbo", feature: "qboImport", label: "Import from QuickBooks", desc: "Bring the history across with its coding — Transaction List, General Ledger, or Journal Entries" },
       { key: "cardpayoff", feature: "cardPayoff", label: "Card payoff plan", desc: "Smartest order to pay down the credit cards" },
       { key: "campaigns", feature: "campaigns", label: "Email campaigns", desc: "Newsletters & blasts to your customers (Constant Contact replacement)" },
@@ -4325,6 +4329,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         )}
         {listsTab === "recons" && Reconciliations()}
         {listsTab === "opening" && OpeningBalances()}
+        {listsTab === "priorpl" && PriorPL()}
         {listsTab === "settings" && Settings()}
       </div>
     );
@@ -4480,6 +4485,102 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           {totRow("Total liabilities & equity", d.liabsTotal + d.equity)}
         </div>
         <div style={{ fontSize: 12, color: N.muted, marginTop: 12 }}>Fiscal year runs <b>4/1–3/31</b>. Equipment is carried at <b>$0</b> — the FY2026 return shows zero depreciation for three years running, so it's fully written off. Total liabilities &amp; equity always equals total assets because equity is the plug; the CPA confirms the pieces are right.</div>
+      </div>
+    );
+  }
+
+  // Prior-year P&L filed on the tax return — read-only history, per fiscal year (3/31 end).
+  function printPriorPL(s) {
+    const m = c => money(c / 100);
+    const d = s.data || {};
+    const rowHtml = ln => {
+      const strong = ["grossprofit", "totalexp", "net"].includes(ln.role);
+      const border = ln.role === "grossprofit" || ln.role === "totalexp" ? "border-top:1px solid #cbd5e1;" : ln.role === "net" ? "border-top:2px solid #0f172a;" : "";
+      const ind = ln.role === "expense" || ln.role === "cogs" ? "padding-left:24px;" : "";
+      const lbl = ln.role === "cogs" ? "Less: " + ln.label : ln.label;
+      return `<tr style="${border}"><td style="${ind}${strong ? "font-weight:700;" : ""}">${lbl}</td><td class=r style="${strong ? "font-weight:700;" : ""}${ln.cents < 0 ? "color:#b91c1c;" : ""}">${m(ln.cents)}</td></tr>`;
+    };
+    const cmp = d.comparison;
+    const cmpHtml = cmp ? `<h3 style="font-size:13px;margin:22px 0 6px">Three-year comparison</h3>
+      <table><thead><tr><th></th>${cmp.columns.map(c => `<th class=r>${c}</th>`).join("")}</tr></thead>
+      <tbody>${cmp.rows.map(r => `<tr><td>${r.label}</td>${r.vals.map(v => `<td class=r style="${v < 0 ? "color:#b91c1c;" : ""}">${m(v)}</td>`).join("")}</tr>`).join("")}</tbody></table>` : "";
+    const html = `<!doctype html><html><head><meta charset="utf-8"><title>P&L — ${s.period_label} — ${entity.name || ""}</title>
+      <style>body{font-family:Arial,Helvetica,sans-serif;color:#0f172a;padding:32px;max-width:640px;margin:0 auto}
+      h1{font-size:20px;margin:0 0 2px}h2{font-size:14px;color:#64748b;font-weight:600;margin:0 0 4px}
+      table{border-collapse:collapse;width:100%;font-size:13px}th,td{padding:6px 10px;text-align:left}th{font-size:10px;letter-spacing:.06em;color:#64748b;text-transform:uppercase}
+      .r{text-align:right;font-variant-numeric:tabular-nums}.src{font-size:11px;color:#94a3b8;margin:10px 0 16px}
+      .foot{margin-top:18px;font-size:11px;color:#94a3b8}</style></head>
+      <body><h1>${entity.name || ""}</h1><h2>Profit &amp; Loss — ${s.period_label}</h2>
+      <div class="src">${s.source || ""}</div>
+      <table><tbody>${(d.lines || []).map(rowHtml).join("")}</tbody></table>
+      ${cmpHtml}
+      <div class="foot">${s.note || ""} · Printed ${new Date().toLocaleDateString("en-US")} · CARES Works</div></body></html>`;
+    const w = window.open("", "_blank");
+    if (!w) { window.alert("Allow pop-ups to print the report."); return; }
+    w.document.write(html); w.document.close(); w.focus();
+    setTimeout(() => { try { w.print(); } catch (e) { /* manual */ } }, 350);
+  }
+
+  function PriorPL() {
+    const stmts = (entity.statements || []).filter(s => s.kind === "pl").slice().sort((a, b) => (b.period_end || "").localeCompare(a.period_end || ""));
+    const roleColor = r => r === "net" ? N.red : N.ink;
+    return (
+      <div>
+        <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink, marginBottom: 2 }}>Prior-year P&amp;L (filed)</div>
+        <div style={{ fontSize: 13, color: N.muted, marginBottom: 16 }}>Profit &amp; loss straight from the filed tax return — the prior history, by fiscal year (4/1–3/31). Read-only. This year's live P&amp;L builds in <b>Reports</b> as you go.</div>
+        {stmts.length === 0 && <div style={{ background: N.white, border: "1px dashed " + N.rule, borderRadius: 12, padding: "40px 20px", textAlign: "center", color: N.muted, fontSize: 14 }}>No filed statements yet.</div>}
+        {stmts.map(s => {
+          const d = s.data || {};
+          const cmp = d.comparison;
+          return (
+            <div key={s.id} style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, marginBottom: 16, overflow: "hidden" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: "#f7fafd", borderBottom: "1px solid " + N.rule, flexWrap: "wrap", gap: 8 }}>
+                <div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: N.ink }}>Profit &amp; Loss — {s.period_label}</div>
+                  <div style={{ fontSize: 12, color: N.muted }}>{s.source}</div>
+                </div>
+                <button onClick={() => printPriorPL(s)} style={btnPaper(N.blueDark)}>🖨 Print for CPA</button>
+              </div>
+              <div>
+                {(d.lines || []).map((ln, i) => {
+                  const strong = ["grossprofit", "totalexp", "net"].includes(ln.role);
+                  const indented = ln.role === "expense" || ln.role === "cogs";
+                  const topBorder = ln.role === "grossprofit" || ln.role === "totalexp" ? "1px solid " + N.rule : ln.role === "net" ? "2px solid " + N.ink : "none";
+                  return (
+                    <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 10, padding: "8px 16px", borderTop: topBorder, background: ln.role === "net" ? "#f7fafd" : "transparent" }}>
+                      <span style={{ fontSize: 14, color: strong ? N.ink : N.text, fontWeight: strong ? 700 : 400, paddingLeft: indented ? 18 : 0 }}>{ln.role === "cogs" ? "Less: " + ln.label : ln.label}</span>
+                      <span style={{ fontFamily: "'DM Mono', monospace", fontWeight: strong ? 700 : 500, color: ln.cents < 0 ? N.red : roleColor(ln.role) }}>{money(ln.cents / 100)}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              {cmp && (
+                <div style={{ padding: "14px 16px", borderTop: "1px solid " + N.rule }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: N.muted, marginBottom: 8 }}>Three-year comparison</div>
+                  <div style={{ overflowX: "auto" }}>
+                    <table style={{ borderCollapse: "collapse", width: "100%", fontSize: 13 }}>
+                      <thead>
+                        <tr>
+                          <th style={{ textAlign: "left", padding: "4px 8px", fontSize: 10, letterSpacing: "0.06em", color: N.muted, textTransform: "uppercase" }}></th>
+                          {cmp.columns.map(c => <th key={c} style={{ textAlign: "right", padding: "4px 8px", fontSize: 10, letterSpacing: "0.06em", color: N.muted, textTransform: "uppercase" }}>{c}</th>)}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {cmp.rows.map((r, ri) => (
+                          <tr key={ri} style={{ borderTop: "1px solid " + N.rule }}>
+                            <td style={{ padding: "6px 8px", color: N.ink }}>{r.label}</td>
+                            {r.vals.map((v, vi) => <td key={vi} style={{ padding: "6px 8px", textAlign: "right", fontFamily: "'DM Mono', monospace", color: v < 0 ? N.red : N.ink }}>{money(v / 100)}</td>)}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+              {s.note && <div style={{ padding: "10px 16px", borderTop: "1px solid " + N.rule, fontSize: 12, color: N.muted, fontStyle: "italic" }}>{s.note}</div>}
+            </div>
+          );
+        })}
       </div>
     );
   }
