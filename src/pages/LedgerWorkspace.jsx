@@ -197,8 +197,9 @@ const ACCOUNT_TYPES = [
   { value: "bank", label: "Bank / working capital" },
   { value: "credit_card", label: "Credit card" },
   { value: "loan", label: "Loan / mortgage" },
+  { value: "liability", label: "Other liability / payable" },
   { value: "cash", label: "Cash" },
-  { value: "other", label: "Other" },
+  { value: "other", label: "Other asset" },
 ];
 
 const STATUS_COLOR = {
@@ -4390,18 +4391,14 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     const accts = (entity.rawAccounts || []);
     const sortNm = (a, b) => (a.name || "").localeCompare(b.name || "");
     const assetAccts = accts.filter(a => ["bank", "cash", "other"].includes(a.account_type)).slice().sort(sortNm);
-    const cards = accts.filter(a => a.account_type === "credit_card").slice().sort(sortNm);
-    const loans = accts.filter(a => a.account_type === "loan").slice().sort(sortNm);
+    const liabAccts = accts.filter(a => ["credit_card", "loan", "liability"].includes(a.account_type)).slice().sort(sortNm);
     const balOf = v => (v.balanceCents != null ? v.balanceCents : Math.round((v.amount || 0) * 100));
     const arTotal = invoices.filter(v => v.docType !== "order" && v.status !== "Void" && v.status !== "Paid" && balOf(v) > 0).reduce((s, v) => s + balOf(v), 0);
     const nm = a => a.name + (a.last_four ? " ••" + a.last_four : "");
     const assetRows = assetAccts.map(a => ({ id: a.id, label: nm(a), cents: a.opening_balance_cents || 0, needs: a.needs_info, note: a.info_note }));
     assetRows.push({ id: "ar", label: "Accounts receivable", cents: arTotal, needs: true, note: "Confirm cash vs. accrual with the CPA. If cash basis (likely for this size), A/R stays $0 and old invoices are customer history only. If accrual, we carry the real 3/31 open invoices here." });
     const assetsTotal = assetRows.reduce((s, r) => s + r.cents, 0);
-    const liabRows = [
-      ...cards.map(a => ({ id: a.id, label: nm(a), cents: -(a.opening_balance_cents || 0), needs: a.needs_info, note: a.info_note })),
-      ...loans.map(a => ({ id: a.id, label: a.name, cents: -(a.opening_balance_cents || 0), needs: a.needs_info, note: a.info_note })),
-    ];
+    const liabRows = liabAccts.map(a => ({ id: a.id, label: nm(a), cents: -(a.opening_balance_cents || 0), needs: a.needs_info, note: a.info_note }));
     const liabsTotal = liabRows.reduce((s, r) => s + r.cents, 0);
     const equity = assetsTotal - liabsTotal;
     const flags = [...assetRows, ...liabRows].filter(r => r.needs);
