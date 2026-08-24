@@ -169,7 +169,8 @@ const BUILD_PROGRESS = [
   ] },
   { label: "Sales tax", items: [
     ["Auto-tally taxable / exempt / collected", "done"],
-    ["Printable filing report", "todo"],
+    ["Period picker (month / quarter / year)", "done"],
+    ["Printable MN filing worksheet", "done"],
   ] },
   { label: "Reports", items: [
     ["Prior-year P&L (from filed return)", "done"],
@@ -609,6 +610,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [showAddCat, setShowAddCat] = useState(false);
   const [newCat, setNewCat] = useState(blankCat);
   const [listsTab, setListsTab] = useState("");
+  const [stFrom, setStFrom] = useState("");
+  const [stTo, setStTo] = useState("");
   const blankContact = { name: "", company: "", email: "", phone: "", billing_address: "", tax_status: "Taxable", notes: "" };
   const [contactEditId, setContactEditId] = useState(null);
   const [contactDraft, setContactDraft] = useState(blankContact);
@@ -3511,28 +3514,117 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     );
   }
 
-  function SalesTax() {
-    // Tallied live from invoices: taxable = pre-tax subtotal of taxable invoices;
-    // exempt = reseller-exempt + shipped-no-tax sales; collected = MN tax billed.
-    const billed = invoices.filter(v => v.docType !== "order" && v.status !== "Void");
-    const taxable = billed.filter(v => v.tax === "Taxable").reduce((s, v) => s + (v.amount - v.taxAmt), 0);
-    const exempt = billed.filter(v => v.tax !== "Taxable").reduce((s, v) => s + v.amount, 0);
+  // MN sales tax is filed on CALENDAR periods (month/quarter/year) — separate from the
+  // 4/1–3/31 fiscal year. We tally straight from the invoices dated inside the period.
+  function stData() {
+    const today = new Date();
+    const isoD = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    const qStart = new Date(today.getFullYear(), Math.floor(today.getMonth() / 3) * 3, 1);
+    const qEnd = new Date(qStart.getFullYear(), qStart.getMonth() + 3, 0);
+    const from = stFrom || isoD(qStart);
+    const to = stTo || isoD(qEnd);
+    const billed = invoices.filter(v => v.docType !== "order" && v.status !== "Void" && v.issueDate && v.issueDate >= from && v.issueDate <= to)
+      .slice().sort((a, b) => (a.issueDate || "").localeCompare(b.issueDate || ""));
+    const taxableSales = billed.filter(v => v.tax === "Taxable").reduce((s, v) => s + (v.amount - v.taxAmt), 0);
+    const exemptSales = billed.filter(v => v.tax !== "Taxable").reduce((s, v) => s + v.amount, 0);
     const collected = billed.reduce((s, v) => s + v.taxAmt, 0);
-    const quarter = entity.salesTax?.quarter || "From your invoices";
+    return { from, to, billed, taxableSales, exemptSales, collected, gross: taxableSales + exemptSales };
+  }
+
+  function printSalesTax() {
+    const d = stData();
+    const fmt = s => { const [y, m, dd] = s.split("-"); return `${m}/${dd}/${y}`; };
+    const rows = d.billed.map(v => `<tr><td>${fmt(v.issueDate)}</td><td>${(v.customer || "").replace(/</g, "")}</td><td>${v.tax === "Taxable" ? "Taxable" : "Exempt"}</td><td class=r>${money(v.tax === "Taxable" ? v.amount - v.taxAmt : v.amount)}</td><td class=r>${money(v.taxAmt)}</td></tr>`).join("");
+    const html = `<!doctype html><html><head><meta charset="utf-8"><title>Sales tax worksheet — ${entity.name || ""}</title>
+      <style>body{font-family:Arial,Helvetica,sans-serif;color:#0f172a;padding:32px;max-width:720px;margin:0 auto}
+      h1{font-size:20px;margin:0 0 2px}h2{font-size:14px;color:#64748b;font-weight:600;margin:0 0 16px}
+      .box{border:1px solid #e2e8f0;border-radius:8px;padding:12px 16px;margin-bottom:18px}
+      .ln{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f1f5f9;font-size:14px}
+      .ln:last-child{border-bottom:none}.ln b{font-variant-numeric:tabular-nums}.big{font-size:16px;font-weight:700}
+      table{border-collapse:collapse;width:100%;font-size:12px}th,td{padding:5px 8px;border-bottom:1px solid #e2e8f0;text-align:left}
+      th{font-size:10px;letter-spacing:.06em;color:#64748b;text-transform:uppercase}.r{text-align:right;font-variant-numeric:tabular-nums}
+      .foot{margin-top:16px;font-size:11px;color:#94a3b8}</style></head>
+      <body><h1>${entity.name || ""}</h1><h2>Minnesota sales &amp; use tax worksheet · ${fmt(d.from)} – ${fmt(d.to)}</h2>
+      <div class="box">
+        <div class="ln"><span>Total sales (gross receipts)</span><b>${money(d.gross)}</b></div>
+        <div class="ln"><span>Less: nontaxable / exempt sales</span><b>${money(d.exemptSales)}</b></div>
+        <div class="ln"><span>Taxable sales</span><b>${money(d.taxableSales)}</b></div>
+        <div class="ln big"><span>Sales tax to remit</span><b>${money(d.collected)}</b></div>
+      </div>
+      <h2 style="font-size:12px">Backup — ${d.billed.length} invoice${d.billed.length === 1 ? "" : "s"} in period</h2>
+      <table><thead><tr><th>Date</th><th>Customer</th><th>Type</th><th class=r>Sale</th><th class=r>Tax</th></tr></thead>
+      <tbody>${rows || '<tr><td colspan=5>No invoices in this period.</td></tr>'}</tbody></table>
+      <div class="foot">Figures tallied from invoices dated in the period. Enter into MN e-Services. Printed ${new Date().toLocaleDateString("en-US")} · CARES Works.</div></body></html>`;
+    const w = window.open("", "_blank");
+    if (!w) { window.alert("Allow pop-ups to print the report."); return; }
+    w.document.write(html); w.document.close(); w.focus();
+    setTimeout(() => { try { w.print(); } catch (e) { /* manual */ } }, 350);
+  }
+
+  function SalesTax() {
+    const d = stData();
+    const today = new Date();
+    const isoD = dt => `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+    const y = today.getFullYear();
+    const qStart = new Date(y, Math.floor(today.getMonth() / 3) * 3, 1);
+    const qEnd = new Date(qStart.getFullYear(), qStart.getMonth() + 3, 0);
+    const presets = [
+      ["This quarter", isoD(qStart), isoD(qEnd)],
+      ["Q1 Jan–Mar", `${y}-01-01`, `${y}-03-31`],
+      ["Q2 Apr–Jun", `${y}-04-01`, `${y}-06-30`],
+      ["Q3 Jul–Sep", `${y}-07-01`, `${y}-09-30`],
+      ["Q4 Oct–Dec", `${y}-10-01`, `${y}-12-31`],
+      [`Full year ${y}`, `${y}-01-01`, `${y}-12-31`],
+    ];
+    const active = (f, t) => d.from === f && d.to === t;
+    const fmt = s => { const [yy, m, dd] = s.split("-"); return `${m}/${dd}/${yy}`; };
+    const cards = [["Total sales", money(d.gross), N.ink], ["Taxable sales", money(d.taxableSales), N.ink], ["Tax-exempt sales", money(d.exemptSales), N.muted], ["Tax to remit", money(d.collected), N.pinkDark]];
     return (
       <div>
-        <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink, marginBottom: 4 }}>Sales tax</div>
-        <div style={{ fontSize: 13, color: N.muted, marginBottom: 16 }}>Minnesota · quarterly · {quarter}</div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10, marginBottom: 4 }}>
+          <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>Sales tax</div>
+          <button onClick={printSalesTax} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 16px", boxShadow: "0 4px 14px rgba(0,128,255,0.35)" }}>🖨 Print filing worksheet →</button>
+        </div>
+        <div style={{ fontSize: 13, color: N.muted, marginBottom: 14 }}>Minnesota · filed on calendar periods. Pick your period — the figures are tallied straight from your invoices, and the worksheet matches MN e-Services line-for-line.</div>
+
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
+          {presets.map(([lbl, f, t]) => (
+            <button key={lbl} onClick={() => { setStFrom(f); setStTo(t); }} style={active(f, t) ? { ...btnBlue, background: N.blue, fontSize: 12.5, padding: "7px 13px" } : { ...btnPaper(N.blueDark), fontSize: 12.5, padding: "7px 13px" }}>{lbl}</button>
+          ))}
+        </div>
+        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginBottom: 16, fontSize: 13, color: N.muted }}>
+          <span>Or custom:</span>
+          <input type="date" value={d.from} onChange={e => setStFrom(e.target.value)} style={{ ...inputSt, width: 160 }} />
+          <span>→</span>
+          <input type="date" value={d.to} onChange={e => setStTo(e.target.value)} style={{ ...inputSt, width: 160 }} />
+        </div>
+
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: 12, marginBottom: 16 }}>
-          {[["Taxable sales", money(taxable), N.ink], ["Tax-exempt sales", money(exempt), N.ink], ["Tax collected", money(collected), N.pinkDark]].map(([l, v, c]) => (
+          {cards.map(([l, v, c]) => (
             <div key={l} style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: 16 }}>
               <div style={{ fontSize: 12, color: N.muted, letterSpacing: "0.04em", marginBottom: 6 }}>{l.toUpperCase()}</div>
               <div style={{ fontSize: 24, fontWeight: 700, color: c }}>{v}</div>
             </div>
           ))}
         </div>
-        <button style={{ ...btnBlue, background: N.blue, fontSize: 14, padding: "11px 18px", boxShadow: "0 4px 14px rgba(0,128,255,0.4)" }}>Print Betty's filing report →</button>
-        <div style={{ fontSize: 12, color: N.muted, marginTop: 10 }}>Every taxable / shipped / exempt line is tallied automatically. The printout will match your MN return line-for-line.</div>
+
+        <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, overflow: "hidden" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "90px 1fr 80px 110px 90px", gap: 8, padding: "8px 16px", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.06em", color: N.muted }}>
+            <span>DATE</span><span>CUSTOMER</span><span>TYPE</span><span style={{ textAlign: "right" }}>SALE</span><span style={{ textAlign: "right" }}>TAX</span>
+          </div>
+          {d.billed.length === 0
+            ? <div style={{ padding: "18px 16px", fontSize: 13, color: N.muted, borderTop: "1px solid " + N.rule }}>No invoices dated in this period. {invoices.length === 0 ? "No invoices in the system yet." : "Pick a different period above."}</div>
+            : d.billed.map(v => (
+              <div key={v.id} style={{ display: "grid", gridTemplateColumns: "90px 1fr 80px 110px 90px", gap: 8, padding: "9px 16px", borderTop: "1px solid " + N.rule, fontSize: 13, alignItems: "center" }}>
+                <span style={{ color: N.muted }}>{fmt(v.issueDate)}</span>
+                <span style={{ color: N.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{v.customer}</span>
+                <span style={{ fontSize: 11, color: v.tax === "Taxable" ? N.pinkDark : N.muted }}>{v.tax === "Taxable" ? "Taxable" : "Exempt"}</span>
+                <span style={{ textAlign: "right", fontFamily: "'DM Mono', monospace" }}>{money(v.tax === "Taxable" ? v.amount - v.taxAmt : v.amount)}</span>
+                <span style={{ textAlign: "right", fontFamily: "'DM Mono', monospace", color: N.pinkDark }}>{money(v.taxAmt)}</span>
+              </div>
+            ))}
+        </div>
+        <div style={{ fontSize: 12, color: N.muted, marginTop: 10 }}>Every taxable / exempt line is tallied automatically. For periods before you started in the app, the old invoices need to come in first — say the word and I'll pull them from QuickBooks.</div>
       </div>
     );
   }
