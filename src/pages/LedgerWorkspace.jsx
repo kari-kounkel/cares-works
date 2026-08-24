@@ -651,7 +651,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [overpayFor, setOverpayFor] = useState(null); // invoice being resolved for an overpayment
   const [overpayAmt, setOverpayAmt] = useState("");
   const [showOrderForm, setShowOrderForm] = useState(false);
-  const blankOrder = { mode: "invoice", date: "", customer: "", vendor: "", email: "", ship: "", taxStatus: "Exempt", lines: [{ item: "", desc: "", qty: "1", cost: "", price: "" }] };
+  const blankOrder = { mode: "invoice", date: "", customer: "", vendor: "", email: "", ship: "", taxStatus: "Taxable", lines: [{ item: "", desc: "", qty: "1", cost: "", price: "" }] };
   const [orderDraft, setOrderDraft] = useState(blankOrder);
   const [editingOrder, setEditingOrder] = useState(null);
   const [showBillForm, setShowBillForm] = useState(false);
@@ -667,7 +667,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [checkOffX, setCheckOffX] = useState(() => { try { return parseFloat(localStorage.getItem("cw_checkAlignX")) || 0; } catch (e) { return 0; } }); // inches, printer alignment nudge (remembered)
   const [checkOffY, setCheckOffY] = useState(() => { try { return parseFloat(localStorage.getItem("cw_checkAlignY")) || 0; } catch (e) { return 0; } });
   useEffect(() => { try { localStorage.setItem("cw_checkAlignX", String(checkOffX)); localStorage.setItem("cw_checkAlignY", String(checkOffY)); } catch (e) { /* storage may be blocked */ } }, [checkOffX, checkOffY]);
-  const blankInvoice = { customer: "", email: "", ship: "", taxStatus: "Exempt", lines: [{ desc: "", qty: "1", price: "" }] };
+  const blankInvoice = { customer: "", email: "", ship: "", taxStatus: "Taxable", lines: [{ desc: "", qty: "1", price: "" }] };
   const [invDraft, setInvDraft] = useState(blankInvoice);
 
   const latestUpdate = entity.changelog?.[0]?.date || "";
