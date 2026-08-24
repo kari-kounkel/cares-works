@@ -671,7 +671,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [invDraft, setInvDraft] = useState(blankInvoice);
 
   const latestUpdate = entity.changelog?.[0]?.date || "";
-  const MN_TAX_RATE = 0.0925;
+  const MN_TAX_RATE = 0.08025; // Bloomington, MN combined: 6.875% state + 1.15% Hennepin/metro. Confirm w/ CPA / MN e-Services.
 
   // ---- Tenant profile: which sections they get, and what those sections are called ----
   // A tenant that lists `sections` gets exactly those, in that order; everyone else gets
@@ -2944,7 +2944,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             </div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: "1px solid " + N.rule, paddingTop: 12, gap: 12, flexWrap: "wrap" }}>
               <div style={{ fontSize: 13, color: N.muted }}>
-                Subtotal {money(sub)}{invDraft.taxStatus === "Taxable" ? ` · MN tax (9.25%) ${money(tax)}` : ""} · <b style={{ color: N.ink }}>Total {money(sub + tax)}</b>
+                Subtotal {money(sub)}{invDraft.taxStatus === "Taxable" ? ` · MN tax (${(MN_TAX_RATE * 100).toFixed(3).replace(/0+$/, "").replace(/\.$/, "")}%) ${money(tax)}` : ""} · <b style={{ color: N.ink }}>Total {money(sub + tax)}</b>
               </div>
               <button onClick={createInvoice} style={{ ...btnBlue, background: N.blue, fontSize: 14, padding: "10px 18px" }}>Save invoice</button>
             </div>
