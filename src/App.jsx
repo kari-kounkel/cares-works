@@ -47,6 +47,7 @@ import PublicRent from "./pages/PublicRent";
 import ProposalsIndex from "./pages/ProposalsIndex";
 import ProposalView from "./pages/ProposalView";
 import ProposalPublic from "./pages/ProposalPublic";
+import COALibrary from "./pages/COALibrary";
 import LedgerWorkspace from "./pages/LedgerWorkspace";
 import EmersonWorkspace from "./pages/EmersonWorkspace";
 import InvoicePublic from "./pages/InvoicePublic";
@@ -198,6 +199,7 @@ export default function App() {
     if (COURT_SLUGS.includes(slug)) return <CourtChapter slug={slug} />;
   }
 
+  if (path === "/tools/coa-library") return <COALibrary session={session} />;
   if (path === "/tools/payroll-checklist") return <PayrollChecklist session={session} />;
   if (path === "/tools/client-visit-summary") return <ClientVisitSummary />;
   if (path === "/tools/communication-templates") return <CommunicationTemplates />;
