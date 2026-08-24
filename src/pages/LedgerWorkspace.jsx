@@ -173,7 +173,8 @@ const BUILD_PROGRESS = [
   ] },
   { label: "Reports", items: [
     ["Profit & Loss — from April 1", "todo"],
-    ["Balance sheet / trial balance", "todo"],
+    ["Opening balances / trial balance", "done"],
+    ["Balance sheet — fiscal year", "todo"],
     ["Expense detail by category", "todo"],
   ] },
   { label: "Admin panel", items: [
@@ -583,7 +584,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [importBusy, setImportBusy] = useState(false);
   const payeeRef = useRef(null);
   const amountRef = useRef(null);
-  const blankAcct = { name: "", account_type: "bank", last_four: "", opening: "" };
+  const blankAcct = { name: "", account_type: "bank", last_four: "", opening: "", needs_info: false, info_note: "" };
   const [acctEditId, setAcctEditId] = useState(null);
   const [acctDraft, setAcctDraft] = useState(blankAcct);
   const [showAddAcct, setShowAddAcct] = useState(false);
@@ -1272,6 +1273,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       name: newAcct.name.trim(), account_type: newAcct.account_type,
       last_four: newAcct.last_four.trim() || null,
       opening_balance_cents: Math.round((parseFloat(newAcct.opening) || 0) * 100),
+      needs_info: !!newAcct.needs_info, info_note: (newAcct.info_note || "").trim() || null,
     });
     setShowAddAcct(false); setNewAcct(blankAcct); setReloadTick(t => t + 1);
   }
@@ -1325,6 +1327,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       name: acctDraft.name.trim(), account_type: acctDraft.account_type,
       last_four: acctDraft.last_four.trim() || null,
       opening_balance_cents: Math.round((parseFloat(acctDraft.opening) || 0) * 100),
+      needs_info: !!acctDraft.needs_info, info_note: (acctDraft.info_note || "").trim() || null,
     }).eq("id", id);
     setAcctEditId(null); setReloadTick(t => t + 1);
   }
@@ -3917,6 +3920,11 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             <input placeholder="Last 4" maxLength={4} value={newAcct.last_four} onChange={e => setNewAcct(d => ({ ...d, last_four: e.target.value.replace(/\D/g, "") }))} style={{ ...inputSt, width: 90 }} />
             <input placeholder="Opening balance $" value={newAcct.opening} onChange={e => setNewAcct(d => ({ ...d, opening: e.target.value }))} style={{ ...inputSt, width: 150 }} />
             <button onClick={addAccount} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 16px" }}>Save</button>
+            <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: N.muted, cursor: "pointer", width: "100%" }}>
+              <input type="checkbox" checked={!!newAcct.needs_info} onChange={e => setNewAcct(d => ({ ...d, needs_info: e.target.checked }))} />
+              ⚠ Opening balance is an estimate — flag it "needs info"
+            </label>
+            {newAcct.needs_info && <input placeholder="What's still needed? (e.g. lender name + 3/31 balance)" value={newAcct.info_note} onChange={e => setNewAcct(d => ({ ...d, info_note: e.target.value }))} style={{ ...inputSt, width: "100%" }} />}
           </div>
         )}
 
@@ -3940,15 +3948,21 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                         <input placeholder="Opening $" value={acctDraft.opening} onChange={e => setAcctDraft(d => ({ ...d, opening: e.target.value }))} style={{ ...inputSt, width: 140 }} />
                         <button onClick={saveAccount} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 14px" }}>Save</button>
                         <button onClick={() => setAcctEditId(null)} style={btnPaper(N.muted)}>Cancel</button>
+                        <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: N.muted, cursor: "pointer", width: "100%" }}>
+                          <input type="checkbox" checked={!!acctDraft.needs_info} onChange={e => setAcctDraft(d => ({ ...d, needs_info: e.target.checked }))} />
+                          ⚠ Opening balance is an estimate — flag it "needs info"
+                        </label>
+                        {acctDraft.needs_info && <input placeholder="What's still needed?" value={acctDraft.info_note} onChange={e => setAcctDraft(d => ({ ...d, info_note: e.target.value }))} style={{ ...inputSt, width: "100%" }} />}
                       </div>
                     ) : (
                       <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 15, fontWeight: 600, color: N.ink }}>{a.name}{a.last_four && <span style={{ color: N.muted, fontWeight: 400 }}> ••{a.last_four}</span>}</div>
+                          <div style={{ fontSize: 15, fontWeight: 600, color: N.ink }}>{a.name}{a.last_four && <span style={{ color: N.muted, fontWeight: 400 }}> ••{a.last_four}</span>}{a.needs_info && <span title="Opening balance is an estimate — needs info" style={{ marginLeft: 8, fontSize: 11, fontWeight: 700, color: "#b45309", background: "#fef3c7", border: "1px solid #fcd34d", borderRadius: 100, padding: "1px 9px" }}>⚠ NEEDS INFO</span>}</div>
                           <div style={{ fontSize: 12, color: N.muted }}>{typeLabel(a.account_type)} · opening {money((a.opening_balance_cents || 0) / 100)}</div>
+                          {a.needs_info && a.info_note && <div style={{ fontSize: 12, color: "#b45309", marginTop: 3, fontStyle: "italic" }}>{a.info_note}</div>}
                         </div>
                         <button onClick={() => openImport(a.id)} title="Import transaction lines from a bank/card CSV export" style={{ ...btnPaper(N.blueDark), padding: "6px 12px" }}>⬆ Upload transactions</button>
-                        <button onClick={() => { setAcctEditId(a.id); setAcctDraft({ name: a.name, account_type: a.account_type, last_four: a.last_four || "", opening: String((a.opening_balance_cents || 0) / 100) }); }} style={{ ...btnPaper(N.muted), padding: "6px 12px" }}>Edit</button>
+                        <button onClick={() => { setAcctEditId(a.id); setAcctDraft({ name: a.name, account_type: a.account_type, last_four: a.last_four || "", opening: String((a.opening_balance_cents || 0) / 100), needs_info: !!a.needs_info, info_note: a.info_note || "" }); }} style={{ ...btnPaper(N.muted), padding: "6px 12px" }}>Edit</button>
                         <button onClick={() => archiveAccount(a.id)} title="Archive" style={{ background: "none", border: "1px solid " + N.rule, borderRadius: 100, cursor: "pointer", color: N.muted, fontFamily: "'Figtree', sans-serif", fontSize: 12, fontWeight: 600, padding: "6px 12px" }}>Archive</button>
                       </div>
                     )}
@@ -4256,6 +4270,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       { key: "items", feature: "items", label: "Items & services", desc: "Your product/service list for invoices", count: (entity.products || []).filter(p => !p.archived).length },
       { key: "chart", label: "Chart of accounts", desc: "Every account — banks, cards, income, expenses", count: (entity.rawCategories || []).filter(c => !c.archived).length + (entity.rawAccounts || []).length },
       { key: "recons", label: "Bank reconciliations", desc: "Statement history by account — balances, dates, attached statements", count: reconHist.length },
+      { key: "opening", label: "Opening balances", desc: "Your starting trial balance — the CPA-ready anchor. Flags anything still needing info." },
       { key: "qbo", feature: "qboImport", label: "Import from QuickBooks", desc: "Bring the history across with its coding — Transaction List, General Ledger, or Journal Entries" },
       { key: "cardpayoff", feature: "cardPayoff", label: "Card payoff plan", desc: "Smartest order to pay down the credit cards" },
       { key: "campaigns", feature: "campaigns", label: "Email campaigns", desc: "Newsletters & blasts to your customers (Constant Contact replacement)" },
@@ -4309,6 +4324,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           </div>
         )}
         {listsTab === "recons" && Reconciliations()}
+        {listsTab === "opening" && OpeningBalances()}
         {listsTab === "settings" && Settings()}
       </div>
     );
@@ -4359,6 +4375,110 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             </div>
           );
         })}
+      </div>
+    );
+  }
+
+  // The starting trial balance — the CPA-ready anchor. Built from real account
+  // openings (banks/cards/loans) + A/R from open invoices; equity is the plug.
+  function openingBalanceData() {
+    const accts = (entity.rawAccounts || []);
+    const banks = accts.filter(a => a.account_type === "bank").slice().sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+    const cards = accts.filter(a => a.account_type === "credit_card").slice().sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+    const loans = accts.filter(a => a.account_type === "loan").slice().sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+    const balOf = v => (v.balanceCents != null ? v.balanceCents : Math.round((v.amount || 0) * 100));
+    const arTotal = invoices.filter(v => v.docType !== "order" && v.status !== "Void" && v.status !== "Paid" && balOf(v) > 0).reduce((s, v) => s + balOf(v), 0);
+    const nm = a => a.name + (a.last_four ? " ••" + a.last_four : "");
+    const assetRows = banks.map(a => ({ id: a.id, label: nm(a), cents: a.opening_balance_cents || 0, needs: a.needs_info, note: a.info_note }));
+    assetRows.push({ id: "ar", label: "Accounts receivable (open invoices)", cents: arTotal, needs: arTotal === 0, note: arTotal === 0 ? "No open invoices imported yet — import historical A/R to populate this." : null });
+    const assetsTotal = assetRows.reduce((s, r) => s + r.cents, 0);
+    const liabRows = [
+      ...cards.map(a => ({ id: a.id, label: nm(a), cents: -(a.opening_balance_cents || 0), needs: a.needs_info, note: a.info_note })),
+      ...loans.map(a => ({ id: a.id, label: a.name, cents: -(a.opening_balance_cents || 0), needs: a.needs_info, note: a.info_note })),
+    ];
+    const liabsTotal = liabRows.reduce((s, r) => s + r.cents, 0);
+    const equity = assetsTotal - liabsTotal;
+    const flags = [...assetRows, ...liabRows].filter(r => r.needs);
+    return { assetRows, assetsTotal, liabRows, liabsTotal, equity, flags };
+  }
+
+  function printOpeningBalances() {
+    const d = openingBalanceData();
+    const m = c => money(c / 100);
+    const line = r => `<tr><td>${r.label}${r.needs ? ' <b style="color:#b45309">⚠ needs info</b>' : ""}</td><td class=r>${m(r.cents)}</td></tr>`;
+    const html = `<!doctype html><html><head><meta charset="utf-8"><title>Opening balances — ${entity.name || ""}</title>
+      <style>body{font-family:Arial,Helvetica,sans-serif;color:#0f172a;padding:32px;max-width:720px;margin:0 auto}
+      h1{font-size:20px;margin:0 0 2px}h2{font-size:14px;color:#64748b;font-weight:600;margin:0 0 18px}
+      table{border-collapse:collapse;width:100%;font-size:13px;margin-bottom:18px}td{padding:7px 10px;border-bottom:1px solid #e2e8f0;text-align:left}
+      .r{text-align:right;font-variant-numeric:tabular-nums}.sec{font-size:10px;letter-spacing:.08em;color:#64748b;text-transform:uppercase;padding-top:12px}
+      .tot td{border-top:2px solid #0f172a;font-weight:700}.flag{font-size:11px;color:#b45309;margin:2px 0}
+      .foot{margin-top:16px;font-size:11px;color:#94a3b8}</style></head>
+      <body><h1>${entity.name || ""}</h1><h2>Opening balances — starting trial balance (prepared for CPA review)</h2>
+      <table>
+      <tr><td class=sec colspan=2>Assets</td></tr>${d.assetRows.map(line).join("")}
+      <tr class=tot><td>Total assets</td><td class=r>${m(d.assetsTotal)}</td></tr>
+      <tr><td class=sec colspan=2>Liabilities</td></tr>${d.liabRows.map(line).join("")}
+      <tr class=tot><td>Total liabilities</td><td class=r>${m(d.liabsTotal)}</td></tr>
+      <tr><td class=sec colspan=2>Equity</td></tr>
+      <tr><td>Owner's equity / retained earnings (balancing figure)</td><td class=r>${m(d.equity)}</td></tr>
+      <tr class=tot><td>Total liabilities &amp; equity</td><td class=r>${m(d.liabsTotal + d.equity)}</td></tr>
+      </table>
+      ${d.flags.length ? `<div class="sec">Still needs information</div>${d.flags.map(f => `<div class="flag">⚠ ${f.label}${f.note ? " — " + f.note : ""}</div>`).join("")}` : ""}
+      <div class="foot">Fiscal year 4/1–3/31. Equipment carried at $0 (fully depreciated per the FY2026 return). Prepared ${new Date().toLocaleDateString("en-US")} · CARES Works · unaudited — for CPA review.</div></body></html>`;
+    const w = window.open("", "_blank");
+    if (!w) { window.alert("Allow pop-ups to print the report."); return; }
+    w.document.write(html); w.document.close(); w.focus();
+    setTimeout(() => { try { w.print(); } catch (e) { /* user can print manually */ } }, 350);
+  }
+
+  function OpeningBalances() {
+    const d = openingBalanceData();
+    const secLbl = { fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: N.muted, padding: "14px 16px 4px" };
+    const row = (r, color) => (
+      <div key={r.id} style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 10, padding: "9px 16px", borderTop: "1px solid " + N.rule, alignItems: "baseline" }}>
+        <div style={{ minWidth: 0 }}>
+          <span style={{ fontSize: 14, color: N.ink }}>{r.label}</span>
+          {r.needs && <span title="Needs info" style={{ marginLeft: 8, fontSize: 10, fontWeight: 700, color: "#b45309", background: "#fef3c7", border: "1px solid #fcd34d", borderRadius: 100, padding: "1px 8px" }}>⚠ NEEDS INFO</span>}
+          {r.needs && r.note && <div style={{ fontSize: 12, color: "#b45309", marginTop: 2, fontStyle: "italic" }}>{r.note}</div>}
+        </div>
+        <div style={{ fontFamily: "'DM Mono', monospace", fontWeight: 600, color: color || N.ink }}>{money(r.cents / 100)}</div>
+      </div>
+    );
+    const totRow = (label, cents, strong) => (
+      <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 10, padding: "10px 16px", borderTop: "2px solid " + N.ink, alignItems: "baseline", background: "#f7fafd" }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: N.ink }}>{label}</div>
+        <div style={{ fontFamily: "'DM Mono', monospace", fontWeight: 700, color: N.ink }}>{money(cents / 100)}</div>
+      </div>
+    );
+    return (
+      <div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10, marginBottom: 4 }}>
+          <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>Opening balances</div>
+          <button onClick={printOpeningBalances} style={btnPaper(N.blueDark)}>🖨 Print for CPA</button>
+        </div>
+        <div style={{ fontSize: 13, color: N.muted, marginBottom: 16 }}>Your starting trial balance — the anchor the whole ledger sits on. Cash and cards come from the reconciled statements; equity is the balancing figure. Anything still uncertain is flagged <b style={{ color: "#b45309" }}>⚠ needs info</b>. This is the page your CPA approves.</div>
+
+        {d.flags.length > 0 && (
+          <div style={{ background: "#fffbeb", border: "1px solid #fcd34d", borderRadius: 12, padding: "12px 16px", marginBottom: 16 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "#b45309", marginBottom: 4 }}>⚠ {d.flags.length} item{d.flags.length === 1 ? "" : "s"} still need{d.flags.length === 1 ? "s" : ""} info before this is final</div>
+            {d.flags.map(f => <div key={f.id} style={{ fontSize: 12.5, color: "#92400e" }}>• <b>{f.label}</b>{f.note ? " — " + f.note : ""}</div>)}
+          </div>
+        )}
+
+        <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, overflow: "hidden" }}>
+          <div style={secLbl}>Assets — what they own</div>
+          {d.assetRows.map(r => row(r, N.ink))}
+          {totRow("Total assets", d.assetsTotal)}
+
+          <div style={secLbl}>Liabilities — what they owe</div>
+          {d.liabRows.map(r => row(r, N.red))}
+          {totRow("Total liabilities", d.liabsTotal)}
+
+          <div style={secLbl}>Equity</div>
+          {row({ id: "eq", label: "Owner's equity / retained earnings (balancing figure)", cents: d.equity, needs: false, note: null }, d.equity < 0 ? N.red : N.ink)}
+          {totRow("Total liabilities & equity", d.liabsTotal + d.equity)}
+        </div>
+        <div style={{ fontSize: 12, color: N.muted, marginTop: 12 }}>Fiscal year runs <b>4/1–3/31</b>. Equipment is carried at <b>$0</b> — the FY2026 return shows zero depreciation for three years running, so it's fully written off. Total liabilities &amp; equity always equals total assets because equity is the plug; the CPA confirms the pieces are right.</div>
       </div>
     );
   }
