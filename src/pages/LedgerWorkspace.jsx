@@ -4383,14 +4383,15 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   // openings (banks/cards/loans) + A/R from open invoices; equity is the plug.
   function openingBalanceData() {
     const accts = (entity.rawAccounts || []);
-    const banks = accts.filter(a => a.account_type === "bank").slice().sort((a, b) => (a.name || "").localeCompare(b.name || ""));
-    const cards = accts.filter(a => a.account_type === "credit_card").slice().sort((a, b) => (a.name || "").localeCompare(b.name || ""));
-    const loans = accts.filter(a => a.account_type === "loan").slice().sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+    const sortNm = (a, b) => (a.name || "").localeCompare(b.name || "");
+    const assetAccts = accts.filter(a => ["bank", "cash", "other"].includes(a.account_type)).slice().sort(sortNm);
+    const cards = accts.filter(a => a.account_type === "credit_card").slice().sort(sortNm);
+    const loans = accts.filter(a => a.account_type === "loan").slice().sort(sortNm);
     const balOf = v => (v.balanceCents != null ? v.balanceCents : Math.round((v.amount || 0) * 100));
     const arTotal = invoices.filter(v => v.docType !== "order" && v.status !== "Void" && v.status !== "Paid" && balOf(v) > 0).reduce((s, v) => s + balOf(v), 0);
     const nm = a => a.name + (a.last_four ? " ••" + a.last_four : "");
-    const assetRows = banks.map(a => ({ id: a.id, label: nm(a), cents: a.opening_balance_cents || 0, needs: a.needs_info, note: a.info_note }));
-    assetRows.push({ id: "ar", label: "Accounts receivable (open invoices)", cents: arTotal, needs: arTotal === 0, note: arTotal === 0 ? "No open invoices imported yet — import historical A/R to populate this." : null });
+    const assetRows = assetAccts.map(a => ({ id: a.id, label: nm(a), cents: a.opening_balance_cents || 0, needs: a.needs_info, note: a.info_note }));
+    assetRows.push({ id: "ar", label: "Accounts receivable", cents: arTotal, needs: true, note: "Confirm cash vs. accrual with the CPA. If cash basis (likely for this size), A/R stays $0 and old invoices are customer history only. If accrual, we carry the real 3/31 open invoices here." });
     const assetsTotal = assetRows.reduce((s, r) => s + r.cents, 0);
     const liabRows = [
       ...cards.map(a => ({ id: a.id, label: nm(a), cents: -(a.opening_balance_cents || 0), needs: a.needs_info, note: a.info_note })),
