@@ -4383,22 +4383,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
 {isCust && c.tax_status === "Shipped" && <span style={{ fontSize: 10, fontWeight: 700, color: N.muted, marginLeft: 6, letterSpacing: "0.04em" }}>SHIPPED</span>}{isCust && (() => { const cc = (entity.credits || []).filter(cr => cr.status === "open" && (cr.customer_name || "").toLowerCase() === (c.name || "").toLowerCase()).reduce((s, cr) => s + (cr.amount_cents || 0), 0); return cc > 0 ? <span style={{ fontSize: 10, fontWeight: 700, color: N.pinkDark, background: "#eafaf0", border: "1px solid #bff0d3", borderRadius: 100, padding: "2px 8px", marginLeft: 8 }}>{money(cc / 100)} CREDIT</span> : null; })()}</div>
                     <div style={{ fontSize: 12, color: N.muted }}>{[c.email, c.phone].filter(Boolean).join(" · ") || <span style={{ color: N.mutedLite, fontStyle: "italic" }}>no email or phone yet</span>}</div>
                     {c.billing_address ? <div style={{ fontSize: 12, color: N.muted, whiteSpace: "pre-line", marginTop: 2 }}>{c.billing_address}</div> : null}
-                    {isCust && (() => { const list = (entity.invoices || []).filter(v => v.docType !== "order" && (v.customer || "").toLowerCase().trim() === (c.name || "").toLowerCase().trim()).sort((a, b) => (b.issueDate || "").localeCompare(a.issueDate || "")); const last = list[0]; return (
-                      <div style={{ fontSize: 12, marginTop: 4 }}>
-                        {last
-                          ? <button onClick={() => setCustHistOpen(custHistOpen === c.id ? null : c.id)} style={{ background: "none", border: "none", color: N.blue, cursor: "pointer", fontWeight: 600, fontFamily: "'Figtree', sans-serif", fontSize: 12, padding: 0 }}>🧾 {list.length} invoice{list.length === 1 ? "" : "s"} · last {money(last.amount)} · {shortD(last.issueDate)} {custHistOpen === c.id ? "▲ hide" : "▾ see history"}</button>
-                          : <span style={{ color: N.mutedLite }}>no invoices yet</span>}
-                      </div>
-                    ); })()}
-                    {!isCust && (() => { const { list } = vendorTx(c.name); const last = list[0]; return (
-                      <div style={{ fontSize: 12, marginTop: 4 }}>
-                        {last
-                          ? <button onClick={() => setVendorTxOpen(vendorTxOpen === c.id ? null : c.id)} style={{ background: "none", border: "none", color: N.blue, cursor: "pointer", fontWeight: 600, fontFamily: "'Figtree', sans-serif", fontSize: 12, padding: 0 }}>🧾 Last: {money((last.amount_cents || 0) / 100)} · {shortD(last.entry_date)}{list.length > 1 ? ` · ${list.length} total` : ""} {vendorTxOpen === c.id ? "▲ hide history" : "▾ see history"}</button>
-                          : <span style={{ color: N.mutedLite }}>no payments recorded yet</span>}
-                      </div>
-                    ); })()}
                     <div style={{ fontSize: 12, marginTop: 4 }}>
-                      <button onClick={() => loadHist(c.id, isCust ? "customer" : "vendor", c.name)} style={{ background: "none", border: "none", color: N.blueDark, cursor: "pointer", fontWeight: 600, fontFamily: "'Figtree', sans-serif", fontSize: 12, padding: 0 }}>📜 QuickBooks history {histOpen === c.id ? "▲ hide" : "▾ show"}</button>
+                      <button onClick={() => loadHist(c.id, isCust ? "customer" : "vendor", c.name)} style={{ background: "none", border: "none", color: N.blue, cursor: "pointer", fontWeight: 600, fontFamily: "'Figtree', sans-serif", fontSize: 12, padding: 0 }}>🧾 {histOpen === c.id ? "▲ Hide history" : (isCust ? "▾ See past orders" : "▾ See history")}</button>
                     </div>
                   </div>
                   <div style={{ display: "flex", gap: 6 }}>
@@ -4409,25 +4395,18 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 </div>
                 {histOpen === c.id && (
                   <div style={{ marginTop: 10, border: "1px solid " + N.rule, borderRadius: 10, overflow: "hidden" }}>
-                    {histBusy && histData[c.id] === undefined ? <div style={{ padding: 12, fontSize: 13, color: N.muted }}>Loading history…</div>
-                     : !histData[c.id] ? <div style={{ padding: 12, fontSize: 13, color: N.mutedLite }}>No QuickBooks history on file for this {isCust ? "customer" : "vendor"}.</div>
-                     : (() => { const h = histData[c.id]; const t = h.txns || []; return (
-                        <div>
-                          <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 12px", background: "#f6f8fb", borderBottom: "1px solid " + N.rule, fontSize: 12, color: N.muted }}>
-                            <span>From QuickBooks · {h.txn_count} line{h.txn_count === 1 ? "" : "s"} all-time</span>
-                            <span>lifetime <b style={{ color: N.ink }}>{money((h.total_cents || 0) / 100)}</b></span>
-                          </div>
-                          <div style={{ maxHeight: "42vh", overflowY: "auto" }}>
-                            {t.map((x, k) => (
-                              <div key={k} style={{ display: "flex", gap: 10, padding: "6px 12px", borderTop: k === 0 ? "none" : "1px solid " + N.rule, fontSize: 12.5, alignItems: "baseline", background: "#fafbfc" }}>
-                                <span style={{ width: 74, color: N.muted, whiteSpace: "nowrap" }}>{x.d}</span>
-                                <span style={{ width: 50, color: N.mutedLite, fontFamily: "'DM Mono', monospace", whiteSpace: "nowrap" }}>{x.n || ""}</span>
-                                <span style={{ flex: 1, minWidth: 0, color: N.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{[x.it, x.ds].filter(Boolean).join(" — ")}</span>
-                                <span style={{ width: 82, textAlign: "right", fontFamily: "'DM Mono', monospace", color: N.ink }}>{money(x.amt || 0)}</span>
-                              </div>
-                            ))}
-                          </div>
-                          {h.txn_count > t.length && <div style={{ padding: "6px 12px", fontSize: 11, color: N.mutedLite, borderTop: "1px solid " + N.rule }}>Showing the most recent {t.length} of {h.txn_count}. Full line-by-line detail is in the QuickBooks archive.</div>}
+                    {histBusy && histData[c.id] === undefined ? <div style={{ padding: 12, fontSize: 13, color: N.muted }}>Loading…</div>
+                     : !histData[c.id] || !(histData[c.id].txns || []).length ? <div style={{ padding: 12, fontSize: 13, color: N.mutedLite }}>No past orders on file.</div>
+                     : (() => { const t = histData[c.id].txns || []; return (
+                        <div style={{ maxHeight: "48vh", overflowY: "auto" }}>
+                          {t.map((x, k) => (
+                            <div key={k} style={{ display: "flex", gap: 10, padding: "7px 12px", borderTop: k === 0 ? "none" : "1px solid " + N.rule, fontSize: 13, alignItems: "baseline", background: "#fafbfc" }}>
+                              <span style={{ width: 80, color: N.muted, whiteSpace: "nowrap" }}>{x.d}</span>
+                              <span style={{ width: 48, color: N.mutedLite, fontFamily: "'DM Mono', monospace", whiteSpace: "nowrap" }}>{x.n || ""}</span>
+                              <span style={{ flex: 1, minWidth: 0, color: N.text }}>{[x.it, x.ds].filter(Boolean).join(" — ")}</span>
+                              <span style={{ width: 82, textAlign: "right", fontFamily: "'DM Mono', monospace", color: N.ink, whiteSpace: "nowrap" }}>{money(x.amt || 0)}</span>
+                            </div>
+                          ))}
                         </div>
                      ); })()}
                   </div>
@@ -4443,31 +4422,6 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                     <button onClick={() => { setMergeVendorId(null); setMergeInto(""); }} style={btnPaper(N.muted)}>Cancel</button>
                   </div>
                 )}
-                {isCust && custHistOpen === c.id && (() => { const list = (entity.invoices || []).filter(v => v.docType !== "order" && (v.customer || "").toLowerCase().trim() === (c.name || "").toLowerCase().trim()).sort((a, b) => (b.issueDate || "").localeCompare(a.issueDate || "")); return (
-                  <div style={{ marginTop: 10, border: "1px solid " + N.rule, borderRadius: 10, overflow: "hidden", maxHeight: "40vh", overflowY: "auto" }}>
-                    {list.map((v, k) => (
-                      <button key={v.id} onClick={() => setOpenInv(v)} title="Open / print this invoice" style={{ width: "100%", textAlign: "left", display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", borderTop: k === 0 ? "none" : "1px solid " + N.rule, fontSize: 13, background: "#fafbfc", border: "none", cursor: "pointer", fontFamily: "'Figtree', sans-serif" }}>
-                        <span style={{ width: 44, color: N.muted, fontSize: 12 }}>{shortD(v.issueDate)}</span>
-                        <span style={{ width: 54, color: N.blueDark, fontWeight: 700, fontSize: 12 }}>{v.number ? "#" + v.number : (v.poNumber ? "PO " + v.poNumber : "—")}</span>
-                        <span style={{ flex: 1, minWidth: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: N.ink }}>{v.item}</span>
-                        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.04em", color: v.status === "Paid" ? "#5a7a63" : N.muted, whiteSpace: "nowrap" }}>{(v.status || "").toUpperCase()}</span>
-                        <span style={{ fontWeight: 600, color: N.ink, whiteSpace: "nowrap", fontFamily: "'DM Mono', monospace" }}>{money(v.amount)}</span>
-                      </button>
-                    ))}
-                  </div>
-                ); })()}
-                {!isCust && vendorTxOpen === c.id && (() => { const { list } = vendorTx(c.name); return (
-                  <div style={{ marginTop: 10, border: "1px solid " + N.rule, borderRadius: 10, overflow: "hidden", maxHeight: "40vh", overflowY: "auto" }}>
-                    {list.map((e, k) => (
-                      <div key={e.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 12px", borderTop: k === 0 ? "none" : "1px solid " + N.rule, fontSize: 13, background: "#fafbfc" }}>
-                        <span style={{ width: 42, color: N.muted, fontSize: 12 }}>{shortD(e.entry_date)}</span>
-                        <span style={{ flex: 1, minWidth: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{e.description}</span>
-                        <span style={{ color: N.mutedLite, fontSize: 11, whiteSpace: "nowrap" }}>{acctById[e.account_id] || ""}{e.match_status === "reconciled" ? " · R" : ""}</span>
-                        <span style={{ fontWeight: 600, color: N.red, whiteSpace: "nowrap" }}>{money((e.amount_cents || 0) / 100)}</span>
-                      </div>
-                    ))}
-                  </div>
-                ); })()}
                 </>
               )}
             </div>
