@@ -620,6 +620,9 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [contactEditId, setContactEditId] = useState(null);
   const [contactDraft, setContactDraft] = useState(blankContact);
   const [vendorTxOpen, setVendorTxOpen] = useState(null); // vendor id whose payment history is expanded
+  const [histOpen, setHistOpen] = useState(null); // contact id whose QuickBooks history is expanded
+  const [histData, setHistData] = useState({}); // contact id -> ledger_history row (fetched on demand)
+  const [histBusy, setHistBusy] = useState(false);
   const [custHistOpen, setCustHistOpen] = useState(null); // customer id whose invoice history is expanded
   const [mergeVendorId, setMergeVendorId] = useState(null); // vendor being merged away
   const [mergeInto, setMergeInto] = useState(""); // target vendor name for the merge
@@ -4281,6 +4284,18 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     );
   }
 
+  // Open (fetch on demand) the QuickBooks history for a customer/vendor from ledger_history.
+  async function loadHist(id, ptype, name) {
+    if (histOpen === id) { setHistOpen(null); return; }
+    setHistOpen(id);
+    if (histData[id] !== undefined) return;
+    if (!live || !liveOrgId) { setHistData(d => ({ ...d, [id]: null })); return; }
+    setHistBusy(true);
+    const { data } = await supabase.from("ledger_history").select("txns,txn_count,total_cents").eq("org_id", liveOrgId).eq("party_type", ptype).ilike("party_name", name).maybeSingle();
+    setHistData(d => ({ ...d, [id]: data || null }));
+    setHistBusy(false);
+  }
+
   function ContactList(kind) {
     const isCust = kind === "customer";
     const table = isCust ? "ledger_customers" : "ledger_vendors";
@@ -4382,6 +4397,9 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                           : <span style={{ color: N.mutedLite }}>no payments recorded yet</span>}
                       </div>
                     ); })()}
+                    <div style={{ fontSize: 12, marginTop: 4 }}>
+                      <button onClick={() => loadHist(c.id, isCust ? "customer" : "vendor", c.name)} style={{ background: "none", border: "none", color: N.blueDark, cursor: "pointer", fontWeight: 600, fontFamily: "'Figtree', sans-serif", fontSize: 12, padding: 0 }}>📜 QuickBooks history {histOpen === c.id ? "▲ hide" : "▾ show"}</button>
+                    </div>
                   </div>
                   <div style={{ display: "flex", gap: 6 }}>
                     <button onClick={() => startEdit(c)} style={{ ...btnPaper(N.muted), padding: "6px 12px" }}>Edit</button>
@@ -4389,6 +4407,31 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                     <button onClick={() => deleteContact(table, c.id, c.name)} style={{ background: "none", border: "1px solid " + N.rule, borderRadius: 100, cursor: "pointer", color: N.pinkDark, fontFamily: "'Figtree', sans-serif", fontSize: 12, fontWeight: 600, padding: "6px 12px" }}>Remove</button>
                   </div>
                 </div>
+                {histOpen === c.id && (
+                  <div style={{ marginTop: 10, border: "1px solid " + N.rule, borderRadius: 10, overflow: "hidden" }}>
+                    {histBusy && histData[c.id] === undefined ? <div style={{ padding: 12, fontSize: 13, color: N.muted }}>Loading history…</div>
+                     : !histData[c.id] ? <div style={{ padding: 12, fontSize: 13, color: N.mutedLite }}>No QuickBooks history on file for this {isCust ? "customer" : "vendor"}.</div>
+                     : (() => { const h = histData[c.id]; const t = h.txns || []; return (
+                        <div>
+                          <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 12px", background: "#f6f8fb", borderBottom: "1px solid " + N.rule, fontSize: 12, color: N.muted }}>
+                            <span>From QuickBooks · {h.txn_count} line{h.txn_count === 1 ? "" : "s"} all-time</span>
+                            <span>lifetime <b style={{ color: N.ink }}>{money((h.total_cents || 0) / 100)}</b></span>
+                          </div>
+                          <div style={{ maxHeight: "42vh", overflowY: "auto" }}>
+                            {t.map((x, k) => (
+                              <div key={k} style={{ display: "flex", gap: 10, padding: "6px 12px", borderTop: k === 0 ? "none" : "1px solid " + N.rule, fontSize: 12.5, alignItems: "baseline", background: "#fafbfc" }}>
+                                <span style={{ width: 74, color: N.muted, whiteSpace: "nowrap" }}>{x.d}</span>
+                                <span style={{ width: 50, color: N.mutedLite, fontFamily: "'DM Mono', monospace", whiteSpace: "nowrap" }}>{x.n || ""}</span>
+                                <span style={{ flex: 1, minWidth: 0, color: N.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{[x.it, x.ds].filter(Boolean).join(" — ")}</span>
+                                <span style={{ width: 82, textAlign: "right", fontFamily: "'DM Mono', monospace", color: N.ink }}>{money(x.amt || 0)}</span>
+                              </div>
+                            ))}
+                          </div>
+                          {h.txn_count > t.length && <div style={{ padding: "6px 12px", fontSize: 11, color: N.mutedLite, borderTop: "1px solid " + N.rule }}>Showing the most recent {t.length} of {h.txn_count}. Full line-by-line detail is in the QuickBooks archive.</div>}
+                        </div>
+                     ); })()}
+                  </div>
+                )}
                 {!isCust && mergeVendorId === c.id && (
                   <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginTop: 10, background: "#eef6ff", border: "1px solid #cfe4ff", borderRadius: 10, padding: "10px 12px" }}>
                     <span style={{ fontSize: 13, color: N.blueDark, fontWeight: 600 }}>Merge <b>{c.name}</b> into:</span>
