@@ -404,6 +404,9 @@ export function summarizeActivities(entries, categories, start, end) {
   return { revenue, expense, uncoded, revTotal, expTotal, change: revTotal - expTotal };
 }
 
+// House rule (Kari): customer/vendor names carry no commas or periods — keep apostrophes & hyphens.
+function cleanName(s) { return (s || "").replace(/[.,]/g, "").replace(/\s{2,}/g, " ").trim(); }
+
 // Map an invoices row into the shape the Invoices tab renders.
 function mapInvoice(v) {
   const items = Array.isArray(v.line_items) ? v.line_items : [];
@@ -1394,7 +1397,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     // "Spec." vs "spec" vs "SPEC" duplicates: title case, no periods/commas, single spaces.
     const cleanVendorName = s => (s || "").trim().replace(/\s+/g, " ").replace(/[.,]/g, "").toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
     const row = table === "ledger_customers"
-      ? { name: src.name.trim(), company: (src.company || "").trim() || null, email: (src.email || "").trim() || null, phone: (src.phone || "").trim() || null, billing_address: (src.billing_address || "").trim() || null, tax_status: src.tax_status || null, notes: (src.notes || "").trim() || null, exempt_reason: src.tax_status === "Exempt" ? ((src.exempt_reason || "").trim() || null) : null, exempt_cert_number: src.tax_status === "Exempt" ? ((src.exempt_cert_number || "").trim() || null) : null, exempt_cert_on_file: src.tax_status === "Exempt" ? !!src.exempt_cert_on_file : false, exempt_cert_date: src.tax_status === "Exempt" ? (src.exempt_cert_date || null) : null }
+      ? { name: cleanName(src.name), company: (src.company || "").trim() || null, email: (src.email || "").trim() || null, phone: (src.phone || "").trim() || null, billing_address: (src.billing_address || "").trim() || null, tax_status: src.tax_status || null, notes: (src.notes || "").trim() || null, exempt_reason: src.tax_status === "Exempt" ? ((src.exempt_reason || "").trim() || null) : null, exempt_cert_number: src.tax_status === "Exempt" ? ((src.exempt_cert_number || "").trim() || null) : null, exempt_cert_on_file: src.tax_status === "Exempt" ? !!src.exempt_cert_on_file : false, exempt_cert_date: src.tax_status === "Exempt" ? (src.exempt_cert_date || null) : null }
       : { name: cleanVendorName(src.name), email: (src.email || "").trim() || null, phone: (src.phone || "").trim() || null, billing_address: (src.billing_address || "").trim() || null };
     if (isNew) {
       await supabase.from(table).insert({ org_id: liveOrgId, user_id: session.user.id, ...row });
@@ -1424,7 +1427,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     if (live && liveOrgId) {
       const { data: newInv } = await supabase.from("invoices").insert({
         org_id: liveOrgId, user_id: session.user.id, invoice_number: String(num),
-        customer_name: draft.customer.trim(), customer_email: draft.email.trim() || null,
+        customer_name: cleanName(draft.customer), customer_email: draft.email.trim() || null,
         ship_address: (draft.ship || "").trim() || null,
         line_items: lines.map(l => ({ desc: l.desc.trim(), qty: parseInt(l.qty) || 1, price: parseFloat(l.price) || 0 })),
         tax_status: draft.taxStatus, subtotal_cents: subtotal, tax_cents: tax, total_cents: total, status: "draft",
@@ -2174,14 +2177,14 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     setOrderDraft(blankOrder);
     setEditingOrder(null);
     if (live && liveOrgId) {
-      const known = (entity.customers || []).some(c => (c.name || "").toLowerCase() === draft.customer.trim().toLowerCase());
+      const known = (entity.customers || []).some(c => (c.name || "").toLowerCase() === cleanName(draft.customer).toLowerCase());
       if (!known && draft.customer.trim()) {
-        await supabase.from("ledger_customers").insert({ org_id: liveOrgId, user_id: session.user.id, name: draft.customer.trim(), email: draft.email.trim() || null });
+        await supabase.from("ledger_customers").insert({ org_id: liveOrgId, user_id: session.user.id, name: cleanName(draft.customer), email: draft.email.trim() || null });
       }
       // Editable content only. On edit we keep status / doc_type / invoice_number as-is
       // (so an in-progress or paid invoice isn't reset), just updating what Dave changed.
       const fields = {
-        customer_name: draft.customer.trim() || null, customer_email: draft.email.trim() || null,
+        customer_name: cleanName(draft.customer) || null, customer_email: draft.email.trim() || null,
         line_items: lines.map(l => ({ item: (l.item || "").trim(), desc: (l.desc || "").trim(), qty: parseInt(l.qty) || 1, cost: parseFloat(l.cost) || 0, price: parseFloat(l.price) || 0 })),
         tax_status: draft.taxStatus, subtotal_cents: subtotal, tax_cents: tax, total_cents: total,
       };
