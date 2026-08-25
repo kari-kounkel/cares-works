@@ -616,6 +616,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [contactEditId, setContactEditId] = useState(null);
   const [contactDraft, setContactDraft] = useState(blankContact);
   const [vendorTxOpen, setVendorTxOpen] = useState(null); // vendor id whose payment history is expanded
+  const [custHistOpen, setCustHistOpen] = useState(null); // customer id whose invoice history is expanded
   const [mergeVendorId, setMergeVendorId] = useState(null); // vendor being merged away
   const [mergeInto, setMergeInto] = useState(""); // target vendor name for the merge
   // Merge a duplicate vendor into another: move its bills + rename its check lines, then remove it.
@@ -4256,6 +4257,13 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
 {isCust && c.tax_status === "Shipped" && <span style={{ fontSize: 10, fontWeight: 700, color: N.muted, marginLeft: 6, letterSpacing: "0.04em" }}>SHIPPED</span>}{isCust && (() => { const cc = (entity.credits || []).filter(cr => cr.status === "open" && (cr.customer_name || "").toLowerCase() === (c.name || "").toLowerCase()).reduce((s, cr) => s + (cr.amount_cents || 0), 0); return cc > 0 ? <span style={{ fontSize: 10, fontWeight: 700, color: N.pinkDark, background: "#eafaf0", border: "1px solid #bff0d3", borderRadius: 100, padding: "2px 8px", marginLeft: 8 }}>{money(cc / 100)} CREDIT</span> : null; })()}</div>
                     <div style={{ fontSize: 12, color: N.muted }}>{[c.email, c.phone].filter(Boolean).join(" · ") || <span style={{ color: N.mutedLite, fontStyle: "italic" }}>no email or phone yet</span>}</div>
                     {c.billing_address ? <div style={{ fontSize: 12, color: N.muted, whiteSpace: "pre-line", marginTop: 2 }}>{c.billing_address}</div> : null}
+                    {isCust && (() => { const list = (entity.invoices || []).filter(v => v.docType !== "order" && (v.customer || "").toLowerCase().trim() === (c.name || "").toLowerCase().trim()).sort((a, b) => (b.issueDate || "").localeCompare(a.issueDate || "")); const last = list[0]; return (
+                      <div style={{ fontSize: 12, marginTop: 4 }}>
+                        {last
+                          ? <button onClick={() => setCustHistOpen(custHistOpen === c.id ? null : c.id)} style={{ background: "none", border: "none", color: N.blue, cursor: "pointer", fontWeight: 600, fontFamily: "'Figtree', sans-serif", fontSize: 12, padding: 0 }}>🧾 {list.length} invoice{list.length === 1 ? "" : "s"} · last {money(last.amount)} · {shortD(last.issueDate)} {custHistOpen === c.id ? "▲ hide" : "▾ see history"}</button>
+                          : <span style={{ color: N.mutedLite }}>no invoices yet</span>}
+                      </div>
+                    ); })()}
                     {!isCust && (() => { const { list } = vendorTx(c.name); const last = list[0]; return (
                       <div style={{ fontSize: 12, marginTop: 4 }}>
                         {last
@@ -4281,6 +4289,19 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                     <button onClick={() => { setMergeVendorId(null); setMergeInto(""); }} style={btnPaper(N.muted)}>Cancel</button>
                   </div>
                 )}
+                {isCust && custHistOpen === c.id && (() => { const list = (entity.invoices || []).filter(v => v.docType !== "order" && (v.customer || "").toLowerCase().trim() === (c.name || "").toLowerCase().trim()).sort((a, b) => (b.issueDate || "").localeCompare(a.issueDate || "")); return (
+                  <div style={{ marginTop: 10, border: "1px solid " + N.rule, borderRadius: 10, overflow: "hidden", maxHeight: "40vh", overflowY: "auto" }}>
+                    {list.map((v, k) => (
+                      <button key={v.id} onClick={() => setOpenInv(v)} title="Open / print this invoice" style={{ width: "100%", textAlign: "left", display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", borderTop: k === 0 ? "none" : "1px solid " + N.rule, fontSize: 13, background: "#fafbfc", border: "none", cursor: "pointer", fontFamily: "'Figtree', sans-serif" }}>
+                        <span style={{ width: 44, color: N.muted, fontSize: 12 }}>{shortD(v.issueDate)}</span>
+                        <span style={{ width: 54, color: N.blueDark, fontWeight: 700, fontSize: 12 }}>{v.number ? "#" + v.number : (v.poNumber ? "PO " + v.poNumber : "—")}</span>
+                        <span style={{ flex: 1, minWidth: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: N.ink }}>{v.item}</span>
+                        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.04em", color: v.status === "Paid" ? "#5a7a63" : N.muted, whiteSpace: "nowrap" }}>{(v.status || "").toUpperCase()}</span>
+                        <span style={{ fontWeight: 600, color: N.ink, whiteSpace: "nowrap", fontFamily: "'DM Mono', monospace" }}>{money(v.amount)}</span>
+                      </button>
+                    ))}
+                  </div>
+                ); })()}
                 {!isCust && vendorTxOpen === c.id && (() => { const { list } = vendorTx(c.name); return (
                   <div style={{ marginTop: 10, border: "1px solid " + N.rule, borderRadius: 10, overflow: "hidden", maxHeight: "40vh", overflowY: "auto" }}>
                     {list.map((e, k) => (
