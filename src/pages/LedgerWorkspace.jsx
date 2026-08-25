@@ -671,7 +671,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [invDraft, setInvDraft] = useState(blankInvoice);
 
   const latestUpdate = entity.changelog?.[0]?.date || "";
-  const MN_TAX_RATE = 0.08025; // Bloomington, MN combined: 6.875% state + 1.15% Hennepin/metro. Confirm w/ CPA / MN e-Services.
+  const MN_TAX_RATE = 0.09025; // Bloomington, MN combined 9.025%: 6.875 state + 0.5 city + 0.15 Hennepin + 0.5 Henn transit + 0.75 metro transit + 0.25 metro housing. Confirmed vs QBO Sales Tax Liability Report.
 
   // ---- Tenant profile: which sections they get, and what those sections are called ----
   // A tenant that lists `sections` gets exactly those, in that order; everyone else gets
