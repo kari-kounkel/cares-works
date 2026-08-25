@@ -612,7 +612,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [listsTab, setListsTab] = useState("");
   const [stFrom, setStFrom] = useState("");
   const [stTo, setStTo] = useState("");
-  const blankContact = { name: "", company: "", email: "", phone: "", billing_address: "", tax_status: "Taxable", notes: "" };
+  const blankContact = { name: "", company: "", email: "", phone: "", billing_address: "", tax_status: "Taxable", notes: "", exempt_reason: "", exempt_cert_number: "", exempt_cert_on_file: false, exempt_cert_date: "" };
   const [contactEditId, setContactEditId] = useState(null);
   const [contactDraft, setContactDraft] = useState(blankContact);
   const [vendorTxOpen, setVendorTxOpen] = useState(null); // vendor id whose payment history is expanded
@@ -1393,7 +1393,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     // "Spec." vs "spec" vs "SPEC" duplicates: title case, no periods/commas, single spaces.
     const cleanVendorName = s => (s || "").trim().replace(/\s+/g, " ").replace(/[.,]/g, "").toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
     const row = table === "ledger_customers"
-      ? { name: src.name.trim(), company: (src.company || "").trim() || null, email: (src.email || "").trim() || null, phone: (src.phone || "").trim() || null, billing_address: (src.billing_address || "").trim() || null, tax_status: src.tax_status || null, notes: (src.notes || "").trim() || null }
+      ? { name: src.name.trim(), company: (src.company || "").trim() || null, email: (src.email || "").trim() || null, phone: (src.phone || "").trim() || null, billing_address: (src.billing_address || "").trim() || null, tax_status: src.tax_status || null, notes: (src.notes || "").trim() || null, exempt_reason: src.tax_status === "Exempt" ? ((src.exempt_reason || "").trim() || null) : null, exempt_cert_number: src.tax_status === "Exempt" ? ((src.exempt_cert_number || "").trim() || null) : null, exempt_cert_on_file: src.tax_status === "Exempt" ? !!src.exempt_cert_on_file : false, exempt_cert_date: src.tax_status === "Exempt" ? (src.exempt_cert_date || null) : null }
       : { name: cleanVendorName(src.name), email: (src.email || "").trim() || null, phone: (src.phone || "").trim() || null, billing_address: (src.billing_address || "").trim() || null };
     if (isNew) {
       await supabase.from(table).insert({ org_id: liveOrgId, user_id: session.user.id, ...row });
@@ -4184,7 +4184,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     const acctById = {}; (entity.rawAccounts || []).forEach(a => { acctById[a.id] = a.name; });
     const shortD = d => { const p = (d || "").split("-"); return p.length === 3 ? `${+p[1]}/${+p[2]}` : d; };
     const cell = { ...inputSt };
-    const startEdit = c => { setContactErr(""); setContactEditId(c.id); setContactDraft({ name: c.name || "", company: c.company || "", email: c.email || "", phone: c.phone || "", billing_address: c.billing_address || "", tax_status: c.tax_status || "Taxable", notes: c.notes || "" }); };
+    const startEdit = c => { setContactErr(""); setContactEditId(c.id); setContactDraft({ name: c.name || "", company: c.company || "", email: c.email || "", phone: c.phone || "", billing_address: c.billing_address || "", tax_status: c.tax_status || "Taxable", notes: c.notes || "", exempt_reason: c.exempt_reason || "", exempt_cert_number: c.exempt_cert_number || "", exempt_cert_on_file: !!c.exempt_cert_on_file, exempt_cert_date: c.exempt_cert_date || "" }); };
     const Editor = (src, set, onSave, onCancel, saveLabel) => (
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
         <input placeholder="Name" value={src.name} onChange={e => set(d => ({ ...d, name: e.target.value }))} style={cell} />
@@ -4199,6 +4199,24 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               <button key={t} onClick={() => set(d => ({ ...d, tax_status: t }))} style={{ fontSize: 12, padding: "6px 12px", borderRadius: 100, cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontWeight: 500, border: "1px solid " + (src.tax_status === t ? N.blue : N.rule), background: src.tax_status === t ? N.blue : N.white, color: src.tax_status === t ? N.white : N.text }}>{t}</button>
             ))}
             <input placeholder="Notes (optional)" value={src.notes} onChange={e => set(d => ({ ...d, notes: e.target.value }))} style={{ ...cell, flex: 1, minWidth: 160 }} />
+          </div>
+        )}
+        {isCust && src.tax_status === "Exempt" && (
+          <div style={{ gridColumn: "1 / -1", background: "#fbf7ee", border: "1px solid #f0e2c0", borderRadius: 10, padding: "12px 14px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            <div style={{ gridColumn: "1 / -1", fontSize: 12, fontWeight: 700, color: "#8a5a00", letterSpacing: "0.03em" }}>MN EXEMPTION CERTIFICATE (ST3)</div>
+            <div style={{ gridColumn: "1 / -1", display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+              <span style={{ fontSize: 12, color: N.muted }}>Reason:</span>
+              {["Resale", "Government", "Nonprofit", "Out-of-state", "Other"].map(r => (
+                <button key={r} onClick={() => set(d => ({ ...d, exempt_reason: r }))} style={{ fontSize: 11.5, padding: "5px 10px", borderRadius: 100, cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontWeight: 500, border: "1px solid " + (src.exempt_reason === r ? N.blue : N.rule), background: src.exempt_reason === r ? N.blue : N.white, color: src.exempt_reason === r ? N.white : N.text }}>{r}</button>
+              ))}
+            </div>
+            <input placeholder="Certificate # (optional)" value={src.exempt_cert_number} onChange={e => set(d => ({ ...d, exempt_cert_number: e.target.value }))} style={cell} />
+            <label style={{ fontSize: 12, color: N.muted, display: "flex", alignItems: "center", gap: 6 }}>On file since <input type="date" value={src.exempt_cert_date || ""} onChange={e => set(d => ({ ...d, exempt_cert_date: e.target.value }))} style={{ ...cell, width: 150 }} /></label>
+            <label style={{ gridColumn: "1 / -1", fontSize: 13, color: N.ink, display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontWeight: 600 }}>
+              <input type="checkbox" checked={!!src.exempt_cert_on_file} onChange={e => set(d => ({ ...d, exempt_cert_on_file: e.target.checked }))} style={{ width: 16, height: 16 }} />
+              ✓ Signed exemption certificate is on file
+            </label>
+            <div style={{ gridColumn: "1 / -1", fontSize: 11, color: N.muted }}>MN requires a signed ST3 on file for every exempt sale, or the tax falls back on ProGraphics in an audit.</div>
           </div>
         )}
         {contactErr && <div style={{ gridColumn: "1 / -1", fontSize: 12, color: N.red, fontWeight: 600 }}>{contactErr}</div>}
@@ -4232,7 +4250,10 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 <>
                 <div style={{ display: "flex", gap: 12, alignItems: "flex-start", flexWrap: "wrap" }}>
                   <div style={{ flex: 1, minWidth: 200 }}>
-                    <div style={{ fontSize: 15, fontWeight: 600, color: N.ink }}>{c.name}{c.company ? <span style={{ color: N.muted, fontWeight: 400 }}> · {c.company}</span> : ""}{isCust && c.tax_status && c.tax_status !== "Taxable" && <span style={{ fontSize: 10, fontWeight: 700, color: N.muted, marginLeft: 6, letterSpacing: "0.04em" }}>{(c.tax_status || "").toUpperCase()}</span>}{isCust && (() => { const cc = (entity.credits || []).filter(cr => cr.status === "open" && (cr.customer_name || "").toLowerCase() === (c.name || "").toLowerCase()).reduce((s, cr) => s + (cr.amount_cents || 0), 0); return cc > 0 ? <span style={{ fontSize: 10, fontWeight: 700, color: N.pinkDark, background: "#eafaf0", border: "1px solid #bff0d3", borderRadius: 100, padding: "2px 8px", marginLeft: 8 }}>{money(cc / 100)} CREDIT</span> : null; })()}</div>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: N.ink }}>{c.name}{c.company ? <span style={{ color: N.muted, fontWeight: 400 }}> · {c.company}</span> : ""}{isCust && c.tax_status === "Exempt" && (c.exempt_cert_on_file
+  ? <span title={[c.exempt_reason, c.exempt_cert_number].filter(Boolean).join(" · ")} style={{ fontSize: 10, fontWeight: 700, color: "#5a7a63", background: "#eef7f0", border: "1px solid #cfe9d6", borderRadius: 100, padding: "2px 8px", marginLeft: 6, letterSpacing: "0.03em" }}>EXEMPT · CERT ✓{c.exempt_reason ? " · " + c.exempt_reason : ""}</span>
+  : <span style={{ fontSize: 10, fontWeight: 700, color: "#8a5a00", background: "#fdf5e3", border: "1px solid #f0d89a", borderRadius: 100, padding: "2px 8px", marginLeft: 6, letterSpacing: "0.03em" }}>⚠ EXEMPT · NO CERT</span>)}
+{isCust && c.tax_status === "Shipped" && <span style={{ fontSize: 10, fontWeight: 700, color: N.muted, marginLeft: 6, letterSpacing: "0.04em" }}>SHIPPED</span>}{isCust && (() => { const cc = (entity.credits || []).filter(cr => cr.status === "open" && (cr.customer_name || "").toLowerCase() === (c.name || "").toLowerCase()).reduce((s, cr) => s + (cr.amount_cents || 0), 0); return cc > 0 ? <span style={{ fontSize: 10, fontWeight: 700, color: N.pinkDark, background: "#eafaf0", border: "1px solid #bff0d3", borderRadius: 100, padding: "2px 8px", marginLeft: 8 }}>{money(cc / 100)} CREDIT</span> : null; })()}</div>
                     <div style={{ fontSize: 12, color: N.muted }}>{[c.email, c.phone].filter(Boolean).join(" · ") || <span style={{ color: N.mutedLite, fontStyle: "italic" }}>no email or phone yet</span>}</div>
                     {c.billing_address ? <div style={{ fontSize: 12, color: N.muted, whiteSpace: "pre-line", marginTop: 2 }}>{c.billing_address}</div> : null}
                     {!isCust && (() => { const { list } = vendorTx(c.name); const last = list[0]; return (
