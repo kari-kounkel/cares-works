@@ -583,6 +583,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [poSort, setPoSort] = useState("vendor");    // Purchase Orders list sort
   const [logoBusy, setLogoBusy] = useState(false);
   const [docBusy, setDocBusy] = useState(false);
+  const [taxDocBusy, setTaxDocBusy] = useState("");
   const [docCategory, setDocCategory] = useState("QuickBooks close-out");
   const [docFilter, setDocFilter] = useState(null); // Documents dashboard: which category is open
   const [importAcctId, setImportAcctId] = useState(null);  // statement CSV import target account
@@ -676,6 +677,15 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
 
   const latestUpdate = entity.changelog?.[0]?.date || "";
   const MN_TAX_RATE = 0.09025; // Bloomington, MN combined 9.025%: 6.875 state + 0.5 city + 0.15 Hennepin + 0.5 Henn transit + 0.75 metro transit + 0.25 metro housing. Confirmed vs QBO Sales Tax Liability Report.
+  // The MN e-Services filing breaks the combined rate into these jurisdiction lines — Betty enters each.
+  const MN_TAX_LINES = [
+    ["Minnesota state", 0.06875],
+    ["Hennepin County", 0.0015],
+    ["Hennepin County transit", 0.005],
+    ["Metro-area transit", 0.0075],
+    ["Metro-area housing", 0.0025],
+    ["Bloomington city", 0.005],
+  ];
 
   // ---- Tenant profile: which sections they get, and what those sections are called ----
   // A tenant that lists `sections` gets exactly those, in that order; everyone else gets
@@ -3558,10 +3568,38 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     return { from, to, billed, taxableSales, exemptSales, collected, gross: taxableSales + exemptSales };
   }
 
+  // Per-period sales-tax filing record (filed?/paid?/confirmation/attached return) — stored in
+  // ledger_statements (kind='sales_tax'), NEVER touches balances. Keyed by period label.
+  function stFiling(label) { return (entity.statements || []).find(s => s.kind === "sales_tax" && s.period_label === label); }
+  async function saveTaxFiling(label, periodEnd, patch) {
+    if (!live || !liveOrgId) return;
+    const existing = stFiling(label);
+    const data = { ...((existing && existing.data) || {}), ...patch };
+    if (existing) await supabase.from("ledger_statements").update({ data }).eq("id", existing.id);
+    else await supabase.from("ledger_statements").insert({ org_id: liveOrgId, user_id: session.user.id, kind: "sales_tax", period_label: label, period_end: periodEnd || null, source: "manual", data });
+    setReloadTick(t => t + 1);
+  }
+  async function uploadTaxReturn(file, label, periodEnd) {
+    if (!file || !liveOrgId) return;
+    if (file.size > 25 * 1024 * 1024) { window.alert("Please keep the file under 25 MB."); return; }
+    setTaxDocBusy(label);
+    try {
+      const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const path = `${liveOrgId}/sales-tax/${Date.now()}-${safe}`;
+      const { error: upErr } = await supabase.storage.from("org-docs").upload(path, file, { upsert: false, contentType: file.type || undefined });
+      if (upErr) throw upErr;
+      const { data, error } = await supabase.from("ledger_documents").insert({ org_id: liveOrgId, user_id: session.user.id, name: file.name, path, size_bytes: file.size, mime: file.type || null, category: "Sales tax return" }).select("id, name").single();
+      if (error) throw error;
+      await saveTaxFiling(label, periodEnd, { returnDocId: data.id, returnDocName: data.name });
+    } catch (e) { window.alert("Couldn't attach that file: " + (e.message || e)); }
+    setTaxDocBusy("");
+  }
+
   function printSalesTax() {
     const d = stData();
     const fmt = s => { const [y, m, dd] = s.split("-"); return `${m}/${dd}/${y}`; };
     const rows = d.billed.map(v => `<tr><td>${fmt(v.issueDate)}</td><td>${(v.customer || "").replace(/</g, "")}</td><td>${v.tax === "Taxable" ? "Taxable" : "Exempt"}</td><td class=r>${money(v.tax === "Taxable" ? v.amount - v.taxAmt : v.amount)}</td><td class=r>${money(v.taxAmt)}</td></tr>`).join("");
+    const jl = MN_TAX_LINES.map(([lbl, rate]) => `<div class="ln"><span>${lbl} · ${(rate * 100).toFixed(3).replace(/0+$/, "").replace(/\.$/, "")}%</span><b>${money(Math.round(d.taxableSales * rate * 100) / 100)}</b></div>`).join("");
     const html = `<!doctype html><html><head><meta charset="utf-8"><title>Sales tax worksheet — ${entity.name || ""}</title>
       <style>body{font-family:Arial,Helvetica,sans-serif;color:#0f172a;padding:32px;max-width:720px;margin:0 auto}
       h1{font-size:20px;margin:0 0 2px}h2{font-size:14px;color:#64748b;font-weight:600;margin:0 0 16px}
@@ -3578,6 +3616,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         <div class="ln"><span>Taxable sales</span><b>${money(d.taxableSales)}</b></div>
         <div class="ln big"><span>Sales tax to remit</span><b>${money(d.collected)}</b></div>
       </div>
+      <h2 style="font-size:12px">MN e-Services lines — enter each on the filing</h2>
+      <div class="box">${jl}<div class="ln big"><span>Total tax</span><b>${money(MN_TAX_LINES.reduce((s, [, r]) => s + Math.round(d.taxableSales * r * 100) / 100, 0))}</b></div></div>
       <h2 style="font-size:12px">Backup — ${d.billed.length} invoice${d.billed.length === 1 ? "" : "s"} in period</h2>
       <table><thead><tr><th>Date</th><th>Customer</th><th>Type</th><th class=r>Sale</th><th class=r>Tax</th></tr></thead>
       <tbody>${rows || '<tr><td colspan=5>No invoices in this period.</td></tr>'}</tbody></table>
@@ -3606,6 +3646,16 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     const active = (f, t) => d.from === f && d.to === t;
     const fmt = s => { const [yy, m, dd] = s.split("-"); return `${m}/${dd}/${yy}`; };
     const cards = [["Total sales", money(d.gross), N.ink], ["Taxable sales", money(d.taxableSales), N.ink], ["Tax-exempt sales", money(d.exemptSales), N.muted], ["Tax to remit", money(d.collected), N.pinkDark]];
+    // Period label for the filing record (quarter or full year), and the breakdown into MN e-Services lines.
+    const yFrom = d.from.slice(0, 4);
+    const q = Math.floor((+d.from.slice(5, 7) - 1) / 3) + 1;
+    const isFullYear = d.from.endsWith("-01-01") && d.to.endsWith("-12-31");
+    const isQuarter = [["01-01", "03-31"], ["04-01", "06-30"], ["07-01", "09-30"], ["10-01", "12-31"]].some(([a, b]) => d.from.endsWith(a) && d.to.endsWith(b));
+    const periodLabel = isFullYear ? `${yFrom} full year` : isQuarter ? `${yFrom} Q${q}` : `${d.from} – ${d.to}`;
+    const jLines = MN_TAX_LINES.map(([lbl, rate]) => [lbl, rate, Math.round(d.taxableSales * rate * 100) / 100]);
+    const jTotal = jLines.reduce((s, l) => s + l[2], 0);
+    const filing = stFiling(periodLabel);
+    const fdata = (filing && filing.data) || {};
     return (
       <div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10, marginBottom: 4 }}>
@@ -3633,6 +3683,64 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               <div style={{ fontSize: 24, fontWeight: 700, color: c }}>{v}</div>
             </div>
           ))}
+        </div>
+
+        {/* MN e-Services jurisdiction lines — Betty copies each into the DOR filing */}
+        <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: 16, marginBottom: 16 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 2 }}>
+            <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 16, color: N.ink }}>MN e-Services lines · {periodLabel}</div>
+            <div style={{ fontSize: 12, color: N.muted }}>on {money(d.taxableSales)} taxable</div>
+          </div>
+          <div style={{ fontSize: 12, color: N.muted, marginBottom: 8 }}>Enter each line into MN e-Services. The rate splits into these jurisdictions.</div>
+          {jLines.map(([lbl, rate, amt]) => (
+            <div key={lbl} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid " + N.rule, fontSize: 13 }}>
+              <span style={{ color: N.text }}>{lbl} <span style={{ color: N.mutedLite, fontSize: 11 }}>{(rate * 100).toFixed(3).replace(/0+$/, "").replace(/\.$/, "")}%</span></span>
+              <span style={{ fontFamily: "'DM Mono', monospace", color: N.ink }}>{money(amt)}</span>
+            </div>
+          ))}
+          <div style={{ display: "flex", justifyContent: "space-between", padding: "9px 0 0", fontWeight: 700, fontSize: 15, color: N.ink }}>
+            <span>Total tax to remit</span><span style={{ fontFamily: "'DM Mono', monospace" }}>{money(jTotal)}</span>
+          </div>
+        </div>
+
+        {/* Filing status — filed?/paid?/confirmation/attached return, stored separately from balances */}
+        <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: 16, marginBottom: 16 }}>
+          <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 16, color: N.ink, marginBottom: 10 }}>Filing status · {periodLabel}</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <label style={{ fontSize: 14, fontWeight: 600, color: N.ink, display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+                <input type="checkbox" checked={!!fdata.filed} onChange={e => saveTaxFiling(periodLabel, d.to, { filed: e.target.checked })} style={{ width: 16, height: 16 }} /> Filed to MN
+              </label>
+              <label style={{ fontSize: 12, color: N.muted, display: "flex", alignItems: "center", gap: 6 }}>on <input type="date" defaultValue={fdata.filedOn || ""} key={periodLabel + "-fd"} onChange={e => saveTaxFiling(periodLabel, d.to, { filedOn: e.target.value })} style={{ ...inputSt, width: 150 }} /></label>
+              <input placeholder="Confirmation #" defaultValue={fdata.confirmation || ""} key={periodLabel + "-cf"} onBlur={e => saveTaxFiling(periodLabel, d.to, { confirmation: e.target.value.trim() })} style={{ ...inputSt }} />
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <label style={{ fontSize: 14, fontWeight: 600, color: N.ink, display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+                <input type="checkbox" checked={!!fdata.paid} onChange={e => saveTaxFiling(periodLabel, d.to, { paid: e.target.checked })} style={{ width: 16, height: 16 }} /> Paid
+              </label>
+              <label style={{ fontSize: 12, color: N.muted, display: "flex", alignItems: "center", gap: 6 }}>on <input type="date" defaultValue={fdata.paidOn || ""} key={periodLabel + "-pd"} onChange={e => saveTaxFiling(periodLabel, d.to, { paidOn: e.target.value })} style={{ ...inputSt, width: 150 }} /></label>
+              <input inputMode="decimal" placeholder="Amount paid" defaultValue={fdata.paidCents ? (fdata.paidCents / 100).toFixed(2) : ""} key={periodLabel + "-pa"} onBlur={e => saveTaxFiling(periodLabel, d.to, { paidCents: Math.round((parseFloat(e.target.value) || 0) * 100) })} style={{ ...inputSt }} />
+            </div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 12, flexWrap: "wrap" }}>
+            <label style={{ ...btnPaper(N.blue), cursor: "pointer" }}>
+              {taxDocBusy === periodLabel ? "Uploading…" : "📎 Attach filed return"}
+              <input type="file" style={{ display: "none" }} onChange={e => { const f = e.target.files && e.target.files[0]; if (f) uploadTaxReturn(f, periodLabel, d.to); e.target.value = ""; }} />
+            </label>
+            {fdata.returnDocName ? <span style={{ fontSize: 12, color: "#5a7a63", fontWeight: 600 }}>✓ {fdata.returnDocName}</span> : <span style={{ fontSize: 12, color: N.mutedLite }}>no return attached yet</span>}
+          </div>
+          <input placeholder="Note (optional)" defaultValue={fdata.note || ""} key={periodLabel + "-nt"} onBlur={e => saveTaxFiling(periodLabel, d.to, { note: e.target.value.trim() })} style={{ ...inputSt, marginTop: 10 }} />
+        </div>
+
+        {/* Open questions / flags for this workflow */}
+        <div style={{ background: "#fbf7ee", border: "1px solid #f0e2c0", borderRadius: 12, padding: 16, marginBottom: 16 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "#8a5a00", letterSpacing: "0.03em", marginBottom: 8 }}>QUESTIONS &amp; NOTES</div>
+          <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: N.text, lineHeight: 1.7 }}>
+            <li>These totals tally <b>by invoice date (accrual)</b>. MN files <b>cash basis</b> (tax owed when the customer pays) — reconcile the period figure against what QuickBooks / DOR shows was received.</li>
+            <li>Confirm the <b>filing frequency</b> with MN DOR (monthly / quarterly / annual) — set up quarterly for now.</li>
+            <li>Shipping is billed as a <b>pass-through</b> and is not taxed.</li>
+            <li>What was actually <b>filed &amp; paid to DOR</b> is unknown until the DOR account is checked — record it in Filing status above once confirmed.</li>
+          </ul>
         </div>
 
         <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, overflow: "hidden" }}>
