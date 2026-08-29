@@ -48,6 +48,7 @@ import ProposalsIndex from "./pages/ProposalsIndex";
 import ProposalView from "./pages/ProposalView";
 import ProposalPublic from "./pages/ProposalPublic";
 import COALibrary from "./pages/COALibrary";
+import ToolsIndex from "./pages/ToolsIndex";
 import LedgerWorkspace from "./pages/LedgerWorkspace";
 import EmersonWorkspace from "./pages/EmersonWorkspace";
 import InvoicePublic from "./pages/InvoicePublic";
@@ -199,6 +200,10 @@ export default function App() {
     if (COURT_SLUGS.includes(slug)) return <CourtChapter slug={slug} />;
   }
 
+  // Public index of every published tool. The barcode printed in Court of
+  // Accounts points here (accounts.karikounkel.com/tools), so this route must
+  // never require a login — a reader with the book in hand has no account.
+  if (path === "/tools" || path === "/tools/") return <ToolsIndex session={session} />;
   if (path === "/tools/coa-library") return <COALibrary session={session} />;
   if (path === "/tools/payroll-checklist") return <PayrollChecklist session={session} />;
   if (path === "/tools/client-visit-summary") return <ClientVisitSummary />;
