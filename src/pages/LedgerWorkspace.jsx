@@ -1127,11 +1127,17 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   }
 
   // "Paid with which card?" — set which account a transaction hit.
-  function setAccount(id, acctId, acctName) {
+  // Awaited + confirmed, so the move can't be clobbered by a refresh that reads
+  // the old account before the write lands (that was silently reverting it to CorTrust).
+  async function setAccount(id, acctId, acctName) {
     setItems(prev => prev.map(x => (x.id === id ? { ...x, accountId: acctId, source: acctName } : x)));
     setAcctOpen(null);
     if (acctId) { setLastAcctId(acctId); try { localStorage.setItem("cw_lastAcct", acctId); } catch (e) { /* storage may be blocked */ } }
-    if (live) supabase.from("ledger_entries").update({ account_id: acctId }).eq("id", id).then(() => {});
+    if (live) {
+      const { error } = await supabase.from("ledger_entries").update({ account_id: acctId }).eq("id", id);
+      if (error) { window.alert("Couldn't move that line to " + (acctName || "that account") + ": " + error.message); }
+      setReloadTick(t => t + 1);
+    }
   }
 
   // Notebook → invoice: apply an incoming-money line to an open invoice. Creates the
@@ -3466,7 +3472,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
 
           const CheckSheet = ({ ck, num }) => {
             const amt = (ck.amount_cents || 0) / 100;
-            const vd = (entity.vendorList || []).find(v => (v.name || "").toLowerCase() === (ck.vendor_name || "").toLowerCase()) || {};
+            const _ckNm = (ck.vendor_name || "").toLowerCase().trim();
+            const vd = (entity.vendorList || []).find(v => (v.name || "").toLowerCase().trim() === _ckNm) || (entity.customers || []).find(c => (c.name || "").toLowerCase().trim() === _ckNm) || {};
             const detail = `${ck.category || ""}${ck.memo ? (ck.category ? " · " : "") + ck.memo : ""}${ck.due_date ? ` · due ${ck.due_date}` : ""}` || "Payment";
             const Stub = ({ label, push, h }) => (
               <div style={{ height: h || "3.0in", marginTop: push || 0, padding: "0.3in 0.7in", boxSizing: "border-box", borderTop: "1px dashed #999", fontFamily: "'Figtree', sans-serif", color: "#000" }}>
