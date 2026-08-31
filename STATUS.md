@@ -177,6 +177,8 @@ The product itself at `tools.caresmn.com` — design system, pricing, org worksp
 - Tools ARE the cares-works site; PDFs of tools go to Etsy etc. to drive traffic to the CARES landing page (5/19 idea — status verify).
 
 **Where it stopped**
+8/29: The barcode printed in *Court of Accounts* points at `accounts.karikounkel.com/tools`, and it 404s. Two causes, only one fixed. (a) There was never a `/tools` index page — all 30 tools are routed individually as `/tools/<slug>`, and bare `/tools` fell through to the landing page. Built `src/pages/ToolsIndex.jsx`: public, no login, reads the `tools` table, grouped by category, with a band at the top for readers arriving from the book. PR #7 (draft), branch `claude/book-barcode-url-broken-vtacdw`. (b) `accounts.karikounkel.com` is not attached to any Vercel project — checked all 16. That is a domain + DNS job, not code, and the printed barcode cannot change, so the domain has to be made to work.
+
 8/24: COA Library shipped with all 13 industries and Facebook-ready deep links ("ok love it… go baby bo"). Before that (8/11) check printing was reviewed: checks look right on screen but don't print aligned — drop the word "Date", move the dollar amount right under the date, spelled-out dollars is too low, everything needs to shift up ~2 lines. AR email was never tested. Claude "stood down" that day without changing anything.
 
 **Next steps**
@@ -187,6 +189,7 @@ The product itself at `tools.caresmn.com` — design system, pricing, org worksp
 5. Decide the COA Library paid tier (QBO/IIF export, saved copies, Ledger import).
 
 **Pending / frozen items**
+- `accounts.karikounkel.com` is dark — not attached to any Vercel project, so the barcode URL printed in the book still fails. Needs the domain added to the `cares-works` project + a DNS record at the registrar. The `/tools` page it should land on is built (PR #7) and live at `tools.caresmn.com/tools` in the meantime.
 - Check printing misaligned — not fixed.
 - AR email test — never run.
 - ProGraphics proposal PDF not uploaded ("No PDF uploaded").

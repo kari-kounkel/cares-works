@@ -48,6 +48,8 @@ import ProposalsIndex from "./pages/ProposalsIndex";
 import ProposalView from "./pages/ProposalView";
 import ProposalPublic from "./pages/ProposalPublic";
 import COALibrary from "./pages/COALibrary";
+import ToolsIndex from "./pages/ToolsIndex";
+import CourtOfAccountsHome from "./pages/CourtOfAccountsHome";
 import LedgerWorkspace from "./pages/LedgerWorkspace";
 import EmersonWorkspace from "./pages/EmersonWorkspace";
 import InvoicePublic from "./pages/InvoicePublic";
@@ -199,6 +201,20 @@ export default function App() {
     if (COURT_SLUGS.includes(slug)) return <CourtChapter slug={slug} />;
   }
 
+  // Each published book gets its own subdomain — ladybug.karikounkel.com is the
+  // pattern. Court of Accounts lives at accounts.karikounkel.com. It shares this
+  // app rather than getting its own repo, because unlike Ladybug (whose kit is a
+  // PDF) this book's companion material IS the tool library below, in Supabase.
+  // So on that host the root is the book, not the CARES Works landing page.
+  const isCourtHost = typeof window !== "undefined" && window.location.hostname.startsWith("accounts.");
+  if (path === "/court-of-accounts" || path === "/court-of-accounts/" || (isCourtHost && path === "/")) {
+    return <CourtOfAccountsHome session={session} />;
+  }
+
+  // Public index of every published tool. The barcode printed in Court of
+  // Accounts points here (accounts.karikounkel.com/tools), so this route must
+  // never require a login — a reader with the book in hand has no account.
+  if (path === "/tools" || path === "/tools/") return <ToolsIndex session={session} />;
   if (path === "/tools/coa-library") return <COALibrary session={session} />;
   if (path === "/tools/payroll-checklist") return <PayrollChecklist session={session} />;
   if (path === "/tools/client-visit-summary") return <ClientVisitSummary />;
