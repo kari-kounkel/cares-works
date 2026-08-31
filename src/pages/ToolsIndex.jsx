@@ -75,7 +75,10 @@ export default function ToolsIndex({ session }) {
       .then(({ data, error }) => {
         if (error) { setFailed(true); setTools([]); return; }
         setTools(data || []);
-      });
+      })
+      // A hard network failure rejects rather than returning an error, and a
+      // reader off the barcode must never be left staring at "Loading…".
+      .catch(() => { setFailed(true); setTools([]); });
   }, []);
 
   // Group by category, case-insensitively — the table mixes "Marketing" and
