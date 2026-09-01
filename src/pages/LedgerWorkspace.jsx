@@ -2393,6 +2393,32 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     }
     payBillsByCheck([bill]);
   }
+  // Look at a check that's already been written — read-only. Recovers the real check
+  // number and date from the notebook line it created; never un-pays, deletes, or re-posts.
+  async function viewCheck(bill) {
+    let num = null, dateStr = null;
+    if (live && liveOrgId) {
+      const { data } = await supabase.from("ledger_entries")
+        .select("reference, entry_date")
+        .eq("org_id", liveOrgId).eq("direction", "out")
+        .eq("amount_cents", bill.amount_cents)
+        .eq("description", bill.vendor_name)
+        .ilike("reference", "Check #%")
+        .order("created_at", { ascending: false }).limit(1);
+      if (data && data[0]) {
+        const m = /Check #(\d+)/.exec(data[0].reference || ""); if (m) num = m[1];
+        dateStr = data[0].entry_date;
+      }
+    }
+    const banks = accountList.filter(a => a.type === "bank");
+    setCheckAcctId(banks[0] ? banks[0].id : "");
+    setCheckStartNum(num || "");
+    setOpenBill(null);
+    setCheckFor({
+      _viewOnly: true, _date: dateStr,
+      checks: [{ vendor_name: bill.vendor_name, amount_cents: bill.amount_cents, category: bill.category, memo: bill.memo, due_date: bill.due_date, _bills: [bill] }],
+    });
+  }
   // Bills for the SAME vendor collapse onto one check (stubs itemize them); bills for
   // different vendors each get their own check, so she can print 3–4 at once.
   function payBillsByCheck(bills) {
@@ -2422,6 +2448,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   async function confirmCheck(doPrint = true) {
     const cf = checkFor;
     if (!cf) return;
+    if (cf._viewOnly) { if (doPrint) window.print(); return; } // looking only — never re-post
     const checks = cf.checks || [cf._bills ? { ...cf } : cf];
     const start = parseInt(checkStartNum, 10) || entity.nextCheckNumber || 1001;
     const acct = accountList.find(a => a.id === checkAcctId);
@@ -3414,7 +3441,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                       <div style={{ fontSize: 12, color: N.muted }}>{b.category || "Uncategorized"}{b.paid_at ? ` · paid ${new Date(b.paid_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}` : ""}{b.memo ? ` · ${b.memo}` : ""}</div>
                     </div>
                     <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: N.green, background: N.green + "18", padding: "4px 10px", borderRadius: 100 }}>Paid</span>
-                    <button onClick={e => { e.stopPropagation(); reprintCheck(b); }} style={btnPaper(N.blue)}>Reprint / edit check</button>
+                    <button onClick={e => { e.stopPropagation(); viewCheck(b); }} style={btnPaper(N.blue)}>View check</button>
+                    <button onClick={e => { e.stopPropagation(); reprintCheck(b); }} style={btnPaper(N.muted)}>Redo / void</button>
                     <div style={{ fontSize: 15, fontWeight: 600, color: N.muted, width: 90, textAlign: "right" }}>{money((b.amount_cents || 0) / 100)}</div>
                   </div>
                 ))}
@@ -3457,6 +3485,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", flexWrap: "wrap" }}>
                     <button onClick={() => setBillEdit({ id: b.id, vendor: b.vendor_name || "", amount: String((b.amount_cents || 0) / 100), due: b.due_date || "", category: b.category || "", memo: b.memo || "" })} style={btnPaper(N.muted)}>Edit</button>
                     {!paid && <button onClick={() => payBillByCheck(b)} style={{ ...btnBlue, background: N.blue }}>Pay by check</button>}
+                    {paid && <button onClick={() => viewCheck(b)} style={{ ...btnBlue, background: N.blue }}>View check</button>}
                     <button onClick={() => { markBillPaid(b.id, !paid); setOpenBill(null); }} style={btnPaper(N.pinkDark)}>{paid ? "Mark unpaid" : "Mark paid (no check)"}</button>
                     <button onClick={() => deleteBill(b.id)} style={btnPaper(N.pinkDark)}>Delete</button>
                     <button onClick={() => setOpenBill(null)} style={btnPaper(N.muted)}>Close</button>
@@ -3470,8 +3499,11 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
 
         {checkFor && (() => {
           const checks = checkFor.checks || [checkFor];
+          const viewOnly = !!checkFor._viewOnly;
           const start = parseInt(checkStartNum, 10) || entity.nextCheckNumber || 1001;
-          const today = new Date().toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" });
+          const today = (viewOnly && checkFor._date)
+            ? new Date(checkFor._date + "T00:00:00").toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" })
+            : new Date().toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" });
           const banks = accountList.filter(a => a.type === "bank");
           const OX = checkOffX, OY = checkOffY;
           // Only the fill-in fields print — the stock is pre-printed. Positions are the
@@ -3539,9 +3571,10 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               <div className="no-print" style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", background: N.white, borderRadius: 10, padding: "12px 16px", marginBottom: 12, boxShadow: "0 12px 34px rgba(10,10,20,0.3)" }}>
                 <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: N.ink }}>{checks.length > 1 ? `${checks.length} checks` : "Check"}</span>
                 <label style={{ fontSize: 12, color: N.ink, fontWeight: 600 }}>{checks.length > 1 ? "Start check #" : "Check #"}</label>
-                <input value={checkStartNum} onChange={e => setCheckStartNum(e.target.value.replace(/[^0-9]/g, ""))} inputMode="numeric" placeholder="####" title="Type the number printed on the check in your printer" style={{ ...inputSt, width: 80, fontWeight: 700, fontSize: 15, border: "1px solid " + N.blue }} />
+                <input value={checkStartNum} readOnly={viewOnly} onChange={e => setCheckStartNum(e.target.value.replace(/[^0-9]/g, ""))} inputMode="numeric" placeholder="####" title={viewOnly ? "The number this check was printed with" : "Type the number printed on the check in your printer"} style={{ ...inputSt, width: 80, fontWeight: 700, fontSize: 15, border: "1px solid " + N.blue, ...(viewOnly ? { background: "#f1f5f9", color: N.muted } : {}) }} />
                 {checks.length > 1 && <span style={{ fontSize: 11, color: N.muted }}>→ #{start + checks.length - 1}</span>}
-                {banks.length > 0 && (<>
+                {viewOnly && <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: N.blue, background: N.blue + "18", padding: "3px 9px", borderRadius: 100 }}>Already written · view only</span>}
+                {!viewOnly && banks.length > 0 && (<>
                   <span style={{ fontSize: 12, color: N.muted }}>From</span>
                   <select value={checkAcctId} onChange={e => setCheckAcctId(e.target.value)} style={{ ...inputSt, width: 150 }}>{banks.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select>
                 </>)}
@@ -3554,9 +3587,13 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   <button onClick={() => { setCheckOffX(0); setCheckOffY(0); }} style={btnPaper(N.muted)}>Reset</button>
                 </div>
                 <span style={{ marginLeft: "auto", fontSize: 11, color: N.muted, maxWidth: 190 }}>Pre-printed stock, check on top. Nudge to line up, then print.</span>
-                <button onClick={() => confirmCheck(false)} style={btnPaper(N.muted)} title="Record it as paid without printing — e.g. someone already hand-wrote the check">Just mark paid — no print</button>
-                <button onClick={() => confirmCheck(true)} style={{ ...btnBlue, background: N.blue }}>Print{checks.length > 1 ? ` ${checks.length}` : ""} &amp; mark paid</button>
-                <button onClick={() => setCheckFor(null)} style={btnPaper(N.muted)}>Cancel</button>
+                {viewOnly ? (
+                  <button onClick={() => window.print()} style={{ ...btnBlue, background: N.blue }}>Print a copy</button>
+                ) : (<>
+                  <button onClick={() => confirmCheck(false)} style={btnPaper(N.muted)} title="Record it as paid without printing — e.g. someone already hand-wrote the check">Just mark paid — no print</button>
+                  <button onClick={() => confirmCheck(true)} style={{ ...btnBlue, background: N.blue }}>Print{checks.length > 1 ? ` ${checks.length}` : ""} &amp; mark paid</button>
+                </>)}
+                <button onClick={() => setCheckFor(null)} style={btnPaper(N.muted)}>{viewOnly ? "Close" : "Cancel"}</button>
               </div>
 
               {checks.map((ck, i) => <CheckSheet key={i} ck={ck} num={start + i} />)}
