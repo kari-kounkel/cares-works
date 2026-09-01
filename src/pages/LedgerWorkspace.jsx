@@ -344,6 +344,13 @@ function buildLiveEntity(org, accounts, categories, entries, session) {
     accountList: accounts.map(a => ({ id: a.id, name: a.name, type: a.account_type })),
     categories: categories.map(c => c.name),
     changelog: [
+      { date: "Aug 31, 2026", items: [
+        "Open any customer or vendor and tap “See past orders” to look back at everything they've bought or you've paid — handy when someone reorders.",
+        "Sales tax now matches your state return: the six Minnesota jurisdiction lines, the exempt-vs-taxable split, and a filing tracker for each quarter.",
+        "Customers can be marked tax-exempt with their ST3 certificate kept on file.",
+        "Every check and payment now shows in the notebook — however it was entered. Printed checks show the recipient's name and address.",
+        "Whenever you see this “Updated” note change, do a quick refresh (Ctrl-Shift-R) so you're on the newest version.",
+      ] },
       { date: "Aug 4, 2026", items: ["You can now write a line straight into the notebook — a check, cash, or a deposit the bank feed won't catch. Look for “+ Add a line.”", "The notebook now shows money in as well as money out."] },
       { date: "Aug 2, 2026", items: ["Your ProGraphics workspace is live on your real ledger data.", "Balances, notebook, and categories all load from your account."] },
     ],
@@ -2371,6 +2378,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   // Reprint / edit a check already written for a bill: pull the notebook line it created
   // (so we don't double it), set the bill back to unpaid, and reopen the check to redo.
   async function reprintCheck(bill) {
+    if (!window.confirm(`Redo the check to ${bill.vendor_name} for ${money((bill.amount_cents || 0) / 100)}?\n\nThis reopens the bill and removes the old check line from the notebook so you can print a fresh one. Only do this if you're actually re-writing the check — if you just wanted to look at it, click Cancel.`)) return;
     if (live && liveOrgId) {
       const { data } = await supabase.from("ledger_entries")
         .select("id")
