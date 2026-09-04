@@ -24,7 +24,7 @@ export default function MfaSetup({ session }) {
   const startEnroll = async () => {
     setBusy(true); setError(null);
     await cleanupUnverifiedFactors();
-    const { data, error: err } = await supabase.auth.mfa.enroll({ factorType: "totp", friendlyName: "Authenticator app" });
+    const { data, error: err } = await supabase.auth.mfa.enroll({ factorType: "totp", friendlyName: "Authenticator app", issuer: "CARES Works" });
     if (err) { setError(err.message); setBusy(false); return; }
     setEnroll({ factorId: data.id, qr: data.totp.qr_code, secret: data.totp.secret });
     setBusy(false);
