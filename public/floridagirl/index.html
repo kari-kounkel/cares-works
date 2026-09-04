@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Admin &amp; Financial Support — Proposal for Andrea Meythaler</title>
+<meta name="description" content="A proposal from CARES Consulting Inc for Andrea Meythaler: find out where things actually stand, then put the right kind of help behind it." />
+<style>
+  :root{
+    --ink:#1b2730; --slate:#52616b; --line:#e4e9ec; --paper:#ffffff;
+    --bg:#f4f1ea; --teal:#46587a; --teal-d:#2f3e59; --gold:#e8772e;
+    --soft:#eef1f6; --shadow:0 1px 3px rgba(27,39,48,.06),0 8px 28px rgba(27,39,48,.07);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:880px;margin:0 auto;padding:0 20px}
+  a{color:var(--teal-d)}
+  .eyebrow{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);font-weight:700}
+  h1{font-size:34px;line-height:1.2;margin:.3em 0 .35em;letter-spacing:-.01em}
+  h2{font-size:25px;line-height:1.25;margin:0 0 .5em;letter-spacing:-.01em}
+  h3{font-size:18px;margin:0 0 .35em}
+  p{margin:0 0 1em}
+  .muted{color:var(--slate)}
+
+  header{background:linear-gradient(160deg,#2f3e59,#46587a);color:#fff;padding:54px 0 46px}
+  .brandrow{display:flex;align-items:center;gap:12px;margin-bottom:26px}
+  .mark{width:54px;height:54px;border-radius:12px;background:#fff;padding:5px;
+    display:flex;align-items:center;justify-content:center;flex:0 0 auto;overflow:hidden}
+  .mark img{width:100%;height:100%;object-fit:contain;display:block}
+  .brandrow b{font-size:15px;letter-spacing:.02em}
+  .brandrow span{display:block;font-size:12.5px;color:#c4cee0;font-weight:400}
+  header .eyebrow{color:#f0b58a}
+  header h1{color:#fff}
+  header .lede{font-size:18px;color:#e9edf5;max-width:660px;margin-bottom:0}
+  .facts{display:flex;flex-wrap:wrap;gap:10px 26px;margin-top:24px;font-size:14px;color:#d7ddec}
+  .facts b{color:#fff;font-weight:600}
+
+  section{padding:42px 0;border-bottom:1px solid var(--line)}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:16px;
+    padding:26px;box-shadow:var(--shadow)}
+  .note{background:var(--soft);border-left:4px solid var(--teal);border-radius:0 12px 12px 0;
+    padding:20px 22px;margin:0 0 1em}
+  .sidebar{background:#fbf3ee;border:1px dashed #e0b795;border-radius:14px;padding:18px 20px;margin:22px 0}
+  .sidebar .tag{font-size:11.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:6px}
+  .sidebar p{margin:0;font-size:15px}
+  .sig{display:flex;align-items:center;gap:10px;margin-top:6px;font-style:italic;color:var(--slate)}
+  .grid{display:grid;gap:16px}
+  .grid.two{grid-template-columns:1fr 1fr}
+  .grid.three{grid-template-columns:1fr 1fr 1fr}
+  .front{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:var(--shadow)}
+  .front .ico{font-size:24px}
+  .front .tag{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--teal-d)}
+  ul.clean{list-style:none;padding:0;margin:.4em 0 0}
+  ul.clean li{padding-left:24px;position:relative;margin-bottom:.5em}
+  ul.clean li::before{content:"";position:absolute;left:0;top:.55em;width:8px;height:8px;
+    border-radius:50%;background:var(--gold)}
+  ul.clean.tealdot li::before{background:var(--teal)}
+  .cmp{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .cmp .col{border-radius:14px;padding:20px}
+  .cmp .now{background:#fbf3ee;border:1px solid #f0ddcf}
+  .cmp .plan{background:#eef1f6;border:1px solid #d9e0ee}
+  .cmp h3{font-size:15px;text-transform:uppercase;letter-spacing:.06em}
+  .cmp .now h3{color:#a4631f}
+  .cmp .plan h3{color:var(--teal-d)}
+
+  table{width:100%;border-collapse:collapse;font-size:15px}
+  th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--slate)}
+
+  .btn{display:inline-block;text-align:center;background:var(--teal-d);color:#fff;text-decoration:none;
+    font-weight:600;padding:11px 16px;border-radius:10px;border:none;cursor:pointer;font-size:15px;
+    font-family:inherit}
+  .btn.ghost{background:#fff;color:var(--teal-d);border:1px solid var(--teal)}
+  .btn:hover{background:var(--teal)}
+  .btn.ghost:hover{background:var(--soft);color:var(--teal-d)}
+
+  .steps{counter-reset:s;display:grid;gap:14px;margin-top:6px}
+  .step{display:flex;gap:14px;align-items:flex-start}
+  .step .n{counter-increment:s;flex:0 0 auto;width:30px;height:30px;border-radius:50%;
+    background:var(--teal);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .step .n::before{content:counter(s)}
+
+  /* --- the 13-question read --- */
+  .band{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:var(--shadow);margin-bottom:16px}
+  .band > .bandhead{display:flex;align-items:baseline;gap:10px;margin-bottom:4px}
+  .band .bandnum{font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--gold)}
+  .band h3{margin:0}
+  .band .bandsub{font-size:14px;color:var(--slate);margin:2px 0 14px}
+  .q{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+  .q:first-of-type{border-top:none}
+  .q .qtext{flex:1;font-size:15.5px}
+  .q .qnum{flex:0 0 auto;width:22px;color:var(--slate);font-size:13px;font-weight:700;padding-top:2px}
+  .toggles{flex:0 0 auto;display:flex;gap:6px}
+  .toggles button{font-family:inherit;font-size:12.5px;font-weight:700;letter-spacing:.03em;
+    border:1px solid var(--line);background:#fff;color:var(--slate);border-radius:999px;
+    padding:5px 12px;cursor:pointer;transition:all .12s}
+  .toggles button:hover{border-color:var(--teal)}
+  .toggles button[data-on="yes"][aria-pressed="true"]{background:#eef1f6;border-color:var(--teal);color:var(--teal-d)}
+  .toggles button[data-on="sorta"][aria-pressed="true"]{background:#fdf6e6;border-color:#d9a521;color:#8a6512}
+  .toggles button[data-on="no"][aria-pressed="true"]{background:#fbf3ee;border-color:var(--gold);color:#a4631f}
+
+  #readout{background:linear-gradient(160deg,#2f3e59,#46587a);color:#fff;border-radius:18px;padding:26px;margin-top:8px}
+  #readout .eyebrow{color:#f0b58a}
+  #readout h3{color:#fff;font-size:22px;margin:.2em 0 .4em}
+  #readout p{color:#e9edf5;margin:0 0 .8em}
+  #readout .bars{display:grid;gap:10px;margin:18px 0 6px}
+  #readout .bar{display:grid;grid-template-columns:150px 1fr 46px;gap:12px;align-items:center;font-size:14px}
+  #readout .bar .lbl{color:#d7ddec}
+  #readout .bar .track{display:block;background:rgba(255,255,255,.16);border-radius:999px;height:12px;overflow:hidden}
+  #readout .bar .fill{display:block;background:var(--gold);height:100%;width:0;border-radius:999px;transition:width .35s ease}
+  #readout .bar .val{text-align:right;color:#fff;font-weight:700}
+  #readout .verdict{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);
+    border-radius:12px;padding:16px 18px;margin-top:16px}
+  #readout .verdict b{color:#fff}
+  .readctl{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+
+  footer{background:linear-gradient(160deg,#2f3e59,#46587a);color:#e9edf5;padding:38px 0;text-align:center;border:none}
+  footer .vals{color:var(--gold);letter-spacing:.06em;font-size:13px;margin-top:6px}
+  footer b{color:#fff}
+  .disclaim{font-size:12.5px;color:#bcc6da;margin-top:14px}
+
+  @media(max-width:680px){
+    .grid.two,.grid.three,.cmp{grid-template-columns:1fr}
+    h1{font-size:28px}
+    .q{flex-wrap:wrap}
+    .toggles{width:100%;padding-left:34px}
+    #readout .bar{grid-template-columns:1fr;gap:4px}
+    #readout .bar .val{text-align:left}
+  }
+  @media print{
+    body{background:#fff}
+    header,footer{background:#2f3e59 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .btn,.readctl,.toggles{display:none !important}
+    section{page-break-inside:avoid;border-bottom:1px solid #ddd}
+    #readout{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="brandrow">
+      <div class="mark"><img src="cares-logo.png" alt="CARES Consulting Inc" /></div>
+      <div><b>CARES Consulting Inc</b><span>Clarity · Accountability · Repair · Expectations · Support</span></div>
+    </div>
+    <div class="eyebrow">Proposal · Prepared by CARES Consulting Inc</div>
+    <h1>First we find out. Then we fix it.</h1>
+    <p class="lede">You need admin help. That much is clear. What isn't clear yet — to you or to me — is whether what you actually need is a pair of hands, a second set of eyes, or somebody sitting in the chair where the money decisions get made. So step one isn't a contract. Step one is a look.</p>
+    <div class="facts">
+      <div>Prepared for <b>Andrea Meythaler</b></div>
+      <div>By <b>Kari Hoglund Kounkel</b></div>
+      <div>Prepared <b id="prep-date">—</b></div>
+      <div>Valid <b>30 days</b></div>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Let's be honest first</div>
+    <h2>I'm not going to pretend I already know your business.</h2>
+    <div class="note">
+      <p>Most proposals you'll ever get open by telling you what's wrong with you. That's a neat trick, considering the person writing it has never seen your bank feed, your filing situation, or the drawer where the mail goes to think about its life.</p>
+      <p>I'd rather tell you the truth: I don't know where you're at yet. I know you're carrying more administrative weight than you want to carry, and I know you didn't start this business because you love filing. Everything past that is a guess — and guesses are expensive when they're priced by the month.</p>
+      <p>So here's how I work. We look first, together, in one honest sitting. Then I write down what I actually found. Then, and only then, do we talk about what ongoing help looks like — and what it costs. You'll know exactly what you're buying, because we'll both have seen it.</p>
+      <div class="sig">— Kari Hoglund Kounkel, CARES Consulting Inc</div>
+    </div>
+    <div class="sidebar">
+      <span class="tag">Sidebar note</span>
+      <p>There is a particular kind of tired that comes from doing work you're good at while a second, invisible job piles up behind you. That second job has no title, no hours, and no end — and it will happily eat every evening you own. Naming it out loud is not a confession. It's a diagnosis.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Step one · The Look</div>
+    <h2>One sitting. Thirteen questions. A real answer.</h2>
+    <p class="muted">Below is the read I use to find out where a business actually stands. It takes about fifteen minutes. Answer straight — nobody's grading you, and "sorta" is a legitimate answer that tells me a great deal. When you're done, scroll to the bottom of it and it will tell you what it sees.</p>
+
+    <div class="band" data-band="A">
+      <div class="bandhead"><span class="bandnum">Band A</span><h3>Is it getting done at all?</h3></div>
+      <p class="bandsub">The floor. Whether the necessary paperwork of running a business is happening — by anyone, in any fashion.</p>
+      <div class="q"><div class="qnum">1</div><div class="qtext">Mail, paperwork, and documents have a home — and that home is not a pile.</div><div class="toggles" data-q="1"></div></div>
+      <div class="q"><div class="qnum">2</div><div class="qtext">Bills get paid on time, without anyone having to go hunting for them first.</div><div class="toggles" data-q="2"></div></div>
+      <div class="q"><div class="qnum">3</div><div class="qtext">Invoices go out on a schedule — not whenever somebody happens to remember.</div><div class="toggles" data-q="3"></div></div>
+      <div class="q"><div class="qnum">4</div><div class="qtext">Payroll and contractor payments run without a scramble.</div><div class="toggles" data-q="4"></div></div>
+      <div class="q"><div class="qnum">5</div><div class="qtext">I could tell you right now, without looking, roughly what's in the account.</div><div class="toggles" data-q="5"></div></div>
+    </div>
+
+    <div class="band" data-band="B">
+      <div class="bandhead"><span class="bandnum">Band B</span><h3>Is anybody checking it?</h3></div>
+      <p class="bandsub">The middle. Whether the work that's getting done is also getting verified — and whether it would survive you being unavailable.</p>
+      <div class="q"><div class="qnum">6</div><div class="qtext">The books get reconciled every month, and a human being signs off on it.</div><div class="toggles" data-q="6"></div></div>
+      <div class="q"><div class="qnum">7</div><div class="qtext">I know who owes me money and how long they've owed it.</div><div class="toggles" data-q="7"></div></div>
+      <div class="q"><div class="qnum">8</div><div class="qtext">Contracts, licenses, insurance, and renewals are tracked somewhere other than my memory.</div><div class="toggles" data-q="8"></div></div>
+      <div class="q"><div class="qnum">9</div><div class="qtext">If I disappeared for two weeks, somebody else could find everything and keep it moving.</div><div class="toggles" data-q="9"></div></div>
+    </div>
+
+    <div class="band" data-band="C">
+      <div class="bandhead"><span class="bandnum">Band C</span><h3>Is anybody steering?</h3></div>
+      <p class="bandsub">The top. Whether the numbers are being used to make decisions — or just recorded after the decisions get made.</p>
+      <div class="q"><div class="qnum">10</div><div class="qtext">I know which parts of this business actually make money, and which ones only look like they do.</div><div class="toggles" data-q="10"></div></div>
+      <div class="q"><div class="qnum">11</div><div class="qtext">I have a budget I check against — not just a bank balance I react to.</div><div class="toggles" data-q="11"></div></div>
+      <div class="q"><div class="qnum">12</div><div class="qtext">I can see thirteen weeks out on cash, not just today.</div><div class="toggles" data-q="12"></div></div>
+      <div class="q"><div class="qnum">13</div><div class="qtext">Big calls — hiring, pricing, expanding, taking on debt — get run through the numbers before they get made.</div><div class="toggles" data-q="13"></div></div>
+    </div>
+
+    <div id="readout" aria-live="polite">
+      <div class="eyebrow">Your read</div>
+      <h3 id="ro-title">Answer the thirteen above and your read appears here.</h3>
+      <p id="ro-lede" class="muted" style="color:#d7ddec">Yes counts as a full point, sorta as a half, no as zero. The band that scores lowest is the band we start in — that's the whole method.</p>
+      <div class="bars">
+        <div class="bar"><span class="lbl">A · Getting done</span><span class="track"><span class="fill" id="fill-A"></span></span><span class="val" id="val-A">—</span></div>
+        <div class="bar"><span class="lbl">B · Getting checked</span><span class="track"><span class="fill" id="fill-B"></span></span><span class="val" id="val-B">—</span></div>
+        <div class="bar"><span class="lbl">C · Getting steered</span><span class="track"><span class="fill" id="fill-C"></span></span><span class="val" id="val-C">—</span></div>
+      </div>
+      <div class="verdict" id="ro-verdict" style="display:none"></div>
+      <div class="readctl">
+        <button class="btn ghost" id="ro-copy" type="button">Copy this read →</button>
+        <button class="btn ghost" id="ro-print" type="button">Print / save as PDF →</button>
+        <button class="btn ghost" id="ro-reset" type="button">Start over</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Why this matters before we price anything</div>
+    <h2>Admin help and CFO help are not the same animal</h2>
+    <p class="muted">People use "I need help with the business side" to mean four completely different jobs. Here's the honest ladder, bottom to top. Most businesses need one rung more than they think, and one rung less than they fear.</p>
+    <table style="margin-top:10px">
+      <thead><tr><th style="width:24%">The rung</th><th style="width:38%">What it actually does</th><th>You need it when…</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>Administrative</b></td>
+          <td>Mail, filing, data entry, invoicing, chasing paperwork, keeping the calendar and the renewals honest.</td>
+          <td>Things are falling through the cracks because nobody has the hours.</td>
+        </tr>
+        <tr>
+          <td><b>Bookkeeping</b></td>
+          <td>Coding transactions, reconciling accounts, keeping AR and AP current, closing the month.</td>
+          <td>The entries exist but nobody trusts the reports that come out of them.</td>
+        </tr>
+        <tr>
+          <td><b>Controller</b></td>
+          <td>Reviewing the bookkeeper's work, tightening the close, building the process, catching what's wrong before it ships.</td>
+          <td>The work gets done, but nobody is checking it — and you're the backstop by default.</td>
+        </tr>
+        <tr>
+          <td><b>Fractional CFO</b></td>
+          <td>Cash forecasting, budgets and variance, pricing and margin analysis, profitability by line, lender and board packages, sitting in on the big decisions.</td>
+          <td>The books are fine. You're still flying by feel on the calls that actually matter.</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="sidebar">
+      <span class="tag">Sidebar note</span>
+      <p>Hiring a CFO to fix a filing problem is like hiring an architect to find your keys. Both are real professions. Only one of them is going to help you get out the door this morning. The read above exists so we don't make that mistake with your money.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Straight from the top of the ladder</div>
+    <h2>If it turns out you need the CFO seat</h2>
+    <p class="muted">You said the ongoing help might be more CFO than not. That may well be right — but it's worth knowing exactly what that word buys, and what it does not. I'd rather draw the line now than have you find it later.</p>
+    <div class="cmp" style="margin-top:18px">
+      <div class="col plan">
+        <h3>What a fractional CFO does</h3>
+        <ul class="clean tealdot">
+          <li>Builds and maintains 13-week and annual cash forecasts</li>
+          <li>Creates and manages the budget — and explains the variances</li>
+          <li>Models the big decisions: pricing, hiring, expansion, debt</li>
+          <li>Analyzes profitability by product, service line, or department</li>
+          <li>Designs the dashboard so you see the few numbers that matter</li>
+          <li>Prepares packages for lenders, investors, or a board</li>
+          <li>Names the financial risks out loud and proposes the fix</li>
+          <li>Translates all of it into plain language you can act on</li>
+        </ul>
+      </div>
+      <div class="col now">
+        <h3>What it does <i>not</i> do</h3>
+        <ul class="clean">
+          <li>Day-to-day bookkeeping and transaction entry</li>
+          <li>AP and AR data entry</li>
+          <li>Monthly bank reconciliations</li>
+          <li>Payroll processing</li>
+          <li>Business tax return preparation</li>
+          <li>Running routine reports out of your accounting software</li>
+          <li>Chasing overdue invoices and collections follow-up</li>
+        </ul>
+        <p class="muted" style="font-size:14px;margin:14px 0 0"><b>Which is exactly why we look first.</b> If that right-hand column is where your pain actually lives, a CFO retainer would be an expensive way to stay frustrated. CARES covers both columns — but they get staffed differently, and they get priced differently.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">How this runs</div>
+    <h2>Three phases, and you can stop after any of them</h2>
+    <div class="grid three" style="margin-top:18px">
+      <div class="front">
+        <div class="ico">🔍</div>
+        <div class="tag">Phase 1</div>
+        <h3>The Look</h3>
+        <p class="muted">A fixed-fee, fixed-scope diagnostic. No retainer, no commitment, no meter running.</p>
+        <ul class="clean">
+          <li>We walk the thirteen questions together and I ask the follow-ups</li>
+          <li>I go through what exists — books, systems, filing, who does what</li>
+          <li>I find what's missing, what's duplicated, and what's quietly costing you</li>
+          <li><b>You get a written Findings &amp; Plan</b> — what I found, what to fix first, what it takes</li>
+          <li>The document is yours to keep whether or not you hire me for anything else</li>
+        </ul>
+      </div>
+      <div class="front">
+        <div class="ico">🧹</div>
+        <div class="tag">Phase 2</div>
+        <h3>The Catch-Up</h3>
+        <p class="muted">Only if the Look finds a backlog. Scoped and priced off real findings, not a guess.</p>
+        <ul class="clean">
+          <li>Clean up whatever's behind — books, filing, AR, unopened obligations</li>
+          <li>Put the systems in that keep it from happening again</li>
+          <li>Write down who does what, so the process outlives everyone's memory</li>
+          <li>A defined project with an end date — not a subscription</li>
+        </ul>
+      </div>
+      <div class="front">
+        <div class="ico">🧭</div>
+        <div class="tag">Phase 3</div>
+        <h3>Ongoing Support</h3>
+        <p class="muted">The monthly seat. Weighted toward admin, toward CFO, or both — based on what we found.</p>
+        <ul class="clean">
+          <li>A standing monthly rhythm, so nothing depends on you remembering</li>
+          <li>The admin lane, the CFO lane, or a blend — the read decides the mix</li>
+          <li>A monthly sit-down where the numbers get explained, not just delivered</li>
+          <li>Reviewed at 90 days and adjusted — the mix should change as you get healthier</li>
+        </ul>
+      </div>
+    </div>
+    <div class="note" style="margin-top:22px">
+      <p style="margin:0"><b>The honest part:</b> most people in your position want to skip to Phase 3 and just start paying someone. I understand the impulse — it feels like relief. But a monthly retainer set before anybody looked is how businesses end up paying strategist rates for filing work, or filing rates for a problem that needed a strategist. Fifteen minutes of honesty now saves you a year of the wrong help.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">What it costs</div>
+    <h2>The Look is a flat fee. Everything after it gets priced off what we find.</h2>
+    <div class="card">
+      <p><b>Phase 1 — The Look:</b> one flat fee, agreed in writing before we start, with no hourly meter behind it. You know the number before I begin, and it does not move.</p>
+      <p><b>Phases 2 and 3</b> get quoted after the Look, in the written Findings &amp; Plan — with the scope spelled out beside the number, so you can see precisely what you're buying and say no to any part of it.</p>
+      <p style="margin-bottom:0">I'm not putting a monthly figure on this page, and I want to be plain about why: I'd be making it up. Any consultant who quotes you a retainer before seeing your books is quoting their own average customer, not you. You deserve a number that was calculated, not one that was assumed.</p>
+      <ul class="clean" style="margin-top:16px">
+        <li><b>No long-term lock-in.</b> Ongoing support is month to month.</li>
+        <li><b>No surprise invoices.</b> Anything outside the agreed scope gets quoted before it gets done.</li>
+        <li><b>Findings are yours.</b> Hire me or don't — the written plan goes home with you either way.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">What changes</div>
+    <h2>Where this gets you</h2>
+    <div class="cmp" style="margin-top:18px">
+      <div class="col now">
+        <h3>Right now</h3>
+        <ul class="clean">
+          <li>Administrative work stacking up behind the actual work</li>
+          <li>No clear read on what's handled and what's slipping</li>
+          <li>Decisions made on instinct because the numbers aren't ready in time</li>
+          <li>Not sure whether you need an assistant, a bookkeeper, or a CFO</li>
+          <li>Everything held together by you remembering it</li>
+        </ul>
+      </div>
+      <div class="col plan">
+        <h3>After</h3>
+        <ul class="clean tealdot">
+          <li>A written, honest picture of where the business actually stands</li>
+          <li>The right kind of help on the right problems, in the right order</li>
+          <li>A monthly rhythm that runs whether or not you're thinking about it</li>
+          <li>Numbers that arrive before the decision instead of after it</li>
+          <li>A business that could survive you taking a week off</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">So — what do you think?</div>
+    <h2>Here's the path from here</h2>
+    <div class="steps">
+      <div class="step"><div class="n"></div><div><b>Walk the thirteen questions.</b> Fifteen minutes, out loud or on your own. That alone will tell you something.</div></div>
+      <div class="step"><div class="n"></div><div><b>Say yes to the Look.</b> Flat fee, fixed scope, agreed in writing before anything starts.</div></div>
+      <div class="step"><div class="n"></div><div><b>Show me what exists.</b> Whatever shape it's in. I have genuinely seen worse, and I don't flinch.</div></div>
+      <div class="step"><div class="n"></div><div><b>Get the Findings &amp; Plan.</b> In writing, in plain language, with the ongoing options priced beside their scope.</div></div>
+      <div class="step"><div class="n"></div><div><b>Choose your rung.</b> Admin, bookkeeping, controller, CFO — or a blend. Month to month, reviewed at 90 days.</div></div>
+    </div>
+
+    <div style="margin-top:26px;display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+      <a class="btn" style="font-size:16px;padding:13px 22px" href="mailto:kari@caresmn.com?subject=Andrea%20Meythaler%20%E2%80%94%20let%27s%20do%20the%20Look&body=Hi%20Kari%20%E2%80%94%20I%27m%20in%20for%20the%20Look.%20Here%27s%20what%20I%20think%20is%20going%20on%3A%0A%0A">Let's do the Look →</a>
+      <a class="btn ghost" href="tel:+16513341300">Questions first? Call or text 651.334.1300</a>
+    </div>
+
+    <div style="margin-top:34px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+      <img src="kari-signature.png" alt="Kari Hoglund Kounkel" style="height:54px" onerror="this.style.display='none'"/>
+      <div>
+        <div style="font-weight:700">Kari Hoglund Kounkel</div>
+        <div class="muted" style="font-size:13.5px">CARES Consulting Inc · caresmn.com · kari@caresmn.com</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div style="display:inline-block;background:#fff;padding:12px 16px;border-radius:14px;margin-bottom:12px">
+      <img src="cares-logo.png" alt="CARES Consulting Inc" style="height:64px;display:block" onerror="this.style.display='none'"/>
+    </div>
+    <div><b>CARES Consulting Inc</b></div>
+    <div class="vals">Clarity · Accountability · Repair · Expectations · Support</div>
+    <div class="muted" style="margin-top:8px;color:#c4cee0">Kari Hoglund Kounkel · caresmn.com</div>
+    <div class="disclaim">This proposal is informational and is not legal, tax, or investment advice. Fractional CFO services are advisory; CARES Consulting Inc does not perform audits or issue attest opinions. Valid for 30 days from presentation.</div>
+    <div class="disclaim" style="margin-top:12px;color:#a9b3c7">This proposal is the proprietary intellectual property of CARES Consulting, Inc. &amp; Kari Hoglund Kounkel. © 2025–2026. All rights reserved. Unauthorized use, duplication, hosting, or distribution is strictly prohibited.</div>
+  </div>
+</footer>
+
+<!-- Ask Kari assistant — same embed used on the other proposal pages -->
+<script src="https://chat.karikounkel.com/widget.js" defer></script>
+
+<script>
+(function(){
+  "use strict";
+
+  // Prepared-on date, so the page never looks stale-dated.
+  try {
+    document.getElementById("prep-date").textContent =
+      new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"});
+  } catch(e){}
+
+  var BANDS = { A:[1,2,3,4,5], B:[6,7,8,9], C:[10,11,12,13] };
+  var LABELS = { A:"getting done", B:"getting checked", C:"getting steered" };
+  var SCORE  = { yes:1, sorta:0.5, no:0 };
+  var answers = {};
+
+  // Build the yes/sorta/no toggles.
+  var OPTS = [["yes","Yes"],["sorta","Sorta"],["no","No"]];
+  Array.prototype.forEach.call(document.querySelectorAll(".toggles"), function(box){
+    var q = box.getAttribute("data-q");
+    OPTS.forEach(function(o){
+      var b = document.createElement("button");
+      b.type = "button";
+      b.setAttribute("data-on", o[0]);
+      b.setAttribute("aria-pressed", "false");
+      b.setAttribute("aria-label", o[1] + " — question " + q);
+      b.textContent = o[1];
+      b.addEventListener("click", function(){
+        answers[q] = o[0];
+        Array.prototype.forEach.call(box.querySelectorAll("button"), function(sib){
+          sib.setAttribute("aria-pressed", sib === b ? "true" : "false");
+        });
+        render();
+      });
+      box.appendChild(b);
+    });
+  });
+
+  function bandScore(key){
+    var qs = BANDS[key], got = 0, answered = 0;
+    qs.forEach(function(n){
+      var a = answers[String(n)];
+      if (a !== undefined) { got += SCORE[a]; answered++; }
+    });
+    return { got: got, of: qs.length, answered: answered, pct: got / qs.length };
+  }
+
+  function verdictFor(a, b, c){
+    // Lowest band wins the starting position; ties break downward (fix the floor first).
+    var lowest = "A", low = a.pct;
+    if (b.pct < low - 0.001) { lowest = "B"; low = b.pct; }
+    if (c.pct < low - 0.001) { lowest = "C"; low = c.pct; }
+
+    if (a.pct >= 0.85 && b.pct >= 0.85 && c.pct >= 0.85) {
+      return { h: "You are in better shape than you think.",
+        p: "All three bands came back strong. What you need isn't a rescue — it's a second set of eyes and somebody to hand the pieces you shouldn't personally be holding. That's a light ongoing seat, and the Look will size it honestly rather than upselling you into a retainer you don't need.",
+        tag: "Light touch · confirm, don't rebuild" };
+    }
+    if (lowest === "A") {
+      return { h: "You need hands before you need a strategist.",
+        p: "Band A is the floor, and the floor is where your points went missing. Forecasts and margin analysis are real things worth having — and they are worth nothing built on paperwork that isn't happening yet. We start with hands, systems, and a rhythm, and we get the CFO conversation the moment the floor holds. That order is not a demotion. It's the only order that works.",
+        tag: "Start administrative · CFO comes second, on purpose" };
+    }
+    if (lowest === "B") {
+      return { h: "The work gets done. Nobody is checking it.",
+        p: "That's a controller-shaped gap, and it's the one people misdiagnose most often — because from the inside it feels like a bookkeeping problem, and hiring another set of hands doesn't touch it. You don't need more entries; you need review, a real monthly close, and a process that doesn't quietly depend on you being the backstop. That's the middle rung, and it's usually the highest-value dollar in this whole ladder.",
+        tag: "Start controller · review and close" };
+    }
+    return { h: "Your operation runs. Nobody is steering it.",
+      p: "Bands A and B held; Band C is where it fell off. That is the actual definition of the CFO gap — the record-keeping works fine, and the numbers still aren't shaping the decisions. Cash forecasting, budget versus actual, profitability by line, and a seat at the table when the big calls get made. Your instinct that this is 'more CFO than not' looks correct, and now we have something on paper that says so.",
+      tag: "Start CFO · the read backs your hunch" };
+  }
+
+  function render(){
+    var total = Object.keys(answers).length;
+    var a = bandScore("A"), b = bandScore("B"), c = bandScore("C");
+
+    [["A",a],["B",b],["C",c]].forEach(function(pair){
+      var k = pair[0], s = pair[1];
+      document.getElementById("fill-" + k).style.width = (s.answered ? Math.round(s.pct*100) : 0) + "%";
+      document.getElementById("val-" + k).textContent = s.answered
+        ? (String(s.got).replace(/\.0$/,"")) + "/" + s.of : "—";
+    });
+
+    var title = document.getElementById("ro-title");
+    var lede  = document.getElementById("ro-lede");
+    var vbox  = document.getElementById("ro-verdict");
+
+    if (total < 13) {
+      title.textContent = total === 0
+        ? "Answer the thirteen above and your read appears here."
+        : "That's " + total + " of 13. Keep going — the read sharpens as you finish.";
+      lede.textContent = "Yes counts as a full point, sorta as a half, no as zero. The band that scores lowest is the band we start in — that's the whole method.";
+      vbox.style.display = "none";
+      return;
+    }
+
+    var v = verdictFor(a, b, c);
+    title.textContent = v.h;
+    lede.textContent = "Thirteen for thirteen. Here's what the read sees.";
+    vbox.style.display = "block";
+    vbox.innerHTML = "<div class='eyebrow' style='color:#f0b58a'>" + v.tag + "</div><p style='margin:.6em 0 0'>" + v.p + "</p>";
+  }
+
+  // Plain-text version of the read — for pasting into an email or a note.
+  function readText(){
+    var a = bandScore("A"), b = bandScore("B"), c = bandScore("C");
+    var lines = [
+      "CARES Consulting — the 13-question read",
+      "Prepared for Andrea Meythaler · " + new Date().toLocaleDateString("en-US"),
+      "",
+      "Band A (" + LABELS.A + "): " + String(a.got).replace(/\.0$/,"") + " of " + a.of,
+      "Band B (" + LABELS.B + "): " + String(b.got).replace(/\.0$/,"") + " of " + b.of,
+      "Band C (" + LABELS.C + "): " + String(c.got).replace(/\.0$/,"") + " of " + c.of,
+      ""
+    ];
+    for (var n = 1; n <= 13; n++) {
+      var el = document.querySelector('.toggles[data-q="' + n + '"]');
+      var qtext = el ? el.parentNode.querySelector(".qtext").textContent : "";
+      lines.push(n + ". [" + (answers[String(n)] || "—") + "] " + qtext);
+    }
+    if (Object.keys(answers).length === 13) {
+      var v = verdictFor(a, b, c);
+      lines.push("", "READ: " + v.h, v.tag, "", v.p);
+    } else {
+      lines.push("", "(Incomplete — " + Object.keys(answers).length + " of 13 answered.)");
+    }
+    return lines.join("\n");
+  }
+
+  document.getElementById("ro-copy").addEventListener("click", function(){
+    var btn = this, txt = readText();
+    function done(ok){
+      btn.textContent = ok ? "Copied ✓" : "Press Ctrl+C to copy";
+      setTimeout(function(){ btn.textContent = "Copy this read →"; }, 2200);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).then(function(){ done(true); }, function(){ fallback(txt, done); });
+    } else { fallback(txt, done); }
+  });
+
+  function fallback(txt, done){
+    var ta = document.createElement("textarea");
+    ta.value = txt;
+    ta.style.cssText = "position:fixed;top:0;left:-9999px";
+    document.body.appendChild(ta); ta.select();
+    var ok = false;
+    try { ok = document.execCommand("copy"); } catch(e){}
+    document.body.removeChild(ta);
+    done(ok);
+  }
+
+  document.getElementById("ro-print").addEventListener("click", function(){ window.print(); });
+
+  document.getElementById("ro-reset").addEventListener("click", function(){
+    answers = {};
+    Array.prototype.forEach.call(document.querySelectorAll(".toggles button"), function(b){
+      b.setAttribute("aria-pressed", "false");
+    });
+    render();
+  });
+
+  render();
+})();
+</script>
+
+</body>
+</html>
