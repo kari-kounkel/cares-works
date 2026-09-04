@@ -6,7 +6,7 @@
 // Layout mirrors the NLIC org shell: left nav + big work area, blue-dominant neon.
 // Betty lands on her stenographer Notebook; Dave lands on Invoices.
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, Fragment } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../supabaseClient";
 import { navigate } from "../App";
@@ -345,6 +345,104 @@ function buildLiveEntity(org, accounts, categories, entries, session) {
 // Categories classed "transfer" are excluded outright: money moved between the
 // org's own accounts is neither revenue nor expense. Booking those as contributions
 // is exactly the error that inflates a nonprofit's public support.
+// ---- The CPA pack: general ledger, trial balance, balance sheet ----------------
+// These books are SINGLE-ENTRY. There are no debit/credit pairs, no liabilities and no
+// equity accounts — only bank accounts, a direction and a category. So what comes out
+// here is the cash-basis form of each report, and it says so on its face rather than
+// letting an accountant assume GAAP.
+//
+// The trial balance still foots, and not by luck: for a pure-cash entity,
+//   closing cash = opening cash + income - expenses
+// so putting closing cash and expenses on the debit side against income and OPENING
+// cash (as equity) on the credit side is an identity. Uncategorised money would break
+// it, so it is carried in its own Uncategorised account instead of being dropped.
+// Transfers between the org's own accounts are excluded from income and expense — they
+// are not either — but they still move cash, so they are shown separately and are why
+// closing cash can differ from opening plus net income.
+export function cashReports(entries, categories, accounts, start, end) {
+  const meta = {};
+  (categories || []).forEach(c => { meta[c.name] = c; });
+  const classOf = name => {
+    const c = meta[name];
+    if (!c) return "uncoded";
+    if (c.func_class === "transfer") return "transfer";
+    return c.kind === "income" ? "income" : "expense";
+  };
+
+  const rows = (entries || []).filter(e => e.entry_date && e.entry_date >= start && e.entry_date <= end);
+  const before = (entries || []).filter(e => e.entry_date && e.entry_date < start);
+  const signed = e => (e.direction === "in" ? 1 : -1) * (e.amount_cents || 0);
+
+  // --- per bank account: opening, movement, closing, and its own lines (the GL) ----
+  const ledger = (accounts || []).map(a => {
+    const mine = rows.filter(e => e.account_id === a.id)
+      .slice().sort((x, y) => (x.entry_date || "").localeCompare(y.entry_date || ""));
+    const opening = (a.opening_balance_cents || 0)
+      + before.filter(e => e.account_id === a.id).reduce((s, e) => s + signed(e), 0);
+    let run = opening;
+    const lines = mine.map(e => { run += signed(e); return { ...e, balanceCents: run }; });
+    return {
+      id: a.id, name: a.name, lastFour: a.last_four,
+      opening, closing: run,
+      inCents: mine.filter(e => e.direction === "in").reduce((s, e) => s + (e.amount_cents || 0), 0),
+      outCents: mine.filter(e => e.direction !== "in").reduce((s, e) => s + (e.amount_cents || 0), 0),
+      lines,
+    };
+  });
+
+  // --- category totals, which are the P&L side of the trial balance ---------------
+  const income = {}, expense = {};
+  let uncodedIn = 0, uncodedOut = 0, transferIn = 0, transferOut = 0;
+  rows.forEach(e => {
+    const k = classOf(e.category);
+    const amt = e.amount_cents || 0;
+    if (k === "income") income[e.category] = (income[e.category] || 0) + (e.direction === "in" ? amt : -amt);
+    else if (k === "expense") expense[e.category] = (expense[e.category] || 0) + (e.direction === "in" ? -amt : amt);
+    else if (k === "transfer") { if (e.direction === "in") transferIn += amt; else transferOut += amt; }
+    else if (e.direction === "in") uncodedIn += amt;
+    else uncodedOut += amt;
+  });
+
+  const sum = o => Object.values(o).reduce((a, b) => a + b, 0);
+  const incomeTotal = sum(income) + uncodedIn;
+  const expenseTotal = sum(expense) + uncodedOut;
+  const openingCash = ledger.reduce((s, a) => s + a.opening, 0);
+  const closingCash = ledger.reduce((s, a) => s + a.closing, 0);
+
+  // --- trial balance ---------------------------------------------------------------
+  const tb = [];
+  ledger.forEach(a => tb.push({ account: a.name, group: "Cash", debit: a.closing, credit: 0 }));
+  Object.keys(expense).sort().forEach(n => tb.push({ account: n, group: "Expense", debit: expense[n], credit: 0 }));
+  if (uncodedOut) tb.push({ account: "Uncategorised expense", group: "Expense", debit: uncodedOut, credit: 0 });
+  Object.keys(income).sort().forEach(n => tb.push({ account: n, group: "Income", debit: 0, credit: income[n] }));
+  if (uncodedIn) tb.push({ account: "Uncategorised income", group: "Income", debit: 0, credit: uncodedIn });
+  tb.push({ account: "Opening equity (cash brought forward)", group: "Equity", debit: 0, credit: openingCash });
+  // Transfers net to zero across the org's own accounts, but a window can cut one in
+  // half — that residue is carried openly rather than silently unbalancing the report.
+  const drift = (closingCash + expenseTotal) - (incomeTotal + openingCash);
+  if (drift !== 0) tb.push({ account: "Transfers between own accounts", group: "Equity", debit: 0, credit: drift });
+
+  const totalDebit = tb.reduce((s, r) => s + r.debit, 0);
+  const totalCredit = tb.reduce((s, r) => s + r.credit, 0);
+
+  return {
+    start, end, ledger, income, expense,
+    uncodedIn, uncodedOut, transferIn, transferOut,
+    incomeTotal, expenseTotal, net: incomeTotal - expenseTotal,
+    openingCash, closingCash,
+    tb, totalDebit, totalCredit, balances: totalDebit === totalCredit,
+    balanceSheet: {
+      assets: ledger.map(a => ({ name: a.name, cents: a.closing })),
+      totalAssets: closingCash,
+      liabilities: [],          // nothing in this system tracks a liability
+      totalLiabilities: 0,
+      openingEquity: openingCash,
+      change: closingCash - openingCash,
+      netAssets: closingCash,
+    },
+  };
+}
+
 // ---- Financials for one set of books -------------------------------------------
 // Flattens summarizeActivities into a plain income statement: revenue by category,
 // expense by category, and the net between them. The functional buckets are kept
@@ -630,6 +728,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [finPeriod, setFinPeriod] = useState("thisfy");
   const [finFrom, setFinFrom] = useState("");
   const [finTo, setFinTo] = useState("");
+  const [finRpt, setFinRpt] = useState({ pl: true, gl: false, tb: false, bs: false });
   const [finBusy, setFinBusy] = useState(false);
   const [finResult, setFinResult] = useState(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -1079,13 +1178,15 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       for (const b of chosen) {
         const org = (orgs || []).find(o => (o.name || "").toLowerCase() === b.name.toLowerCase());
         if (!org) { out.push({ book: b, missing: true }); continue; }
-        const [ent, cat] = await Promise.all([
-          supabase.from("ledger_entries").select("entry_date,direction,amount_cents,category").eq("org_id", org.id),
+        const [ent, cat, acc] = await Promise.all([
+          supabase.from("ledger_entries").select("id,account_id,entry_date,direction,amount_cents,category,description").eq("org_id", org.id),
           supabase.from("ledger_categories").select("name,kind,func_class").eq("org_id", org.id).eq("archived", false),
+          supabase.from("ledger_accounts").select("id,name,last_four,opening_balance_cents").eq("org_id", org.id).eq("archived", false),
         ]);
         out.push({
           book: b, org,
           sum: financialSummary(ent.data || [], cat.data || [], start, end),
+          pack: cashReports(ent.data || [], cat.data || [], acc.data || [], start, end),
         });
       }
       setFinResult({ start, end, books: out });
@@ -4386,6 +4487,23 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             {start && end && <div style={{ fontSize: 11.5, color: N.muted, marginTop: 6 }}>{start} &rarr; {end}</div>}
           </div>
 
+          <div>
+            <span style={lbl}>REPORTS</span>
+            <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
+              {[["pl", "Profit & Loss"], ["gl", "General ledger"], ["tb", "Trial balance"], ["bs", "Balance sheet"]].map(([k, label]) => {
+                const on = !!finRpt[k];
+                return (
+                  <button key={k} onClick={() => setFinRpt(p2 => ({ ...p2, [k]: !p2[k] }))}
+                    style={{ border: "1px solid " + (on ? N.blue : N.rule), background: on ? "#eef6ff" : N.white,
+                      color: on ? N.blueDark : N.muted, fontWeight: on ? 700 : 500, fontSize: 13,
+                      padding: "8px 14px", borderRadius: 9, cursor: "pointer", fontFamily: "'Figtree', sans-serif" }}>
+                    {on ? "\u2713 " : ""}{label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           <div style={{ alignSelf: "flex-end", display: "flex", gap: 8 }}>
             <button onClick={runFinancials} disabled={!anyPicked || finBusy || !start || !end}
               style={{ ...btnBlue, background: (anyPicked && !finBusy && start && end) ? N.blue : N.mutedLite, fontSize: 13, padding: "10px 20px" }}>
@@ -4407,7 +4525,12 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 </div>
                 {missing
                   ? <div style={{ fontSize: 13, color: "#a32f24" }}>No books found under this name yet.</div>
-                  : finStatement(sum, book)}
+                  : <>
+                      {finRpt.pl && finStatement(sum, book)}
+                      {finRpt.gl && finGL(finResult.books.find(x => x.book.key === book.key).pack)}
+                      {finRpt.tb && finTB(finResult.books.find(x => x.book.key === book.key).pack)}
+                      {finRpt.bs && finBS(finResult.books.find(x => x.book.key === book.key).pack)}
+                    </>}
               </div>
             ))}
             {finResult.books.filter(b => b.sum).length > 1 && (() => {
@@ -4478,6 +4601,139 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             {money(sum.uncoded / 100)} uncategorised — not in the totals above.
           </div>
         )}
+      </div>
+    );
+  }
+
+  // The three CPA reports. Each one states its basis, because none of them is GAAP:
+  // these books are single-entry and hold no liabilities, fixed assets or accruals.
+  function finBasis(text) {
+    return (
+      <div style={{ fontSize: 11.5, color: "#8a5a00", background: "#fff7e0", border: "1px solid #f0d89a",
+        borderRadius: 8, padding: "7px 11px", margin: "10px 0" }}>{text}</div>
+    );
+  }
+  function finHead(title, sub) {
+    return (
+      <div style={{ marginTop: 20, borderTop: "1px solid " + N.rule, paddingTop: 14 }}>
+        <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 17, color: N.ink }}>{title}</div>
+        {sub && <div style={{ fontSize: 12, color: N.muted }}>{sub}</div>}
+      </div>
+    );
+  }
+  function finGL(pack) {
+    if (!pack) return null;
+    return (
+      <div>
+        {finHead("General ledger", `${pack.start} to ${pack.end} — every line, by account, with a running balance`)}
+        {pack.ledger.map(a => (
+          <div key={a.id} style={{ marginTop: 12 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 700, color: N.ink, borderBottom: "1px solid " + N.rule, paddingBottom: 4 }}>
+              <span>{a.name}</span>
+              <span style={finNum}>opening {money(a.opening / 100)}</span>
+            </div>
+            {a.lines.length === 0
+              ? <div style={{ fontSize: 12.5, color: N.muted, padding: "6px 0" }}>No activity in this period.</div>
+              : (
+                <div style={{ overflowX: "auto" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 520 }}>
+                    <tbody>
+                      {a.lines.map(l => (
+                        <tr key={l.id}>
+                          <td style={{ fontSize: 12.5, color: N.muted, padding: "3px 8px 3px 0", whiteSpace: "nowrap" }}>{l.entry_date}</td>
+                          <td style={{ fontSize: 12.5, color: N.text, padding: "3px 8px 3px 0" }}>{l.description}</td>
+                          <td style={{ fontSize: 12, color: l.category ? N.muted : "#8a5a00", padding: "3px 8px 3px 0", whiteSpace: "nowrap" }}>{l.category || "uncategorised"}</td>
+                          <td style={{ ...finNum, color: l.direction === "in" ? N.pinkDark : N.text }}>
+                            {l.direction === "in" ? "" : "("}{money((l.amount_cents || 0) / 100)}{l.direction === "in" ? "" : ")"}
+                          </td>
+                          <td style={{ ...finNum, fontWeight: 600 }}>{money(l.balanceCents / 100)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 700, color: N.ink, borderTop: "1px solid " + N.rule, paddingTop: 4, marginTop: 4 }}>
+              <span>Closing</span><span style={finNum}>{money(a.closing / 100)}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  function finTB(pack) {
+    if (!pack) return null;
+    const groups = ["Cash", "Expense", "Income", "Equity"];
+    return (
+      <div>
+        {finHead("Trial balance", `As at ${pack.end} — cash basis`)}
+        {finBasis("Cash basis. Derived from single-entry records: closing cash and expenses against income and opening cash as equity. It foots by construction, which is not the same as a double-entry trial balance.")}
+        <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 420 }}>
+          <thead>
+            <tr>
+              <th style={{ textAlign: "left", fontFamily: "'DM Mono', monospace", fontSize: 9.5, letterSpacing: ".12em", color: N.muted, padding: "0 8px 5px 0" }}>ACCOUNT</th>
+              <th style={{ textAlign: "right", fontFamily: "'DM Mono', monospace", fontSize: 9.5, letterSpacing: ".12em", color: N.muted, padding: "0 8px 5px" }}>DEBIT</th>
+              <th style={{ textAlign: "right", fontFamily: "'DM Mono', monospace", fontSize: 9.5, letterSpacing: ".12em", color: N.muted, padding: "0 0 5px 8px" }}>CREDIT</th>
+            </tr>
+          </thead>
+          <tbody>
+            {groups.map(g => {
+              const rows = pack.tb.filter(r => r.group === g);
+              if (!rows.length) return null;
+              return (
+                <Fragment key={g}>
+                  <tr><td colSpan={3} style={{ fontFamily: "'DM Mono', monospace", fontSize: 9.5, letterSpacing: ".12em", color: N.muted, padding: "10px 0 2px" }}>{g.toUpperCase()}</td></tr>
+                  {rows.map((r, i) => (
+                    <tr key={g + i}>
+                      <td style={{ fontSize: 13, color: N.text, padding: "3px 8px 3px 10px" }}>{r.account}</td>
+                      <td style={finNum}>{r.debit ? money(r.debit / 100) : ""}</td>
+                      <td style={finNum}>{r.credit ? money(r.credit / 100) : ""}</td>
+                    </tr>
+                  ))}
+                </Fragment>
+              );
+            })}
+            <tr>
+              <td style={{ fontSize: 14, fontWeight: 700, color: N.ink, borderTop: "2px solid " + N.ink, padding: "8px 8px 0 0" }}>Totals</td>
+              <td style={{ ...finNum, fontWeight: 700, borderTop: "2px solid " + N.ink, paddingTop: 8 }}>{money(pack.totalDebit / 100)}</td>
+              <td style={{ ...finNum, fontWeight: 700, borderTop: "2px solid " + N.ink, paddingTop: 8 }}>{money(pack.totalCredit / 100)}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div style={{ fontSize: 12, fontWeight: 700, marginTop: 8, color: pack.balances ? N.pinkDark : N.red }}>
+          {pack.balances ? "In balance." : `Out of balance by ${money(Math.abs(pack.totalDebit - pack.totalCredit) / 100)} — this is a bug, not a bookkeeping difference.`}
+        </div>
+      </div>
+    );
+  }
+  function finBS(pack) {
+    if (!pack) return null;
+    const bs = pack.balanceSheet;
+    return (
+      <div>
+        {finHead("Balance sheet", `As at ${pack.end} — cash basis`)}
+        {finBasis("Cash basis, and CASH ONLY. This system records bank transactions, so loans, credit cards, fixed assets, receivables, payables and accruals are not here. Do not hand this to a tax preparer as a complete balance sheet.")}
+        <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9.5, letterSpacing: ".12em", color: N.muted, marginTop: 8 }}>ASSETS</div>
+        {bs.assets.map(a => (
+          <div key={a.name} style={{ display: "flex", justifyContent: "space-between", gap: 16 }}>
+            <span style={{ fontSize: 13, color: N.text, paddingLeft: 10 }}>{a.name}</span>
+            <span style={finNum}>{money(a.cents / 100)}</span>
+          </div>
+        ))}
+        {finRow("Total assets", bs.totalAssets)}
+        <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9.5, letterSpacing: ".12em", color: N.muted, marginTop: 12 }}>LIABILITIES</div>
+        <div style={{ fontSize: 12.5, color: N.muted, paddingLeft: 10 }}>None recorded — this system does not track liabilities.</div>
+        {finRow("Total liabilities", 0)}
+        <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9.5, letterSpacing: ".12em", color: N.muted, marginTop: 12 }}>NET ASSETS</div>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 16 }}>
+          <span style={{ fontSize: 13, color: N.text, paddingLeft: 10 }}>Brought forward at {pack.start}</span>
+          <span style={finNum}>{money(bs.openingEquity / 100)}</span>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 16 }}>
+          <span style={{ fontSize: 13, color: N.text, paddingLeft: 10 }}>Change in the period</span>
+          <span style={finNum}>{money(bs.change / 100)}</span>
+        </div>
+        {finRow("Total liabilities and net assets", bs.totalLiabilities + bs.netAssets, true)}
       </div>
     );
   }
