@@ -57,12 +57,43 @@ Nothing else has to move.
 
 - Pre-order / buy link — the "When It Hatches" section currently points at
   Substack because no retail link exists yet
-- Notify-me email capture (ladybug uses a Supabase table + `/api` route;
-  same pattern would work here)
 - Google Analytics — ladybug carries `G-T1PLCXES2Y`; add a property for this
   domain if you want it tracked separately
 - Chapter excerpts, once Act One is drafted far enough to show
 - **Final cover art** — the current image is a stand-in Kari doesn't like
+
+## The signup list
+
+The "Be in the yard" form writes to **`public.chickens_signups`** in the
+**kkstore** Supabase project (`lheytkgixafdhluuvrbg`) — the same project
+ladybug uses, not a new one.
+
+| Column | Notes |
+|---|---|
+| `email` | required, unique case-insensitively |
+| `name`, `chasing` | optional; `chasing` is the "what are you chasing?" box |
+| `consent` | set true by the form's checkbox |
+| `source` | defaults to `chickens.karikounkel.com` |
+| `status` | defaults to `new` |
+| `created_at`, `user_agent`, `ip_hash` | `ip_hash` is unused so far |
+
+**Security shape.** RLS is on with exactly one policy: insert, for `anon`
+and `authenticated`, with length and format checks on the input. There is
+no select, update, or delete policy, so the publishable key shipped in
+`index.html` can add a row and can never read the list back. That is why
+it is safe in a public file. Read the list from the Supabase dashboard or
+with the service role.
+
+Verified server-side: an insert as the `anon` role succeeds, a select as
+`anon` returns 0 rows, and a duplicate email raises `unique_violation`
+(which the form turns into "you're already on the list"). The database
+linter reports no advisories against this table.
+
+**Not verified from the build sandbox:** the browser-to-Supabase request
+itself — outbound `supabase.co` is blocked here. Submit the form once
+after the first deploy. If it errors, the likely cause is the newer
+`sb_publishable_...` key format; swapping `SUPABASE_KEY` in `index.html`
+for the project's legacy `anon` JWT is the one-line fix.
 
 ## Facts the page asserts
 
