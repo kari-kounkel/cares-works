@@ -1,6 +1,6 @@
 {
   "rewrites": [
-    { "source": "/((?!proposals/)(?!marco/).*)", "destination": "/index.html" }
+    { "source": "/((?!proposals/)(?!marco/)(?!floridagirl).*)", "destination": "/index.html" }
   ],
   "headers": [
     { "source": "/marco", "headers": [{ "key": "Cache-Control", "value": "no-store, must-revalidate" }] },
