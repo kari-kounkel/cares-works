@@ -116,10 +116,11 @@ off the public page.
 
 Two edits made on Kari's say-so, not from the source material:
 
-- The Aunt Gwen excerpt originally said she "still had lipstick on straight."
-  Kari says her aunt didn't wear lipstick, so that clause is cut from both the
-  excerpt and the thirteen-things list. The true detail is still missing —
-  worth asking her for it.
+- The Aunt Gwen excerpt originally listed things Gwen did all day and said she
+  "still had lipstick on straight." Kari says her aunt didn't wear lipstick,
+  and that the real memory is not an inventory at all: "Gwen was just amazing
+  in my little girl mind." The paragraph now says that instead of manufacturing
+  detail. Don't reintroduce specifics about Gwen without asking.
 - **Kari 2:2** ("Blessed are the relapse repeaters, for their forgiveness shall
   run thirteen layers deep") is held back from the page, which is why the
   heading reads `Kari 2:1, 3-6` rather than `2:1-6`. It is her line and a good
