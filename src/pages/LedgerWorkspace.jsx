@@ -11,6 +11,7 @@ import { createPortal } from "react-dom";
 import { supabase } from "../supabaseClient";
 import { navigate } from "../App";
 import QboImport from "../components/QboImport";
+import { toQboJournal } from "../lib/qboExport";
 import { N } from "../design/neon";
 
 const FONTS = "https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&family=Caveat:wght@500;600&display=swap";
@@ -4520,8 +4521,17 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             {finResult.books.map(({ book, sum, missing }) => (
               <div key={book.key} style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, padding: "16px 18px" }}>
                 <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: N.ink }}>{book.label}</div>
-                <div style={{ fontSize: 12, color: N.muted, marginBottom: 10 }}>
-                  {book.reportStyle === "nonprofit" ? "Statement of Activities" : "Profit & Loss"} · {finResult.start} to {finResult.end}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 10 }}>
+                  <div style={{ fontSize: 12, color: N.muted }}>
+                    {book.reportStyle === "nonprofit" ? "Statement of Activities" : "Profit & Loss"} · {finResult.start} to {finResult.end}
+                  </div>
+                  {!missing && (
+                    <button className="no-print" onClick={() => downloadJournal(finResult.books.find(x => x.book.key === book.key))}
+                      title="Every line in this period as QuickBooks journal entries, if he keeps QBO"
+                      style={{ ...btnPaper(N.blueDark), whiteSpace: "nowrap" }}>
+                      ↓ Journal entries for QuickBooks
+                    </button>
+                  )}
                 </div>
                 {missing
                   ? <div style={{ fontSize: 13, color: "#a32f24" }}>No books found under this name yet.</div>
@@ -4603,6 +4613,26 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         )}
       </div>
     );
+  }
+
+  // If Matt keeps QuickBooks, this hands back everything captured here as journal
+  // entries QBO can import — the exact inverse of the importer, so the work is not
+  // stranded either way. One file per set of books, because they are separate
+  // companies in QBO and must never be merged into one import.
+  function downloadJournal(bookResult) {
+    const pack = bookResult.pack;
+    if (!pack) return;
+    const rows = pack.ledger.flatMap(a => a.lines);
+    const accounts = pack.ledger.map(a => ({ id: a.id, name: a.name }));
+    const { csv, count, warnings } = toQboJournal(rows, accounts, { start: pack.start, end: pack.end });
+    if (!count) { window.alert("Nothing to export for this period."); return; }
+    const uncoded = warnings.filter(w => w.level === "review").length;
+    const name = `${bookResult.book.label.replace(/[^\w]+/g, "-")}-journal-${pack.start}-to-${pack.end}.csv`;
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url; a.download = name; document.body.appendChild(a); a.click();
+    document.body.removeChild(a); setTimeout(() => URL.revokeObjectURL(url), 1000);
+    if (uncoded) window.alert(`${count} journal entries exported.\n\n${uncoded} line${uncoded === 1 ? " has" : "s have"} no category and went to QuickBooks' Uncategorized Income / Uncategorized Expense. Code them there or here, whichever you're keeping.`);
   }
 
   // The three CPA reports. Each one states its basis, because none of them is GAAP:
