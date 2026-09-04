@@ -10,6 +10,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../supabaseClient";
 import { navigate } from "../App";
+import { getMfaState, goToMfaSetup } from "../lib/mfa";
 import QboImport from "../components/QboImport";
 import { N } from "../design/neon";
 
@@ -1328,6 +1329,9 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   }
   async function connectPlaid() {
     if (!liveOrgId) return;
+    // Access Control Policy §6: two-step login must be on and verified before Plaid Link opens.
+    const mfa = await getMfaState();
+    if (!mfa.enrolled || !mfa.verified) { goToMfaSetup(); return; }
     setPlaidBusy("connecting");
     try {
       const { data, error } = await supabase.functions.invoke("plaid-link-token", { body: { org_id: liveOrgId } });

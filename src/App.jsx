@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import { supabase } from "./supabaseClient";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
+import MfaChallenge from "./pages/MfaChallenge";
+import MfaSetup from "./pages/MfaSetup";
+import { getMfaState } from "./lib/mfa";
 import Dashboard from "./pages/Dashboard";
 import CourtChapter from "./pages/CourtChapter";
 import PayrollChecklist from "./pages/PayrollChecklist";
@@ -75,6 +78,7 @@ export default function App() {
   const [path, setPath] = useState(window.location.pathname);
   const [memberStatus, setMemberStatus] = useState(null);
   const [primaryOrg, setPrimaryOrg] = useState(undefined); // undefined = not yet checked, null = no org, string = slug
+  const [mfa, setMfa] = useState(undefined); // undefined = not yet checked; { enrolled, verified, needsChallenge }
 
   useEffect(() => {
     if (window.location.hash.includes("type=recovery")) setIsPasswordReset(true);
@@ -110,6 +114,15 @@ export default function App() {
     return () => { cancelled = true; };
   }, [session?.user?.email]);
 
+  // MFA (Access Control Policy §6): anyone with an authenticator enrolled must pass the
+  // second step every session before any protected route renders.
+  useEffect(() => {
+    if (!session) { setMfa(undefined); return; }
+    let cancelled = false;
+    getMfaState().then(st => { if (!cancelled) setMfa(st); }).catch(() => { if (!cancelled) setMfa({ enrolled: false, verified: false, needsChallenge: false }); });
+    return () => { cancelled = true; };
+  }, [session?.user?.id, session?.access_token]);
+
   // Public, no-login customer invoice view: /i/<token>. Must be reachable before any auth gate.
   if (path.startsWith("/i/")) return <InvoicePublic token={path.slice(3).replace(/\/$/, "")} />;
 
@@ -125,6 +138,18 @@ export default function App() {
   }
 
   if (path === "/login") return <Login session={session} />;
+
+  // Second-factor gate. Public routes above this line stay public.
+  if (session && mfa === undefined) {
+    return <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#ffffff", fontFamily: "'Figtree', sans-serif", color: "#64748b", fontSize: 15 }}>Loading...</div>;
+  }
+  if (session && mfa?.needsChallenge) {
+    return <MfaChallenge onVerified={() => getMfaState().then(setMfa)} />;
+  }
+  if (path === "/account/security") {
+    if (!session) { navigate("/login"); return null; }
+    return <MfaSetup session={session} />;
+  }
 
   if (path === "/dashboard") {
     if (!session) { navigate("/login"); return null; }
