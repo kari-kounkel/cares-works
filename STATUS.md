@@ -164,6 +164,7 @@ The product itself at `tools.caresmn.com` — design system, pricing, org worksp
 - ✅ Proposals: `/proposals` index, `/proposals/prographics` (PDF viewer + editable sidebar, invoices + checks list), client link `/p/504e65a4cdfb42b79ed856fa04bc4c5b` (no login). ProGraphics proposal total $940 ($395 / $395 / $150)
 - ✅ COA Library `/tools/coa-library` (8/24): 13 industry charts of accounts seeded, `?coa=<slug>` deep links (manufactured-homes, restaurant, retail-ecommerce, nonprofit, church, construction, auto-repair, salon-barber, real-estate-property-mgmt, professional-services, freelancer-solo, trucking, +1)
 - ✅ Tool pages present in `src/pages/`: VendorDecoder, PayrollCalculator, PayrollChecklist, ChecklistBuilder, ClientVisitSummary, CommunicationTemplates, CourtChapter, ExemptionTracker, ExemptSubmit, EmailAttachmentTutorial/Advanced, QBODiscovery, Dashboard, Landing, Login, Workspace, OrgView, SharedOrgContent, PalettePreview(Dark)
+- ✅ Dashboard normalized (9/4): the one-tool-at-a-time Featured carousel is gone — the grid is the only view. Library and Start Here now sit in a two-column layout (library left, Start Here on the right rail, sticky, stacking below the grid under 1000px). Search + categories + tier/New/Clear collapsed from four loose bars into one bordered filter panel under a ruled "The Tool Library" heading. Hero callout is now a **Featured Tool** that rotates itself — one published tool per week, turning over Mondays — instead of a hand-edited "NEW DROP" that had been frozen on The Vendor Decoder since 7/9. Migration `spotlight_current_add_is_pinned`; `sql/spotlight-featured-rotation.sql`.
 
 **Decisions**
 - Palette: stay white (no black backgrounds), blue + green only for washes; pizzazz via subtle gradients, not dark mode.
@@ -175,8 +176,14 @@ The product itself at `tools.caresmn.com` — design system, pricing, org worksp
 - ROL workspace is a reference/guide for Laurie's Divvy-card approval role (she never touches QBO; BeMissional posts to QBO; bill.com pays monthly).
 - COA Library: free tier = pick industry, get CSV; paid = QBO/IIF export, editable + saved copy, one-click into CARES Ledger.
 - Tools ARE the cares-works site; PDFs of tools go to Etsy etc. to drive traffic to the CARES landing page (5/19 idea — status verify).
+- No carousels in the member dashboard (Kari 9/4: "it's the featured thing i don't like… it's always the same otherwise"). The grid shows everything, always.
+- The neon is not up for negotiation (Kari 9/4: "i adore the neon.. don't touch it"). Normalizing means structure — rails, rules, one filter panel — never a quieter palette.
+- Start Here lives on the right rail, not across the top: it is onboarding, and onboarding should not out-rank the library for a member who already knows the place.
+- The hero feature rotates on its own. Anything that has to be remembered weekly will not be. `is_pinned = true` on `spotlight_current` takes the wheel back by hand.
 
 **Where it stopped**
+9/4: Kari on tools.caresmn.com — "i hate that i did that slider mid page… i want this to look more normalized almost like how we did marco's thing." Walking the dashboard with her surfaced four things: the New Drop never changes, Start Here eats the top of the page, the filter bars are stacked four deep, and the Featured carousel shows the same tool every time. All four addressed on branch `claude/caresmn-slider-redesign-yulac4` (see Built so far). She said the Landing page's auto-scrolling Library ribbon and "Pick up where you left off" are fine as-is — those were left alone. Her words were "there are so many things wrong.. lol", so this is a first pass, not the finished list.
+
 8/29: The barcode printed in *Court of Accounts* points at `accounts.karikounkel.com/tools`, and it 404s. Two causes, only one fixed. (a) There was never a `/tools` index page — all 30 tools are routed individually as `/tools/<slug>`, and bare `/tools` fell through to the landing page. Built `src/pages/ToolsIndex.jsx`: public, no login, reads the `tools` table, grouped by category, with a band at the top for readers arriving from the book. PR #7 (draft), branch `claude/book-barcode-url-broken-vtacdw`. (b) `accounts.karikounkel.com` is not attached to any Vercel project — checked all 16. That is a domain + DNS job, not code, and the printed barcode cannot change, so the domain has to be made to work.
 
 8/24: COA Library shipped with all 13 industries and Facebook-ready deep links ("ok love it… go baby bo"). Before that (8/11) check printing was reviewed: checks look right on screen but don't print aligned — drop the word "Date", move the dollar amount right under the date, spelled-out dollars is too low, everything needs to shift up ~2 lines. AR email was never tested. Claude "stood down" that day without changing anything.
@@ -200,6 +207,8 @@ The product itself at `tools.caresmn.com` — design system, pricing, org worksp
 - QBO + bill.com live link for Laurie: Kari has the QBO developer account; nothing wired — currently manual exports only.
 - Laurie's phone photos of the facility map / mock invoices / policies — status not shown (verify received).
 - The "Emerson" tenant (`/emerson`) exists but no details in these excerpts (verify).
+- Dashboard polish is unfinished by Kari's own account (9/4: "there are so many things wrong.. lol" / "ummm.." — she trailed off). Ask her what else is bugging her before calling the redesign done.
+- `spotlight_current` row still holds the stale hand-written Vendor Decoder copy. Harmless — `is_pinned` is false so the rotation ignores it — but if anyone flips the pin on, that stale text is what appears.
 
 **Key files**
 - `C:\dev\cares-works\src\App.jsx` (routes), `src\design\neon.jsx`
