@@ -44,12 +44,20 @@ const PROGRESS = [
     ["One account at a time", "done"],
     ["Category on every line", "done"],
     ["Write a check / cash / deposit by hand", "done"],
-    ["Tick against the statement", "wip"],
+    ["Tick against the statement", "done"],
+    ["Attach the statement to the reconciliation", "done"],
+    ["Code the imported history", "todo"],
+  ] },
+  { label: "History from the bank", items: [
+    ["0449 — through Jul 2026, proved to the bank's balances", "done"],
+    ["4161 — all of 2025, proved month by month", "done"],
+    ["2259 — Jan–May 2025 (later months not available)", "wip"],
+    ["1398 — Jan–Feb 2025", "wip"],
+    ["Opening balances at the start date", "done"],
   ] },
   { label: "Bank feed", items: [
     ["Accounts set up from his account list", "done"],
     ["Connect the bank (live feed)", "wip"],
-    ["Opening balances at the start date", "todo"],
   ] },
   { label: "Payroll — Gusto", items: [
     ["Import a payroll run", "todo"],
@@ -73,11 +81,13 @@ const PROGRESS = [
     ["Record what came in", "done"],
   ] },
   { label: "Documents", items: [
-    ["Bank statements filed by account", "todo"],
+    ["Bank statements filed by account", "wip"],
     ["501(c)(3) determination + filings", "todo"],
   ] },
   { label: "Reports", items: [
-    ["Profit & Loss (for-profit)", "todo"],
+    ["Profit & Loss (for-profit)", "done"],
+    ["Get Financials — either book or both, any period", "done"],
+    ["Compare against the old QuickBooks figures", "done"],
     ["Balance sheet", "todo"],
   ] },
 ];
