@@ -5,6 +5,7 @@ import { supabase } from "../supabaseClient";
 import { navigate } from "../App";
 import { N, N_RGB, FONT_LINK, NeonBox } from "../design/neon";
 import { getMfaState, cleanupUnverifiedFactors } from "../lib/mfa";
+import MfaChallenge from "./MfaChallenge";
 
 const mono = { fontFamily: "'DM Mono', monospace" };
 const btn = (color, disabled) => ({ padding: "12px 22px", background: disabled ? N.rule : color, border: "none", borderRadius: 8, color: disabled ? N.muted : N.white, fontSize: 14, fontWeight: 700, cursor: disabled ? "default" : "pointer", fontFamily: "'Figtree', sans-serif" });
@@ -51,6 +52,11 @@ export default function MfaSetup({ session }) {
     setEnroll(null); setDone(false);
     setState(await getMfaState()); setBusy(false);
   };
+
+  // Enrolled, but this session hasn't passed the code yet (remembered device) — ask now, then continue.
+  if (state && state.enrolled && !state.verified && !done) {
+    return <MfaChallenge allowRemember={false} reason="Connecting a bank needs a fresh code from your authenticator app." onVerified={() => navigate(next)} />;
+  }
 
   return (
     <div style={{ minHeight: "100vh", background: N.white, fontFamily: "'Figtree', sans-serif", padding: "40px 20px" }}>

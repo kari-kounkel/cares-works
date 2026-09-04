@@ -3,11 +3,13 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 import { N, N_RGB, FONT_LINK, NeonBox } from "../design/neon";
+import { trustThisDevice } from "../lib/mfa";
 
 const inputStyle = { width: "100%", padding: "14px 16px", background: N.white, border: "1.5px solid " + N.rule, borderRadius: 8, color: N.ink, fontSize: 26, letterSpacing: "0.35em", textAlign: "center", fontFamily: "'DM Mono', monospace", outline: "none", boxSizing: "border-box" };
 
-export default function MfaChallenge({ onVerified }) {
+export default function MfaChallenge({ onVerified, reason, allowRemember = true }) {
   const [code, setCode] = useState("");
+  const [remember, setRemember] = useState(true);
   const [factorId, setFactorId] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -27,6 +29,7 @@ export default function MfaChallenge({ onVerified }) {
     if (chErr) { setError(chErr.message); setLoading(false); return; }
     const { error: vErr } = await supabase.auth.mfa.verify({ factorId, challengeId: ch.id, code: code.trim() });
     if (vErr) { setError("That code didn't match. Codes change every 30 seconds — try the current one."); setCode(""); setLoading(false); return; }
+    if (allowRemember && remember) trustThisDevice(30);
     setLoading(false);
     if (onVerified) onVerified();
   };
@@ -42,11 +45,17 @@ export default function MfaChallenge({ onVerified }) {
         </div>
         <NeonBox color={N.blue} rgb={N_RGB.blue} style={{ padding: "32px 28px" }}>
           <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink, marginBottom: 6 }}>Two-step check</div>
-          <p style={{ fontSize: 14, color: N.muted, marginBottom: 22, lineHeight: 1.5 }}>Open your authenticator app and enter the 6-digit code for CARES Works.</p>
+          <p style={{ fontSize: 14, color: N.muted, marginBottom: 22, lineHeight: 1.5 }}>{reason || "Open your authenticator app and enter the 6-digit code for CARES Works."}</p>
           {error && <div style={{ background: `rgba(${N_RGB.pink},0.08)`, border: `1px solid ${N.red}`, borderRadius: 8, padding: "10px 14px", color: N.red, fontSize: 13, marginBottom: 16, fontWeight: 600 }}>{error}</div>}
           <form onSubmit={submit}>
             <input value={code} onChange={e => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" autoComplete="one-time-code" autoFocus
-              placeholder="000000" style={{ ...inputStyle, marginBottom: 20 }} />
+              placeholder="000000" style={{ ...inputStyle, marginBottom: 14 }} />
+            {allowRemember && (
+              <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: N.muted, marginBottom: 18, cursor: "pointer" }}>
+                <input type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)} />
+                Remember this device for 30 days
+              </label>
+            )}
             <button type="submit" disabled={loading || code.length < 6 || !factorId}
               style={{ width: "100%", padding: 14, background: loading || code.length < 6 ? N.rule : N.blue, border: "none", borderRadius: 8, color: loading || code.length < 6 ? N.muted : N.white, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'Figtree', sans-serif" }}>
               {loading ? "Checking..." : "Verify →"}

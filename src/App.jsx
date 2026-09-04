@@ -4,7 +4,7 @@ import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import MfaChallenge from "./pages/MfaChallenge";
 import MfaSetup from "./pages/MfaSetup";
-import { getMfaState } from "./lib/mfa";
+import { getMfaState, isTrustedDevice } from "./lib/mfa";
 import Dashboard from "./pages/Dashboard";
 import CourtChapter from "./pages/CourtChapter";
 import PayrollChecklist from "./pages/PayrollChecklist";
@@ -143,7 +143,7 @@ export default function App() {
   if (session && mfa === undefined) {
     return <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#ffffff", fontFamily: "'Figtree', sans-serif", color: "#64748b", fontSize: 15 }}>Loading...</div>;
   }
-  if (session && mfa?.needsChallenge) {
+  if (session && mfa?.needsChallenge && !isTrustedDevice()) {
     return <MfaChallenge onVerified={() => getMfaState().then(setMfa)} />;
   }
   if (path === "/account/security") {

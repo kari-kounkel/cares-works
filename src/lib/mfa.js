@@ -32,3 +32,16 @@ export function goToMfaSetup(next) {
   const target = next || (window.location.pathname + window.location.search);
   window.location.href = "/account/security?next=" + encodeURIComponent(target);
 }
+
+// "Remember this device" — skips the login-time code prompt for 30 days on this browser.
+// Connecting a bank still requires a fresh code (see LedgerWorkspace.connectPlaid).
+const TRUST_KEY = "cw_mfa_trusted_until";
+export function isTrustedDevice() {
+  try { return Number(localStorage.getItem(TRUST_KEY) || 0) > Date.now(); } catch (_) { return false; }
+}
+export function trustThisDevice(days = 30) {
+  try { localStorage.setItem(TRUST_KEY, String(Date.now() + days * 86400000)); } catch (_) {}
+}
+export function forgetThisDevice() {
+  try { localStorage.removeItem(TRUST_KEY); } catch (_) {}
+}
