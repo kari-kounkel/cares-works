@@ -122,9 +122,8 @@ Two edits made on Kari's say-so, not from the source material:
   in my little girl mind." The paragraph now says that instead of manufacturing
   detail. Don't reintroduce specifics about Gwen without asking.
 - **Kari 2:2** ("Blessed are the relapse repeaters, for their forgiveness shall
-  run thirteen layers deep") is held back from the page, which is why the
-  heading reads `Kari 2:1, 3-6` rather than `2:1-6`. It is her line and a good
-  one; it is off only because nobody decided to put recovery language in the
-  shop window. One word puts it back.
+  run thirteen layers deep") was briefly held off the page. Kari put it back:
+  if it isn't in the gospel yet, it should be. The full run `Kari 2:1-6` is
+  on the page.
 
 There is no separate website for Part Two, and the page does not imply one.
