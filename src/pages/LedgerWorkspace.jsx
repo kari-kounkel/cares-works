@@ -679,6 +679,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [checkFor, setCheckFor] = useState(null);
   const [checkAcctId, setCheckAcctId] = useState("");
   const [checkStartNum, setCheckStartNum] = useState(""); // editable first check number for the batch
+  const [checkAddrEdits, setCheckAddrEdits] = useState({}); // vendorNameLower -> mailing address typed on the check (prints + saves to the payee)
   const [selectedBills, setSelectedBills] = useState({}); // { billId: true }
   const [showPaidBills, setShowPaidBills] = useState(false); // collapse the paid bills out of the main list
   const [checkOffX, setCheckOffX] = useState(() => { try { return parseFloat(localStorage.getItem("cw_checkAlignX")) || 0; } catch (e) { return 0; } }); // inches, printer alignment nudge (remembered)
@@ -2418,6 +2419,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     const banks = accountList.filter(a => a.type === "bank");
     setCheckAcctId(banks[0] ? banks[0].id : "");
     setCheckStartNum(num || "");
+    setCheckAddrEdits({});
     setOpenBill(null);
     setCheckFor({
       _viewOnly: true, _date: dateStr,
@@ -2446,14 +2448,32 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       _bills: gb,
     }));
     setCheckStartNum(String(entity.nextCheckNumber || 1001));
+    setCheckAddrEdits({});
     setCheckFor({ checks });
   }
   // Print the check, mark every covered bill paid, book one outflow on the chosen bank,
+  // Save any mailing addresses typed on the check back to the payee's record (vendor or customer),
+  // so next time the address is already there. Only writes ones that were actually edited.
+  async function saveCheckAddresses(checks) {
+    if (!live || !liveOrgId) return;
+    const done = new Set();
+    for (const ck of (checks || [])) {
+      const key = (ck.vendor_name || "").toLowerCase().trim();
+      if (!key || done.has(key) || checkAddrEdits[key] === undefined) continue;
+      done.add(key);
+      const addr = (checkAddrEdits[key] || "").trim() || null;
+      const vend = (entity.vendorList || []).find(v => (v.name || "").toLowerCase().trim() === key);
+      const cust = !vend ? (entity.customers || []).find(c => (c.name || "").toLowerCase().trim() === key) : null;
+      if (vend && (vend.billing_address || "") !== (addr || "")) await supabase.from("ledger_vendors").update({ billing_address: addr }).eq("id", vend.id);
+      else if (cust && (cust.billing_address || "") !== (addr || "")) await supabase.from("ledger_customers").update({ billing_address: addr }).eq("id", cust.id);
+    }
+    setReloadTick(t => t + 1);
+  }
   // stamp the check number in the reference, and advance the next check number.
   async function confirmCheck(doPrint = true) {
     const cf = checkFor;
     if (!cf) return;
-    if (cf._viewOnly) { if (doPrint) window.print(); return; } // looking only — never re-post
+    if (cf._viewOnly) { if (doPrint) { window.print(); await saveCheckAddresses(cf.checks || []); } return; } // looking only — never re-post
     const checks = cf.checks || [cf._bills ? { ...cf } : cf];
     const start = parseInt(checkStartNum, 10) || entity.nextCheckNumber || 1001;
     const acct = accountList.find(a => a.id === checkAcctId);
@@ -2477,6 +2497,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       }
       await supabase.from("ledger_orgs").update({ next_check_number: start + checks.length }).eq("id", liveOrgId);
       if (cf._creditId) await supabase.from("ledger_credits").update({ status: "refunded" }).eq("id", cf._creditId);
+      await saveCheckAddresses(checks);
       setSelectedBills({});
       setReloadTick(t => t + 1);
     }
@@ -3546,6 +3567,14 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 {/* on-screen guide only — the check area of the pre-printed stock */}
                 <div className="no-print" style={{ position: "absolute", top: 0, left: 0, right: 0, height: "3.5in", borderBottom: "1px dashed #cbd5e1", background: "#fbfdff" }}>
                   <div style={{ position: "absolute", top: 4, left: 6, fontSize: 9, color: "#94a3b8", fontFamily: "'DM Mono', monospace" }}>PRE-PRINTED CHECK #{num} — only these fields print</div>
+                  <div style={{ position: "absolute", top: 20, right: 12, width: 268, background: N.white, border: "1px solid " + N.rule, borderRadius: 8, padding: 8, boxShadow: "0 4px 14px rgba(10,10,20,0.08)" }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: N.muted, marginBottom: 4, letterSpacing: "0.04em" }}>✉ MAILING ADDRESS — prints on the check</div>
+                    <textarea value={checkAddrEdits[_ckNm] !== undefined ? checkAddrEdits[_ckNm] : (vd.billing_address || "")}
+                      onChange={e => setCheckAddrEdits(p => ({ ...p, [_ckNm]: e.target.value }))}
+                      rows={3} placeholder={"Street\nCity, ST  ZIP"}
+                      style={{ width: "100%", fontSize: 12, fontFamily: "'Figtree', sans-serif", border: "1px solid " + N.rule, borderRadius: 6, padding: 6, resize: "vertical", boxSizing: "border-box" }} />
+                    <div style={{ fontSize: 10, color: N.blue, marginTop: 3 }}>{ck.vendor_name} prints above the address. Saved to their record when you print.</div>
+                  </div>
                 </div>
                 {/* fill-in fields (these print) */}
                 <div style={at(0.95, 6.35)}>{today}</div>
@@ -3557,7 +3586,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   <span style={{ flex: 1, minWidth: 0, overflow: "hidden", letterSpacing: "1.5px" }}>{"*".repeat(80)}</span>
                   <span style={{ flexShrink: 0, fontWeight: 700 }}>DOLLARS</span>
                 </div>
-                {vd.billing_address ? <div style={{ ...at(1.92, 0.95), whiteSpace: "pre-line", fontSize: "10pt", lineHeight: 1.3, maxWidth: "3.4in" }}>{vd.billing_address}</div> : null}
+                {(() => { const addr = checkAddrEdits[_ckNm] !== undefined ? checkAddrEdits[_ckNm] : (vd.billing_address || ""); return addr ? <div style={{ ...at(1.92, 0.95), whiteSpace: "pre-line", fontSize: "10pt", lineHeight: 1.35, maxWidth: "3.4in" }}>{(ck.vendor_name || "") + "\n" + addr}</div> : null; })()}
                 <div style={at(2.80, 0.6)}>{ck.memo || ck.category || ""}</div>
                 {/* flow spacer for the check third, then the two tear-off stubs. File-copy stub:
                     same total height (no overprint) but its content is pushed down ~3 lines. */}
