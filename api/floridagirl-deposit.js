@@ -11,6 +11,32 @@ const LOOK = {
 };
 
 export default async function handler(req, res) {
+  // GET is a health check, so the button can be verified without paying $750.
+  // It reports booleans and the charge amount ONLY — never the key, never any
+  // part of it. `mode` comes from the key's public prefix, which matters: a
+  // test key happily "succeeds" at checkout without moving any real money.
+  if (req.method === "GET") {
+    const key = process.env.STRIPE_SECRET_KEY || "";
+    const out = {
+      ok: true,
+      endpoint: "floridagirl-deposit",
+      charge_usd: LOOK.amount / 100,
+      stripe_configured: Boolean(key),
+      mode: key.startsWith("sk_live_") ? "live" : key ? "test" : null,
+    };
+    if (!key) return res.status(200).json(out);
+    try {
+      const stripe = new Stripe(key);
+      const acct = await stripe.accounts.retrieve();
+      out.key_valid = true;
+      out.charges_enabled = acct.charges_enabled === true;
+    } catch (err) {
+      out.key_valid = false;
+      out.key_error = err.type || "auth_failed";
+    }
+    return res.status(200).json(out);
+  }
+
   if (req.method !== "POST") return res.status(405).end();
 
   // Fail loudly and specifically rather than as an opaque 500 in front of a client.
