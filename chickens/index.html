@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Chasing Chickens — Through the Clucking Chaos | Fast Camel Press</title>
-<meta name="description" content="Chasing Chickens: Through the Clucking Chaos — a memoir by Kari Hoglund Kounkel. Three acts, one crash, five years sober, and a yard full of holy nonsense. Out October 28, 2026 from Fast Camel Press.">
+<meta name="description" content="Chasing Chickens: Through the Clucking Chaos — a memoir by Kari Hoglund Kounkel in two parts: the story in three acts, and The Book of Kari, a sideways gospel. Out October 28, 2026 from Fast Camel Press.">
 <meta property="og:title" content="Chasing Chickens — Through the Clucking Chaos">
-<meta property="og:description" content="A memoir by Kari Hoglund Kounkel. Three acts, one crash, five years sober, and a yard full of holy nonsense. Out October 28, 2026.">
+<meta property="og:description" content="A memoir by Kari Hoglund Kounkel in two parts: the story in three acts, and The Book of Kari, a sideways gospel. Out October 28, 2026.">
 <meta property="og:type" content="book">
 <meta property="og:url" content="https://chickens.karikounkel.com">
 <meta property="og:image" content="https://chickens.karikounkel.com/images/cover-front.jpg">
@@ -151,6 +151,18 @@ section{position:relative}
 .form-msg.ok{color:var(--blue-deep)}
 .form-msg.err{color:var(--rust-deep)}
 .form-note{text-align:center;font-size:.78rem;color:var(--ink-dim);margin-top:14px}
+/* SCRIPTURE — Part Two's gospel set as a page from the book itself */
+.scripture{max-width:600px;margin:0 auto;background:linear-gradient(170deg,#FFFCF4,#F8F0DD);border:1.5px solid rgba(168,122,34,.4);border-radius:6px;padding:44px 46px 38px;box-shadow:0 20px 44px rgba(138,92,46,.16)}
+@media(max-width:560px){.scripture{padding:30px 24px 26px}}
+.scripture .chap{font-family:'Fraunces',serif;font-weight:700;font-variant:small-caps;letter-spacing:.08em;font-size:1rem;color:var(--rust-deep);text-align:center;padding-bottom:14px;margin-bottom:22px;border-bottom:1px solid rgba(168,122,34,.32)}
+.verse{display:grid;grid-template-columns:1.6rem 1fr;gap:10px;margin-bottom:9px;align-items:baseline}
+.verse .vn{font-family:'Mulish',sans-serif;font-weight:800;font-size:.66rem;color:var(--straw-deep);text-align:right;font-variant-numeric:tabular-nums;padding-top:.34rem}
+.verse .vt{font-family:'Fraunces',serif;font-size:1.05rem;line-height:1.62;color:var(--ink)}
+.verse .vt em{font-style:italic;color:var(--rust-deep)}
+.scripture .gloss{margin-top:24px;padding-top:18px;border-top:1px dashed rgba(168,122,34,.42);font-family:'Fraunces',serif;font-style:italic;font-size:.98rem;line-height:1.6;color:var(--ink-soft)}
+.scripture .gloss b{font-style:normal;font-weight:700;font-variant:small-caps;letter-spacing:.06em;color:var(--kraft-deep)}
+/* Part divider */
+.partmark{text-align:center;font-weight:800;letter-spacing:.3em;text-transform:uppercase;font-size:.66rem;color:var(--kraft-deep);margin-bottom:10px}
 /* LINKS */
 .link-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;max-width:880px;margin:0 auto}
 @media(max-width:620px){.link-grid{grid-template-columns:1fr}}
@@ -259,12 +271,14 @@ footer a:hover{border-color:var(--kraft-deep)}
     <p>This is a memoir about a life that got away from her — a yard full of loose birds, every one of them squawking for attention, every one of them somehow hers.</p>
     <p>It is not a recovery manual. It is not a redemption pamphlet with a soft-focus cover. It's the actual record: the childhood that formed her, the crash that split her timeline in half, the decades of thriving in public while unraveling in private, and the 366 days that put her back together in an order nobody would have chosen.</p>
     <p>It is <em>very funny</em> in the places where funny is the only honest response, and it goes completely quiet in the places that earned quiet.</p>
+    <p>It comes in two parts. <em>Part One</em> is the story. <em>Part Two</em> is a gospel.</p>
   </div>
 </section>
 
 <!-- ===== THE THREE ACTS ===== -->
 <section class="block wrap io" style="background:linear-gradient(180deg,transparent,rgba(44,110,147,.045),transparent)">
-  <p class="eyebrow">The Shape of It</p>
+  <p class="partmark">Part One</p>
+  <p class="eyebrow">The Story</p>
   <h2 class="h2">Three acts.</h2>
   <div class="acts">
     <div class="act">
@@ -288,6 +302,34 @@ footer a:hover{border-color:var(--kraft-deep)}
       <p class="ad">Teen Challenge, arriving October 26, 2020. A hellish year measured in single days. Sobriety on 10/1/2021, graduation on 10/28, and then the strangest part of the whole story: five years of building something real, mostly through obedience and staying still.</p>
       <p class="ae">Still going · Still funny · Still here</p>
     </div>
+  </div>
+</section>
+
+<!-- ===== PART TWO — THE BOOK OF KARI ===== -->
+<section class="block wrap io">
+  <p class="partmark">Part Two</p>
+  <p class="eyebrow">The Gospel</p>
+  <h2 class="h2">The Book of Kari</h2>
+  <p class="lede"><em>Truth from a Wanderer Who Finally Sat Down</em> — a gospel according to a hot mess prophetess. Set in scripture format, chapter and verse, styled after Luke and played completely straight, which is exactly what makes it funny. Thirteen parables, footnote commentary, and fragments that surface all through Part One as <em>Chicken Scratchings</em>.</p>
+
+  <div class="scripture">
+    <p class="chap">Kari 0:1–5</p>
+    <div class="verse"><span class="vn">1</span><span class="vt">In the beginning was a list, and the list was with her, and the list was her god.</span></div>
+    <div class="verse"><span class="vn">2</span><span class="vt">She checked it twice, thrice, and fourfold, and still the void inside her howled.</span></div>
+    <div class="verse"><span class="vn">3</span><span class="vt">The counselors wept; the mentors spoke in acronyms. She nodded and journaled and color-coded.</span></div>
+    <div class="verse"><span class="vn">4</span><span class="vt">But the answers came not.</span></div>
+    <div class="verse"><span class="vn">5</span><span class="vt">And lo, in the tenth month of treatment, she saw: <em>no one was coming with the map.</em></span></div>
+    <p class="gloss"><b>Commentary.</b> Before wisdom, there was a spreadsheet. This is the sacred absurdity we honor: that the ones who try hardest to get it right are often the most lost. This is not shame; this is prophecy in the raw.</p>
+  </div>
+
+  <div class="scripture" style="margin-top:22px">
+    <p class="chap">Kari 2:1, 3–6</p>
+    <div class="verse"><span class="vn">1</span><span class="vt">Blessed are the mustard-brained, for they shall confound the professionals.</span></div>
+    <div class="verse"><span class="vn">3</span><span class="vt">Blessed are the spiritual smartasses, for their parables shall tip sideways.</span></div>
+    <div class="verse"><span class="vn">4</span><span class="vt">Blessed are the boundary-havers, for they shall inherit their calendars.</span></div>
+    <div class="verse"><span class="vn">5</span><span class="vt">Blessed are the unpolished, the unbeautiful, the unbothered — they shall see God while wearing stretchy pants.</span></div>
+    <div class="verse"><span class="vn">6</span><span class="vt">Amen and amen.</span></div>
+    <p class="gloss"><b>Note.</b> Kari 2 opens the Beatitudes. There are more of them, and they get worse.</p>
   </div>
 </section>
 
@@ -367,6 +409,14 @@ footer a:hover{border-color:var(--kraft-deep)}
     <a class="lnk" href="https://ladybug.karikounkel.com" target="_blank" rel="noopener"><span class="ic">🐞</span><span class="tx"><b>Ladybug, Ladybug</b><span>Keeping It Classy in a Buggy World</span></span></a>
     <a class="lnk" href="https://karikounkel.store" target="_blank" rel="noopener"><span class="ic">🐪</span><span class="tx"><b>Fast Camel Press</b><span>Books &amp; mischief at karikounkel.store</span></span></a>
     <a class="lnk" href="https://caresmn.com" target="_blank" rel="noopener"><span class="ic">🌿</span><span class="tx"><b>CARES</b><span>Kari's other corner — caresmn.com</span></span></a>
+  </div>
+</section>
+
+<!-- ===== CLOSER ===== -->
+<section class="block wrap io">
+  <div class="pull">
+    <p class="big">She did not chase the chickens.<br>She became one.</p>
+    <p class="small">— The Book of Kari</p>
   </div>
 </section>
 

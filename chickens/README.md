@@ -108,6 +108,22 @@ Everything on the page traces to your own material, not invention:
 | 1997 Monticello bus crash; 35 years in transportation | Same chat |
 | Exodus 14:14 as life verse | Same chat |
 | "The First Chicken" excerpt | Origin-story chat, 2025-05-31, your draft text |
+| Part Two is *The Book of Kari: Truth from a Wanderer Who Finally Sat Down* — Luke-styled, 13 parables, "Chicken Scratchings" | Gospel-of-Kari summary chat, 2025-07-13 |
+| Kari 0:1-5 and Kari 2 verbatim, and "She did not chase the chickens. She became one." | Same chat, the master gospel document |
 
 Names of other private individuals from the outline are deliberately kept
 off the public page.
+
+Two edits made on Kari's say-so, not from the source material:
+
+- The Aunt Gwen excerpt originally said she "still had lipstick on straight."
+  Kari says her aunt didn't wear lipstick, so that clause is cut from both the
+  excerpt and the thirteen-things list. The true detail is still missing —
+  worth asking her for it.
+- **Kari 2:2** ("Blessed are the relapse repeaters, for their forgiveness shall
+  run thirteen layers deep") is held back from the page, which is why the
+  heading reads `Kari 2:1, 3-6` rather than `2:1-6`. It is her line and a good
+  one; it is off only because nobody decided to put recovery language in the
+  shop window. One word puts it back.
+
+There is no separate website for Part Two, and the page does not imply one.
