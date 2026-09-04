@@ -269,19 +269,33 @@ Standalone, hand-built proposal pages served straight out of `public/` — separ
 - Three phases, and Andrea can stop after any of them: **The Look** (fixed-fee diagnostic, findings hers to keep either way) → **The Catch-Up** (only if a backlog turns up; a project with an end date, not a subscription) → **Ongoing** (month to month, admin/CFO mix set by the read, reviewed at 90 days).
 - Andrea's page uses the **CARES Consulting** brand — slate-navy `#2f3e59`/`#46587a` + orange `#e8772e` on cream `#f4f1ea`, the Maddie palette — not the CARES Works neon blue/green. Consulting engagements wear the consulting brand.
 - Kari's Sidebar Notes are part of the house voice on these pages, not decoration.
+- **The Look is $750 flat, with $375 credited** against the first month if Andrea engages within 30 days; she keeps the written Findings & Plan either way. The number lives in ONE place — `var LOOK_FEE` / `LOOK_HALF` at the top of the page script — and populates every mention. Setting `LOOK_FEE = ""` reverts the page to "a flat fee, agreed in writing" with no figure anywhere. Change it there, never by hand-editing the prose.
+- **There is no live QuickBooks connection in this repo and no page may imply one.** Plaid's functions are deployed but its secrets were never set, and no QBO OAuth exists. The real method offered to clients is the standard **QBO accountant invitation** (gear → Manage users → Accountants → invite `kari@caresmn.com`): it costs the client no paid seat, does not alter their subscription, and is revocable by them in two clicks. The fallback is exporting six named reports, of which **Transaction List by Date over All Dates** is the one that matters — it is what `src/lib/qboImport.js` actually reads, and a Trial Balance cannot substitute (balances, not transactions).
+- **Deploying means merging to `main`.** Production is `main`; a pushed branch or a draft PR only builds a Vercel *preview*. A push is not a deploy, and "pushed" must never be reported as "live." Confirm with the Vercel API (project `prj_LXPWJjKXEA3TLXsqrnE95EKxHFdr`, team `team_MzJfjdVk8hjUhRXEzk8iyMbt`) that a deployment shows `target: production` AND `state: READY`.
+- Tool pages under `/tools/*` are safe to link to prospects: their `if (!session)` checks gate member-only features, not the page, so an anonymous visitor gets the free tier rather than a login wall.
 - `vercel.json` rewrites everything to the SPA **except** an explicit allowlist. Any new static page under `public/` needs its path added to the negative lookaheads or it will silently render the React landing page instead. Currently excluded: `proposals/`, `marco/`, `floridagirl`.
 
 **Where it stopped**
-9/4 (this session): Andrea's proposal written, tested in headless Chromium (all four read paths, the downward tie break, copy/print/reset, no horizontal overflow at 390px), committed and pushed on `claude/floridagirl-admin-proposal-lzfdmo`. Fixed one real bug found in a screenshot pass: the read-out score bars rendered empty because `.fill` was an inline `<span>`, so `width:%` never applied — both `.track` and `.fill` now `display:block`. Kari presents to Andrea the morning of 9/5.
+9/4 (this session): Andrea's proposal written, extended, merged and **deployed to production** — Vercel `dpl_oXmmQo6BQqDKiVJPMjt6auNrgbzj`, state READY, commit `25bbb72`. Live at `tools.caresmn.com/floridagirl`. Kari presents to Andrea the morning of 9/5.
+
+Shipped in two rounds. Round one: the page and the 13-question read. Round two, after Kari asked: the Look fee, the QuickBooks access routes, the secure uploader with its thirteen-document list, and the `tools.caresmn.com` workbench section.
+
+Three real bugs caught and fixed, each by a different method — worth noting because the functional test alone would have missed two of them:
+1. **Score bars rendered empty.** Found in a screenshot pass, invisible to the DOM test. `.fill` was an inline `<span>`, so `width:%` never applied; both `.track` and `.fill` are now `display:block`.
+2. **The page was never deployed.** Kari reported the URL wouldn't open. Pushing the branch and opening a draft PR deploys to a Vercel *preview*, not production — see the deploy decision below.
+3. **The upload bucket rejected spreadsheets.** `client-uploads.allowed_mime_types` had no CSV, Excel or OpenDocument entries, i.e. precisely what QuickBooks exports. Widened by SQL; this silently affected the Maddie page too.
 
 **Next steps**
-1. After the meeting: put the real Look fee on the page (one flat number, in the "What it costs" card) and add a Stripe deposit button following the `api/maddie-deposit.js` pattern.
+1. After the meeting: add a Stripe deposit button for the $750 Look, following the `api/maddie-deposit.js` pattern. The fee is on the page; taking payment for it is not wired.
 2. Write Andrea's Findings & Plan once the Look is done; it's the document that prices Phases 2 and 3.
 3. Decide whether the 13-question read is worth generalizing into a CARES Works tool at `/tools/where-are-you-at` — it is the sharpest intake instrument in the repo and it is currently trapped in one client's page.
 4. Add a secure uploader to `/floridagirl` if Andrea starts sending documents (reuse the Maddie `client-uploads` bucket pattern).
 
 **Pending / frozen items**
-- The Look fee is unstated on the live page by design — nothing renders a number until Kari sets one. Not a bug; do not "fix" it without her say-so.
+- No way to PAY the $750 Look fee — the number is on the page, the Stripe button is not built (Next step 1).
+- Nothing on `/floridagirl` is saved server-side except uploaded files. The 13-question read and any answers are lost on refresh.
+- Uploads land in `client-uploads` under the `andrea/` prefix. The bucket is private and upload-only (anon INSERT, no anon SELECT), so **nothing in the app can list or retrieve them** — retrieve via the Supabase dashboard or an authenticated client. Nobody is notified when a file arrives.
+- The upload box is not gated behind payment or a token, unlike Maddie's. Anyone with the URL can upload. Acceptable for an unlisted client page; revisit if the URL spreads.
 - Andrea's business name, industry, size, and entity type are all unknown. The page is deliberately written to work without them; fill them in only from what the Look actually turns up.
 - The read-out is client-side only — nothing is saved, and answers are lost on refresh. Fine for a live meeting; would need a Supabase write if Kari ever wants the answers back.
 - The other proposal pages (Marco, Maddie, Amy, ITA-BEL-KOO) have never been status-tracked — their live state, signature status, and payment status are unverified.
@@ -289,6 +303,7 @@ Standalone, hand-built proposal pages served straight out of `public/` — separ
 **Key files**
 - `C:\dev\cares-works\public\floridagirl\index.html` (the whole proposal — page, read-out logic, and copy in one file), `cares-logo.png`, `kari-signature.png`
 - `C:\dev\cares-works\vercel.json` (the rewrite allowlist — read before adding any static page)
+- Note for cloud sessions: the sandbox's egress proxy blocks outbound HTTPS entirely, so a live URL **cannot** be curled to check a deploy (even `example.com` fails). Verify through the Vercel MCP tools instead, and test pages against a local static server with Playwright.
 - `C:\dev\cares-works\src\pages\FractionalCFOScope.jsx` (the does / doesn't-do source of truth), `src\pages\BookkeeperScope.jsx`
 - `C:\dev\cares-works\public\proposals\maddie\index.html` (the pattern for Stripe + secure upload), `public\proposals\marco\`, `public\proposals\amy\`, `public\proposals\itabelkoo\`
 - `C:\dev\cares-works\api\maddie-deposit.js`, `api\marco-deposit.js`, `api\webhook.js`
