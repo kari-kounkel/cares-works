@@ -34,10 +34,17 @@ The two October cards read their own targets from markup instead —
 
 ## The cover
 
-`images/cover-front.jpg` is the **May 2024 collage comp** pulled from Drive
-(`BOOK COVER chasing chickens.png`), resized to 900px wide. It is not a
-finished cover. Drop the real art in at the same path and delete the
-`.cover-note` line in the hero when it's final.
+`images/cover-front.jpg` is the cover — the torn-paper collage from Drive
+(`BOOK COVER chasing chickens.png`, 1410x2250), resized to 900px wide and
+saved as progressive JPEG. Kari approved it 9/4/2026.
+
+It also drives the page's palette (barn blue, kraft, rooster rust, straw)
+and is the Open Graph share image. Replacing it means repainting the CSS
+variables at the top of `index.html` to match.
+
+To swap it: drop a new file at the same path, keep it around 900px wide,
+and update the `width`/`height` attributes on the hero `<img>` if the
+aspect ratio changes.
 
 ## Still to wire
 
