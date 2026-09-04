@@ -125,6 +125,16 @@
   .tool .td{font-size:13.5px;color:var(--slate)}
   .tool .tg{font-size:12.5px;font-weight:700;color:var(--gold);margin-top:10px}
 
+  /* --- offer deadline --- */
+  .deadline{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;
+    background:#fbf3ee;border:1px solid #f0ddcf;border-left:5px solid var(--gold);
+    border-radius:0 12px 12px 0;padding:16px 20px;margin:0 0 20px}
+  .deadline .dl-main{font-weight:700;color:#a4631f;font-size:16px}
+  .deadline .dl-sub{font-size:14px;color:var(--slate)}
+  .deadline.expired{background:var(--soft);border-color:#d9e0ee;border-left-color:var(--teal)}
+  .deadline.expired .dl-main{color:var(--teal-d)}
+  header .facts .exp{color:#ffd9bd}
+
   /* --- routes / uploads --- */
   .routes{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}
   .route{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:var(--shadow)}
@@ -174,8 +184,8 @@
     <div class="facts">
       <div>Prepared for <b>Andrea Meythaler</b></div>
       <div>By <b>Kari Hoglund Kounkel</b></div>
-      <div>Prepared <b id="prep-date">—</b></div>
-      <div>Valid <b>30 days</b></div>
+      <div>Issued <b id="issue-date">—</b></div>
+      <div class="exp">Offer expires <b id="expiry-date">—</b></div>
     </div>
   </div>
 </header>
@@ -421,9 +431,21 @@
   <div class="wrap">
     <div class="eyebrow">What it costs</div>
     <h2>The Look is a flat fee. Everything after it gets priced off what we find.</h2>
+    <div class="deadline" id="deadline">
+      <div>
+        <div class="dl-main" id="dl-main">—</div>
+        <div class="dl-sub" id="dl-sub">—</div>
+      </div>
+    </div>
     <div class="card">
       <p><b>Phase 1 — The Look: <span class="look-fee">—</span>, flat.</b> One fee, agreed in writing before we start, with no hourly meter behind it. You know the number before I begin, and it does not move — if the Look turns out to take me longer than I planned, that's my problem, not your invoice.</p>
-      <p><b>And half of it comes back.</b> If you engage me for ongoing support within 30 days, <span class="look-half">—</span> of the Look fee is credited against your first month. Do nothing after the Look and you still keep the written Findings &amp; Plan. There is no version of this where you pay for a diagnosis and walk away with nothing.</p>
+      <p><b>And half of it comes back.</b> Engage me for ongoing support within 30 days of me handing you the Findings &amp; Plan, and <span class="look-half">—</span> is credited against your first month. Do nothing after the Look and you still keep the written plan. There is no version of this where you pay for a diagnosis and walk away with nothing.</p>
+      <p class="muted" style="font-size:13.5px"><b>Two different clocks, so they don't get tangled:</b> <i>this price</i> holds until <b class="expiry-inline">—</b>. <i>The half-back credit</i> runs for 30 days after the Findings &amp; Plan lands in your hands, whenever that turns out to be.</p>
+      <div id="pay-wrap" style="margin-top:20px;display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+        <button class="btn" id="pay-btn" type="button" style="font-size:16px;padding:13px 22px">Reserve the Look — pay <span class="look-fee">—</span> →</button>
+        <a class="btn ghost" href="tel:+16513341300">Rather talk first? 651.334.1300</a>
+      </div>
+      <p id="pay-note" class="muted" style="font-size:13px;margin:12px 0 1.4em">Card payment through Stripe. Nothing is charged until you complete checkout, and the Look is scheduled the moment it clears.</p>
       <p><b>Phases 2 and 3</b> get quoted after the Look, in the written Findings &amp; Plan — with the scope spelled out beside the number, so you can see precisely what you're buying and say no to any part of it.</p>
       <p style="margin-bottom:0">I'm not putting a monthly figure on this page, and I want to be plain about why: I'd be making it up. Any consultant who quotes you a retainer before seeing your books is quoting their own average customer, not you. You deserve a number that was calculated, not one that was assumed.</p>
       <ul class="clean" style="margin-top:16px">
@@ -576,7 +598,7 @@
     <div><b>CARES Consulting Inc</b></div>
     <div class="vals">Clarity · Accountability · Repair · Expectations · Support</div>
     <div class="muted" style="margin-top:8px;color:#c4cee0">Kari Hoglund Kounkel · caresmn.com</div>
-    <div class="disclaim">This proposal is informational and is not legal, tax, or investment advice. Fractional CFO services are advisory; CARES Consulting Inc does not perform audits or issue attest opinions. Valid for 30 days from presentation.</div>
+    <div class="disclaim">This proposal is informational and is not legal, tax, or investment advice. Fractional CFO services are advisory; CARES Consulting Inc does not perform audits or issue attest opinions. This offer is valid through <b class="expiry-inline">—</b>.</div>
     <div class="disclaim" style="margin-top:12px;color:#a9b3c7">This proposal is the proprietary intellectual property of CARES Consulting, Inc. &amp; Kari Hoglund Kounkel. © 2025–2026. All rights reserved. Unauthorized use, duplication, hosting, or distribution is strictly prohibited.</div>
   </div>
 </footer>
@@ -606,11 +628,61 @@
     el.textContent = LOOK_HALF || "half";
   });
 
-  // Prepared-on date, so the page never looks stale-dated.
-  try {
-    document.getElementById("prep-date").textContent =
-      new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"});
-  } catch(e){}
+  /* ==========================================================================
+     THE OFFER WINDOW — both dates are PINNED on purpose.
+     They must never be computed from "today": a deadline measured from the
+     moment someone opens the page never actually arrives, and would still
+     read "7 days left" in November. Change these by hand to re-issue.
+     ========================================================================== */
+  var ISSUED  = "2026-09-05";   // the morning Kari presents this
+  var EXPIRES = "2026-09-12";   // 7 days later, end of that day, local time
+
+  function asDate(iso, endOfDay){
+    var b = iso.split("-");
+    return endOfDay
+      ? new Date(+b[0], +b[1]-1, +b[2], 23, 59, 59, 999)
+      : new Date(+b[0], +b[1]-1, +b[2]);
+  }
+  function pretty(d){
+    return d.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"});
+  }
+  function shortish(d){
+    return d.toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"});
+  }
+
+  var issuedOn  = asDate(ISSUED, false);
+  var expiresOn = asDate(EXPIRES, true);      // end of the expiry day
+  var expired   = Date.now() > expiresOn.getTime();
+
+  // Count WHOLE CALENDAR DAYS, not milliseconds. Measuring against an
+  // end-of-day timestamp and rounding up reports "8 days left" on a 7-day
+  // offer, which makes the page look like it can't count.
+  var today0 = new Date(); today0.setHours(0, 0, 0, 0);
+  var daysLeft = Math.round((asDate(EXPIRES, false).getTime() - today0.getTime()) / 86400000);
+
+  try { document.getElementById("issue-date").textContent = shortish(issuedOn); } catch(e){}
+  try { document.getElementById("expiry-date").textContent = shortish(expiresOn); } catch(e){}
+  Array.prototype.forEach.call(document.querySelectorAll(".expiry-inline"), function(el){
+    el.textContent = shortish(expiresOn);
+  });
+
+  var dlBox  = document.getElementById("deadline");
+  var dlMain = document.getElementById("dl-main");
+  var dlSub  = document.getElementById("dl-sub");
+
+  if (expired) {
+    if (dlBox) dlBox.className = "deadline expired";
+    if (dlMain) dlMain.textContent = "This offer has passed its date.";
+    if (dlSub)  dlSub.textContent  = "It was good through " + shortish(expiresOn) +
+      ". That's a date, not a door slamming — text me at 651.334.1300 and I'll re-issue it.";
+  } else {
+    var phrase = daysLeft <= 0 ? "Today is the last day."
+               : daysLeft === 1 ? "Last day is tomorrow."
+               : daysLeft + " days left.";
+    if (dlMain) dlMain.textContent = phrase;
+    if (dlSub)  dlSub.textContent  = "This price holds through " + pretty(expiresOn) +
+      ". After that I'd have to re-quote it, because by then I'd be guessing at a different calendar.";
+  }
 
   var BANDS = { A:[1,2,3,4,5], B:[6,7,8,9], C:[10,11,12,13] };
   var LABELS = { A:"getting done", B:"getting checked", C:"getting steered" };
@@ -764,6 +836,53 @@
   });
 
   render();
+
+  /* ---------------- stripe checkout ---------------- */
+  var payBtn  = document.getElementById("pay-btn");
+  var payNote = document.getElementById("pay-note");
+  var paid    = (location.search.match(/[?&]paid=([a-z0-9]+)/i) || [])[1];
+
+  if (payBtn) {
+    if (paid) {
+      payBtn.disabled = true;
+      payBtn.textContent = "Paid ✓";
+      if (payNote) {
+        payNote.innerHTML = "<b style='color:#2f3e59'>Payment received — thank you, Andrea. ✓</b> " +
+          "Your Look is booked. Next: invite me into QuickBooks or send the exports, and upload whatever " +
+          "of the thirteen documents you can lay hands on. I'll take it from there.";
+      }
+    } else if (expired) {
+      payBtn.disabled = true;
+      payBtn.textContent = "This offer has expired";
+      if (payNote) payNote.textContent =
+        "Text me at 651.334.1300 and I'll re-issue it — the work hasn't changed, just the date on it.";
+    } else {
+      payBtn.addEventListener("click", function(){
+        var label = payBtn.innerHTML;
+        payBtn.disabled = true; payBtn.textContent = "Connecting to Stripe…";
+        fetch("/api/floridagirl-deposit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ origin: location.origin })
+        })
+        .then(function(r){ return r.json(); })
+        .then(function(j){
+          if (j && j.url) { window.location.href = j.url; return; }
+          // The endpoint's own message already tells them what to do; don't
+          // bolt a second phone number onto the end of it.
+          if (payNote) payNote.textContent = (j && j.error)
+            ? j.error
+            : "Couldn't start checkout — text me at 651.334.1300 and we'll sort it out.";
+          payBtn.disabled = false; payBtn.innerHTML = label;
+        })
+        .catch(function(){
+          if (payNote) payNote.textContent =
+            "Network hiccup — try again, or text me at 651.334.1300.";
+          payBtn.disabled = false; payBtn.innerHTML = label;
+        });
+      });
+    }
+  }
 
   /* ---------------- secure uploader ----------------
      Files go to the private, upload-only "client-uploads" bucket. The anon key
