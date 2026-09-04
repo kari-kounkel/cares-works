@@ -250,3 +250,45 @@ Client: New Life in Christ Reentry Ministry (NLC), Pastor David. Current site be
 - `C:\dev\cares-works\src\pages\Ledger.jsx`, `src\App.jsx`, `public\steward\index.html`, `src\pages\OrgHome.jsx`
 - Memory: `…\C--dev-keepstead\memory\project_nlc_reentry.md`, `project_ledger_lovers.md`, `project_cares_ledger.md`, `project_prographics_erickson.md`, `feedback_confirm_before_executing.md`, `feedback_do_all_of_the_list.md`
 - Source: `C:\Users\karik\Downloads\junemeetingdocsquestionfeedback.zip`
+
+---
+
+### CARES Consulting client proposals
+Standalone, hand-built proposal pages served straight out of `public/` — separate from the database-driven `/proposals` hub in the React app (`ProposalsIndex` / `ProposalView` / `ProposalPublic`). These had never been listed in STATUS.md before 9/4; they are live pages and every session should know they exist.
+
+**Built so far**
+- ✅ `/floridagirl` — **Andrea Meythaler** (9/4). Admin + fractional-CFO proposal. Carries a **13-question live diagnostic** Kari runs in the room: yes/sorta/no across three bands (A · is it getting done, B · is anyone checking it, C · is anyone steering it), scored 1 / 0.5 / 0. Lowest band = starting rung, ties break downward. Renders one of four reads — administrative, controller, CFO, or light-touch. Read copies to clipboard as plain text and prints to PDF. Also carries the four-rung ladder (administrative → bookkeeping → controller → fractional CFO) and the CFO does / doesn't-do split lifted from `src/pages/FractionalCFOScope.jsx`.
+- ✅ `/proposals/marco` — MARCO certification: index, agreement, invoice, sign, timeline, workspace, rco-tools, demo. Stripe deposit via `api/marco-deposit.js`.
+- ✅ `/proposals/maddie` — tax recovery plan. $150/hr, $300 retainer; Stripe via `api/maddie-deposit.js`; post-payment secure uploader to the private `client-uploads` Supabase bucket.
+- ✅ `/proposals/amy` — Amy's Cherished Events & You're Not Alone (index, ledger, site, workspace).
+- ✅ `/proposals/itabelkoo` — index, agreement, curriculum, invoice; `api/itabelkoo-sign.js`, `-progress.js`, `-training.js`.
+- ✅ `/proposals/minuteman`, `/proposals/minuteman-website` — see the Minuteman section above.
+
+**Decisions**
+- **No monthly figure on Andrea's page.** Kari's call, 9/4: she is walking in without a discovery call and will not quote a retainer before seeing the books. Only the Phase 1 "Look" is priced, as a flat fee agreed in writing; Phases 2 (Catch-Up) and 3 (Ongoing) get quoted inside the written Findings & Plan. The page says so out loud and explains why — that honesty is the sales argument, not a gap to be filled in later.
+- Three phases, and Andrea can stop after any of them: **The Look** (fixed-fee diagnostic, findings hers to keep either way) → **The Catch-Up** (only if a backlog turns up; a project with an end date, not a subscription) → **Ongoing** (month to month, admin/CFO mix set by the read, reviewed at 90 days).
+- Andrea's page uses the **CARES Consulting** brand — slate-navy `#2f3e59`/`#46587a` + orange `#e8772e` on cream `#f4f1ea`, the Maddie palette — not the CARES Works neon blue/green. Consulting engagements wear the consulting brand.
+- Kari's Sidebar Notes are part of the house voice on these pages, not decoration.
+- `vercel.json` rewrites everything to the SPA **except** an explicit allowlist. Any new static page under `public/` needs its path added to the negative lookaheads or it will silently render the React landing page instead. Currently excluded: `proposals/`, `marco/`, `floridagirl`.
+
+**Where it stopped**
+9/4 (this session): Andrea's proposal written, tested in headless Chromium (all four read paths, the downward tie break, copy/print/reset, no horizontal overflow at 390px), committed and pushed on `claude/floridagirl-admin-proposal-lzfdmo`. Fixed one real bug found in a screenshot pass: the read-out score bars rendered empty because `.fill` was an inline `<span>`, so `width:%` never applied — both `.track` and `.fill` now `display:block`. Kari presents to Andrea the morning of 9/5.
+
+**Next steps**
+1. After the meeting: put the real Look fee on the page (one flat number, in the "What it costs" card) and add a Stripe deposit button following the `api/maddie-deposit.js` pattern.
+2. Write Andrea's Findings & Plan once the Look is done; it's the document that prices Phases 2 and 3.
+3. Decide whether the 13-question read is worth generalizing into a CARES Works tool at `/tools/where-are-you-at` — it is the sharpest intake instrument in the repo and it is currently trapped in one client's page.
+4. Add a secure uploader to `/floridagirl` if Andrea starts sending documents (reuse the Maddie `client-uploads` bucket pattern).
+
+**Pending / frozen items**
+- The Look fee is unstated on the live page by design — nothing renders a number until Kari sets one. Not a bug; do not "fix" it without her say-so.
+- Andrea's business name, industry, size, and entity type are all unknown. The page is deliberately written to work without them; fill them in only from what the Look actually turns up.
+- The read-out is client-side only — nothing is saved, and answers are lost on refresh. Fine for a live meeting; would need a Supabase write if Kari ever wants the answers back.
+- The other proposal pages (Marco, Maddie, Amy, ITA-BEL-KOO) have never been status-tracked — their live state, signature status, and payment status are unverified.
+
+**Key files**
+- `C:\dev\cares-works\public\floridagirl\index.html` (the whole proposal — page, read-out logic, and copy in one file), `cares-logo.png`, `kari-signature.png`
+- `C:\dev\cares-works\vercel.json` (the rewrite allowlist — read before adding any static page)
+- `C:\dev\cares-works\src\pages\FractionalCFOScope.jsx` (the does / doesn't-do source of truth), `src\pages\BookkeeperScope.jsx`
+- `C:\dev\cares-works\public\proposals\maddie\index.html` (the pattern for Stripe + secure upload), `public\proposals\marco\`, `public\proposals\amy\`, `public\proposals\itabelkoo\`
+- `C:\dev\cares-works\api\maddie-deposit.js`, `api\marco-deposit.js`, `api\webhook.js`
