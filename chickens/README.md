@@ -34,17 +34,24 @@ The two October cards read their own targets from markup instead —
 
 ## The cover
 
-`images/cover-front.jpg` is the cover — the torn-paper collage from Drive
+`images/cover-front.jpg` is the May 2024 torn-paper collage from Drive
 (`BOOK COVER chasing chickens.png`, 1410x2250), resized to 900px wide and
-saved as progressive JPEG. Kari approved it 9/4/2026.
+saved as progressive JPEG.
 
-It also drives the page's palette (barn blue, kraft, rooster rust, straw)
-and is the Open Graph share image. Replacing it means repainting the CSS
-variables at the top of `index.html` to match.
+**It is a stand-in, not the cover.** Kari cleared it for use on the page
+and does not like it. Expect it to be replaced before launch.
 
-To swap it: drop a new file at the same path, keep it around 900px wide,
-and update the `width`/`height` attributes on the hero `<img>` if the
-aspect ratio changes.
+Because of that, the page does not depend on it:
+
+- The palette (barn blue, kraft, rooster rust, straw) is defined as CSS
+  variables at the top of `index.html` and reads as a farmyard on its own.
+  It was drawn from this art but is not married to it.
+- It is the Open Graph share image, so whatever replaces it is what shows
+  up when the link is pasted anywhere.
+
+To swap: drop a new file at the same path, keep it around 900px wide, and
+update `width`/`height` on the hero `<img>` if the aspect ratio changes.
+Nothing else has to move.
 
 ## Still to wire
 
@@ -55,6 +62,7 @@ aspect ratio changes.
 - Google Analytics — ladybug carries `G-T1PLCXES2Y`; add a property for this
   domain if you want it tracked separately
 - Chapter excerpts, once Act One is drafted far enough to show
+- **Final cover art** — the current image is a stand-in Kari doesn't like
 
 ## Facts the page asserts
 
