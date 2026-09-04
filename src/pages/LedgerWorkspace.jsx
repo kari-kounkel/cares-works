@@ -313,6 +313,7 @@ function buildLiveEntity(org, accounts, categories, entries, session) {
       suggested: !e.category && memory[norm(e.description)] ? memory[norm(e.description)] : null,
       invoiceId: e.invoice_id || null,
       paymentId: e.payment_id || null,
+      reference: e.reference || null,
     }));
 
   const short = org.name.length > 16 ? org.name.split(" ")[0] : org.name;
@@ -2686,7 +2687,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   </div>
                   {/* MIDDLE — payee (one line) + coding */}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontFamily: "'Figtree', sans-serif", fontSize: 15, color: "#26303f", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{x.payee}</div>
+                    <div style={{ fontFamily: "'Figtree', sans-serif", fontSize: 15, color: "#26303f", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{(() => { const r = x.reference; const ck = r ? (/^check/i.test(r) ? r : (/^\d+$/.test(r) ? "Check #" + r : null)) : null; return ck ? <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12.5, fontWeight: 700, color: N.blueDark, marginRight: 7 }}>{ck}</span> : null; })()}{x.payee}</div>
                     <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 3, flexWrap: "wrap" }}>
                       {proposed ? (
                         <span style={{ fontSize: 11, color: N.blue, display: "flex", alignItems: "center", gap: 4 }}><Ico name="bank" size={12} />Bank says cleared · {x.cleared.bank} · {x.cleared.date}</span>
@@ -3442,7 +3443,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                     style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderBottom: i === paidBills.length - 1 ? "none" : "1px solid " + N.rule, opacity: 0.7, cursor: "pointer" }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 14, fontWeight: 600, color: N.ink }}>{b.vendor_name || "—"}</div>
-                      <div style={{ fontSize: 12, color: N.muted }}>{b.category || "Uncategorized"}{b.paid_at ? ` · paid ${new Date(b.paid_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}` : ""}{b.memo ? ` · ${b.memo}` : ""}</div>
+                      <div style={{ fontSize: 12, color: N.muted }}>{(() => { const ck = (entries || []).find(e => e.direction === "out" && e.amount_cents === b.amount_cents && (e.description || "") === (b.vendor_name || "") && /^Check #/i.test(e.reference || "")); return ck ? <span style={{ fontFamily: "'DM Mono', monospace", fontWeight: 700, color: N.blueDark }}>{ck.reference} · </span> : null; })()}{b.category || "Uncategorized"}{b.paid_at ? ` · paid ${new Date(b.paid_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}` : ""}{b.memo ? ` · ${b.memo}` : ""}</div>
                     </div>
                     <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: N.green, background: N.green + "18", padding: "4px 10px", borderRadius: 100 }}>Paid</span>
                     <button onClick={e => { e.stopPropagation(); viewCheck(b); }} style={btnPaper(N.blue)}>View check</button>
