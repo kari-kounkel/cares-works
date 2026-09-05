@@ -27,6 +27,86 @@ Note: the CARES Works chat also wrote scratch scripts into a keepstead worktree 
 
 ---
 
+### Chasing Chickens — chickens.karikounkel.com
+**Built 2026-09-04 in a CLOUD session.** Nothing from this session is in `C:\dev`
+yet. Everything below is committed and pushed to GitHub; a desk session must
+clone/pull it down.
+
+**Where it lives**
+- Repo: `github.com/kari-kounkel/chickens` (NEW tonight, branch `main`) — **no
+  local clone exists**; needs `C:\dev\chickens`
+- Live: `https://chickens.karikounkel.com` (verified HTTP 200, Vercel project
+  `chickens`, auto-deploys on push to main)
+- Also: `chickens-two.vercel.app`
+- Supabase: table `chickens_signups` in the **kkstore** project
+  (`lheytkgixafdhluuvrbg`) — same project ladybug uses, deliberately not a new one
+- A duplicate copy also sits in `cares-works` on branch
+  `claude/chasing-chickens-countdown-uwaj4z` (PR #9, draft) under `chickens/`.
+  Redundant now that the standalone repo exists — close the PR or delete the folder.
+
+**Built so far**
+- ✅ Static landing page, no build step, mirrors `kari-kounkel/ladybug` exactly
+  (plain HTML, Fraunces + Mulish, countdown in hero)
+- ✅ Live countdown to 10/28/2026, plus a "Two Octobers" section counting both
+  10/1 (five years sober) and 10/28 (launch)
+- ✅ Both parts of the book: Part One's three acts, Part Two = *The Book of Kari*
+  set as scripture (Kari 0:1–5 and Kari 2:1–6 verbatim)
+- ✅ Launch signup form → `chickens_signups`, insert-only under RLS
+- ✅ `marbles.js` in the `karikounkel` repo updated: Chickens marble now
+  `live:true` pointing at the site (was `live:false` with a dead `"#"`)
+
+**Decisions**
+- Launch 10/28/2026 is deliberate: five years to the day from Teen Challenge
+  graduation (10/28/2021). Sobriety 10/1/2021 is the other October date.
+- Signup table lives in kkstore, NOT a new Supabase project — Kari is already
+  paying ~$120/mo across nine projects and does not want a tenth.
+- Insert-only RLS means the publishable key in `index.html` can add a row and
+  can never read the list. Verified: insert as `anon` works, select returns 0 rows.
+- Page content is drawn from Kari's own archive, not invented; `README.md` in the
+  repo lists what each claim traces to.
+- Do not put specifics about Aunt Gwen on the page without asking. An invented
+  "lipstick on straight" detail was published and had to be removed. The true
+  memory is that Gwen was simply amazing in a little girl's mind — no inventory.
+
+**Where it stopped**
+9/4 very late. Site is live and correct. Kari produced a NEW cover — torn paper,
+black/red/kraft, a charging Polish hen, "faith. freedom. and a flock that will
+not behave." It is far better than what is on the site. It could not be
+installed because a cloud session cannot read her files.
+
+**Next steps**
+1. Put the new cover into `chickens/images/` (replaces the May 2024 collage comp,
+   which Kari does not like) and repaint the site's palette to match it — current
+   colors were pulled off the OLD cover.
+2. Clone the repo to `C:\dev\chickens`; add it to `C:\dev\DEV-INDEX.md`.
+3. Close PR #9 / remove the duplicate `chickens/` folder from cares-works.
+4. Test the live signup form once — never verified end to end (the build sandbox
+   blocks outbound supabase.co).
+5. Pre-order link, analytics property, real chapter excerpts.
+
+**Pending / frozen items**
+- **CARES logo typo — cards already printed.** The logo Kari ordered business
+  cards with reads **"SUPRORT"** instead of SUPPORT. Cards are printed; too late.
+  She has since produced a corrected logo. It is NOT yet on caresmn.com — needs
+  to land at `caresmn/public/cares-consulting-logo.png` (same filename = no code
+  change). Do not ship the misspelled one anywhere.
+- **Headshot for caresmn.com** — `kari hoglund kounkel business.png` in OneDrive
+  `Desktop/Marbles/Logos and Photos`. Plan: its own band before the CTA strip,
+  with name, "Founder + Consultant", and "Clear today. Stronger tomorrow." NOT in
+  the hero — the hero is already a two-part lockup.
+- At hero size (~260px) the new CARES logo's five icon labels and tagline may be
+  unreadable. Check on the live page; may need a cropped mark for small uses.
+- **Supabase ~$120/mo across nine projects**, most nearly empty. Consolidating to
+  two or three would plausibly take it near $30. Kari says a larger system-redesign
+  document is coming first — do not start this unprompted.
+
+**Key files**
+- `C:\dev\chickens\index.html` (whole site), `README.md` (sourcing + deploy notes)
+- `karikounkel` repo → `marbles.js` (front-door source of truth)
+- `caresmn` repo → `src/components/ChaosHero.jsx` (logo at line ~86)
+
+---
+
 ### ProGraphics
 Client: ProGraphics Enterprises Inc. — Dave Erickson (`prographicsinc@aol.com`) and Betty Erickson (`races61@aol.com`), ages 83/85. Free ledger deal because of their age. Fiscal year 4/1–3/31. Bloomington MN 55431.
 

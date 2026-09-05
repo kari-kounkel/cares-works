@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chasing Chickens — Through the Clucking Chaos | Fast Camel Press</title>
+<meta name="description" content="Chasing Chickens: Through the Clucking Chaos — a memoir by Kari Hoglund Kounkel in two parts: the story in three acts, and The Book of Kari, a sideways gospel. Out October 28, 2026 from Fast Camel Press.">
+<meta property="og:title" content="Chasing Chickens — Through the Clucking Chaos">
+<meta property="og:description" content="A memoir by Kari Hoglund Kounkel in two parts: the story in three acts, and The Book of Kari, a sideways gospel. Out October 28, 2026.">
+<meta property="og:type" content="book">
+<meta property="og:url" content="https://chickens.karikounkel.com">
+<meta property="og:image" content="https://chickens.karikounkel.com/images/cover-front.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 18c0-4 2.6-6.6 5.6-6.6 2.2 0 3.8 1 4.6 2.6l2.6-1.2-1.4 2.6c.4 1 .6 2 .6 2.6H6z' fill='%23C25B33'/%3E%3Ccircle cx='10' cy='8' r='3.4' fill='%23C25B33'/%3E%3Ccircle cx='11.2' cy='7.4' r='.9' fill='%231E1913'/%3E%3Cpath d='M13.4 8.6l2.1.7-2.1.8z' fill='%23D9A441'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,500;1,9..144,600&family=Mulish:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Torn-paper collage palette, pulled straight off the cover:
+     barn blue, kraft brown, rooster rust, straw gold, paper cream. */
+  --bg:#FBF8F2;--bg-soft:#F4EFE4;--paper:#FFFFFF;--card-edge:rgba(27,74,102,.14);
+  --blue:#2C6E93;--blue-deep:#1B4A66;--blue-soft:#5E97B8;--blue-pale:#D6E6EF;
+  --rust:#C25B33;--rust-deep:#98421F;
+  --kraft:#B8804A;--kraft-deep:#8A5C2E;
+  --straw:#D9A441;--straw-deep:#A87A22;
+  --ink:#1E1913;--ink-soft:#66594B;--ink-dim:#9A8B79;
+  --cream:#FBF3E2;--black:#0E0C0A;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Mulish',sans-serif;color:var(--ink);background:var(--bg);line-height:1.65;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+/* Warm paper wash with a cool blue horizon, like the cover's torn sky */
+body::before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;background:radial-gradient(ellipse at 50% -10%,#EAF2F7 0%,#FBF8F2 46%,#F6EFE1 100%)}
+/* Scattered feed-scratch dots — kraft, blue, straw. Very quiet. */
+body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.55;background-image:radial-gradient(circle at 7% 15%,rgba(44,110,147,.10) 0 9px,transparent 10px),radial-gradient(circle at 89% 11%,rgba(184,128,74,.09) 0 7px,transparent 8px),radial-gradient(circle at 17% 71%,rgba(217,164,65,.09) 0 6px,transparent 7px),radial-gradient(circle at 79% 57%,rgba(44,110,147,.08) 0 10px,transparent 11px),radial-gradient(circle at 94% 87%,rgba(194,91,51,.07) 0 8px,transparent 9px),radial-gradient(circle at 4% 91%,rgba(184,128,74,.08) 0 7px,transparent 8px),radial-gradient(circle at 50% 38%,rgba(217,164,65,.05) 0 14px,transparent 15px);background-repeat:no-repeat}
+.grain{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.03;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.wrap{max-width:1000px;margin:0 auto;padding:0 28px}
+section{position:relative}
+/* Torn-edge divider — the cover's visual grammar, in CSS */
+.deco-rule{display:flex;align-items:center;justify-content:center;gap:14px;margin:0 auto;color:var(--kraft-deep)}
+.deco-rule .line{height:1px;width:clamp(40px,18vw,140px);background:linear-gradient(90deg,transparent,var(--kraft))}
+.deco-rule .line.r{background:linear-gradient(90deg,var(--kraft),transparent)}
+.deco-rule .dot{width:7px;height:7px;border-radius:50%;background:var(--rust);box-shadow:0 0 0 3px rgba(194,91,51,.13)}
+.deco-rule svg{width:28px;height:28px}
+/* HERO */
+.hero{text-align:center;padding:54px 0 24px}
+.kicker{font-weight:700;letter-spacing:.34em;text-transform:uppercase;font-size:.72rem;color:var(--kraft-deep);margin-bottom:24px}
+.kicker span{color:var(--rust)}
+.cover-stage{width:clamp(260px,46vw,400px);margin:18px auto 28px;filter:drop-shadow(0 26px 38px rgba(27,74,102,.24)) drop-shadow(0 8px 14px rgba(0,0,0,.10))}
+.cover-stage img{width:100%;height:auto;display:block;border-radius:4px}
+.sr-title{font-family:'Fraunces',serif;font-weight:500;font-style:italic;color:var(--ink-soft);font-size:clamp(1rem,2.5vw,1.2rem);text-align:center;max-width:36ch;margin:0 auto;line-height:1.4}
+.hero-meta{font-weight:600;letter-spacing:.18em;font-size:.74rem;color:var(--kraft-deep);text-align:center;margin-top:14px;text-transform:uppercase}
+.hero-meta strong{font-weight:800;color:var(--rust)}
+.hero-meta .dot{color:var(--rust);margin:0 8px}
+.hero-cta{margin-top:30px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+/* COUNTDOWN */
+.coming{margin:44px auto 0;max-width:580px}
+.coming .label{font-weight:700;letter-spacing:.28em;text-transform:uppercase;font-size:.7rem;color:var(--ink-soft);text-align:center}
+.coming .date{font-family:'Fraunces',serif;font-weight:700;color:var(--ink);font-size:clamp(1.5rem,5vw,2.2rem);text-align:center;margin:6px 0 22px}
+.countdown{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.cd-cell{background:var(--paper);border:1.5px solid rgba(44,110,147,.32);border-radius:14px;padding:16px 6px 12px;text-align:center;box-shadow:0 8px 20px rgba(27,74,102,.09),inset 0 1px 0 #fff}
+.cd-cell .num{font-family:'Fraunces',serif;font-weight:700;color:var(--blue-deep);font-size:clamp(1.6rem,6vw,2.5rem);line-height:1;font-variant-numeric:tabular-nums}
+.cd-cell .unit{font-weight:600;letter-spacing:.14em;text-transform:uppercase;font-size:.62rem;color:var(--ink-soft);margin-top:7px}
+.launched{font-family:'Fraunces',serif;font-style:italic;font-size:clamp(1.4rem,5vw,2rem);color:var(--rust);text-align:center}
+/* TWO OCTOBERS */
+.octobers{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:820px;margin:0 auto}
+@media(max-width:680px){.octobers{grid-template-columns:1fr}}
+.oct{background:var(--paper);border:1.5px solid var(--card-edge);border-radius:20px;padding:30px 26px 28px;text-align:center;box-shadow:0 12px 28px rgba(27,74,102,.08);position:relative;overflow:hidden}
+.oct::before{content:"";position:absolute;inset:0 0 auto 0;height:5px;background:linear-gradient(90deg,var(--blue),var(--straw),var(--rust))}
+.oct .otag{font-weight:800;letter-spacing:.2em;text-transform:uppercase;font-size:.64rem;color:var(--rust);margin-bottom:10px}
+.oct .obig{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(3rem,12vw,4.6rem);line-height:.95;color:var(--blue-deep);font-variant-numeric:tabular-nums;letter-spacing:-.03em}
+.oct .odays{font-weight:700;letter-spacing:.2em;text-transform:uppercase;font-size:.66rem;color:var(--ink-soft);margin-top:8px}
+.oct .oname{font-family:'Fraunces',serif;font-weight:700;font-size:1.22rem;color:var(--ink);margin-top:18px;line-height:1.2}
+.oct .odate{font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:.66rem;color:var(--kraft-deep);margin-top:7px}
+.oct .owhy{font-family:'Fraunces',serif;font-style:italic;color:var(--ink-soft);font-size:.98rem;margin-top:14px;line-height:1.45}
+.oct.past .obig{color:var(--rust)}
+/* SECTION SHELL */
+.block{padding:60px 0}
+.eyebrow{font-weight:800;letter-spacing:.26em;text-transform:uppercase;font-size:.72rem;color:var(--rust);text-align:center;margin-bottom:14px}
+.h2{font-family:'Fraunces',serif;font-weight:700;color:var(--ink);font-size:clamp(1.9rem,5.5vw,3rem);line-height:1.04;text-align:center;letter-spacing:-.01em;margin-bottom:26px}
+.lede{font-size:clamp(1.05rem,2.6vw,1.22rem);color:var(--ink-soft);max-width:62ch;margin:0 auto 20px;text-align:center}
+.prose{max-width:60ch;margin:0 auto;font-size:1.06rem;color:var(--ink);text-align:center}
+.prose p{margin-bottom:16px}
+.prose em{font-style:italic;color:var(--blue-deep)}
+/* EXCERPT — the torn-paper card */
+.excerpt{max-width:620px;margin:0 auto;background:var(--paper);border:1.5px solid var(--card-edge);border-radius:4px;padding:40px 38px 34px;box-shadow:0 18px 40px rgba(27,74,102,.10);position:relative;transform:rotate(-.35deg)}
+/* The tilt overhangs the viewport once the card fills the column, so it
+   straightens up on narrow screens rather than causing a sideways scroll. */
+@media(max-width:760px){.excerpt{transform:none}}
+@media(max-width:560px){.excerpt{padding:30px 24px 26px}}
+.excerpt::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:10px;background:var(--bg);clip-path:polygon(0 40%,4% 70%,9% 35%,15% 75%,22% 40%,29% 80%,36% 45%,44% 78%,52% 40%,60% 76%,68% 42%,76% 80%,84% 45%,92% 74%,100% 42%,100% 100%,0 100%)}
+.excerpt .etag{font-weight:800;letter-spacing:.2em;text-transform:uppercase;font-size:.62rem;color:var(--kraft-deep);text-align:center;margin-bottom:18px}
+.excerpt p{font-family:'Fraunces',serif;font-size:1.08rem;line-height:1.72;color:var(--ink);margin-bottom:15px}
+.excerpt p:last-of-type{margin-bottom:0}
+.excerpt em{font-style:italic;color:var(--rust-deep)}
+.excerpt .drop::first-letter{font-family:'Fraunces',serif;font-weight:900;font-size:3.2rem;float:left;line-height:.82;padding:6px 10px 0 0;color:var(--rust)}
+/* PULL QUOTE */
+.pull{max-width:26ch;margin:0 auto;text-align:center;font-family:'Fraunces',serif}
+.pull .big{font-weight:900;color:var(--blue-deep);font-size:clamp(1.9rem,6.4vw,3.1rem);line-height:1.06;letter-spacing:-.01em}
+.pull .small{font-style:italic;color:var(--ink-soft);font-size:clamp(1rem,2.8vw,1.32rem);margin-top:16px}
+/* THREE ACTS */
+.acts{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+@media(max-width:820px){.acts{grid-template-columns:1fr;max-width:520px;margin:0 auto}}
+.act{background:var(--paper);border:1.5px solid var(--card-edge);border-radius:18px;padding:28px 24px 26px;box-shadow:0 10px 24px rgba(27,74,102,.06);transition:transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .35s,border-color .35s;display:flex;flex-direction:column}
+.act:hover{transform:translateY(-6px);box-shadow:0 20px 38px rgba(27,74,102,.14);border-color:var(--blue)}
+.act .an{font-weight:800;letter-spacing:.2em;text-transform:uppercase;font-size:.62rem;color:var(--rust);margin-bottom:10px}
+.act .at{font-family:'Fraunces',serif;font-weight:700;font-size:1.42rem;color:var(--ink);line-height:1.12;margin-bottom:4px}
+.act .aw{font-family:'Fraunces',serif;font-style:italic;font-size:1rem;color:var(--blue-deep);margin-bottom:14px}
+.act .ad{font-size:.95rem;color:var(--ink-soft);flex:1}
+.act .ae{font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.62rem;color:var(--kraft-deep);margin-top:16px;padding-top:14px;border-top:1px dashed rgba(184,128,74,.4)}
+/* THIRTEEN */
+.thirteen{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;max-width:820px;margin:0 auto}
+@media(max-width:640px){.thirteen{grid-template-columns:1fr}}
+.th{display:flex;align-items:flex-start;gap:14px;background:var(--paper);border:1.5px solid var(--card-edge);border-radius:12px;padding:14px 16px;transition:all .25s}
+.th:hover{border-color:var(--blue);transform:translateX(3px);box-shadow:0 8px 20px rgba(27,74,102,.09)}
+.th .n{flex:0 0 30px;width:30px;height:30px;border-radius:50%;background:var(--blue);color:#fff;font-family:'Fraunces',serif;font-weight:700;font-size:.88rem;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.th .t{font-size:.96rem;color:var(--ink);line-height:1.45}
+.th.lucky{grid-column:1/-1;background:linear-gradient(160deg,#FFFBF1,#F7EACB);border-color:var(--straw);box-shadow:0 14px 30px rgba(217,164,65,.24)}
+.th.lucky .n{background:var(--rust)}
+.th.lucky .t{font-family:'Fraunces',serif;font-style:italic;font-size:1.06rem}
+/* VERSE BAND */
+.verse-band{background:linear-gradient(160deg,var(--blue),var(--blue-deep));border-radius:24px;padding:56px 44px 50px;text-align:center;color:var(--cream);box-shadow:0 26px 52px rgba(27,74,102,.3);max-width:760px;margin:0 auto}
+@media(max-width:600px){.verse-band{padding:40px 26px 36px;border-radius:18px}}
+.verse-band .eyebrow{color:rgba(251,243,226,.72)}
+.verse-band blockquote{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(1.4rem,4.4vw,2.1rem);line-height:1.28;margin-bottom:18px}
+.verse-band cite{font-style:normal;font-weight:700;letter-spacing:.2em;text-transform:uppercase;font-size:.68rem;color:var(--straw)}
+.verse-band .gloss{font-family:'Fraunces',serif;font-style:italic;font-size:1.02rem;opacity:.9;max-width:44ch;margin:22px auto 0}
+/* BUTTONS */
+.btn{display:inline-block;text-decoration:none;font-family:'Mulish',sans-serif;font-weight:800;letter-spacing:.06em;text-transform:uppercase;font-size:.82rem;background:var(--blue-deep);color:var(--cream);padding:17px 38px;border-radius:999px;box-shadow:0 12px 26px rgba(27,74,102,.32);transition:all .28s;border:2px solid var(--blue-deep);cursor:pointer}
+.btn:hover{background:var(--blue);border-color:var(--blue);transform:translateY(-2px);box-shadow:0 16px 32px rgba(27,74,102,.4)}
+.btn.ghost{background:transparent;color:var(--blue-deep);box-shadow:none}
+.btn.ghost:hover{background:rgba(44,110,147,.08);color:var(--blue-deep)}
+.btn.rust{background:var(--rust);border-color:var(--rust);box-shadow:0 12px 26px rgba(194,91,51,.3)}
+.btn.rust:hover{background:var(--rust-deep);border-color:var(--rust-deep)}
+/* SIGNUP */
+.signup{max-width:560px;margin:0 auto;background:var(--paper);border:1.5px solid rgba(184,128,74,.36);border-radius:20px;padding:34px 30px 30px;box-shadow:0 16px 36px rgba(27,74,102,.09);text-align:left}
+@media(max-width:520px){.signup{padding:26px 20px 24px}}
+.field{margin-bottom:16px}
+.field label{display:block;font-weight:700;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:7px}
+.field label .opt{font-weight:600;letter-spacing:.04em;text-transform:none;color:var(--ink-dim);font-size:.76rem}
+.field input,.field textarea{width:100%;font-family:'Mulish',sans-serif;font-size:1rem;color:var(--ink);background:#fff;border:1.5px solid rgba(30,25,19,.18);border-radius:11px;padding:13px 15px;transition:border-color .2s,box-shadow .2s}
+.field input:focus,.field textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(44,110,147,.16)}
+.field textarea{resize:vertical;min-height:84px}
+.consent{display:flex;gap:11px;align-items:flex-start;font-size:.9rem;color:var(--ink-soft);margin:4px 0 20px;text-align:left}
+.consent input{margin-top:4px;width:18px;height:18px;accent-color:var(--blue-deep);flex:0 0 auto}
+.signup .btn{width:100%}
+.signup .btn[disabled]{opacity:.6;cursor:not-allowed;transform:none}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.form-msg{margin-top:16px;font-family:'Fraunces',serif;font-style:italic;font-size:.98rem;text-align:center;line-height:1.45}
+.form-msg.ok{color:var(--blue-deep)}
+.form-msg.err{color:var(--rust-deep)}
+.form-note{text-align:center;font-size:.78rem;color:var(--ink-dim);margin-top:14px}
+/* SCRIPTURE — Part Two's gospel set as a page from the book itself */
+.scripture{max-width:600px;margin:0 auto;background:linear-gradient(170deg,#FFFCF4,#F8F0DD);border:1.5px solid rgba(168,122,34,.4);border-radius:6px;padding:44px 46px 38px;box-shadow:0 20px 44px rgba(138,92,46,.16)}
+@media(max-width:560px){.scripture{padding:30px 24px 26px}}
+.scripture .chap{font-family:'Fraunces',serif;font-weight:700;font-variant:small-caps;letter-spacing:.08em;font-size:1rem;color:var(--rust-deep);text-align:center;padding-bottom:14px;margin-bottom:22px;border-bottom:1px solid rgba(168,122,34,.32)}
+.verse{display:grid;grid-template-columns:1.6rem 1fr;gap:10px;margin-bottom:9px;align-items:baseline}
+.verse .vn{font-family:'Mulish',sans-serif;font-weight:800;font-size:.66rem;color:var(--straw-deep);text-align:right;font-variant-numeric:tabular-nums;padding-top:.34rem}
+.verse .vt{font-family:'Fraunces',serif;font-size:1.05rem;line-height:1.62;color:var(--ink)}
+.verse .vt em{font-style:italic;color:var(--rust-deep)}
+.scripture .gloss{margin-top:24px;padding-top:18px;border-top:1px dashed rgba(168,122,34,.42);font-family:'Fraunces',serif;font-style:italic;font-size:.98rem;line-height:1.6;color:var(--ink-soft)}
+.scripture .gloss b{font-style:normal;font-weight:700;font-variant:small-caps;letter-spacing:.06em;color:var(--kraft-deep)}
+/* Part divider */
+.partmark{text-align:center;font-weight:800;letter-spacing:.3em;text-transform:uppercase;font-size:.66rem;color:var(--kraft-deep);margin-bottom:10px}
+/* LINKS */
+.link-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;max-width:880px;margin:0 auto}
+@media(max-width:620px){.link-grid{grid-template-columns:1fr}}
+.lnk{display:flex;align-items:center;gap:14px;text-decoration:none;background:var(--paper);border:1.5px solid rgba(30,25,19,.1);border-radius:14px;padding:18px 20px;color:var(--ink);transition:all .28s}
+.lnk:hover{border-color:var(--blue);transform:translateX(4px);box-shadow:0 10px 24px rgba(27,74,102,.13)}
+.lnk .ic{width:40px;height:40px;flex:0 0 40px;border-radius:50%;background:rgba(44,110,147,.09);display:flex;align-items:center;justify-content:center;color:var(--blue-deep);font-family:'Fraunces',serif;font-weight:700;font-size:1.2rem}
+.lnk .tx b{display:block;font-family:'Fraunces',serif;font-size:1.05rem}
+.lnk .tx span{font-size:.82rem;color:var(--ink-soft)}
+/* FOOTER */
+footer{text-align:center;padding:54px 0 70px;color:var(--ink-soft)}
+footer .sparkle{font-family:'Fraunces',serif;font-style:italic;font-weight:600;color:var(--kraft-deep);font-size:clamp(1.3rem,4vw,1.8rem);margin-bottom:22px}
+footer .fp{font-family:'Fraunces',serif;font-weight:700;font-size:1.3rem;color:var(--rust);letter-spacing:.02em}
+footer .fp .camel{font-style:italic;font-weight:500}
+footer .tiny{font-size:.8rem;margin-top:10px}
+footer a{color:var(--kraft-deep);text-decoration:none;border-bottom:1px solid transparent;transition:border .2s}
+footer a:hover{border-color:var(--kraft-deep)}
+/* ANIM */
+.reveal{opacity:0;transform:translateY(22px);animation:rise .9s cubic-bezier(.2,.8,.2,1) forwards}
+@keyframes rise{to{opacity:1;transform:none}}
+.d1{animation-delay:.05s}.d2{animation-delay:.2s}.d3{animation-delay:.35s}.d4{animation-delay:.5s}.d5{animation-delay:.65s}.d6{animation-delay:.8s}
+.io{opacity:0;transform:translateY(28px);transition:opacity .8s,transform .8s}
+.io.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){.reveal{animation:none;opacity:1;transform:none}.io{opacity:1;transform:none;transition:none}}
+</style>
+</head>
+<body>
+<div class="grain"></div>
+
+<!-- ===== HERO ===== -->
+<section class="hero wrap">
+  <p class="kicker reveal d1"><span>Fast Camel Press</span> &nbsp;·&nbsp; A Memoir</p>
+
+  <div class="cover-stage reveal d2">
+    <img src="images/cover-front.jpg" alt="Chasing Chickens: Through the Clucking Chaos, by Kari Kounkel — torn-paper collage cover with hens, roosters and chicks on a barn-blue ground" width="900" height="1436" fetchpriority="high">
+  </div>
+
+  <h1 class="sr-title reveal d3">Chasing Chickens: Through the Clucking Chaos</h1>
+  <p class="hero-meta reveal d4">A memoir by <strong>Kari Hoglund Kounkel</strong></p>
+  <div class="hero-cta reveal d5">
+    <a class="btn" href="#the-book">What It Is →</a>
+    <a class="btn ghost" href="https://karikounkel.substack.com" target="_blank" rel="noopener">Read Along</a>
+  </div>
+
+  <div class="coming reveal d5">
+    <p class="label" style="margin-top:36px">Loose in the yard in</p>
+    <p class="date" id="launch-date">Coming Soon</p>
+    <div class="countdown" id="countdown">
+      <div class="cd-cell"><div class="num" id="cd-days">—</div><div class="unit">Days</div></div>
+      <div class="cd-cell"><div class="num" id="cd-hours">—</div><div class="unit">Hours</div></div>
+      <div class="cd-cell"><div class="num" id="cd-mins">—</div><div class="unit">Minutes</div></div>
+      <div class="cd-cell"><div class="num" id="cd-secs">—</div><div class="unit">Seconds</div></div>
+    </div>
+  </div>
+
+  <div class="deco-rule reveal d6" style="margin-top:50px">
+    <span class="line"></span><span class="dot"></span>
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 18c0-4 2.6-6.6 5.6-6.6 2.2 0 3.8 1 4.6 2.6l2.6-1.2-1.4 2.6c.4 1 .6 2 .6 2.6H6z" fill="#C25B33"/><circle cx="10" cy="8" r="3.4" fill="#C25B33"/><path d="M10 3.6c.7-1 1.9-.9 2 .3.9-.7 1.9 0 1.5 1.1" stroke="#98421F" stroke-width="1.3" fill="none" stroke-linecap="round"/><circle cx="11.2" cy="7.4" r=".9" fill="#1E1913"/><path d="M13.4 8.6l2.1.7-2.1.8z" fill="#D9A441"/><path d="M9 18v2.6M13 18v2.6" stroke="#8A5C2E" stroke-width="1.3" stroke-linecap="round"/></svg>
+    <span class="dot"></span><span class="line r"></span>
+  </div>
+</section>
+
+<!-- ===== TWO OCTOBERS ===== -->
+<section class="block wrap io" id="two-octobers">
+  <p class="eyebrow">Two Dates, Twenty-Seven Days Apart</p>
+  <h2 class="h2">October is doing a lot<br>of heavy lifting this year.</h2>
+  <p class="lede">One date is the anniversary of the day the drinking stopped. The other is five years to the day from walking out of Teen Challenge with a diploma and no idea what came next. The book lands on the second one. On purpose.</p>
+  <div class="octobers">
+    <div class="oct" data-target="2026-10-01T00:00:00">
+      <p class="otag">Milestone</p>
+      <p class="obig" data-slot="num">—</p>
+      <p class="odays" data-slot="unit">Days</p>
+      <p class="oname">Five Years Sober</p>
+      <p class="odate">October 1, 2026</p>
+      <p class="owhy">Sobriety date: 10/1/2021. Five years of showing up on days that did not feel like showing up.</p>
+    </div>
+    <div class="oct" data-target="2026-10-28T09:00:00">
+      <p class="otag">Launch Day</p>
+      <p class="obig" data-slot="num">—</p>
+      <p class="odays" data-slot="unit">Days</p>
+      <p class="oname">The Book Hatches</p>
+      <p class="odate">October 28, 2026</p>
+      <p class="owhy">Graduation day was 10/28/2021. Same calendar square, five years on, with a book in hand instead of a diploma.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== THE FIRST CHICKEN ===== -->
+<section class="block wrap io">
+  <p class="eyebrow">Why Chickens</p>
+  <h2 class="h2">The first chicken<br>belonged to Aunt Gwen.</h2>
+  <div class="excerpt">
+    <p class="etag">From the manuscript · "The First Chicken"</p>
+    <p class="drop">I was four, maybe five, when I first saw Aunt Gwen chase a chicken. It wasn't a wild frenzy — it was choreography. Barefoot in the yard, apron snapping, one hand on her hip, the other poised like God's own hook. She caught it, cracked it, cleaned it, cooked it.</p>
+    <p>That chicken didn't stand a chance. Neither did I. Ask me what she actually did all day and I couldn't tell you — I was four. I only knew she was <em>amazing</em>. That was the whole finding: filed by a very small girl, with total confidence and no evidence.</p>
+    <p>I didn't know what I was witnessing, not fully. But somewhere in the small-boned wonder of my brain, I decided: <em>I want to be her.</em></p>
+    <p>And now, all these years later, sewing sleeves between spreadsheets and singing hymns with a full mouth of to-dos, I suddenly see it — I <em>am</em> Aunt Gwen.</p>
+    <p>No wonder I've been chasing chickens all this time. I just didn't know they were holy.</p>
+  </div>
+</section>
+
+<!-- ===== THE BOOK ===== -->
+<section class="block wrap io" id="the-book">
+  <p class="eyebrow">The Book</p>
+  <h2 class="h2">Scattered is not the same<br>thing as lost.</h2>
+  <div class="prose">
+    <p>This is a memoir about a life that got away from her — a yard full of loose birds, every one of them squawking for attention, every one of them somehow hers.</p>
+    <p>It is not a recovery manual. It is not a redemption pamphlet with a soft-focus cover. It's the actual record: the childhood that formed her, the crash that split her timeline in half, the decades of thriving in public while unraveling in private, and the 366 days that put her back together in an order nobody would have chosen.</p>
+    <p>It is <em>very funny</em> in the places where funny is the only honest response, and it goes completely quiet in the places that earned quiet.</p>
+    <p>It comes in two parts. <em>Part One</em> is the story. <em>Part Two</em> is a gospel.</p>
+  </div>
+</section>
+
+<!-- ===== THE THREE ACTS ===== -->
+<section class="block wrap io" style="background:linear-gradient(180deg,transparent,rgba(44,110,147,.045),transparent)">
+  <p class="partmark">Part One</p>
+  <p class="eyebrow">The Story</p>
+  <h2 class="h2">Three acts.</h2>
+  <div class="acts">
+    <div class="act">
+      <p class="an">Act One</p>
+      <p class="at">The Making</p>
+      <p class="aw">Everything that built the girl.</p>
+      <p class="ad">A military father who came home to a daughter he hadn't met. A mother she checked on at four years old to see if she was still breathing. A theology of self-erasure taught early and taught well: never say no, and never let them see you sweat.</p>
+      <p class="ae">Ends 1997 · Monticello</p>
+    </div>
+    <div class="act">
+      <p class="an">Act Two</p>
+      <p class="at">The Unmaking</p>
+      <p class="aw">Thriving out loud. Coming apart quietly.</p>
+      <p class="ad">Thirty-five years in transportation. A career that worked, a marriage that photographed well, and a slow structural failure underneath both. This is the long act — the one where everything she was good at kept working right up until it didn't.</p>
+      <p class="ae">The golden years, and the bill for them</p>
+    </div>
+    <div class="act">
+      <p class="an">Act Three</p>
+      <p class="at">The Remaking</p>
+      <p class="aw">366 days, then the rest of it.</p>
+      <p class="ad">Teen Challenge, arriving October 26, 2020. A hellish year measured in single days. Sobriety on 10/1/2021, graduation on 10/28, and then the strangest part of the whole story: five years of building something real, mostly through obedience and staying still.</p>
+      <p class="ae">Still going · Still funny · Still here</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PART TWO — THE BOOK OF KARI ===== -->
+<section class="block wrap io">
+  <p class="partmark">Part Two</p>
+  <p class="eyebrow">The Gospel</p>
+  <h2 class="h2">The Book of Kari</h2>
+  <p class="lede"><em>Truth from a Wanderer Who Finally Sat Down</em> — a gospel according to a hot mess prophetess. Set in scripture format, chapter and verse, styled after Luke and played completely straight, which is exactly what makes it funny. Thirteen parables, footnote commentary, and fragments that surface all through Part One as <em>Chicken Scratchings</em>.</p>
+
+  <div class="scripture">
+    <p class="chap">Kari 0:1–5</p>
+    <div class="verse"><span class="vn">1</span><span class="vt">In the beginning was a list, and the list was with her, and the list was her god.</span></div>
+    <div class="verse"><span class="vn">2</span><span class="vt">She checked it twice, thrice, and fourfold, and still the void inside her howled.</span></div>
+    <div class="verse"><span class="vn">3</span><span class="vt">The counselors wept; the mentors spoke in acronyms. She nodded and journaled and color-coded.</span></div>
+    <div class="verse"><span class="vn">4</span><span class="vt">But the answers came not.</span></div>
+    <div class="verse"><span class="vn">5</span><span class="vt">And lo, in the tenth month of treatment, she saw: <em>no one was coming with the map.</em></span></div>
+    <p class="gloss"><b>Commentary.</b> Before wisdom, there was a spreadsheet. This is the sacred absurdity we honor: that the ones who try hardest to get it right are often the most lost. This is not shame; this is prophecy in the raw.</p>
+  </div>
+
+  <div class="scripture" style="margin-top:22px">
+    <p class="chap">Kari 2:1–6</p>
+    <div class="verse"><span class="vn">1</span><span class="vt">Blessed are the mustard-brained, for they shall confound the professionals.</span></div>
+    <div class="verse"><span class="vn">2</span><span class="vt">Blessed are the relapse repeaters, for their forgiveness shall run <em>thirteen layers deep</em>.</span></div>
+    <div class="verse"><span class="vn">3</span><span class="vt">Blessed are the spiritual smartasses, for their parables shall tip sideways.</span></div>
+    <div class="verse"><span class="vn">4</span><span class="vt">Blessed are the boundary-havers, for they shall inherit their calendars.</span></div>
+    <div class="verse"><span class="vn">5</span><span class="vt">Blessed are the unpolished, the unbeautiful, the unbothered — they shall see God while wearing stretchy pants.</span></div>
+    <div class="verse"><span class="vn">6</span><span class="vt">Amen and amen.</span></div>
+    <p class="gloss"><b>Note.</b> Kari 2 opens the Beatitudes. There are more of them, and they get worse.</p>
+  </div>
+</section>
+
+<!-- ===== THE VERSE ===== -->
+<section class="block wrap io">
+  <div class="verse-band">
+    <p class="eyebrow">The Verse Under the Whole Thing</p>
+    <blockquote>"The <span style="font-variant:small-caps">Lord</span> will fight for you, and you have only to be silent."</blockquote>
+    <cite>Exodus 14:14 · ESV</cite>
+    <p class="gloss">Which is a genuinely infuriating instruction for a woman who has never once in her life been silent, and has chased a great number of things that were already running the right direction.</p>
+  </div>
+</section>
+
+<!-- ===== THIRTEEN THINGS ===== -->
+<section class="block wrap io">
+  <p class="eyebrow">A Partial Inventory</p>
+  <h2 class="h2">Thirteen things<br>loose in this book.</h2>
+  <div class="thirteen">
+    <div class="th"><span class="n">1</span><span class="t">An aunt in a yard with a chicken, and a small girl deciding to be her.</span></div>
+    <div class="th"><span class="n">2</span><span class="t">A bus. A bridge of a year. A date that splits a life into before and after.</span></div>
+    <div class="th"><span class="n">3</span><span class="t">Thirty-five years of moving other people from where they were to where they needed to be.</span></div>
+    <div class="th"><span class="n">4</span><span class="t">A father's advice, followed faithfully, right off a cliff.</span></div>
+    <div class="th"><span class="n">5</span><span class="t">The particular loneliness of being the competent one.</span></div>
+    <div class="th"><span class="n">6</span><span class="t">Two sons, and what they saw that she thought she was hiding.</span></div>
+    <div class="th"><span class="n">7</span><span class="t">A marriage that looked correct from the road.</span></div>
+    <div class="th"><span class="n">8</span><span class="t">366 days. Counted the hard way, one at a time.</span></div>
+    <div class="th"><span class="n">9</span><span class="t">A woman named Emily who showed up on a January first.</span></div>
+    <div class="th"><span class="n">10</span><span class="t">Dry bones, and what happened to them.</span></div>
+    <div class="th"><span class="n">11</span><span class="t">The three weeks of disorientation nobody warns you about after the hard part ends.</span></div>
+    <div class="th"><span class="n">12</span><span class="t">Two granddaughters who will read this someday, which changed how it got written.</span></div>
+    <div class="th lucky"><span class="n">13</span><span class="t">Every chicken she ever chased, and the one she finally caught.</span></div>
+  </div>
+</section>
+
+<!-- ===== GET IT ===== -->
+<section class="block wrap io" style="text-align:center">
+  <p class="eyebrow">When It Hatches</p>
+  <h2 class="h2">Be in the yard<br>on October 28.</h2>
+  <p class="lede">Leave your name and you'll hear the morning it's out — nothing before that, nothing after it that isn't this book.</p>
+
+  <form class="signup" id="signup" novalidate>
+    <div class="field">
+      <label for="su-name">Name <span class="opt">— optional</span></label>
+      <input type="text" id="su-name" name="name" autocomplete="name" maxlength="120">
+    </div>
+    <div class="field">
+      <label for="su-email">Email</label>
+      <input type="email" id="su-email" name="email" autocomplete="email" required maxlength="254" placeholder="you@example.com">
+    </div>
+    <div class="field">
+      <label for="su-chasing">What are you chasing these days? <span class="opt">— optional</span></label>
+      <textarea id="su-chasing" name="chasing" maxlength="500"></textarea>
+    </div>
+    <label class="consent">
+      <input type="checkbox" id="su-consent" required>
+      <span>Yes, email me when <em>Chasing Chickens</em> is out.</span>
+    </label>
+    <div class="hp" aria-hidden="true"><label>Leave this empty<input type="text" id="su-hp" tabindex="-1" autocomplete="off"></label></div>
+    <button class="btn rust" type="submit" id="su-btn">Put Me On the List →</button>
+    <p class="form-msg" id="su-msg" role="status" aria-live="polite"></p>
+    <p class="form-note">One email, on launch day. No list-swapping, no drip sequence.</p>
+  </form>
+
+  <div class="hero-cta" style="margin-top:28px">
+    <a class="btn ghost" href="https://karikounkel.substack.com" target="_blank" rel="noopener">Follow the Writing</a>
+    <a class="btn ghost" href="https://karikounkel.store" target="_blank" rel="noopener">Fast Camel Press</a>
+  </div>
+</section>
+
+<!-- ===== MORE FROM KARI ===== -->
+<section class="block wrap io">
+  <p class="eyebrow">The Rest of the Flock</p>
+  <h2 class="h2">More from Kari</h2>
+  <div class="link-grid">
+    <a class="lnk" href="https://karikounkel.com" target="_blank" rel="noopener"><span class="ic">K</span><span class="tx"><b>Kari Kounkel</b><span>Home base — all the books &amp; mischief</span></span></a>
+    <a class="lnk" href="https://karikounkel.substack.com" target="_blank" rel="noopener"><span class="ic">📖</span><span class="tx"><b>karikounkel.substack.com</b><span>Daily essays &amp; the full archive</span></span></a>
+    <a class="lnk" href="https://ladybug.karikounkel.com" target="_blank" rel="noopener"><span class="ic">🐞</span><span class="tx"><b>Ladybug, Ladybug</b><span>Keeping It Classy in a Buggy World</span></span></a>
+    <a class="lnk" href="https://karikounkel.store" target="_blank" rel="noopener"><span class="ic">🐪</span><span class="tx"><b>Fast Camel Press</b><span>Books &amp; mischief at karikounkel.store</span></span></a>
+    <a class="lnk" href="https://caresmn.com" target="_blank" rel="noopener"><span class="ic">🌿</span><span class="tx"><b>CARES</b><span>Kari's other corner — caresmn.com</span></span></a>
+  </div>
+</section>
+
+<!-- ===== CLOSER ===== -->
+<section class="block wrap io">
+  <div class="pull">
+    <p class="big">She did not chase the chickens.<br>She became one.</p>
+    <p class="small">— The Book of Kari</p>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="wrap">
+  <div class="deco-rule" style="margin-bottom:24px">
+    <span class="line"></span><span class="dot"></span>
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 18c0-4 2.6-6.6 5.6-6.6 2.2 0 3.8 1 4.6 2.6l2.6-1.2-1.4 2.6c.4 1 .6 2 .6 2.6H6z" fill="#C25B33"/><circle cx="10" cy="8" r="3.4" fill="#C25B33"/><path d="M10 3.6c.7-1 1.9-.9 2 .3.9-.7 1.9 0 1.5 1.1" stroke="#98421F" stroke-width="1.3" fill="none" stroke-linecap="round"/><circle cx="11.2" cy="7.4" r=".9" fill="#1E1913"/><path d="M13.4 8.6l2.1.7-2.1.8z" fill="#D9A441"/><path d="M9 18v2.6M13 18v2.6" stroke="#8A5C2E" stroke-width="1.3" stroke-linecap="round"/></svg>
+    <span class="dot"></span><span class="line r"></span>
+  </div>
+  <p class="sparkle">Now go sparkle.</p>
+  <p class="fp">Fast <span class="camel">Camel</span> Press</p>
+  <p class="tiny">© <span id="yr"></span> Kari Hoglund Kounkel · <em>Chasing Chickens: Through the Clucking Chaos</em></p>
+  <p class="tiny"><a href="https://chickens.karikounkel.com">chickens.karikounkel.com</a></p>
+</footer>
+
+<script>
+/* ★★★ EDIT ONE LINE — the launch countdown target. ★★★ */
+const LAUNCH_DATE  = "2026-10-28T09:00:00"; // Publication day — five years from graduation
+const LAUNCH_LABEL = "Loose in the yard in";
+const LAUNCH_VERB  = "Hatches";             // becomes "Hatches October 28, 2026"
+
+(function runCountdown(){
+  const coming = document.querySelector('.coming');
+  const ms = LAUNCH_DATE ? new Date(LAUNCH_DATE).getTime() : NaN;
+  // No date, invalid date, or already past → hide the whole band gracefully.
+  if (!Number.isFinite(ms) || ms - Date.now() <= 0) {
+    if (coming) coming.style.display = 'none';
+    return;
+  }
+  const fmt = new Date(ms).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  const labelEl = document.querySelector('.coming .label');
+  if (labelEl) labelEl.textContent = LAUNCH_LABEL;
+  document.getElementById('launch-date').textContent = LAUNCH_VERB + ' ' + fmt;
+  const els = {
+    days:  document.getElementById('cd-days'),
+    hours: document.getElementById('cd-hours'),
+    mins:  document.getElementById('cd-mins'),
+    secs:  document.getElementById('cd-secs')
+  };
+  const cdWrap = document.getElementById('countdown');
+  const pad = (n) => String(n).padStart(2,'0');
+  let timer;
+  function tick(){
+    let diff = ms - Date.now();
+    if (diff <= 0) {
+      if (cdWrap) cdWrap.innerHTML = '<div class="launched" style="grid-column:1/-1">It\'s loose. 🐔</div>';
+      document.getElementById('launch-date').textContent = 'Out now — ' + fmt;
+      clearInterval(timer);
+      return;
+    }
+    const d = Math.floor(diff/86400000); diff -= d*86400000;
+    const h = Math.floor(diff/3600000);  diff -= h*3600000;
+    const m = Math.floor(diff/60000);    diff -= m*60000;
+    const s = Math.floor(diff/1000);
+    els.days.textContent  = d;
+    els.hours.textContent = pad(h);
+    els.mins.textContent  = pad(m);
+    els.secs.textContent  = pad(s);
+  }
+  tick();
+  timer = setInterval(tick, 1000);
+})();
+
+/* The two October cards. Each counts whole days to its own target, and
+   flips to "days since" once the date passes so the page still reads
+   right on October 2nd and on November 1st. */
+(function twoOctobers(){
+  const cards = document.querySelectorAll('.oct[data-target]');
+  if (!cards.length) return;
+  function paint(){
+    const now = Date.now();
+    cards.forEach(card => {
+      const t = new Date(card.getAttribute('data-target')).getTime();
+      if (!Number.isFinite(t)) return;
+      // Floor, so this agrees with the hero countdown's day cell rather
+      // than reading one higher all day long.
+      const days = Math.floor((t - now) / 86400000);
+      const num  = card.querySelector('[data-slot="num"]');
+      const unit = card.querySelector('[data-slot="unit"]');
+      if (t - now > 0) {
+        card.classList.remove('past');
+        num.textContent  = days;
+        unit.textContent = days === 0 ? 'Today' : (days === 1 ? 'Day to go' : 'Days to go');
+      } else {
+        card.classList.add('past');
+        const since = Math.floor((now - t) / 86400000);
+        num.textContent  = since;
+        unit.textContent = since === 1 ? 'Day since' : 'Days since';
+      }
+    });
+  }
+  paint();
+  setInterval(paint, 60000); // whole days — once a minute is plenty
+})();
+
+/* Launch-list signup. Inserts straight into the kkstore Supabase project's
+   chickens_signups table with the publishable key. The table is insert-only
+   under RLS — this key can add a row and can never read the list back, so
+   it is safe to ship in the page. */
+(function signup(){
+  const SUPABASE_URL = 'https://lheytkgixafdhluuvrbg.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_rX_Sim_EpCNyPpBL7pbH0w_FUr_DVce';
+
+  const form = document.getElementById('signup');
+  if (!form) return;
+  const btn = document.getElementById('su-btn');
+  const msg = document.getElementById('su-msg');
+  const say = (text, kind) => { msg.textContent = text; msg.className = 'form-msg ' + kind; };
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (document.getElementById('su-hp').value) return;   // bot filled the honeypot
+
+    const email = document.getElementById('su-email').value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+      say('That email address doesn\u2019t look finished — check it and try again.', 'err');
+      return;
+    }
+    if (!document.getElementById('su-consent').checked) {
+      say('Tick the box and you\u2019re in.', 'err');
+      return;
+    }
+
+    btn.disabled = true;
+    const wasLabel = btn.textContent;
+    btn.textContent = 'Adding you…';
+    say('', '');
+
+    try {
+      const res = await fetch(SUPABASE_URL + '/rest/v1/chickens_signups', {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_KEY,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({
+          email,
+          name:    document.getElementById('su-name').value.trim() || null,
+          chasing: document.getElementById('su-chasing').value.trim() || null,
+          consent: true,
+          user_agent: navigator.userAgent.slice(0, 300)
+        })
+      });
+
+      if (res.ok) {
+        form.querySelectorAll('input, textarea, button').forEach(el => el.disabled = true);
+        say('You\u2019re on the list. See you October 28. 🐔', 'ok');
+        return;
+      }
+      if (res.status === 409) {                       // unique index on lower(email)
+        say('You\u2019re already on the list — nothing more to do.', 'ok');
+        btn.disabled = true;
+        return;
+      }
+      throw new Error('HTTP ' + res.status);
+    } catch (err) {
+      say('That didn\u2019t save. Try again, or email kari@karikounkel.com and she\u2019ll add you by hand.', 'err');
+      btn.disabled = false;
+      btn.textContent = wasLabel;
+    }
+  });
+})();
+
+document.getElementById('yr').textContent = new Date().getFullYear();
+
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(x => { if (x.isIntersecting) { x.target.classList.add('in'); io.unobserve(x.target); } });
+}, {threshold:.1});
+document.querySelectorAll('.io').forEach(el => io.observe(el));
+</script>
+</body>
+</html>
