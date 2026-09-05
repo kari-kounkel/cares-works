@@ -80,9 +80,17 @@ export const HERO_BTN_GLOW_ORANGE = `0 4px 18px rgba(34,197,94,0.55), 0 0 40px r
 // --- Building blocks ---------------------------------------------------------
 
 // NeonBox — white interior, neon-color outline + layered glow. THE card.
+//
+// boxSizing matters here and is not decoration. The served index.html has no
+// global reset (the `* { box-sizing: border-box }` in src/index.html is on a
+// file Vite never loads), so a card with height:100% in a grid was measuring
+// 100% of its row PLUS 48px of padding PLUS 4px of border — 52px taller than
+// the space it was given. With a 22px gap that put every card 30px on top of
+// the row below it. Landing page, free tools, plainly visible.
 export function NeonBox({ color, rgb, scale = 1, style = {}, children }) {
   return (
     <div style={{
+      boxSizing: "border-box",
       background: N.white,
       borderRadius: 14,
       border: `2px solid ${color}`,
