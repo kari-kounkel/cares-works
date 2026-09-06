@@ -15,8 +15,10 @@ const MOBILE_DASH = `
     .dash-account-row { flex-direction: column !important; gap: 16px !important; }
     .dash-filter-bar { flex-direction: column !important; align-items: stretch !important; }
     .dash-filter-search { width: 100% !important; }
-    .dash-featured-row > button { width: 34px !important; font-size: 20px !important; }
-    .dash-featured-row > div { padding: 26px 22px !important; }
+  }
+  @media (max-width: 1000px) {
+    .dash-split { grid-template-columns: 1fr !important; gap: 28px !important; }
+    .dash-rail { position: static !important; }
   }
 `;
 
@@ -58,8 +60,6 @@ export default function Dashboard({ session }) {
   const [selectedCats, setSelectedCats] = useState([]);
   const [tierFilter, setTierFilter] = useState("all");
   const [newOnly, setNewOnly] = useState(false);
-  const [viewMode, setViewMode] = useState(() => { try { return localStorage.getItem("cw_view") || "featured"; } catch (e) { return "featured"; } });
-  const [featIdx, setFeatIdx] = useState(0);
 
   useEffect(() => {
     const fetchMember = async () => {
@@ -111,19 +111,6 @@ export default function Dashboard({ session }) {
   const toggleCat = (cat) => setSelectedCats(prev => prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]);
   const clearFilters = () => { setSearchQuery(""); setSelectedCats([]); setTierFilter("all"); setNewOnly(false); };
   const hasActiveFilters = searchQuery || selectedCats.length > 0 || tierFilter !== "all" || newOnly;
-  const changeView = (m) => { setViewMode(m); try { localStorage.setItem("cw_view", m); } catch (e) {} };
-
-  useEffect(() => { setFeatIdx(0); }, [searchQuery, selectedCats, tierFilter, newOnly]);
-
-  useEffect(() => {
-    if (viewMode !== "featured" || activeTab !== "tools") return;
-    const onKey = (e) => {
-      if (e.key === "ArrowRight") setFeatIdx(i => i + 1);
-      else if (e.key === "ArrowLeft") setFeatIdx(i => i - 1);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [viewMode, activeTab]);
 
   // NON-MEMBER SCREEN — landing prompt for signed-in-but-not-paid users
   if (!loading && !member) {
@@ -266,225 +253,167 @@ export default function Dashboard({ session }) {
               </div>
             )}
 
-            {/* START HERE — tri-color neon boxes */}
-            <div style={{ marginBottom: 12, fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.16em", color: N.muted, fontWeight: 700 }}>START HERE</div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 20, marginBottom: 44 }}>
-              {[
-                { emoji: "👋", title: "Watch the 2-Minute Welcome", desc: "What this place is, how it works, and where not to panic.", btn: "Watch Welcome", onClick: () => setShowWelcomeModal(true), color: N.orange, rgb: N_RGB.orange },
-                { emoji: "🧭", title: "Learn the Layout", desc: "Tools, Debriefs, downloads, categories, and how to find what you need fast.", btn: "How This Works", onClick: () => setShowHowToModal(true), color: N.pink, rgb: N_RGB.pink },
-                { emoji: "🔥", title: "What's New This Week", desc: "Latest tools, newest Debriefs, featured fixes, and current chaos containment.", btn: "See What's New", onClick: () => { const el = document.getElementById("tool-grid"); if (el) el.scrollIntoView({ behavior: "smooth" }); else setShowHowToModal(true); }, color: N.blue, rgb: N_RGB.blue },
-              ].map(card => (
-                <NeonBox key={card.title} color={card.color} rgb={card.rgb} style={{ padding: "24px 26px", display: "flex", flexDirection: "column", gap: 10 }}>
-                  <div style={{ fontSize: 26, lineHeight: 1 }}>{card.emoji}</div>
-                  <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 17, color: N.ink, lineHeight: 1.25 }}>{card.title}</div>
-                  <div style={{ fontSize: 13, color: N.muted, lineHeight: 1.5, flex: 1 }}>{card.desc}</div>
-                  <NeonBtn color={card.color} onClick={card.onClick}>{card.btn} →</NeonBtn>
-                </NeonBox>
-              ))}
-            </div>
+            {/* LIBRARY + RIGHT RAIL — the library gets the room, Start Here rides the rail */}
+            <div className="dash-split" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 300px", gap: 34, alignItems: "start" }}>
 
-            {/* SEARCH BAR */}
-            <div style={{ marginBottom: 16, position: "relative" }} className="dash-filter-search">
-              <input type="text" placeholder="Search tools…" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-                style={{ width: "100%", padding: "12px 40px 12px 44px", fontSize: 14, fontFamily: "'Figtree', sans-serif", background: N.white, border: "2px solid " + N.rule, borderRadius: 10, outline: "none", color: N.ink, boxSizing: "border-box", transition: "border-color 0.15s, box-shadow 0.15s" }}
-                onFocus={e => { e.target.style.borderColor = N.blue; e.target.style.boxShadow = "0 0 0 4px rgba(0,128,255,0.15)"; }}
-                onBlur={e => { e.target.style.borderColor = N.rule; e.target.style.boxShadow = "none"; }} />
-              <span style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", fontSize: 16, color: N.muted, pointerEvents: "none" }}>🔍</span>
-              {searchQuery && (
-                <button onClick={() => setSearchQuery("")}
-                  style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "transparent", border: "none", color: N.muted, fontSize: 18, cursor: "pointer", padding: 4 }}>×</button>
-              )}
-            </div>
+              {/* ── MAIN COLUMN — THE TOOL LIBRARY ───────────────────────── */}
+              <div style={{ minWidth: 0 }}>
+                <div id="tool-grid" />
 
-            {/* LIBRARY HELPER */}
-            <div style={{ marginBottom: 14 }}>
-              <button onClick={() => setShowLibraryHelp(v => !v)}
-                style={{ background: "transparent", border: "none", color: N.blue, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Mono', monospace", letterSpacing: "0.06em", textTransform: "uppercase", padding: "4px 0" }}>
-                {showLibraryHelp ? "− Hide" : "+ How"} to use the Tool Library
-              </button>
-              {showLibraryHelp && (
-                <NeonBox color={N.blue} rgb={N_RGB.blue} scale={0.7} style={{ padding: "18px 22px", marginTop: 8 }}>
-                  <div style={{ color: N.ink, fontSize: 14, lineHeight: 1.6 }}>
-                    <p style={{ margin: "0 0 12px" }}>
-                      Use the <strong>search bar</strong> when you know what you need. Use the <strong>category buttons</strong> when you only know what kind of problem you have. Use <strong>Free / Member / New</strong> to narrow the list.
-                    </p>
-                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", color: N.blue, marginBottom: 6, fontWeight: 700 }}>CATEGORIES</div>
-                    <ul style={{ margin: "0 0 14px", paddingLeft: 18, fontSize: 13, color: N.muted }}>
-                      <li><strong style={{ color: N.ink }}>Bookkeeping</strong> — numbers, cleanup, QuickBooks, charts of accounts, ledgers, year-end triage.</li>
-                      <li><strong style={{ color: N.ink }}>Money</strong> — pricing, budgeting, cash flow, financial decisions, owner clarity.</li>
-                      <li><strong style={{ color: N.ink }}>People</strong> — hiring, onboarding, HR, payroll, team, accountability.</li>
-                      <li><strong style={{ color: N.ink }}>Client Work</strong> — intake, scope, proposals, client communication, project tracking.</li>
-                      <li><strong style={{ color: N.ink }}>Leadership</strong> — management systems, decision-making, meetings, follow-through.</li>
-                      <li><strong style={{ color: N.ink }}>Utilities</strong> — miscellaneous helpers, trackers, checklists, small-but-mighty fixes.</li>
-                    </ul>
+                <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, flexWrap: "wrap", borderBottom: `2px solid ${N.blue}`, paddingBottom: 10, marginBottom: 18 }}>
+                  <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 24, color: N.ink, margin: 0, lineHeight: 1.2 }}>The Tool Library</h2>
+                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: N.muted, letterSpacing: "0.06em" }}>
+                    Showing {filteredTools.length} of {allTools.length} tools
                   </div>
-                </NeonBox>
-              )}
-            </div>
-
-            {/* CATEGORY CHIPS */}
-            <div className="dash-cat-tabs" style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
-              <button onClick={() => setSelectedCats([])}
-                style={{ padding: "8px 16px", borderRadius: 100, border: selectedCats.length === 0 ? "none" : "1.5px solid " + N.rule, background: selectedCats.length === 0 ? N.ink : N.white, color: selectedCats.length === 0 ? N.white : N.muted, fontSize: 12, fontWeight: selectedCats.length === 0 ? 700 : 500, cursor: "pointer", fontFamily: "'Figtree', sans-serif", boxShadow: selectedCats.length === 0 ? "0 4px 14px rgba(0,0,0,0.15)" : "none" }}>
-                All
-              </button>
-              {CATEGORY_ORDER.map(c => {
-                const isActive = selectedCats.includes(c);
-                const color = CAT_COLOR[c];
-                return (
-                  <button key={c} onClick={() => toggleCat(c)}
-                    style={{ padding: "8px 16px", borderRadius: 100, border: isActive ? "none" : "1.5px solid " + N.rule, background: isActive ? color : N.white, color: isActive ? N.white : N.muted, fontSize: 12, fontWeight: isActive ? 700 : 500, cursor: "pointer", fontFamily: "'Figtree', sans-serif", display: "flex", alignItems: "center", gap: 6, boxShadow: isActive ? `0 4px 14px ${color}66` : "none" }}>
-                    <span>{CAT_ICONS[c]}</span>{CAT_LABELS[c]}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* TIER + NEW + COUNT */}
-            <div className="dash-filter-bar" style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 24, flexWrap: "wrap" }}>
-              <div style={{ display: "flex", gap: 4, background: N.white, border: "1.5px solid " + N.rule, borderRadius: 100, padding: 3 }}>
-                {[{ k: "all", l: "All" }, { k: "free", l: "Free" }, { k: "member", l: "Member" }].map(opt => (
-                  <button key={opt.k} onClick={() => setTierFilter(opt.k)}
-                    style={{ padding: "6px 16px", borderRadius: 100, border: "none", background: tierFilter === opt.k ? N.blue : "transparent", color: tierFilter === opt.k ? N.white : N.muted, fontSize: 11, fontWeight: tierFilter === opt.k ? 700 : 500, cursor: "pointer", fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", textTransform: "uppercase", boxShadow: tierFilter === opt.k ? "0 3px 10px rgba(0,128,255,0.4)" : "none" }}>
-                    {opt.l}
-                  </button>
-                ))}
-              </div>
-              <button onClick={() => setNewOnly(!newOnly)}
-                style={{ padding: "6px 16px", borderRadius: 100, border: newOnly ? "none" : "1.5px solid " + N.rule, background: newOnly ? N.orange : N.white, color: newOnly ? N.white : N.muted, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", textTransform: "uppercase", boxShadow: newOnly ? `0 3px 10px rgba(34,197,94,0.5)` : "none" }}>
-                ✨ New only
-              </button>
-              {hasActiveFilters && (
-                <button onClick={clearFilters}
-                  style={{ background: "transparent", border: "none", color: N.blue, fontSize: 12, cursor: "pointer", fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", textTransform: "uppercase", padding: "6px 8px", fontWeight: 700 }}>
-                  Clear filters
-                </button>
-              )}
-              <div style={{ marginLeft: "auto", fontFamily: "'DM Mono', monospace", fontSize: 11, color: N.muted, letterSpacing: "0.06em" }}>
-                Showing {filteredTools.length} of {allTools.length} tools
-              </div>
-            </div>
-
-            {/* VIEW TOGGLE */}
-            {!toolsLoading && filteredTools.length > 0 && (
-              <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 16 }}>
-                <div style={{ display: "flex", gap: 4, background: N.white, border: "1.5px solid " + N.rule, borderRadius: 100, padding: 3 }}>
-                  {[{ k: "featured", l: "✨ Featured" }, { k: "grid", l: "▦ Grid" }].map(o => (
-                    <button key={o.k} onClick={() => changeView(o.k)}
-                      style={{ padding: "6px 16px", borderRadius: 100, border: "none", background: viewMode === o.k ? N.ink : "transparent", color: viewMode === o.k ? N.white : N.muted, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-                      {o.l}
-                    </button>
-                  ))}
                 </div>
-              </div>
-            )}
 
-            {/* TOOLS */}
-            <div id="tool-grid" />
-            {toolsLoading ? (
-              <NeonBox color={N.blue} rgb={N_RGB.blue} scale={0.5} style={{ padding: "48px 24px", textAlign: "center" }}>
-                <div style={{ color: N.muted, fontFamily: "'DM Mono', monospace", fontSize: 13, letterSpacing: "0.06em" }}>Loading your tool library…</div>
-              </NeonBox>
-            ) : filteredTools.length === 0 ? (
-              <NeonBox color={N.blue} rgb={N_RGB.blue} scale={0.6} style={{ padding: "48px 24px", textAlign: "center" }}>
-                <div style={{ fontSize: 32, marginBottom: 12 }}>🔍</div>
-                <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: N.ink, marginBottom: 8 }}>No tools match your filters.</div>
-                <p style={{ fontSize: 14, marginBottom: 16, color: N.muted }}>Try clearing the filters or searching for something else.</p>
-                <NeonBtn color={N.blue} onClick={clearFilters}>Clear filters</NeonBtn>
-              </NeonBox>
-            ) : viewMode === "featured" ? (
-              (() => {
-                const n = filteredTools.length;
-                const idx = ((featIdx % n) + n) % n;
-                const t = filteredTools[idx];
-                const buttonText = t.href ? "Open tool →" : "Get this tool →";
-                const color = CAT_COLOR[t.category] || N.blue;
-                const rgb = CAT_RGB[t.category] || N_RGB.blue;
-                const arrowStyle = { flexShrink: 0, width: 46, alignSelf: "stretch", border: "1.5px solid " + N.rule, background: N.white, borderRadius: 12, color: N.ink, fontSize: 26, cursor: "pointer", fontFamily: "'Figtree', sans-serif" };
-                return (
-                  <div>
-                    <div className="dash-featured-row" style={{ display: "flex", alignItems: "stretch", gap: 12 }}>
-                      <button onClick={() => setFeatIdx(i => i - 1)} aria-label="Previous tool" style={arrowStyle}>‹</button>
-                      <NeonBox color={color} rgb={rgb} scale={1.4} style={{ flex: 1, padding: "38px 42px", display: "flex", flexDirection: "column", gap: 16, minHeight: 300 }}>
-                        {t.tag && <div style={{ position: "absolute", top: 18, right: 18, background: t.tag === "FREE" ? N.green : color, color: N.white, fontFamily: "'DM Mono', monospace", fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", padding: "4px 10px", borderRadius: 100, boxShadow: `0 0 14px ${t.tag === "FREE" ? N.green : color}` }}>{t.tag}</div>}
-                        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                          <div style={{ width: 64, height: 64, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32, background: `rgba(${rgb},0.12)`, border: `1.5px solid ${color}`, flexShrink: 0 }}>{t.icon}</div>
-                          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: color, fontWeight: 700 }}>{CAT_LABELS[t.category]}</div>
-                            <div style={{ alignSelf: "flex-start", fontFamily: "'DM Mono', monospace", fontSize: 9, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: t.tier === "free" ? N.green : color, background: t.tier === "free" ? "rgba(34,197,94,0.12)" : `rgba(${rgb},0.1)`, padding: "3px 9px", borderRadius: 100 }}>{t.tier === "free" ? "Free" : "Member"}</div>
-                          </div>
-                        </div>
-                        <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 30, lineHeight: 1.2, color: N.ink }}>{t.title}</div>
-                        <div style={{ fontSize: 16, color: N.muted, lineHeight: 1.6, flex: 1 }}>{t.desc}</div>
-                        {t.why && (
-                          <div style={{ borderTop: "1px solid " + N.rule, paddingTop: 14 }}>
-                            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9.5, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: color, marginBottom: 5 }}>💡 Why you'd use this</div>
-                            <div style={{ fontSize: 15, color: N.ink, lineHeight: 1.55 }}>{t.why}</div>
-                          </div>
-                        )}
-                        {t.href ? (
-                          <a href={t.href} target="_blank" rel="noopener noreferrer"
-                            style={{ alignSelf: "flex-start", padding: "12px 24px", background: color, border: "none", borderRadius: 8, color: N.white, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'Figtree', sans-serif", textDecoration: "none", boxShadow: `0 4px 14px ${color}88` }}>
-                            {buttonText}
-                          </a>
-                        ) : (
-                          <NeonBtn color={color} onClick={() => navigate("/tools/" + t.slug)} style={{ alignSelf: "flex-start", padding: "12px 24px", fontSize: 14 }}>
-                            {buttonText}
-                          </NeonBtn>
-                        )}
-                      </NeonBox>
-                      <button onClick={() => setFeatIdx(i => i + 1)} aria-label="Next tool" style={arrowStyle}>›</button>
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, marginTop: 18 }}>
-                      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: N.muted, letterSpacing: "0.1em" }}>
-                        {idx + 1} <span style={{ opacity: 0.5 }}>/ {n}</span> · use ← → or the arrows
-                      </div>
-                      {n <= 14 && (
-                        <div style={{ display: "flex", gap: 7, flexWrap: "wrap", justifyContent: "center" }}>
-                          {filteredTools.map((_, i) => (
-                            <button key={i} onClick={() => setFeatIdx(i)} aria-label={"Go to tool " + (i + 1)}
-                              style={{ width: i === idx ? 22 : 8, height: 8, borderRadius: 100, border: "none", background: i === idx ? color : N.rule, cursor: "pointer", padding: 0, transition: "all 0.15s" }} />
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                {/* FILTER PANEL — one block instead of four loose bars */}
+                <div style={{ background: N.white, border: "1.5px solid " + N.rule, borderRadius: 12, padding: "14px 16px 16px", marginBottom: 24, display: "flex", flexDirection: "column", gap: 12 }}>
+
+                  <div style={{ position: "relative" }} className="dash-filter-search">
+                    <input type="text" placeholder="Search tools…" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+                      style={{ width: "100%", padding: "11px 40px 11px 42px", fontSize: 14, fontFamily: "'Figtree', sans-serif", background: N.white, border: "2px solid " + N.rule, borderRadius: 10, outline: "none", color: N.ink, boxSizing: "border-box", transition: "border-color 0.15s, box-shadow 0.15s" }}
+                      onFocus={e => { e.target.style.borderColor = N.blue; e.target.style.boxShadow = "0 0 0 4px rgba(0,128,255,0.15)"; }}
+                      onBlur={e => { e.target.style.borderColor = N.rule; e.target.style.boxShadow = "none"; }} />
+                    <span style={{ position: "absolute", left: 15, top: "50%", transform: "translateY(-50%)", fontSize: 15, color: N.muted, pointerEvents: "none" }}>🔍</span>
+                    {searchQuery && (
+                      <button onClick={() => setSearchQuery("")}
+                        style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "transparent", border: "none", color: N.muted, fontSize: 18, cursor: "pointer", padding: 4 }}>×</button>
+                    )}
                   </div>
-                );
-              })()
-            ) : (
-              <div className="dash-tools-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 22 }}>
-                {filteredTools.map(t => {
-                  const buttonText = t.href ? "Open tool →" : "Get this tool →";
-                  const color = CAT_COLOR[t.category] || N.blue;
-                  const rgb = CAT_RGB[t.category] || N_RGB.blue;
-                  return (
-                    <NeonBox key={t.title} color={color} rgb={rgb} style={{ padding: "22px 24px", display: "flex", flexDirection: "column", gap: 10 }}>
-                      {t.tag && <div style={{ position: "absolute", top: 14, right: 14, background: t.tag === "FREE" ? N.green : color, color: N.white, fontFamily: "'DM Mono', monospace", fontSize: 9, fontWeight: 700, letterSpacing: "0.12em", padding: "3px 8px", borderRadius: 100, boxShadow: `0 0 14px ${t.tag === "FREE" ? N.green : color}` }}>{t.tag}</div>}
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <div style={{ width: 42, height: 42, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, background: `rgba(${rgb},0.1)`, border: `1.5px solid ${color}` }}>{t.icon}</div>
-                        <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase", color: color, fontWeight: 700 }}>{CAT_LABELS[t.category]}</div>
-                      </div>
-                      <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, lineHeight: 1.3, color: N.ink }}>{t.title}</div>
-                      <div style={{ fontSize: 13, color: N.muted, lineHeight: 1.55, flex: 1 }}>{t.desc}</div>
-                      {t.why && (
-                        <div style={{ borderTop: "1px solid " + N.rule, paddingTop: 11 }}>
-                          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: color, marginBottom: 4 }}>💡 Why you'd use this</div>
-                          <div style={{ fontSize: 12.5, color: N.ink, lineHeight: 1.5 }}>{t.why}</div>
-                        </div>
-                      )}
-                      {t.href ? (
-                        <a href={t.href} target="_blank" rel="noopener noreferrer"
-                          style={{ marginTop: 6, padding: "10px 18px", background: color, border: "none", borderRadius: 8, color: N.white, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'Figtree', sans-serif", textDecoration: "none", display: "block", textAlign: "left", boxShadow: `0 4px 14px ${color}88` }}>
-                          {buttonText}
-                        </a>
-                      ) : (
-                        <NeonBtn color={color} onClick={() => navigate("/tools/" + t.slug)}>{buttonText}</NeonBtn>
-                      )}
-                    </NeonBox>
-                  );
-                })}
+
+                  {/* CATEGORY CHIPS */}
+                  <div className="dash-cat-tabs" style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
+                    <button onClick={() => setSelectedCats([])}
+                      style={{ padding: "7px 14px", borderRadius: 100, border: selectedCats.length === 0 ? "none" : "1.5px solid " + N.rule, background: selectedCats.length === 0 ? N.ink : N.white, color: selectedCats.length === 0 ? N.white : N.muted, fontSize: 12, fontWeight: selectedCats.length === 0 ? 700 : 500, cursor: "pointer", fontFamily: "'Figtree', sans-serif", boxShadow: selectedCats.length === 0 ? "0 4px 14px rgba(0,0,0,0.15)" : "none" }}>
+                      All
+                    </button>
+                    {CATEGORY_ORDER.map(c => {
+                      const isActive = selectedCats.includes(c);
+                      const color = CAT_COLOR[c];
+                      return (
+                        <button key={c} onClick={() => toggleCat(c)}
+                          style={{ padding: "7px 14px", borderRadius: 100, border: isActive ? "none" : "1.5px solid " + N.rule, background: isActive ? color : N.white, color: isActive ? N.white : N.muted, fontSize: 12, fontWeight: isActive ? 700 : 500, cursor: "pointer", fontFamily: "'Figtree', sans-serif", display: "flex", alignItems: "center", gap: 6, boxShadow: isActive ? `0 4px 14px ${color}66` : "none" }}>
+                          <span>{CAT_ICONS[c]}</span>{CAT_LABELS[c]}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* TIER + NEW + CLEAR + HOW-TO */}
+                  <div className="dash-filter-bar" style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap", borderTop: "1px solid " + N.rule, paddingTop: 12 }}>
+                    <div style={{ display: "flex", gap: 4, background: N.white, border: "1.5px solid " + N.rule, borderRadius: 100, padding: 3 }}>
+                      {[{ k: "all", l: "All" }, { k: "free", l: "Free" }, { k: "member", l: "Member" }].map(opt => (
+                        <button key={opt.k} onClick={() => setTierFilter(opt.k)}
+                          style={{ padding: "6px 15px", borderRadius: 100, border: "none", background: tierFilter === opt.k ? N.blue : "transparent", color: tierFilter === opt.k ? N.white : N.muted, fontSize: 11, fontWeight: tierFilter === opt.k ? 700 : 500, cursor: "pointer", fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", textTransform: "uppercase", boxShadow: tierFilter === opt.k ? "0 3px 10px rgba(0,128,255,0.4)" : "none" }}>
+                          {opt.l}
+                        </button>
+                      ))}
+                    </div>
+                    <button onClick={() => setNewOnly(!newOnly)}
+                      style={{ padding: "6px 15px", borderRadius: 100, border: newOnly ? "none" : "1.5px solid " + N.rule, background: newOnly ? N.orange : N.white, color: newOnly ? N.white : N.muted, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", textTransform: "uppercase", boxShadow: newOnly ? `0 3px 10px rgba(34,197,94,0.5)` : "none" }}>
+                      ✨ New only
+                    </button>
+                    {hasActiveFilters && (
+                      <button onClick={clearFilters}
+                        style={{ background: "transparent", border: "none", color: N.blue, fontSize: 12, cursor: "pointer", fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", textTransform: "uppercase", padding: "6px 4px", fontWeight: 700 }}>
+                        Clear filters
+                      </button>
+                    )}
+                    <button onClick={() => setShowLibraryHelp(v => !v)}
+                      style={{ marginLeft: "auto", background: "transparent", border: "none", color: N.muted, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Mono', monospace", letterSpacing: "0.06em", textTransform: "uppercase", padding: "6px 0" }}>
+                      {showLibraryHelp ? "− Hide" : "? How"} to use this
+                    </button>
+                  </div>
+                </div>
+
+                {showLibraryHelp && (
+                  <NeonBox color={N.blue} rgb={N_RGB.blue} scale={0.7} style={{ padding: "18px 22px", marginBottom: 24 }}>
+                    <div style={{ color: N.ink, fontSize: 14, lineHeight: 1.6 }}>
+                      <p style={{ margin: "0 0 12px" }}>
+                        Use the <strong>search bar</strong> when you know what you need. Use the <strong>category buttons</strong> when you only know what kind of problem you have. Use <strong>Free / Member / New</strong> to narrow the list.
+                      </p>
+                      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", color: N.blue, marginBottom: 6, fontWeight: 700 }}>CATEGORIES</div>
+                      <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: N.muted }}>
+                        <li><strong style={{ color: N.ink }}>Bookkeeping</strong> — numbers, cleanup, QuickBooks, charts of accounts, ledgers, year-end triage.</li>
+                        <li><strong style={{ color: N.ink }}>Money</strong> — pricing, budgeting, cash flow, financial decisions, owner clarity.</li>
+                        <li><strong style={{ color: N.ink }}>People</strong> — hiring, onboarding, HR, payroll, team, accountability.</li>
+                        <li><strong style={{ color: N.ink }}>Client Work</strong> — intake, scope, proposals, client communication, project tracking.</li>
+                        <li><strong style={{ color: N.ink }}>Leadership</strong> — management systems, decision-making, meetings, follow-through.</li>
+                        <li><strong style={{ color: N.ink }}>Utilities</strong> — miscellaneous helpers, trackers, checklists, small-but-mighty fixes.</li>
+                      </ul>
+                    </div>
+                  </NeonBox>
+                )}
+
+                {/* THE GRID — every tool, all the time. No carousel. */}
+                {toolsLoading ? (
+                  <NeonBox color={N.blue} rgb={N_RGB.blue} scale={0.5} style={{ padding: "48px 24px", textAlign: "center" }}>
+                    <div style={{ color: N.muted, fontFamily: "'DM Mono', monospace", fontSize: 13, letterSpacing: "0.06em" }}>Loading your tool library…</div>
+                  </NeonBox>
+                ) : filteredTools.length === 0 ? (
+                  <NeonBox color={N.blue} rgb={N_RGB.blue} scale={0.6} style={{ padding: "48px 24px", textAlign: "center" }}>
+                    <div style={{ fontSize: 32, marginBottom: 12 }}>🔍</div>
+                    <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: N.ink, marginBottom: 8 }}>No tools match your filters.</div>
+                    <p style={{ fontSize: 14, marginBottom: 16, color: N.muted }}>Try clearing the filters or searching for something else.</p>
+                    <NeonBtn color={N.blue} onClick={clearFilters}>Clear filters</NeonBtn>
+                  </NeonBox>
+                ) : (
+                  <div className="dash-tools-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 22 }}>
+                    {filteredTools.map(t => {
+                      const buttonText = t.href ? "Open tool →" : "Get this tool →";
+                      const color = CAT_COLOR[t.category] || N.blue;
+                      const rgb = CAT_RGB[t.category] || N_RGB.blue;
+                      return (
+                        <NeonBox key={t.title} color={color} rgb={rgb} style={{ padding: "22px 24px", display: "flex", flexDirection: "column", gap: 10 }}>
+                          {t.tag && <div style={{ position: "absolute", top: 14, right: 14, background: t.tag === "FREE" ? N.green : color, color: N.white, fontFamily: "'DM Mono', monospace", fontSize: 9, fontWeight: 700, letterSpacing: "0.12em", padding: "3px 8px", borderRadius: 100, boxShadow: `0 0 14px ${t.tag === "FREE" ? N.green : color}` }}>{t.tag}</div>}
+                          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                            <div style={{ width: 42, height: 42, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, background: `rgba(${rgb},0.1)`, border: `1.5px solid ${color}` }}>{t.icon}</div>
+                            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase", color: color, fontWeight: 700 }}>{CAT_LABELS[t.category]}</div>
+                          </div>
+                          <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, lineHeight: 1.3, color: N.ink }}>{t.title}</div>
+                          <div style={{ fontSize: 13, color: N.muted, lineHeight: 1.55, flex: 1 }}>{t.desc}</div>
+                          {t.why && (
+                            <div style={{ borderTop: "1px solid " + N.rule, paddingTop: 11 }}>
+                              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: color, marginBottom: 4 }}>💡 Why you'd use this</div>
+                              <div style={{ fontSize: 12.5, color: N.ink, lineHeight: 1.5 }}>{t.why}</div>
+                            </div>
+                          )}
+                          {t.href ? (
+                            <a href={t.href} target="_blank" rel="noopener noreferrer"
+                              style={{ marginTop: 6, padding: "10px 18px", background: color, border: "none", borderRadius: 8, color: N.white, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'Figtree', sans-serif", textDecoration: "none", display: "block", textAlign: "left", boxShadow: `0 4px 14px ${color}88` }}>
+                              {buttonText}
+                            </a>
+                          ) : (
+                            <NeonBtn color={color} onClick={() => navigate("/tools/" + t.slug)}>{buttonText}</NeonBtn>
+                          )}
+                        </NeonBox>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
-            )}
+
+              {/* ── RIGHT RAIL — START HERE ──────────────────────────────── */}
+              <aside className="dash-rail" style={{ position: "sticky", top: 84, display: "flex", flexDirection: "column", gap: 14 }}>
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.16em", color: N.muted, fontWeight: 700 }}>START HERE</div>
+                {[
+                  { emoji: "👋", title: "Watch the 2-Minute Welcome", desc: "What this place is, how it works, and where not to panic.", btn: "Watch Welcome", onClick: () => setShowWelcomeModal(true), color: N.orange, rgb: N_RGB.orange },
+                  { emoji: "🧭", title: "Learn the Layout", desc: "Tools, Debriefs, downloads, categories, and how to find what you need fast.", btn: "How This Works", onClick: () => setShowHowToModal(true), color: N.pink, rgb: N_RGB.pink },
+                  { emoji: "🔥", title: "What's New This Week", desc: "Latest tools, newest Debriefs, and current chaos containment.", btn: "See What's New", onClick: () => { setNewOnly(true); const el = document.getElementById("tool-grid"); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); }, color: N.blue, rgb: N_RGB.blue },
+                ].map(card => (
+                  <NeonBox key={card.title} color={card.color} rgb={card.rgb} scale={0.6} style={{ padding: "18px 20px", display: "flex", flexDirection: "column", gap: 8 }}>
+                    <div style={{ fontSize: 22, lineHeight: 1 }}>{card.emoji}</div>
+                    <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 16, color: N.ink, lineHeight: 1.25 }}>{card.title}</div>
+                    <div style={{ fontSize: 12.5, color: N.muted, lineHeight: 1.5 }}>{card.desc}</div>
+                    <button onClick={card.onClick}
+                      style={{ alignSelf: "flex-start", marginTop: 2, background: "transparent", border: "none", padding: 0, color: card.color, fontFamily: "'DM Mono', monospace", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", cursor: "pointer" }}>
+                      {card.btn} →
+                    </button>
+                  </NeonBox>
+                ))}
+              </aside>
+            </div>
           </>
         )}
 
