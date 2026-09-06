@@ -1,0 +1,1201 @@
+<title>Kari's Standing Orders</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..600&family=JetBrains+Mono:wght@400;500;700&display=swap">
+
+<style>
+/* ============================================================
+   TOKENS — complete light palette on bare :root.
+   Dark redefines tokens only. Three theme states handled.
+   ============================================================ */
+:root {
+  --paper:      #f7f8fa;
+  --surface:    #ffffff;
+  --sunk:       #eef1f6;
+  --ink:        #141a24;
+  --ink-soft:   #495769;
+  --ink-faint:  #77839a;
+  --line:       #dde3ec;
+  --line-soft:  #e9edf4;
+
+  --accent:     #1b62d6;
+  --accent-ink: #12448f;
+  --accent-wash:#e7effc;
+
+  --stop:       #c0392b;
+  --stop-wash:  #fbeceb;
+  --ok:         #1b8a4b;
+  --ok-wash:    #e6f4ec;
+  --open:       #b47500;
+  --open-wash:  #fbf1de;
+
+  --shadow: 0 1px 2px rgba(20,26,36,.05), 0 8px 24px -12px rgba(20,26,36,.12);
+
+  --display: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
+  --body: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+
+  --measure: 68ch;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper:      #0f131b;
+    --surface:    #161c27;
+    --sunk:       #1b2230;
+    --ink:        #e9edf4;
+    --ink-soft:   #a3b0c4;
+    --ink-faint:  #74829a;
+    --line:       #28303f;
+    --line-soft:  #212936;
+
+    --accent:     #6aa5ff;
+    --accent-ink: #a9c9ff;
+    --accent-wash:#152442;
+
+    --stop:       #ff7a68;
+    --stop-wash:  #33191a;
+    --ok:         #4ade80;
+    --ok-wash:    #12291d;
+    --open:       #f2b33d;
+    --open-wash:  #2e2413;
+
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 28px -14px rgba(0,0,0,.7);
+  }
+}
+
+:root[data-theme="dark"] {
+  --paper:      #0f131b;
+  --surface:    #161c27;
+  --sunk:       #1b2230;
+  --ink:        #e9edf4;
+  --ink-soft:   #a3b0c4;
+  --ink-faint:  #74829a;
+  --line:       #28303f;
+  --line-soft:  #212936;
+
+  --accent:     #6aa5ff;
+  --accent-ink: #a9c9ff;
+  --accent-wash:#152442;
+
+  --stop:       #ff7a68;
+  --stop-wash:  #33191a;
+  --ok:         #4ade80;
+  --ok-wash:    #12291d;
+  --open:       #f2b33d;
+  --open-wash:  #2e2413;
+
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 28px -14px rgba(0,0,0,.7);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 17px;
+  line-height: 1.62;
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+/* ---------- masthead ---------- */
+.masthead {
+  position: sticky; top: 0; z-index: 40;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; gap: 16px;
+  padding: 12px 24px;
+}
+.masthead .mark {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -.01em;
+  font-variation-settings: "wdth" 92;
+}
+.masthead .rev {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: 3px 7px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+}
+.masthead .spacer { flex: 1; }
+
+button {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: .03em;
+  cursor: pointer;
+  border-radius: 5px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  padding: 8px 13px;
+  transition: border-color .14s, background .14s;
+}
+button:hover { border-color: var(--accent); color: var(--accent); }
+button.primary {
+  background: var(--accent); border-color: var(--accent); color: #fff;
+}
+:root[data-theme="dark"] button.primary,
+:root:not([data-theme="light"]) button.primary { color: #0f131b; }
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) button.primary { color: #fff; }
+}
+button.primary:hover { background: var(--accent-ink); border-color: var(--accent-ink); }
+button.ghost { background: transparent; border-color: transparent; color: var(--ink-faint); padding: 5px 8px; }
+button.ghost:hover { color: var(--stop); border-color: transparent; }
+
+/* ---------- shell ---------- */
+.shell {
+  display: grid;
+  grid-template-columns: 186px minmax(0, 1fr);
+  gap: 48px;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 40px 24px 96px;
+  align-items: start;
+}
+
+/* ---------- thumb index ---------- */
+.index { position: sticky; top: 74px; display: flex; flex-direction: column; gap: 1px; }
+.index a {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: .02em;
+  color: var(--ink-faint);
+  text-decoration: none;
+  padding: 6px 10px 6px 0;
+  border-right: 2px solid var(--line-soft);
+  display: flex; gap: 9px; align-items: baseline;
+  transition: color .14s, border-color .14s;
+}
+.index a:hover { color: var(--accent); border-right-color: var(--accent); }
+.index a .n { color: var(--ink-faint); opacity: .55; font-size: 10px; }
+.index .idx-title {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--ink-faint);
+  padding-bottom: 8px; margin-bottom: 4px; border-bottom: 1px solid var(--line);
+}
+
+.doc { min-width: 0; display: flex; flex-direction: column; gap: 56px; }
+.doc > * { width: 100%; max-width: var(--measure); }
+/* the ledger is a wide instrument — it gets the full column */
+#assets { max-width: 880px; }
+#assets > *:not(.tablewrap) { max-width: var(--measure); }
+
+/* ---------- intro ---------- */
+.intro h1 {
+  font-family: var(--display);
+  font-variation-settings: "wdth" 84;
+  font-weight: 800;
+  font-size: clamp(34px, 5.2vw, 52px);
+  line-height: 1.02;
+  letter-spacing: -.028em;
+  margin: 0 0 18px;
+  text-wrap: balance;
+}
+.intro .thesis {
+  font-size: 19px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  margin: 0 0 14px;
+}
+.intro .thesis em { color: var(--ink); font-style: italic; }
+.intro .meta {
+  font-family: var(--mono); font-size: 11.5px; color: var(--ink-faint);
+  line-height: 1.8; margin: 20px 0 0; padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+/* ---------- section furniture ---------- */
+section { scroll-margin-top: 82px; }
+.sec-head { margin-bottom: 26px; }
+.sec-kicker {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--ink-faint); display: block; margin-bottom: 7px;
+}
+.sec-head h2 {
+  font-family: var(--display);
+  font-variation-settings: "wdth" 88;
+  font-weight: 700;
+  font-size: 27px; line-height: 1.14; letter-spacing: -.018em;
+  margin: 0 0 8px; text-wrap: balance;
+}
+.sec-head p { margin: 0; color: var(--ink-soft); font-size: 16px; }
+
+/* ---------- rules with spines ---------- */
+.rules { display: flex; flex-direction: column; gap: 20px; }
+.rule {
+  display: grid; grid-template-columns: 30px minmax(0,1fr); gap: 14px;
+  padding-left: 14px; border-left: 3px solid var(--line);
+}
+.rule.stop { border-left-color: var(--stop); }
+.rule.machine { border-left-color: var(--accent); }
+.rule .num {
+  font-family: var(--mono); font-size: 11px; font-weight: 700;
+  color: var(--ink-faint); padding-top: 5px; font-variant-numeric: tabular-nums;
+}
+.rule.stop .num { color: var(--stop); }
+.rule.machine .num { color: var(--accent); }
+.rule .txt { margin: 0; }
+.rule .txt strong { font-weight: 700; }
+.rule .gloss {
+  display: block; margin-top: 5px; font-size: 14.5px;
+  color: var(--ink-faint); line-height: 1.55;
+}
+.rule .gloss code, code.inline {
+  font-family: var(--mono); font-size: .88em;
+  background: var(--sunk); padding: 1px 5px; border-radius: 3px; color: var(--ink-soft);
+}
+
+/* ---------- the exception ---------- */
+.exception {
+  background: var(--ok-wash);
+  border: 1px solid var(--ok);
+  border-radius: 7px;
+  padding: 20px 22px;
+  margin-top: 26px;
+}
+.exception .lbl {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--ok); font-weight: 700;
+  display: block; margin-bottom: 8px;
+}
+.exception p { margin: 0; font-size: 16px; }
+
+/* ---------- banned chips ---------- */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  font-family: var(--mono); font-size: 12.5px;
+  padding: 6px 11px; border-radius: 4px;
+  background: var(--stop-wash); color: var(--stop);
+  border: 1px solid transparent;
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+  text-decoration-color: color-mix(in srgb, var(--stop) 55%, transparent);
+}
+
+/* ---------- say this / not that ---------- */
+.swap { display: flex; flex-direction: column; gap: 14px; }
+.swap-row {
+  display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+  gap: 1px; background: var(--line); border: 1px solid var(--line);
+  border-radius: 6px; overflow: hidden;
+}
+.swap-row > div { background: var(--surface); padding: 13px 15px; }
+.swap-row .say { border-left: 3px solid var(--ok); }
+.swap-row .not { border-left: 3px solid var(--stop); }
+.swap-row .tag {
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: .14em;
+  text-transform: uppercase; display: block; margin-bottom: 6px;
+}
+.swap-row .say .tag { color: var(--ok); }
+.swap-row .not .tag { color: var(--stop); }
+.swap-row p { margin: 0; font-size: 15px; line-height: 1.5; }
+.swap-row .not p { color: var(--ink-faint); }
+
+/* ---------- voice list ---------- */
+.voice { display: flex; flex-direction: column; gap: 16px; }
+.voice-item { display: grid; grid-template-columns: 118px minmax(0,1fr); gap: 18px; align-items: baseline; }
+.voice-item dt {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--ink-faint); padding-top: 3px;
+}
+.voice-item dd { margin: 0; font-size: 16px; }
+.motifs { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 3px; }
+.motif {
+  font-family: var(--mono); font-size: 12px; padding: 4px 9px;
+  border: 1px solid var(--line); border-radius: 20px; color: var(--ink-soft);
+  background: var(--surface);
+}
+
+/* ---------- table ---------- */
+.tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-family: var(--mono); font-size: 12.5px; }
+thead th {
+  text-align: left; font-weight: 700; font-size: 10px; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--ink-faint);
+  padding: 11px 14px; border-bottom: 1px solid var(--line); white-space: nowrap;
+  background: var(--sunk);
+}
+tbody td { padding: 10px 14px; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+tbody tr:last-child td { border-bottom: none; }
+tbody td:first-child { color: var(--ink); font-weight: 500; white-space: nowrap; }
+tbody td.dim { color: var(--ink-faint); }
+.state {
+  display: inline-block; padding: 2px 7px; border-radius: 3px;
+  font-size: 10px; letter-spacing: .07em; text-transform: uppercase; font-weight: 700;
+  white-space: nowrap;
+}
+.state.live { background: var(--ok-wash); color: var(--ok); }
+.state.warn { background: var(--open-wash); color: var(--open); }
+.state.dark { background: var(--stop-wash); color: var(--stop); }
+
+/* ---------- asset ledger ---------- */
+.ledger { border-collapse: collapse; width: 100%; font-family: var(--mono); font-size: 12px; }
+.ledger thead th {
+  text-align: center; font-weight: 700; font-size: 9px; letter-spacing: .09em;
+  text-transform: uppercase; color: var(--ink-faint);
+  padding: 10px 6px; border-bottom: 1px solid var(--line);
+  background: var(--sunk); white-space: nowrap;
+}
+.ledger thead th.who { text-align: left; padding-left: 14px; min-width: 168px; }
+.ledger tbody td { padding: 9px 6px; border-bottom: 1px solid var(--line-soft); text-align: center; }
+.ledger tbody tr:last-child td { border-bottom: none; }
+.ledger td.who { text-align: left; padding-left: 14px; padding-right: 14px; }
+.ledger td.who .nm { color: var(--ink); font-weight: 500; display: block; }
+.ledger td.who .kd {
+  font-size: 10px; color: var(--ink-faint); letter-spacing: .05em;
+  text-transform: uppercase; display: block; margin-top: 2px;
+}
+.ledger td.who a { color: var(--accent); text-decoration: none; font-size: 11px; word-break: break-all; }
+.ledger td.who a:hover { text-decoration: underline; }
+.ledger input[type="checkbox"] {
+  width: 16px; height: 16px; margin: 0; cursor: pointer;
+  accent-color: var(--ok);
+}
+.ledger input[type="checkbox"]:disabled { cursor: default; opacity: .4; }
+.ledger td.act { width: 1%; padding-right: 12px; }
+.ledger .score {
+  font-size: 10px; color: var(--ink-faint); font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ledger .score.full { color: var(--ok); font-weight: 700; }
+.legend {
+  display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 14px 0 0;
+  font-family: var(--mono); font-size: 11px; color: var(--ink-faint); line-height: 1.5;
+}
+.legend b { color: var(--ink-soft); font-weight: 700; }
+.assetform { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+.assetform input[type="text"] {
+  font-family: var(--body); font-size: 15px; padding: 9px 12px;
+  border: 1px solid var(--line); border-radius: 6px;
+  background: var(--surface); color: var(--ink); min-width: 0;
+}
+.assetform input#assetName { flex: 2 1 190px; }
+.assetform input#assetKind { flex: 1 1 120px; }
+.assetform input#assetUrl  { flex: 2 1 190px; }
+.assetform input[type="text"]:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: var(--accent); }
+
+/* ---------- corrections ---------- */
+.corrections { display: flex; flex-direction: column; gap: 16px; }
+.correction {
+  border: 1px solid var(--line); border-left: 3px solid var(--open);
+  border-radius: 6px; background: var(--surface); padding: 16px 18px;
+}
+.correction h3 {
+  font-family: var(--display); font-variation-settings: "wdth" 90;
+  font-size: 16px; font-weight: 700; margin: 0 0 7px; letter-spacing: -.01em;
+}
+.correction p { margin: 0 0 8px; font-size: 15px; line-height: 1.55; }
+.correction p:last-child { margin-bottom: 0; }
+.correction .verdict {
+  font-family: var(--mono); font-size: 11px; color: var(--ink-faint);
+  padding-top: 8px; margin-top: 4px; border-top: 1px dashed var(--line);
+}
+
+/* ---------- caught in the wild (db) ---------- */
+.wild-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+.wild-item {
+  display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 12px;
+  align-items: start; background: var(--surface);
+  border: 1px solid var(--line); border-radius: 6px; padding: 13px 14px;
+}
+.wild-item .body p { margin: 0; font-size: 15.5px; line-height: 1.5; }
+.wild-item .body .stamp {
+  font-family: var(--mono); font-size: 10.5px; color: var(--ink-faint);
+  display: block; margin-top: 6px; letter-spacing: .04em;
+}
+.wild-empty {
+  font-size: 15px; color: var(--ink-faint); font-style: italic;
+  padding: 18px; border: 1px dashed var(--line); border-radius: 6px; margin-bottom: 20px;
+}
+.addform { display: flex; flex-direction: column; gap: 10px; }
+.addform textarea {
+  font-family: var(--body); font-size: 16px; line-height: 1.5;
+  padding: 12px 14px; border-radius: 6px; resize: vertical; min-height: 76px;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+}
+.addform textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: var(--accent); }
+.addform .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.status {
+  font-family: var(--mono); font-size: 11.5px; color: var(--ink-faint); min-height: 17px;
+}
+.status.err { color: var(--stop); }
+.status.ok { color: var(--ok); }
+
+/* ---------- footer ---------- */
+footer.page {
+  max-width: 1180px; margin: 0 auto; padding: 0 24px 64px;
+  border-top: 1px solid var(--line); padding-top: 22px;
+}
+footer.page .markers {
+  font-family: var(--mono); font-size: 11.5px; color: var(--ink-faint);
+  line-height: 1.9; margin: 0;
+}
+footer.page .markers b { color: var(--ink-soft); font-weight: 500; }
+
+/* ---------- responsive ---------- */
+@media (max-width: 860px) {
+  .shell { grid-template-columns: minmax(0,1fr); gap: 30px; padding: 28px 18px 72px; }
+  .index {
+    position: static; flex-direction: row; overflow-x: auto; gap: 4px;
+    padding-bottom: 10px; border-bottom: 1px solid var(--line);
+  }
+  .index a { border-right: none; border-bottom: 2px solid var(--line-soft); padding: 5px 10px 6px 0; white-space: nowrap; }
+  .index a:hover { border-right-color: transparent; border-bottom-color: var(--accent); }
+  .index .idx-title { display: none; }
+  .swap-row { grid-template-columns: minmax(0,1fr); }
+  .voice-item { grid-template-columns: minmax(0,1fr); gap: 4px; }
+  .doc { gap: 44px; }
+}
+</style>
+
+<header class="masthead">
+  <span class="mark">Kari's Standing Orders</span>
+  <span class="rev">rev 2026·09·06</span>
+  <span class="spacer"></span>
+  <button id="brief" class="primary" type="button">Copy briefing</button>
+</header>
+
+<div class="shell">
+
+  <nav class="index" aria-label="Sections">
+    <span class="idx-title">Contents</span>
+    <a href="#stops"><span class="n">01</span> Hard stops</a>
+    <a href="#openings"><span class="n">02</span> Banned openings</a>
+    <a href="#swap"><span class="n">03</span> Say this</a>
+    <a href="#voice"><span class="n">04</span> Voice</a>
+    <a href="#machine"><span class="n">05</span> Machine rules</a>
+    <a href="#estate"><span class="n">06</span> The estate</a>
+    <a href="#assets"><span class="n">07</span> Asset ledger</a>
+    <a href="#corrections"><span class="n">08</span> In flight</a>
+    <a href="#wild"><span class="n">09</span> Caught in the wild</a>
+  </nav>
+
+  <main class="doc">
+
+    <div class="intro">
+      <h1>Standing orders, and who they're for.</h1>
+      <p class="thesis">This is not a page that tells Kari what to do. It is the opposite object: a page that tells <em>the assistant</em> what to do, held open where she can see it, so that when a fresh chat forgets the conventions, the conventions are still sitting right here.</p>
+      <p class="thesis">Standing orders stay in force until rescinded. Nobody re-litigates them at the top of every session. Two sections are live and save what you change — the <a href="#assets" style="color:var(--accent)">asset ledger</a>, and any rule <a href="#wild" style="color:var(--accent)">caught in the wild</a>.</p>
+      <p class="meta">Sources — <code class="inline">CLAUDE.md</code> · stated preferences · <code class="inline">STATUS.md</code> decisions · architecture pass 2026-09-06, verified against live Supabase, Vercel and GitHub.</p>
+    </div>
+
+    <!-- 01 -->
+    <section id="stops">
+      <div class="sec-head">
+        <span class="sec-kicker">01 — Hard stops</span>
+        <h2>Eight lines that are not preferences to weigh against warmth.</h2>
+        <p>These do not bend for a kind intention. The well-meant version is the only version that was ever happening.</p>
+      </div>
+
+      <div class="rules">
+        <div class="rule stop"><span class="num">01</span><p class="txt"><strong>Never tell her to go to bed</strong>, get some sleep, rest, stop for the night, or take care of herself.<span class="gloss">Not as a sign-off. Not as a kindness. Not "it's late." Not one word of it. She decides when she is done working. If a reply feels like it wants a caring send-off, end on the work instead, or end on nothing.</span></p></div>
+
+        <div class="rule stop"><span class="num">02</span><p class="txt"><strong>No unsolicited commentary on her hours</strong>, her pace, her energy, or her personal habits.<span class="gloss">She is running businesses at 5am on purpose.</span></p></div>
+
+        <div class="rule stop"><span class="num">03</span><p class="txt"><strong>Report state. Do not issue instructions.</strong><span class="gloss">The wider version of the rule above, and the one that gets broken constantly. She has been told what to do and when her entire life and is done with it. Say what is true and what is open; she decides what happens next.</span></p></div>
+
+        <div class="rule stop"><span class="num">04</span><p class="txt"><strong>Open items go in a plain list of facts</strong> under a neutral heading.<span class="gloss">Never a to-do list addressed at her. Never an imperative sign-off.</span></p></div>
+
+        <div class="rule stop"><span class="num">05</span><p class="txt"><strong>No drug or alcohol humor.</strong><span class="gloss">She is in recovery. This one has no clever exception.</span></p></div>
+
+        <div class="rule stop"><span class="num">06</span><p class="txt"><strong>Don't flatten her tone into bland corporate speak.</strong><span class="gloss">If the draft could have come from any consultancy on earth, it is wrong before it is finished.</span></p></div>
+
+        <div class="rule stop"><span class="num">07</span><p class="txt"><strong>Don't overwrite her voice with generic motivational fluff.</strong><span class="gloss">She has a voice. It does not need to be improved into someone else's.</span></p></div>
+
+        <div class="rule stop"><span class="num">08</span><p class="txt"><strong>No self-effacing language on her behalf.</strong><span class="gloss">She doesn't undercut herself. Don't do it for her.</span></p></div>
+      </div>
+
+      <div class="exception">
+        <span class="lbl">The exception, and it is a real one</span>
+        <p>When she asks what to do, answer straight. A recommendation she requested is not an instruction. Do not go vague or hedge-y in the name of rule 03 — that is just a different way of being useless.</p>
+      </div>
+    </section>
+
+    <!-- 02 -->
+    <section id="openings">
+      <div class="sec-head">
+        <span class="sec-kicker">02 — Banned openings</span>
+        <h2>Eight phrases that turn a fact into an order.</h2>
+        <p>Each of these smuggles a command in ahead of the information. If a sentence starts here, the sentence is rewritten, not softened.</p>
+      </div>
+      <div class="chips">
+        <span class="chip">go&hellip;</span>
+        <span class="chip">make sure you</span>
+        <span class="chip">don't forget to</span>
+        <span class="chip">remember to</span>
+        <span class="chip">you should</span>
+        <span class="chip">you'll want to</span>
+        <span class="chip">be sure to</span>
+        <span class="chip">try X now</span>
+      </div>
+    </section>
+
+    <!-- 03 -->
+    <section id="swap">
+      <div class="sec-head">
+        <span class="sec-kicker">03 — Say this, not that</span>
+        <h2>The same fact, twice. One of them is an order.</h2>
+        <p>Worked examples, kept verbatim, because the rule reads obvious and gets broken anyway.</p>
+      </div>
+      <div class="swap">
+        <div class="swap-row">
+          <div class="say"><span class="tag">State</span><p>The coupon is still live in Stripe.</p></div>
+          <div class="not"><span class="tag">Order</span><p>Go archive that coupon.</p></div>
+        </div>
+        <div class="swap-row">
+          <div class="say"><span class="tag">State</span><p>The Stripe key is unverified.</p></div>
+          <div class="not"><span class="tag">Order</span><p>Test one checkout before the meeting.</p></div>
+        </div>
+        <div class="swap-row">
+          <div class="say"><span class="tag">State</span><p>Answers are lost on refresh.</p></div>
+          <div class="not"><span class="tag">Order</span><p>Hit Copy before you close the laptop.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 04 -->
+    <section id="voice">
+      <div class="sec-head">
+        <span class="sec-kicker">04 — Voice</span>
+        <h2>Holy, hilarious, sideways.</h2>
+        <p>Written so somebody rereads it for the surprise, not skims it for the gist.</p>
+      </div>
+      <dl class="voice">
+        <div class="voice-item"><dt>Rhythm</dt><dd>Mix short and long sentences, and short and long paragraphs. Monotone lengths read as machine output.</dd></div>
+        <div class="voice-item"><dt>Metaphor</dt><dd>Quirky. Sometimes sacred, sometimes absurd, ideally both at once. No clichés — a phrase you've heard before is a phrase that isn't working.</dd></div>
+        <div class="voice-item"><dt>Sidebar Notes</dt><dd>Sprinkled in occasionally. Short, witty, sideways holy. They are house voice, not decoration.</dd></div>
+        <div class="voice-item"><dt>Feedback</dt><dd>Pros <em>and</em> cons. Candid critique, not only encouragement. Encouragement alone is a way of not reading the work.</dd></div>
+        <div class="voice-item"><dt>Scripture</dt><dd>Fine to use. ESV when quoting directly.</dd></div>
+        <div class="voice-item"><dt>Sign-off</dt><dd>Creative or motivational pieces end with <strong>&ldquo;Go sparkle!&rdquo;</strong> — that piece only, not every reply.</dd></div>
+        <div class="voice-item"><dt>Formatting</dt><dd>Checklists, tables, one-pagers wherever the shape fits.</dd></div>
+        <div class="voice-item"><dt>Motifs</dt><dd>
+          <div class="motifs">
+            <span class="motif">chickens</span><span class="motif">marbles</span><span class="motif">mustard</span>
+            <span class="motif">ladybugs</span><span class="motif">sideways gospel</span><span class="motif">sanctified shenanigans</span>
+          </div>
+        </dd></div>
+      </dl>
+    </section>
+
+    <!-- 05 -->
+    <section id="machine">
+      <div class="sec-head">
+        <span class="sec-kicker">05 — Machine rules</span>
+        <h2>How the work actually moves.</h2>
+        <p>Conventions with teeth. Most of these exist because breaking one cost a night.</p>
+      </div>
+      <div class="rules">
+        <div class="rule machine"><span class="num">01</span><p class="txt"><strong>Read <code class="inline">STATUS.md</code> first.</strong><span class="gloss">It is the project's memory. Chats are disposable; STATUS.md is not.</span></p></div>
+
+        <div class="rule machine"><span class="num">02</span><p class="txt"><strong>Rewrite STATUS.md before ending a session</strong>, keeping the format.<span class="gloss">What this is / Where it lives / Built so far / Decisions / Where it stopped / Next steps / Pending items / Key files.</span></p></div>
+
+        <div class="rule machine"><span class="num">03</span><p class="txt"><strong>Re-surface every pending or frozen item before starting new work.</strong><span class="gloss">She will not bring them up herself. That is the assistant's job, not a memory test she has to pass.</span></p></div>
+
+        <div class="rule machine"><span class="num">04</span><p class="txt"><strong>Claude runs git and SQL itself.</strong> Commit, push, deploy.<span class="gloss">Do not hand her commands to run. A pasted command block is the assistant delegating its own job upward.</span></p></div>
+
+        <div class="rule machine"><span class="num">05</span><p class="txt"><strong>Deploying means merging to <code class="inline">main</code>.</strong><span class="gloss">A pushed branch or a draft PR builds a Vercel <em>preview</em>. A push is not a deploy, and "pushed" must never be reported as "live." Confirm a deployment shows <code class="inline">target: production</code> and <code class="inline">state: READY</code>.</span></p></div>
+
+        <div class="rule machine"><span class="num">06</span><p class="txt"><strong>Say up front whether the session is on her machine or in a cloud VM.</strong><span class="gloss">Nothing on screen tells her, and it decides whether <code class="inline">C:\dev</code> exists at all. This went undiagnosed for hours once.</span></p></div>
+
+        <div class="rule machine"><span class="num">07</span><p class="txt"><strong>All project work lives in <code class="inline">C:\dev\cares-works</code>.</strong><span class="gloss">Not other <code class="inline">C:\dev</code> folders, not OneDrive, not Desktop, not Temp — unless she says so explicitly.</span></p></div>
+
+        <div class="rule machine"><span class="num">08</span><p class="txt"><strong>Git Bash, forward slashes:</strong> <code class="inline">cd /c/dev/cares-works</code>.<span class="gloss">Never Windows-backslash <code class="inline">cd</code>. Never <code class="inline">cp</code> or <code class="inline">copy</code>. She moves files in File Explorer.</span></p></div>
+
+        <div class="rule machine"><span class="num">09</span><p class="txt"><strong>Everything lives in a git repo with a GitHub remote.</strong><span class="gloss">Nothing floats outside version control. The map of every project, folder and chat is <code class="inline">C:\dev\DEV-INDEX.md</code>.</span></p></div>
+
+        <div class="rule machine"><span class="num">10</span><p class="txt"><strong>One repo, one Vercel project, one subdomain per book site.</strong><span class="gloss">Plain static HTML. Ladybug and Chickens are the pattern. Book sites are not routes inside the React app — the 8/29 decision to host <em>Court of Accounts</em> that way was wrong.</span></p></div>
+
+        <div class="rule machine"><span class="num">11</span><p class="txt"><strong>A price lives in ONE constant</strong> at the top of the script, and populates every mention.<span class="gloss">Never hand-edited into the prose. The matching cents amount in the API endpoint must move with it — the page and the endpoint do not share a source.</span></p></div>
+
+        <div class="rule machine"><span class="num">12</span><p class="txt"><strong>Offer dates are pinned constants, never computed from "today."</strong><span class="gloss">A deadline measured from the moment a client opens the page never arrives. It would still read "7 days left" in November — a treadmill, not an offer.</span></p></div>
+
+        <div class="rule machine"><span class="num">13</span><p class="txt"><strong>No page may imply a live QuickBooks connection.</strong><span class="gloss">There isn't one. Plaid's functions are deployed but its secrets were never set, and no QBO OAuth exists. The real route offered to clients is the standard accountant invitation.</span></p></div>
+      </div>
+    </section>
+
+    <!-- 06 -->
+    <section id="estate">
+      <div class="sec-head">
+        <span class="sec-kicker">06 — The estate</span>
+        <h2>Seventeen Vercel projects. Nine Supabase databases.</h2>
+        <p>Verified 2026-09-06 against the live APIs, not against memory. Earlier notes assumed four databases and sixteen projects.</p>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead>
+            <tr><th>Front door</th><th>Project</th><th>Data lives in</th><th>State</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>tools.caresmn.com</td><td class="dim">cares-works</td><td class="dim">sb: cares-works</td><td><span class="state live">live</span></td></tr>
+            <tr><td>caresmn.com</td><td class="dim">caresmn</td><td class="dim">—</td><td><span class="state live">live</span></td></tr>
+            <tr><td>founders.caresmn.com</td><td class="dim">founders</td><td class="dim">sb: cares-works</td><td><span class="state live">live</span></td></tr>
+            <tr><td>flowsuite.caresmn.com</td><td class="dim">flowsuite</td><td class="dim">sb: flowsuite (legacy)</td><td><span class="state warn">dormant</span></td></tr>
+            <tr><td class="dim">— none —</td><td class="dim">flowsuite-pro</td><td class="dim">sb: flowsuite-pro</td><td><span class="state warn">live, no domain</span></td></tr>
+            <tr><td>chat.karikounkel.com</td><td class="dim">ask-kari-chat</td><td class="dim">sb: chat / hub</td><td><span class="state live">live</span></td></tr>
+            <tr><td>everything.karikounkel.com</td><td class="dim">everything-board</td><td class="dim">sb: everything-board</td><td><span class="state warn">stale 8/25</span></td></tr>
+            <tr><td>karikounkel.shop</td><td class="dim">kkstore</td><td class="dim">sb: kkstore</td><td><span class="state warn">can't take money</span></td></tr>
+            <tr><td>chickens.karikounkel.com</td><td class="dim">chickens</td><td class="dim">sb: kkstore</td><td><span class="state live">live</span></td></tr>
+            <tr><td>ladybug.karikounkel.com</td><td class="dim">ladybug</td><td class="dim">sb: kkstore</td><td><span class="state live">live</span></td></tr>
+            <tr><td>keepstead.pro</td><td class="dim">keepstead-pro</td><td class="dim">sb: keepstead.pro</td><td><span class="state live">live</span></td></tr>
+            <tr><td>keepstead.karikounkel.com</td><td class="dim">keepstead</td><td class="dim">—</td><td><span class="state live">live</span></td></tr>
+            <tr><td>credit.karikounkel.com</td><td class="dim">credit-comeback-tracker</td><td class="dim">sb: credit-comeback</td><td><span class="state live">live</span></td></tr>
+            <tr><td>scotthoglundart.com</td><td class="dim">scotthoglundart-com</td><td class="dim">sb: Scott Hoglund Art</td><td><span class="state live">live</span></td></tr>
+            <tr><td>accounts.karikounkel.com</td><td class="dim">— none —</td><td class="dim">—</td><td><span class="state dark">dark</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:14.5px;color:var(--ink-faint);margin:14px 0 0;">Three more projects run on <code class="inline">.vercel.app</code> only: marbleverse, flowsuite-dac, marco-review. The barcode printed in <em>Court of Accounts</em> points at <code class="inline">accounts.karikounkel.com/tools</code> — the page it should land on is built and live at <code class="inline">tools.caresmn.com/tools</code>, but the domain resolves to nothing.</p>
+    </section>
+
+    <!-- 07 -->
+    <section id="assets">
+      <div class="sec-head">
+        <span class="sec-kicker">07 — Asset ledger</span>
+        <h2>Every property, and how far down the line it actually got.</h2>
+        <p>Seven stages, same seven for a book as for a tool. A row with a gap in the middle is the useful kind of embarrassing — it shows exactly where a thing stalled.</p>
+      </div>
+
+      <div class="tablewrap" id="ledgerWrap" hidden>
+        <table class="ledger">
+          <thead>
+            <tr>
+              <th class="who">Asset</th>
+              <th title="The content exists">Drafted</th>
+              <th title="Cover, layout, art">Designed</th>
+              <th title="Out in the world">Published</th>
+              <th title="Physical copies in hand">In&nbsp;print</th>
+              <th title="Has a working URL">Web&nbsp;home</th>
+              <th title="Workbook, course, or companion tool">Companion</th>
+              <th title="Someone can actually pay for it">Selling</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="ledgerBody"></tbody>
+        </table>
+      </div>
+
+      <div id="ledgerEmpty" class="wild-empty">The ledger is empty in this view — either nothing has been added yet, or saving is unavailable here.</div>
+
+      <p class="legend">
+        <span><b>Drafted</b> content exists</span>
+        <span><b>Designed</b> cover, layout, art</span>
+        <span><b>Published</b> out in the world</span>
+        <span><b>In print</b> physical copies in hand</span>
+        <span><b>Web home</b> a working URL</span>
+        <span><b>Companion</b> workbook, course or tool</span>
+        <span><b>Selling</b> someone can actually pay</span>
+      </p>
+
+      <form class="assetform" id="assetForm">
+        <input type="text" id="assetName" placeholder="Asset name" aria-label="Asset name">
+        <input type="text" id="assetKind" placeholder="Kind — book, tool, site" aria-label="Kind">
+        <input type="text" id="assetUrl" placeholder="URL (optional)" aria-label="URL">
+        <button type="submit" class="primary" id="assetBtn">Add asset</button>
+      </form>
+      <p class="status" id="assetStatus" style="margin-top:8px;"></p>
+    </section>
+
+    <!-- 08 -->
+    <section id="corrections">
+      <div class="sec-head">
+        <span class="sec-kicker">08 — In flight</span>
+        <h2>Things the written record currently gets wrong.</h2>
+        <p>Listed because a false convention costs more than a missing one — it gets obeyed.</p>
+      </div>
+      <div class="corrections">
+        <div class="correction">
+          <h3>The <code class="inline">vercel.json</code> allowlist does nothing.</h3>
+          <p>STATUS.md states that any new static page under <code class="inline">public/</code> must be added to the rewrite's negative lookaheads or it will silently render the React landing page instead.</p>
+          <p>Tested live on 2026-09-06: <code class="inline">/mmpuptown/</code>, <code class="inline">/mmpuptown</code>, <code class="inline">/mmpunionshop/</code> and <code class="inline">/steward/</code> all serve their real static files, and none of them is in the allowlist. Vercel matches a real file first; the rewrite only catches paths with nothing behind them — which is why <code class="inline">/mmpuptown/print-store/quote/</code> falls through to the app, correctly, since that page was never built.</p>
+          <p class="verdict">Verdict — the entries for <code class="inline">proposals/</code>, <code class="inline">marco/</code> and <code class="inline">floridagirl</code> are a lucky charm. They were worn during a period when nothing broke, so they got credit for the not-breaking. Not yet corrected in STATUS.md.</p>
+        </div>
+        <div class="correction">
+          <h3>Legacy FlowSuite has row-level security switched off.</h3>
+          <p>Forty-three tables, holding real payroll and HR records for nineteen named people, readable with the public anon key. The database is dormant; the domain it owns is not.</p>
+          <p class="verdict">Verdict — not remediated, and deliberately not a patch: enabling RLS without policies locks the app out. Export-and-retire is likely cleaner than retrofitting forty-three policies. Open decision, with a clock on it.</p>
+        </div>
+        <div class="correction">
+          <h3>Two sessions ran the same architecture pass.</h3>
+          <p>Both landed 2026-09-06, forty minutes apart, and agreed on every number they both checked. Five branches are open against this repo and four of them edit STATUS.md.</p>
+          <p class="verdict">Verdict — the findings are sound. The branch collision is the thing to watch, and it is the same pattern that cost the 7/31 session.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 09 -->
+    <section id="wild">
+      <div class="sec-head">
+        <span class="sec-kicker">09 — Caught in the wild</span>
+        <h2>Conventions added since this page was built.</h2>
+        <p>Everything above was ratified in <code class="inline">CLAUDE.md</code> or stated preferences. This part is live: add a rule the moment it's discovered, and it stays here for the next session to read.</p>
+      </div>
+
+      <div id="wildList" class="wild-list" hidden></div>
+      <div id="wildEmpty" class="wild-empty">Nothing caught yet. The first rule someone writes down here is usually one that already got broken twice.</div>
+
+      <form class="addform" id="addForm">
+        <textarea id="addText" rows="3" placeholder="Example: never renumber an invoice that has already been emailed &mdash; the customer's copy resolves by token, and 13 of them are already out there."></textarea>
+        <div class="row">
+          <button type="submit" class="primary" id="addBtn">Add convention</button>
+          <span class="status" id="wildStatus"></span>
+        </div>
+      </form>
+    </section>
+
+  </main>
+</div>
+
+<footer class="page">
+  <p class="markers">
+    <b>Markers</b> — sober since 10/01/2021 · two sons, two granddaughters · the number is 13 · holy defiance, resilience and joy count as spiritual gifts.<br>
+    <b>Businesses</b> — CARES Consulting · Freedom Force · K Co LLC.<br>
+    <b>Standing orders stay in force until rescinded.</b>
+  </p>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  var listEl   = document.getElementById("wildList");
+  var emptyEl  = document.getElementById("wildEmpty");
+  var formEl   = document.getElementById("addForm");
+  var textEl   = document.getElementById("addText");
+  var addBtn   = document.getElementById("addBtn");
+  var statusEl = document.getElementById("wildStatus");
+  var briefBtn = document.getElementById("brief");
+
+  var ledgerBody  = document.getElementById("ledgerBody");
+  var ledgerWrap  = document.getElementById("ledgerWrap");
+  var ledgerEmpty = document.getElementById("ledgerEmpty");
+  var assetForm   = document.getElementById("assetForm");
+  var assetName   = document.getElementById("assetName");
+  var assetKind   = document.getElementById("assetKind");
+  var assetUrl    = document.getElementById("assetUrl");
+  var assetBtn    = document.getElementById("assetBtn");
+  var assetStatus = document.getElementById("assetStatus");
+
+  var STAGES = [
+    { key: "drafted",   label: "Drafted" },
+    { key: "designed",  label: "Designed" },
+    { key: "published", label: "Published" },
+    { key: "inprint",   label: "In print" },
+    { key: "web",       label: "Web home" },
+    { key: "companion", label: "Companion" },
+    { key: "selling",   label: "Selling" }
+  ];
+
+  var db = null;
+  var items = [];
+  var assets = [];
+
+  /* ---------- render ---------- */
+
+  function fmtDate(iso) {
+    if (!iso) return "";
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return "";
+    var m = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    return m[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear();
+  }
+
+  function render() {
+    listEl.textContent = "";
+    if (!items.length) {
+      listEl.hidden = true;
+      emptyEl.hidden = false;
+      return;
+    }
+    emptyEl.hidden = true;
+    listEl.hidden = false;
+
+    items.forEach(function (it) {
+      var row = document.createElement("div");
+      row.className = "wild-item";
+
+      var body = document.createElement("div");
+      body.className = "body";
+      var p = document.createElement("p");
+      p.textContent = it.text;
+      var stamp = document.createElement("span");
+      stamp.className = "stamp";
+      stamp.textContent = "added " + (fmtDate(it.added) || "—");
+      body.appendChild(p);
+      body.appendChild(stamp);
+
+      var del = document.createElement("button");
+      del.type = "button";
+      del.className = "ghost";
+      del.textContent = "remove";
+      del.addEventListener("click", function () { removeItem(it.id, del); });
+
+      row.appendChild(body);
+      row.appendChild(del);
+      listEl.appendChild(row);
+    });
+  }
+
+  function setStatus(msg, kind) {
+    statusEl.className = "status" + (kind ? " " + kind : "");
+    statusEl.textContent = msg || "";
+  }
+
+  function setAssetStatus(msg, kind) {
+    assetStatus.className = "status" + (kind ? " " + kind : "");
+    assetStatus.textContent = msg || "";
+  }
+
+  /* ---------- asset ledger ---------- */
+
+  function renderLedger() {
+    ledgerBody.textContent = "";
+    if (!assets.length) {
+      ledgerEmpty.hidden = false;
+      ledgerWrap.hidden = true;
+      return;
+    }
+    ledgerEmpty.hidden = true;
+    ledgerWrap.hidden = false;
+
+    assets.forEach(function (a) {
+      var tr = document.createElement("tr");
+
+      var who = document.createElement("td");
+      who.className = "who";
+      var nm = document.createElement("span");
+      nm.className = "nm";
+      nm.textContent = a.name;
+      who.appendChild(nm);
+      if (a.kind) {
+        var kd = document.createElement("span");
+        kd.className = "kd";
+        kd.textContent = a.kind;
+        who.appendChild(kd);
+      }
+      if (a.url) {
+        var link = document.createElement("a");
+        link.href = /^https?:\/\//i.test(a.url) ? a.url : "https://" + a.url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = a.url.replace(/^https?:\/\//i, "");
+        who.appendChild(link);
+      }
+      tr.appendChild(who);
+
+      var done = 0;
+      STAGES.forEach(function (st) {
+        var td = document.createElement("td");
+        var cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.checked = !!(a.stages && a.stages[st.key]);
+        if (cb.checked) done++;
+        cb.disabled = !db;
+        cb.setAttribute("aria-label", a.name + " — " + st.label);
+        cb.addEventListener("change", function () { toggleStage(a, st.key, cb); });
+        td.appendChild(cb);
+        tr.appendChild(td);
+      });
+
+      var act = document.createElement("td");
+      act.className = "act";
+      var score = document.createElement("span");
+      score.className = "score" + (done === STAGES.length ? " full" : "");
+      score.textContent = done + "/" + STAGES.length;
+      act.appendChild(score);
+      tr.appendChild(act);
+
+      ledgerBody.appendChild(tr);
+    });
+  }
+
+  function toggleStage(asset, key, cb) {
+    if (!db) return;
+    var next = {};
+    STAGES.forEach(function (st) {
+      next[st.key] = st.key === key ? cb.checked : !!(asset.stages && asset.stages[st.key]);
+    });
+    var prev = asset.stages;
+    asset.stages = next;
+    renderLedger();
+    setAssetStatus("Saving…");
+
+    db.doc("assets/" + asset.id).update({ stages: next }).then(function () {
+      setAssetStatus("Saved.", "ok");
+    }).catch(function (e) {
+      asset.stages = prev;
+      renderLedger();
+      setAssetStatus(storeMsg(e), "err");
+    });
+  }
+
+  function sortAssets() {
+    assets.sort(function (a, b) {
+      var ao = typeof a.order === "number" ? a.order : 9999;
+      var bo = typeof b.order === "number" ? b.order : 9999;
+      if (ao !== bo) return ao - bo;
+      return String(a.name || "").localeCompare(String(b.name || ""));
+    });
+  }
+
+  /* ---------- storage ---------- */
+
+  function sortItems() {
+    items.sort(function (a, b) {
+      return String(b.added || "").localeCompare(String(a.added || ""));
+    });
+  }
+
+  function removeItem(id, btn) {
+    if (!db) return;
+    btn.disabled = true;
+    db.doc("conventions/" + id).delete().then(function () {
+      items = items.filter(function (x) { return x.id !== id; });
+      render();
+      setStatus("Removed.", "ok");
+    }).catch(function (e) {
+      btn.disabled = false;
+      setStatus(storeMsg(e), "err");
+    });
+  }
+
+  function storeMsg(e) {
+    var code = e && e.code;
+    if (code === "not_granted" || code === "capability_disabled" || code === "capability_removed") {
+      return "Saving is off in this view.";
+    }
+    if (code === "quota_exceeded") return "The store is full — remove one to add another.";
+    if (code === "resource_exhausted") return "Too many writes at once. Try again in a moment.";
+    if (code === "invalid_argument") return "That couldn't be saved as written.";
+    if (code === "revoked") return "Access to the store ended while the page was open.";
+    return "Couldn't reach the store. The rule was not saved.";
+  }
+
+  formEl.addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var text = textEl.value.trim();
+    if (!text) { setStatus("Write the rule first.", "err"); return; }
+    if (!db) { setStatus("Saving is unavailable in this view.", "err"); return; }
+
+    addBtn.disabled = true;
+    setStatus("Saving…");
+
+    var body = { text: text, added: new Date().toISOString() };
+
+    db.collection("conventions").add(body).then(function (ref) {
+      items.push({ id: ref.id, text: body.text, added: body.added });
+      sortItems();
+      render();
+      textEl.value = "";
+      setStatus("Added. It will be here next session.", "ok");
+    }).catch(function (e) {
+      setStatus(storeMsg(e), "err");
+    }).then(function () {
+      addBtn.disabled = false;
+    });
+  });
+
+  assetForm.addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var name = assetName.value.trim();
+    if (!name) { setAssetStatus("Name the asset first.", "err"); return; }
+    if (!db) { setAssetStatus("Saving is unavailable in this view.", "err"); return; }
+
+    assetBtn.disabled = true;
+    setAssetStatus("Saving…");
+
+    var stages = {};
+    STAGES.forEach(function (st) { stages[st.key] = false; });
+
+    var body = {
+      name: name,
+      kind: assetKind.value.trim(),
+      url: assetUrl.value.trim(),
+      stages: stages,
+      order: 500,
+      added: new Date().toISOString()
+    };
+
+    db.collection("assets").add(body).then(function (ref) {
+      assets.push({
+        id: ref.id, name: body.name, kind: body.kind,
+        url: body.url, stages: body.stages, order: body.order
+      });
+      sortAssets();
+      renderLedger();
+      assetName.value = ""; assetKind.value = ""; assetUrl.value = "";
+      setAssetStatus("Added to the ledger.", "ok");
+    }).catch(function (e) {
+      setAssetStatus(storeMsg(e), "err");
+    }).then(function () {
+      assetBtn.disabled = false;
+    });
+  });
+
+  /* ---------- briefing ---------- */
+
+  function collectBriefing() {
+    var out = [];
+    out.push("KARI KOUNKEL — STANDING ORDERS");
+    out.push("Standing orders stay in force until rescinded.");
+    out.push("");
+
+    document.querySelectorAll("section").forEach(function (sec) {
+      var kicker = sec.querySelector(".sec-kicker");
+      var h2 = sec.querySelector(".sec-head h2");
+      if (!kicker) return;
+      out.push("## " + kicker.textContent.trim() + " — " + (h2 ? h2.textContent.trim() : ""));
+
+      sec.querySelectorAll(".rule .txt").forEach(function (t) {
+        var clone = t.cloneNode(true);
+        var gloss = clone.querySelector(".gloss");
+        var glossText = gloss ? gloss.textContent.trim() : "";
+        if (gloss) gloss.remove();
+        var head = clone.textContent.replace(/\s+/g, " ").trim();
+        out.push("- " + head + (glossText ? " (" + glossText.replace(/\s+/g, " ") + ")" : ""));
+      });
+
+      var chips = sec.querySelectorAll(".chip");
+      if (chips.length) {
+        out.push("- Never open with: " + Array.prototype.map.call(chips, function (c) {
+          return '"' + c.textContent.trim() + '"';
+        }).join(", "));
+      }
+
+      sec.querySelectorAll(".swap-row").forEach(function (r) {
+        var say = r.querySelector(".say p"), not = r.querySelector(".not p");
+        if (say && not) out.push('- Say "' + say.textContent.trim() + '" — not "' + not.textContent.trim() + '"');
+      });
+
+      sec.querySelectorAll(".voice-item").forEach(function (v) {
+        var dt = v.querySelector("dt"), dd = v.querySelector("dd");
+        if (dt && dd) out.push("- " + dt.textContent.trim() + ": " + dd.textContent.replace(/\s+/g, " ").trim());
+      });
+
+      var exc = sec.querySelector(".exception p");
+      if (exc) out.push("- EXCEPTION: " + exc.textContent.trim());
+
+      out.push("");
+    });
+
+    if (assets.length) {
+      out.push("## Asset ledger");
+      assets.forEach(function (a) {
+        var got = STAGES.filter(function (s) { return a.stages && a.stages[s.key]; })
+                        .map(function (s) { return s.label; });
+        var missing = STAGES.filter(function (s) { return !(a.stages && a.stages[s.key]); })
+                            .map(function (s) { return s.label; });
+        out.push("- " + a.name + (a.url ? " (" + a.url + ")" : "") +
+                 " — done: " + (got.length ? got.join(", ") : "nothing yet") +
+                 " | open: " + (missing.length ? missing.join(", ") : "none"));
+      });
+      out.push("");
+    }
+
+    if (items.length) {
+      out.push("## Caught in the wild");
+      items.forEach(function (it) { out.push("- " + it.text); });
+      out.push("");
+    }
+
+    return out.join("\n");
+  }
+
+  briefBtn.addEventListener("click", function () {
+    var text = collectBriefing();
+    var done = function () {
+      var was = briefBtn.textContent;
+      briefBtn.textContent = "Copied";
+      setTimeout(function () { briefBtn.textContent = was; }, 1600);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, function () { fallbackCopy(text, done); });
+    } else {
+      fallbackCopy(text, done);
+    }
+  });
+
+  function fallbackCopy(text, done) {
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.top = "-1000px";
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand("copy"); done(); } catch (e) { /* nothing to offer */ }
+    document.body.removeChild(ta);
+  }
+
+  /* ---------- wake the store ---------- */
+
+  render();
+  renderLedger();
+
+  if (window.claude && typeof window.claude.use === "function") {
+    window.claude.use("db").then(function (store) {
+      if (!store) {
+        setStatus("Saving is unavailable in this view.");
+        setAssetStatus("Saving is unavailable in this view.");
+        return;
+      }
+      db = store;
+
+      db.collection("assets").onSnapshot(function (snap) {
+        assets = snap.docs.map(function (d) {
+          var data = d.data() || {};
+          return {
+            id: d.id,
+            name: String(data.name || ""),
+            kind: String(data.kind || ""),
+            url: String(data.url || ""),
+            stages: data.stages && typeof data.stages === "object" ? data.stages : {},
+            order: typeof data.order === "number" ? data.order : 9999
+          };
+        }).filter(function (x) { return x.name; });
+        sortAssets();
+        renderLedger();
+      }, function (e) {
+        setAssetStatus(storeMsg(e), "err");
+      });
+
+      db.collection("conventions").onSnapshot(function (snap) {
+        items = snap.docs.map(function (d) {
+          var data = d.data() || {};
+          return { id: d.id, text: String(data.text || ""), added: data.added || "" };
+        }).filter(function (x) { return x.text; });
+        sortItems();
+        render();
+      }, function (e) {
+        setStatus(storeMsg(e), "err");
+      });
+    }).catch(function () {
+      setStatus("Saving is unavailable in this view.");
+      setAssetStatus("Saving is unavailable in this view.");
+    });
+  } else {
+    setStatus("Saving is unavailable in this view.");
+    setAssetStatus("Saving is unavailable in this view.");
+  }
+})();
+</script>
