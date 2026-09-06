@@ -7,11 +7,11 @@ _Rebuilt from chat transcripts on 2026-08-25. Update this file at the end of eve
 ## Where it lives
 - Live site: `https://tools.caresmn.com` (CARES Works). Tenant routes seen in chat: `/prographics`, `/emerson`, `/org/river-of-life`, `/rent/river-of-life`, `/proposals`, `/proposals/prographics`, `/tools/coa-library`, `/steward`.
 - Static Minuteman pages served from `public/` on the same Vercel deploy: `/mmpuptown/…`, `/mmpunionshop/`, `/proposals/minuteman`, `/proposals/minuteman-website`, `/store-options/…`, `/demo/mmp.html`. Final custom domains for the Minuteman sites: not stated (verify). Existing live site is `mmpuptown.com` (not ours).
-- Vercel: deploys on push, ~1 min build. Vercel project name: (verify).
+- Vercel: deploys on push, ~1 min build. Vercel project **`cares-works`** (`prj_LXPWJjKXEA3TLXsqrnE95EKxHFdr`, team `team_MzJfjdVk8hjUhRXEzk8iyMbt`) — VERIFIED 9/6. Domains on it: `tools.caresmn.com` + three `.vercel.app` aliases. `accounts.karikounkel.com` is NOT on it (nor on any of the other 16 projects), and its DNS does not resolve at all — VERIFIED 9/6.
 - Supabase (cares-works): project ref `qcikhcnclduakriextsz`. ProGraphics org id `51c83c73-b406-4cfa-9626-b600b3c30236`.
 - Supabase (kcocares notification hub, used for email/SMS): ref `rhbmuxvbmmlbkjegwtgr`, edge function `hub` v10 (SendGrid + Twilio, `x-hub-secret` auth, supports `bcc`).
-- Edge functions on `qcikhcnclduakriextsz`: `send-invoice-email` v7, `send-po-email` v2, `send-receipt-email` v2, `plaid-link-token`, `plaid-exchange`, `plaid-sync`.
-- GitHub remote: not stated in excerpts (verify). Known pushed commits: `477fbb9`, `61bf64c`.
+- Edge functions on `qcikhcnclduakriextsz` — **7, not 6** (VERIFIED 9/6): `send-invoice-email` **v10**, `send-po-email` **v5**, `send-receipt-email` **v5**, `plaid-link-token` v5, `plaid-exchange` v4, `plaid-sync` v5, and **`send-campaign` v4** — which appears in no STATUS and whose purpose is unknown.
+- GitHub remote: **`https://github.com/kari-kounkel/cares-works`** (VERIFIED 9/6). Known pushed commits: `477fbb9`, `61bf64c`. Open PRs, all draft, as of 9/6: **#6** (Emerson register), **#8** (STATUS: one-subdomain-per-book), **#9** (chickens landing page), **#13** (dashboard carousel).
 - QBO MCP connection confirmed to "PRO GRAPHICS ENTERPRISES, INC." (as of the ProGraphics chat).
 
 ## Chats that built it
@@ -154,7 +154,7 @@ Client: Frank Brown, I A Z Corporation dba Minuteman Press Uptown, 4024 Washingt
 - `C:\dev\cares-works\public\proposals\minuteman\index.html`, `…\minuteman\Bookkeeping_Services_Agreement_Minuteman.pdf`, `public\proposals\minuteman-website\index.html`
 - `C:\dev\cares-works\proposal-archive\Bookkeeping_Services_Agreement_Minuteman.docx`, `proposal-archive\minuteman-full-proposal.html` (plus `_bk*` / `_ws*` unpacked docx scratch dirs — safe to delete)
 - `C:\dev\cares-works\public\store-options\…`, `public\demo\mmp.html`, `public\demo\mmp-schema-draft.sql`
-- `C:\dev\cares-works\docs\minuteman-plan-of-attack.md`, `C:\dev\cares-works\.claude\launch.json`
+- `C:\dev\cares-works\.claude\launch.json` — NOTE: `docs\minuteman-plan-of-attack.md` is listed in older STATUS text but **there is no `docs\` folder in the repo** (VERIFIED 9/6); the file is either elsewhere or was never committed.
 - Memory: `…\C--dev-cares-works\memory\minuteman-website.md`; `…\C--dev-keepstead\memory\project_mmp_marketing_christine.md`
 - Source: Christine's sitemap `C:\Users\karik\Downloads\website-tree2.pdf`
 
@@ -189,7 +189,7 @@ The product itself at `tools.caresmn.com` — design system, pricing, org worksp
 - Tools ARE the cares-works site; PDFs of tools go to Etsy etc. to drive traffic to the CARES landing page (5/19 idea — status verify).
 
 **Where it stopped**
-8/29: The barcode printed in *Court of Accounts* points at `accounts.karikounkel.com/tools`, and it 404s. Two causes, only one fixed. (a) There was never a `/tools` index page — all 30 tools are routed individually as `/tools/<slug>`, and bare `/tools` fell through to the landing page. Built `src/pages/ToolsIndex.jsx`: public, no login, reads the `tools` table, grouped by category, with a band at the top for readers arriving from the book. PR #7 (draft), branch `claude/book-barcode-url-broken-vtacdw`. (b) `accounts.karikounkel.com` is not attached to any Vercel project — checked all 16. That is a domain + DNS job, not code, and the printed barcode cannot change, so the domain has to be made to work.
+8/29: The barcode printed in *Court of Accounts* points at `accounts.karikounkel.com/tools`, and it 404s. Two causes, only one fixed. (a) There was never a `/tools` index page — all 30 tools are routed individually as `/tools/<slug>`, and bare `/tools` fell through to the landing page. Built `src/pages/ToolsIndex.jsx`: public, no login, reads the `tools` table, grouped by category, with a band at the top for readers arriving from the book. **PR #7 is MERGED** to `main` as commit `9576721` (VERIFIED 9/6 — STATUS previously called it an open draft). Branch `claude/book-barcode-url-broken-vtacdw` still carries open draft PR #8, which is a STATUS-only change. (b) `accounts.karikounkel.com` is not attached to any Vercel project — checked all 16. That is a domain + DNS job, not code, and the printed barcode cannot change, so the domain has to be made to work.
 
 8/24: COA Library shipped with all 13 industries and Facebook-ready deep links ("ok love it… go baby bo"). Before that (8/11) check printing was reviewed: checks look right on screen but don't print aligned — drop the word "Date", move the dollar amount right under the date, spelled-out dollars is too low, everything needs to shift up ~2 lines. AR email was never tested. Claude "stood down" that day without changing anything.
 
@@ -327,3 +327,42 @@ Three real bugs caught and fixed, each by a different method — worth noting be
 - `C:\dev\cares-works\api\floridagirl-deposit.js` ($750 Look checkout — keep the cents amount in step with the page)
 - `C:\dev\cares-works\public\proposals\maddie\index.html` (the pattern for Stripe + secure upload), `public\proposals\marco\`, `public\proposals\amy\`, `public\proposals\itabelkoo\`
 - `C:\dev\cares-works\api\maddie-deposit.js`, `api\marco-deposit.js`, `api\webhook.js`
+
+---
+
+### Architecture verification pass — 2026-09-06
+
+Read-only cross-property audit. Nothing was built, migrated, connected, created or published. Full document delivered separately as `ARCHITECTURE-BY-PROPERTY-2026-09-06.md` (filed to `C:\CLAUDE\architecture\`).
+
+**What the pass could reach.** It ran in a remote Linux container, not on `C:\`. Reachable: this repo, all 9 Supabase projects (live SQL), all 17 Vercel projects (API), GitHub. Unreachable and therefore not relied on anywhere: `C:\CLAUDE\STANDING-RULES.md`, both 9/5 blueprints, `ECOSYSTEM-ARCHITECTURE.md`, `Existing-board-comparison.md`, `DEV-INDEX.md`, every other project's STATUS.md, `THE-LIST.html`, `mission_control*.html`, the Empire Scorecard handoff, and the `everything-board` source (its database was reached). **The blueprints' locked tables were never read and nothing in the pass overrules them.**
+
+**Estate size, VERIFIED.** 9 Supabase projects (kkstore, cares-works, flowsuite-pro, flowsuite legacy, everything-board, chat/hub, keepstead.pro, Scott Hoglund Art, credit-comeback-tracker) and 17 Vercel projects — not the 4 and "16" earlier notes assumed.
+
+**Method note that matters.** Supabase's table listing reports Postgres *estimates*, not counts. It claimed FlowSuite Pro had 0 orgs and 4 profiles; real counts are 3 and 51. Every figure in the pass was re-run as `count(*)`.
+
+**Findings that belong to other projects** (their own STATUS files were unreachable, so they are recorded here):
+
+- **A serious row-level-security exposure was found in one of the FlowSuite databases**, affecting a large number of tables that hold real personnel and payroll records. **Specifics are deliberately NOT written here — this repo is public** (`visibility: public`, verified 9/6), and naming the project and tables alongside "unprotected" would publish a roadmap to it. The details, counts and affected table names are in the private architecture document at `C:\CLAUDE\architecture\ARCHITECTURE-BY-PROPERTY-2026-09-06.md`. Not remediated: enabling RLS without policies locks the app out, so it is a decision, not a patch. A second, much smaller instance affects some backup tables in the other FlowSuite database.
+- **The store cannot take money.** `kkstore` has 62 products; **0** carry a `stripe_price_id`, **0** carry a `payment_link`, and there are **0** orders ever. 44 are marked `live`. Whether the 33 `link`-type products are meant to point outward (Amazon/Etsy) is unresolved — that single answer decides whether the store is broken or a catalogue by design.
+- **FlowSuite Pro has no custom domain** — `.vercel.app` only — while legacy FlowSuite holds `flowsuite.caresmn.com` and the real operating records. Which database is authoritative is the estate's biggest open question; the FLOWSUITE-PRO blueprint may already answer it.
+- **Everything Board:** 106 cards, 80 open, only 10 carrying a due date, 9 of those overdue, nothing moved since 8/25. The overwhelm is structural — 80 open cards across 24 tab×list buckets.
+- **No calendar integration exists anywhere in the estate.** No Google Calendar credential, table, or edge function in any of the 9 projects.
+- **Tasks live in 11 places**, 9 of them queryable, and no table in any project references a task in another.
+
+**Corrections applied to this file** (each VERIFIED live 9/6): PR #7 is merged, not draft · GitHub remote and Vercel project name filled in · 7 edge functions, not 6, with versions moved on · `docs/` does not exist in this repo · 4 open draft PRs, not 1 · `accounts.karikounkel.com` has no DNS record at all, not merely no Vercel project.
+
+**Contradiction found, unresolved.** `vercel.json` rewrites everything to the SPA except `proposals/`, `marco/`, `floridagirl`, and this file states any new static page must be added to that allowlist or it silently renders the React landing page. By that rule `public/mmpuptown/`, `mmpunionshop/`, `store-options/`, `demo/`, `steward/`, `bizbox/`, `marbleverse/`, `themes/` and `pdf/` would all be broken — yet `mmp_content` holds 91 saved rows, so Christine has been editing `mmpuptown` live. Most likely Vercel checks the filesystem before applying the rewrite, making the allowlist unnecessary for directories holding a real `index.html`. Could not be tested: live URLs are unreachable from a cloud session.
+
+**Cockpit recommendation (for review, not started).** Adapt `/kari` in this repo rather than rebuilding the Everything Board or starting an 18th project. `/kari` already has login gating, a per-user editable tile list (`kari_cockpits`), per-user tool state (`kari_tool_data`), a sensitive/public split that keeps client data out of the public repo (`registry.js` + `kari_cockpit_html`), and — in `KariOneList.jsx` — a proven srcdoc + postMessage pattern that absorbs a standalone HTML tool into the cloud without rewriting it. That last piece is the bridge `THE-LIST.html` would need.
+
+**Correction to a handoff assumption:** the "One List" bundled here is `FlowSuite Pro — The One List`, a 164-feature build-status tracker at 61%, not a simpler daily to-do list. Nothing in this estate currently duplicates `THE-LIST.html`.
+
+**Open from this pass**
+- FlowSuite authority (legacy vs Pro) — undecided.
+- The FlowSuite RLS exposure (details in the private architecture document) — fix, retire, or knowingly accept. This is the one open item with a clock on it.
+- Store: catalogue by design, or missing payment routes.
+- Whether `THE-LIST.html`'s historical tasks are worth migrating — the file was unreachable.
+- `accounts.karikounkel.com` domain + DNS; `karikounkel.com` apex points at nothing.
+- `send-campaign` edge function — purpose unknown.
+- Emerson tenant — client identity still unknown.
+- Freedom Force, My Brain is Mustard, The Pickled Pardon — no repo, domain, project or table found anywhere.
