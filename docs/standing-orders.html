@@ -349,6 +349,50 @@ tbody td.dim { color: var(--ink-faint); }
 .state.warn { background: var(--open-wash); color: var(--open); }
 .state.dark { background: var(--stop-wash); color: var(--stop); }
 
+/* ---------- boilerplate blocks ---------- */
+.blocks { display: flex; flex-direction: column; gap: 22px; }
+.block {
+  border: 1px solid var(--line); border-left: 3px solid var(--accent);
+  border-radius: 6px; background: var(--surface); overflow: hidden;
+}
+.block > .bhead { padding: 14px 17px 12px; }
+.block h3 {
+  font-family: var(--display); font-variation-settings: "wdth" 90;
+  font-size: 16.5px; font-weight: 700; margin: 0 0 5px; letter-spacing: -.01em;
+}
+.block .where {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .09em;
+  text-transform: uppercase; color: var(--ink-faint);
+}
+.block p.note { margin: 9px 0 0; font-size: 14.5px; color: var(--ink-soft); line-height: 1.55; }
+pre.snip {
+  margin: 0; padding: 14px 17px; overflow-x: auto;
+  background: var(--sunk); border-top: 1px solid var(--line);
+  font-family: var(--mono); font-size: 11.5px; line-height: 1.65;
+  color: var(--ink-soft); tab-size: 2;
+}
+pre.snip b { color: var(--accent); font-weight: 700; }
+pre.snip i { color: var(--ink-faint); font-style: normal; }
+
+.scoreboard {
+  display: flex; flex-wrap: wrap;
+  gap: 1px; background: var(--line); border: 1px solid var(--line);
+  border-radius: 7px; overflow: hidden;
+}
+.sb-cell { background: var(--surface); padding: 14px 15px; flex: 1 1 98px; min-width: 98px; }
+.sb-cell .n {
+  font-family: var(--display); font-variation-settings: "wdth" 86;
+  font-size: 27px; font-weight: 800; letter-spacing: -.02em; line-height: 1;
+  font-variant-numeric: tabular-nums; display: block;
+}
+.sb-cell .n.bad { color: var(--stop); }
+.sb-cell .n.mid { color: var(--open); }
+.sb-cell .n.good { color: var(--ok); }
+.sb-cell .l {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--ink-faint); display: block; margin-top: 6px; line-height: 1.45;
+}
+
 /* ---------- asset ledger ---------- */
 .ledger { border-collapse: collapse; width: 100%; font-family: var(--mono); font-size: 12px; }
 .ledger thead th {
@@ -485,10 +529,13 @@ footer.page .markers b { color: var(--ink-soft); font-weight: 500; }
     <a href="#swap"><span class="n">03</span> Say this</a>
     <a href="#voice"><span class="n">04</span> Voice</a>
     <a href="#machine"><span class="n">05</span> Machine rules</a>
-    <a href="#estate"><span class="n">06</span> The estate</a>
-    <a href="#assets"><span class="n">07</span> Asset ledger</a>
-    <a href="#corrections"><span class="n">08</span> In flight</a>
-    <a href="#wild"><span class="n">09</span> Caught in the wild</a>
+    <a href="#carries"><span class="n">06</span> Every page carries</a>
+    <a href="#estate"><span class="n">07</span> The estate</a>
+    <a href="#assets"><span class="n">08</span> Asset ledger</a>
+    <a href="#corrections"><span class="n">09</span> In flight</a>
+    <a href="#blueprint"><span class="n">10</span> The blueprint</a>
+    <a href="#streamline"><span class="n">11</span> Too many things</a>
+    <a href="#wild"><span class="n">12</span> Caught in the wild</a>
   </nav>
 
   <main class="doc">
@@ -635,9 +682,88 @@ footer.page .markers b { color: var(--ink-soft); font-weight: 500; }
     </section>
 
     <!-- 06 -->
+    <section id="carries">
+      <div class="sec-head">
+        <span class="sec-kicker">06 — Every page carries</span>
+        <h2>Four things go on every page. Mostly they don't.</h2>
+        <p>Read off the pages themselves on 2026-09-06, not from memory. The exact blocks are below so nobody has to remember the shape of them — including the assistant, which is the whole reason this section exists.</p>
+      </div>
+
+      <div class="scoreboard">
+        <div class="sb-cell"><span class="n">46</span><span class="l">static pages<br>in the repo</span></div>
+        <div class="sb-cell"><span class="n bad">5</span><span class="l">have Google<br>Analytics</span></div>
+        <div class="sb-cell"><span class="n bad">3</span><span class="l">have the lite<br>Ask&nbsp;Kari widget</span></div>
+        <div class="sb-cell"><span class="n mid">23</span><span class="l">carry an older<br>widget form</span></div>
+        <div class="sb-cell"><span class="n bad">20</span><span class="l">have no Ask<br>button at all</span></div>
+      </div>
+
+      <div class="blocks" style="margin-top:26px;">
+
+        <div class="block">
+          <div class="bhead">
+            <h3>1 &middot; Google Analytics 4</h3>
+            <span class="where">goes in &lt;head&gt;, before anything else loads</span>
+            <p class="note"><code class="inline">G-WHKMKCD1SD</code> is the CARES Works property and covers everything under that roof. MARCO's pages use a second property, <code class="inline">G-LQZGMT7X4Y</code> — deliberate separation for a client, or drift, is unresolved.</p>
+          </div>
+<pre class="snip">&lt;!-- Google Analytics 4 --&gt;
+&lt;script async
+  src="https://www.googletagmanager.com/gtag/js?id=<b>G-WHKMKCD1SD</b>"&gt;&lt;/script&gt;
+&lt;script&gt;
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', '<b>G-WHKMKCD1SD</b>');
+&lt;/script&gt;
+&lt;!-- End Google Analytics 4 --&gt;</pre>
+        </div>
+
+        <div class="block">
+          <div class="bhead">
+            <h3>2 &middot; Ask Kari — the lite widget</h3>
+            <span class="where">last thing before &lt;/body&gt; · config first, script second</span>
+            <p class="note">The <code class="inline">?v=2</code> build with an <code class="inline">AskKariConfig</code> object is the modified format: support mode, no email gate, simpler get-in-touch flow. <code class="inline">site:</code> names the page so the conversation arrives labelled. The two older forms still in the repo — a bare <code class="inline">widget.js</code>, and <code class="inline">widget.js</code> with a <code class="inline">data-mode</code> attribute — are the full-fat widget and are what STATUS.md has been calling the pending swap since August.</p>
+          </div>
+<pre class="snip">&lt;script&gt;
+  <i>// Lite "support" mode — no email gate, simpler "get in touch" flow.</i>
+  window.AskKariConfig = { mode: "support", site: "<b>PAGE NAME</b>" };
+&lt;/script&gt;
+&lt;script src="https://chat.karikounkel.com/widget.js<b>?v=2</b>" defer&gt;&lt;/script&gt;</pre>
+        </div>
+
+        <div class="block">
+          <div class="bhead">
+            <h3>3 &middot; The IP footer</h3>
+            <span class="where">bottom of every Kari-built page — not client-branded sites</span>
+            <p class="note">React pages import it: <code class="inline">import { SignatureFooter } from "../design/neon"</code>, then <code class="inline">&lt;SignatureFooter /&gt;</code> as the last element. Static pages need the same two lines by hand. Client sites — Minuteman, the union shop — carry the client's own footer instead; this notice is for hers.</p>
+          </div>
+<pre class="snip">BUILT FOR BUSINESS &middot; BACKED BY CARES
+
+CARES Works — proprietary software of
+Kari Hoglund Kounkel LLC &amp; CARES Consulting, Inc.
+© 2026. All rights reserved.</pre>
+        </div>
+
+        <div class="block">
+          <div class="bhead">
+            <h3>4 &middot; Head basics</h3>
+            <span class="where">the four lines that are always missing from something</span>
+            <p class="note">A real <code class="inline">&lt;title&gt;</code> — the page's name, not "Document" and not the filename. A meta description, because it is what shows up when the link is shared. And for any page under <code class="inline">public/</code>, a favicon.</p>
+          </div>
+<pre class="snip">&lt;meta charset="UTF-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+&lt;title&gt;<b>The page's actual name</b>&lt;/title&gt;
+&lt;meta name="description" content="<b>One sentence. It is the share preview.</b>"&gt;</pre>
+        </div>
+
+      </div>
+
+      <p style="font-size:14.5px;color:var(--ink-faint);margin:18px 0 0;line-height:1.6;">Worst offender, because it is in front of a client right now: <code class="inline">/floridagirl</code> has no Google Analytics and carries the bare old widget. The whole <code class="inline">proposals/</code> tree — Amy, ITA-BEL-KOO, and eight of MARCO's nine pages — has neither analytics nor an Ask button.</p>
+    </section>
+
+    <!-- 07 -->
     <section id="estate">
       <div class="sec-head">
-        <span class="sec-kicker">06 — The estate</span>
+        <span class="sec-kicker">07 — The estate</span>
         <h2>Seventeen Vercel projects. Nine Supabase databases.</h2>
         <p>Verified 2026-09-06 against the live APIs, not against memory. Earlier notes assumed four databases and sixteen projects.</p>
       </div>
@@ -668,10 +794,10 @@ footer.page .markers b { color: var(--ink-soft); font-weight: 500; }
       <p style="font-size:14.5px;color:var(--ink-faint);margin:14px 0 0;">Three more projects run on <code class="inline">.vercel.app</code> only: marbleverse, flowsuite-dac, marco-review. The barcode printed in <em>Court of Accounts</em> points at <code class="inline">accounts.karikounkel.com/tools</code> — the page it should land on is built and live at <code class="inline">tools.caresmn.com/tools</code>, but the domain resolves to nothing.</p>
     </section>
 
-    <!-- 07 -->
+    <!-- 08 -->
     <section id="assets">
       <div class="sec-head">
-        <span class="sec-kicker">07 — Asset ledger</span>
+        <span class="sec-kicker">08 — Asset ledger</span>
         <h2>Every property, and how far down the line it actually got.</h2>
         <p>Seven stages, same seven for a book as for a tool. A row with a gap in the middle is the useful kind of embarrassing — it shows exactly where a thing stalled.</p>
       </div>
@@ -716,10 +842,10 @@ footer.page .markers b { color: var(--ink-soft); font-weight: 500; }
       <p class="status" id="assetStatus" style="margin-top:8px;"></p>
     </section>
 
-    <!-- 08 -->
+    <!-- 09 -->
     <section id="corrections">
       <div class="sec-head">
-        <span class="sec-kicker">08 — In flight</span>
+        <span class="sec-kicker">09 — In flight</span>
         <h2>Things the written record currently gets wrong.</h2>
         <p>Listed because a false convention costs more than a missing one — it gets obeyed.</p>
       </div>
@@ -743,10 +869,97 @@ footer.page .markers b { color: var(--ink-soft); font-weight: 500; }
       </div>
     </section>
 
-    <!-- 09 -->
+    <!-- 10 -->
+    <section id="blueprint">
+      <div class="sec-head">
+        <span class="sec-kicker">10 &mdash; The blueprint</span>
+        <h2>What the plan sells, against what is actually wired.</h2>
+        <p>From <em>The Sovereign Creator Blueprint v3.0</em>. Each book is the curriculum and each FlowSuite module is the utility &mdash; a clean architecture on paper. Four places where the paper and the database disagree, and each one is a question a corporate buyer asks in the first meeting.</p>
+      </div>
+
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Sold as</th><th>Price</th><th>Paired book</th><th>What exists</th></tr></thead>
+          <tbody>
+            <tr><td>FlowSuite Ledger</td><td>$199/mo</td><td class="dim">Court of Accounts</td><td class="dim">Runs, but inside cares-works</td></tr>
+            <tr><td>FlowSuite Compliance</td><td>$99/mo</td><td class="dim">Unspoken Sorrow</td><td class="dim">Tables only, 0 tokens issued</td></tr>
+            <tr><td>FlowSuite Accountability</td><td>$149/mo</td><td class="dim">Culture Under Construction</td><td class="dim">Tables only, book unwritten</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="corrections" style="margin-top:22px;">
+        <div class="correction">
+          <h3>The Ledger being licensed is not in FlowSuite.</h3>
+          <p>The blueprint prices FlowSuite Ledger at $199/mo on &ldquo;Plaid banking, chronological transaction capture, and double-entry reconciliation.&rdquo; The ledger that exists is <code class="inline">LedgerWorkspace.jsx</code> in <strong>cares-works</strong>, built for ProGraphics &mdash; a different repo and a different database from the platform being licensed.</p>
+          <p class="verdict">Verdict &mdash; the product works. It just does not live where the sales sheet says it lives. Either the module moves into FlowSuite Pro, or FlowSuite is defined as the umbrella and the ledger is licensed from where it sits.</p>
+        </div>
+        <div class="correction">
+          <h3>Plaid is priced into the offer and has never been switched on.</h3>
+          <p>Three Plaid edge functions are deployed and the client flow is built. The secrets &mdash; <code class="inline">PLAID_CLIENT_ID</code>, <code class="inline">PLAID_SECRET</code>, <code class="inline">PLAID_ENV</code> &mdash; were never set, so no bank has ever connected. &ldquo;Plaid bank link configuration&rdquo; appears in two of the three workshop tiers as a deliverable.</p>
+          <p class="verdict">Verdict &mdash; the gap between deployed and working is three secrets, and it sits under a paid deliverable. Also on the blueprint&rsquo;s cost line: Plaid charges per connection, and infrastructure is budgeted at $350/mo total.</p>
+        </div>
+        <div class="correction">
+          <h3>A compliance product with an exposed sibling database.</h3>
+          <p>FlowSuite Compliance is sold on giving ICE and DOL auditors secure, restricted, read-only access to I-9 files. Meanwhile the legacy FlowSuite database &mdash; same product name, still holding real payroll and HR records for nineteen named people &mdash; has row-level security off on forty-three tables.</p>
+          <p class="verdict">Verdict &mdash; this is the one that is not merely untidy. It is a live exposure of real people&rsquo;s records, and it sits directly underneath the claim being monetized.</p>
+        </div>
+        <div class="correction">
+          <h3>The platform being licensed has no address.</h3>
+          <p>FlowSuite Pro &mdash; three orgs, fifty-one people, 765 jobs, writes through 8/25 &mdash; runs on <code class="inline">flowsuite-pro.vercel.app</code>. The dormant legacy version owns <code class="inline">flowsuite.caresmn.com</code>.</p>
+          <p class="verdict">Verdict &mdash; the blueprint targets municipal operators and unionized firms at $199&ndash;$499/mo. The live demo currently happens on a vercel.app subdomain while the real name points at the dormant copy.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 11 -->
+    <section id="streamline">
+      <div class="sec-head">
+        <span class="sec-kicker">11 &mdash; Too many things</span>
+        <h2>Repos are free. Databases are not.</h2>
+        <p>The cost worry has been pointed at the wrong axis. GitHub gives unlimited repos, public and private, at no charge, and Vercel bills per seat rather than per project &mdash; seventeen projects cost exactly what one costs. Supabase is the line that scales per thing: the org is on <strong>Pro</strong>, and all nine projects are active, none paused.</p>
+      </div>
+
+      <div class="scoreboard">
+        <div class="sb-cell"><span class="n good">0</span><span class="l">cost of<br>17 repos</span></div>
+        <div class="sb-cell"><span class="n good">0</span><span class="l">extra per<br>Vercel project</span></div>
+        <div class="sb-cell"><span class="n mid">9</span><span class="l">Supabase projects<br>all active</span></div>
+        <div class="sb-cell"><span class="n bad">6</span><span class="l">Vercel projects<br>cold 80+ days</span></div>
+        <div class="sb-cell"><span class="n">$350</span><span class="l">infra budget<br>in the blueprint</span></div>
+      </div>
+
+      <p style="font-size:15px;color:var(--ink-soft);margin:20px 0 10px;line-height:1.6;">Cold projects, by last production deploy. Retiring these frees no money &mdash; it frees attention, which is the scarcer one.</p>
+
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Project</th><th>Last deploy</th><th>Cold</th><th>Read</th></tr></thead>
+          <tbody>
+            <tr><td>marbleverse</td><td class="dim">2026-01-05</td><td class="dim">243d</td><td class="dim">Already lives inside cares-works at /tools/marbleverse</td></tr>
+            <tr><td>everything-board</td><td class="dim">2026-04-17</td><td class="dim">141d</td><td class="dim">80 open cards; the cockpit work supersedes it</td></tr>
+            <tr><td>keepstead</td><td class="dim">2026-04-20</td><td class="dim">138d</td><td class="dim">Superseded by keepstead-pro</td></tr>
+            <tr><td>flowsuite-dac</td><td class="dim">2026-04-27</td><td class="dim">131d</td><td class="dim">DAC tables live in flowsuite-pro; 15 clients, 0 daily entries</td></tr>
+            <tr><td>credit-comeback-tracker</td><td class="dim">2026-05-10</td><td class="dim">118d</td><td class="dim">Has real data &mdash; 464 transactions, 15 letters</td></tr>
+            <tr><td>marco-review</td><td class="dim">2026-06-11</td><td class="dim">86d</td><td class="dim">Linked to no repo at all. One deploy, ever.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p style="font-size:15px;color:var(--ink-soft);margin:22px 0 10px;line-height:1.6;">Where consolidation would actually land, on the Supabase side:</p>
+
+      <div class="rules">
+        <div class="rule machine"><span class="num">01</span><p class="txt"><strong>keepstead.pro holds three rows in total.</strong><span class="gloss">Three profiles, and zero in the other two tables. It is a database in name only.</span></p></div>
+        <div class="rule machine"><span class="num">02</span><p class="txt"><strong>Legacy FlowSuite is the retire-and-export candidate.</strong><span class="gloss">Dormant since April with one July touch, forty-three unprotected tables, and it is squatting on the domain the live platform needs. Retiring it closes the exposure, frees the name, and drops a project &mdash; one move, three problems.</span></p></div>
+        <div class="rule machine"><span class="num">03</span><p class="txt"><strong>The pattern already exists and works.</strong><span class="gloss">kkstore holds three properties &mdash; the store, Chasing Chickens and Ladybug Ladybug &mdash; in one database. Scott Hoglund Art (47 artworks, 0 orders) is the obvious next tenant.</span></p></div>
+        <div class="rule machine"><span class="num">04</span><p class="txt"><strong>Nine projects to six is the realistic floor.</strong><span class="gloss">cares-works, flowsuite-pro, kkstore and the chat hub are all load-bearing. That leaves keepstead.pro, legacy FlowSuite, Scott Hoglund Art, credit-comeback and everything-board as the ones with a decision attached.</span></p></div>
+      </div>
+
+      <p style="font-size:14.5px;color:var(--ink-faint);margin:18px 0 0;line-height:1.6;">Plans verified from the APIs, not from invoices &mdash; the Supabase org reports <code class="inline">plan: pro</code>. Actual billing has not been read and is not visible to this session.</p>
+    </section>
+
+    <!-- 12 -->
     <section id="wild">
       <div class="sec-head">
-        <span class="sec-kicker">09 — Caught in the wild</span>
+        <span class="sec-kicker">12 — Caught in the wild</span>
         <h2>Conventions added since this page was built.</h2>
         <p>Everything above was ratified in <code class="inline">CLAUDE.md</code> or stated preferences. This part is live: add a rule the moment it's discovered, and it stays here for the next session to read.</p>
       </div>
@@ -1090,6 +1303,17 @@ footer.page .markers b { color: var(--ink-soft); font-weight: 500; }
       sec.querySelectorAll(".voice-item").forEach(function (v) {
         var dt = v.querySelector("dt"), dd = v.querySelector("dd");
         if (dt && dd) out.push("- " + dt.textContent.trim() + ": " + dd.textContent.replace(/\s+/g, " ").trim());
+      });
+
+      sec.querySelectorAll(".block").forEach(function (b) {
+        var h = b.querySelector("h3"), w = b.querySelector(".where"), pre = b.querySelector("pre.snip");
+        if (!h) return;
+        out.push("- " + h.textContent.trim() + (w ? " — " + w.textContent.trim() : ""));
+        if (pre) {
+          pre.textContent.replace(/\s+$/, "").split("\n").forEach(function (ln) {
+            out.push("    " + ln);
+          });
+        }
       });
 
       var exc = sec.querySelector(".exception p");
