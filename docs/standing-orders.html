@@ -1424,55 +1424,94 @@ Kari Hoglund Kounkel LLC &amp; CARES Consulting, Inc.
     document.body.removeChild(ta);
   }
 
-  /* ---------- wake the store ---------- */
+  /* ---------- storage ----------
+     Two homes, one file. Inside the Claude artifact viewer this uses the db
+     capability. Served from /kari/<slug> in cares-works it falls back to
+     localStorage, which KariCockpitFrame seeds from and syncs back to
+     kari_tool_data — so the page saves to her account either way. */
+
+  function localShim() {
+    var KEY = "so_store_v1";
+    var subs = [];
+    function readAll() { try { return JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) { return {}; } }
+    function writeAll(o) { try { localStorage.setItem(KEY, JSON.stringify(o)); } catch (e) {} }
+    function emit(coll) {
+      var c = readAll()[coll] || {};
+      var docs = Object.keys(c).map(function (id) {
+        return { id: id, exists: true, data: function () { return c[id]; } };
+      });
+      subs.forEach(function (s) {
+        if (s.coll === coll) s.cb({ docs: docs, size: docs.length, empty: !docs.length });
+      });
+    }
+    function newId() { return "x" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+    function split(path) { var i = path.indexOf("/"); return [path.slice(0, i), path.slice(i + 1)]; }
+    return {
+      __local: true,
+      doc: function (path) {
+        var parts = split(path), coll = parts[0], id = parts[1];
+        return {
+          id: id,
+          set: function (body) { var a = readAll(); a[coll] = a[coll] || {}; a[coll][id] = body; writeAll(a); emit(coll); return Promise.resolve(); },
+          update: function (patch) {
+            var a = readAll(); a[coll] = a[coll] || {};
+            if (!a[coll][id]) return Promise.reject({ code: "invalid_argument", message: "no such row" });
+            Object.keys(patch).forEach(function (k) { a[coll][id][k] = patch[k]; });
+            writeAll(a); emit(coll); return Promise.resolve();
+          },
+          delete: function () { var a = readAll(); if (a[coll]) delete a[coll][id]; writeAll(a); emit(coll); return Promise.resolve(); }
+        };
+      },
+      collection: function (coll) {
+        return {
+          add: function (body) {
+            var a = readAll(); a[coll] = a[coll] || {};
+            var id = newId(); a[coll][id] = body; writeAll(a); emit(coll);
+            return Promise.resolve({ id: id });
+          },
+          onSnapshot: function (cb) { subs.push({ coll: coll, cb: cb }); setTimeout(function () { emit(coll); }, 0); return function () {}; }
+        };
+      }
+    };
+  }
+
+  function start(store) {
+    db = store;
+    db.collection("assets").onSnapshot(function (snap) {
+      assets = snap.docs.map(function (d) {
+        var data = d.data() || {};
+        return {
+          id: d.id,
+          name: String(data.name || ""),
+          kind: String(data.kind || ""),
+          url: String(data.url || ""),
+          stages: data.stages && typeof data.stages === "object" ? data.stages : {},
+          order: typeof data.order === "number" ? data.order : 9999
+        };
+      }).filter(function (x) { return x.name; });
+      sortAssets();
+      renderLedger();
+    }, function (e) { setAssetStatus(storeMsg(e), "err"); });
+
+    db.collection("conventions").onSnapshot(function (snap) {
+      items = snap.docs.map(function (d) {
+        var data = d.data() || {};
+        return { id: d.id, text: String(data.text || ""), added: data.added || "" };
+      }).filter(function (x) { return x.text; });
+      sortItems();
+      render();
+    }, function (e) { setStatus(storeMsg(e), "err"); });
+  }
 
   render();
   renderLedger();
 
   if (window.claude && typeof window.claude.use === "function") {
     window.claude.use("db").then(function (store) {
-      if (!store) {
-        setStatus("Saving is unavailable in this view.");
-        setAssetStatus("Saving is unavailable in this view.");
-        return;
-      }
-      db = store;
-
-      db.collection("assets").onSnapshot(function (snap) {
-        assets = snap.docs.map(function (d) {
-          var data = d.data() || {};
-          return {
-            id: d.id,
-            name: String(data.name || ""),
-            kind: String(data.kind || ""),
-            url: String(data.url || ""),
-            stages: data.stages && typeof data.stages === "object" ? data.stages : {},
-            order: typeof data.order === "number" ? data.order : 9999
-          };
-        }).filter(function (x) { return x.name; });
-        sortAssets();
-        renderLedger();
-      }, function (e) {
-        setAssetStatus(storeMsg(e), "err");
-      });
-
-      db.collection("conventions").onSnapshot(function (snap) {
-        items = snap.docs.map(function (d) {
-          var data = d.data() || {};
-          return { id: d.id, text: String(data.text || ""), added: data.added || "" };
-        }).filter(function (x) { return x.text; });
-        sortItems();
-        render();
-      }, function (e) {
-        setStatus(storeMsg(e), "err");
-      });
-    }).catch(function () {
-      setStatus("Saving is unavailable in this view.");
-      setAssetStatus("Saving is unavailable in this view.");
-    });
+      start(store || localShim());
+    }).catch(function () { start(localShim()); });
   } else {
-    setStatus("Saving is unavailable in this view.");
-    setAssetStatus("Saving is unavailable in this view.");
+    start(localShim());
   }
 })();
 </script>
