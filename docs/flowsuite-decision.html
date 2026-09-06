@@ -1,0 +1,352 @@
+<title>The FlowSuite Decision</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..600&family=JetBrains+Mono:wght@400;500;700&display=swap">
+
+<style>
+:root{
+  --paper:#f7f8fa; --surface:#fff; --sunk:#eef1f6;
+  --ink:#141a24; --ink-soft:#495769; --ink-faint:#77839a;
+  --line:#dde3ec; --line-soft:#e9edf4;
+  --accent:#1b62d6; --accent-ink:#12448f; --accent-wash:#e7effc;
+  --stop:#c0392b; --stop-wash:#fbeceb;
+  --ok:#1b8a4b; --ok-wash:#e6f4ec;
+  --open:#b47500; --open-wash:#fbf1de;
+  --pro:#1b62d6; --legacy:#8a6d3b;
+  --display:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;
+  --body:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+  --measure:70ch;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0f131b; --surface:#161c27; --sunk:#1b2230;
+  --ink:#e9edf4; --ink-soft:#a3b0c4; --ink-faint:#74829a;
+  --line:#28303f; --line-soft:#212936;
+  --accent:#6aa5ff; --accent-ink:#a9c9ff; --accent-wash:#152442;
+  --stop:#ff7a68; --stop-wash:#33191a;
+  --ok:#4ade80; --ok-wash:#12291d;
+  --open:#f2b33d; --open-wash:#2e2413;
+  --pro:#6aa5ff; --legacy:#c9a86a;
+}}
+:root[data-theme="dark"]{
+  --paper:#0f131b; --surface:#161c27; --sunk:#1b2230;
+  --ink:#e9edf4; --ink-soft:#a3b0c4; --ink-faint:#74829a;
+  --line:#28303f; --line-soft:#212936;
+  --accent:#6aa5ff; --accent-ink:#a9c9ff; --accent-wash:#152442;
+  --stop:#ff7a68; --stop-wash:#33191a;
+  --ok:#4ade80; --ok-wash:#12291d;
+  --open:#f2b33d; --open-wash:#2e2413;
+  --pro:#6aa5ff; --legacy:#c9a86a;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.62;-webkit-font-smoothing:antialiased}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+.masthead{position:sticky;top:0;z-index:40;background:var(--paper);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:12px 24px;flex-wrap:wrap}
+.masthead .mark{font-family:var(--display);font-weight:700;font-size:15px;font-variation-settings:"wdth" 92;letter-spacing:-.01em}
+.masthead .rev{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);padding:3px 7px;border:1px solid var(--line);border-radius:3px}
+
+.wrap{max-width:1020px;margin:0 auto;padding:38px 24px 90px;display:flex;flex-direction:column;gap:52px}
+.wrap>*{max-width:var(--measure)}
+.wrap>.wide{max-width:none}
+
+h1{font-family:var(--display);font-variation-settings:"wdth" 84;font-weight:800;font-size:clamp(33px,5vw,50px);line-height:1.03;letter-spacing:-.028em;margin:0 0 16px;text-wrap:balance}
+.lede{font-size:19px;line-height:1.55;color:var(--ink-soft);margin:0 0 12px}
+.lede em{color:var(--ink);font-style:italic}
+.meta{font-family:var(--mono);font-size:11.5px;color:var(--ink-faint);line-height:1.8;margin:18px 0 0;padding-top:13px;border-top:1px solid var(--line)}
+code.inline{font-family:var(--mono);font-size:.87em;background:var(--sunk);padding:1px 5px;border-radius:3px;color:var(--ink-soft)}
+
+section{scroll-margin-top:80px}
+.kicker{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-faint);display:block;margin-bottom:7px}
+h2{font-family:var(--display);font-variation-settings:"wdth" 88;font-weight:700;font-size:27px;line-height:1.14;letter-spacing:-.018em;margin:0 0 8px;text-wrap:balance}
+.sub{margin:0 0 24px;color:var(--ink-soft);font-size:16px}
+
+/* verdict banner */
+.verdictbox{border:1px solid var(--ok);background:var(--ok-wash);border-radius:8px;padding:22px 24px}
+.verdictbox .lbl{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ok);font-weight:700;display:block;margin-bottom:9px}
+.verdictbox p{margin:0 0 10px;font-size:16.5px}
+.verdictbox p:last-child{margin-bottom:0}
+
+/* head to head */
+.h2h{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.h2h>div{background:var(--surface);padding:20px 22px}
+.h2h .side-h{font-family:var(--display);font-variation-settings:"wdth" 90;font-size:18px;font-weight:700;margin:0 0 3px;letter-spacing:-.012em}
+.h2h .pro .side-h{color:var(--pro)}
+.h2h .legacy .side-h{color:var(--legacy)}
+.h2h .ref{font-family:var(--mono);font-size:10.5px;color:var(--ink-faint);display:block;margin-bottom:14px;word-break:break-all}
+.h2h dl{margin:0;display:flex;flex-direction:column;gap:9px}
+.h2h .r{display:flex;justify-content:space-between;gap:12px;align-items:baseline;border-bottom:1px dotted var(--line);padding-bottom:8px}
+.h2h .r:last-child{border-bottom:none}
+.h2h dt{font-family:var(--mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-faint)}
+.h2h dd{margin:0;font-family:var(--mono);font-size:13.5px;font-weight:500;font-variant-numeric:tabular-nums;text-align:right}
+.h2h dd.warn{color:var(--stop)}
+.h2h dd.good{color:var(--ok)}
+
+/* tables */
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:7px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:12.5px}
+thead th{text-align:left;font-weight:700;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);padding:11px 14px;border-bottom:1px solid var(--line);background:var(--sunk);white-space:nowrap}
+tbody td{padding:10px 14px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+tbody td:first-child{color:var(--ink);font-weight:500}
+td.dim{color:var(--ink-faint)}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+.pill{display:inline-block;padding:2px 7px;border-radius:3px;font-size:10px;letter-spacing:.07em;text-transform:uppercase;font-weight:700;white-space:nowrap}
+.pill.ok{background:var(--ok-wash);color:var(--ok)}
+.pill.warn{background:var(--open-wash);color:var(--open)}
+.pill.bad{background:var(--stop-wash);color:var(--stop)}
+
+/* module cards */
+.mods{display:flex;flex-direction:column;gap:18px}
+.mod{border:1px solid var(--line);border-radius:7px;background:var(--surface);overflow:hidden}
+.mod .mh{padding:16px 19px 13px;display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;border-bottom:1px solid var(--line-soft)}
+.mod h3{font-family:var(--display);font-variation-settings:"wdth" 90;font-size:17px;font-weight:700;margin:0;letter-spacing:-.012em}
+.mod .price{font-family:var(--mono);font-size:12px;color:var(--ink-faint)}
+.mod .bar{margin-left:auto;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;padding:3px 9px;border-radius:3px}
+.mod .body{padding:15px 19px 17px}
+.mod .body p{margin:0 0 10px;font-size:15px;line-height:1.55}
+.mod .body p:last-child{margin-bottom:0}
+.mod .ev{font-family:var(--mono);font-size:11.5px;color:var(--ink-faint);line-height:1.75;background:var(--sunk);padding:11px 14px;border-radius:5px;margin:0 0 11px}
+.mod .ev b{color:var(--ink-soft)}
+.gap{color:var(--stop);font-weight:600}
+
+/* risk */
+.risk{border:1px solid var(--stop);border-radius:8px;background:var(--stop-wash);padding:20px 22px}
+.risk .lbl{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--stop);font-weight:700;display:block;margin-bottom:9px}
+.risk p{margin:0 0 10px;font-size:16px}
+.risk p:last-child{margin-bottom:0}
+
+/* steps */
+.steps{display:flex;flex-direction:column;gap:16px;counter-reset:s}
+.step{display:grid;grid-template-columns:30px minmax(0,1fr);gap:14px;padding-left:14px;border-left:3px solid var(--accent)}
+.step .n{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--accent);padding-top:4px;font-variant-numeric:tabular-nums}
+.step p{margin:0;font-size:16px}
+.step .g{display:block;margin-top:5px;font-size:14.5px;color:var(--ink-faint);line-height:1.55}
+
+footer.page{max-width:1020px;margin:0 auto;padding:0 24px 60px}
+footer.page p{font-family:var(--mono);font-size:11.5px;color:var(--ink-faint);line-height:1.9;margin:0;padding-top:20px;border-top:1px solid var(--line)}
+footer.page b{color:var(--ink-soft);font-weight:500}
+
+@media (max-width:820px){
+  .h2h{grid-template-columns:minmax(0,1fr)}
+  .wrap{padding:26px 18px 70px;gap:42px}
+}
+</style>
+
+<header class="masthead">
+  <span class="mark">The FlowSuite Decision</span>
+  <span class="rev">read 2026·09·06</span>
+</header>
+
+<div class="wrap">
+
+  <div>
+    <h1>Two databases wearing one name.</h1>
+    <p class="lede">One of them holds the customers. The other holds the address. Neither holds the product the blueprint is selling &mdash; that lives in a third repo entirely.</p>
+    <p class="lede">Every number below is a real <code class="inline">count(*)</code> against the live databases, not a Postgres row estimate. The estimates lie here by an order of magnitude in both directions, which is how an earlier pass concluded ScanFlow and DAC were empty shells. They are not.</p>
+    <p class="meta">Legacy <code class="inline">keegxjuckohhtxllqxak</code> &middot; Pro <code class="inline">mqnvaiijuwqmkonnhlnw</code><br>Read against <em>The Sovereign Creator Blueprint v3.0</em>, sections 1 and 3.</p>
+  </div>
+
+  <div class="verdictbox">
+    <span class="lbl">The short answer</span>
+    <p><strong>Pro is the product. Legacy is an archive with a domain attached.</strong> Pro carries 140 populated tables and 12,733 rows against Legacy's 46 and 3,981, has row-level security on everywhere that matters, and is the only one of the two where the three sellable modules exist at all.</p>
+    <p>Legacy is not, however, a clean delete. Two bodies of data never made the crossing, and one of them is 108 contract sections.</p>
+  </div>
+
+  <!-- HEAD TO HEAD -->
+  <section class="wide">
+    <span class="kicker">01 &mdash; Head to head</span>
+    <h2>The measured difference.</h2>
+    <p class="sub">Same query run against both. Last-write dates are the newest row in the busiest tables that carry a timestamp.</p>
+
+    <div class="h2h">
+      <div class="pro">
+        <h3 class="side-h">FlowSuite Pro</h3>
+        <span class="ref">mqnvaiijuwqmkonnhlnw &middot; us-east-1</span>
+        <dl>
+          <div class="r"><dt>Tables</dt><dd>220</dd></div>
+          <div class="r"><dt>Populated</dt><dd class="good">140</dd></div>
+          <div class="r"><dt>Rows</dt><dd class="good">12,733</dd></div>
+          <div class="r"><dt>Organisations</dt><dd>3</dd></div>
+          <div class="r"><dt>People</dt><dd>51</dd></div>
+          <div class="r"><dt>RLS off</dt><dd class="good">4 backup tables</dd></div>
+          <div class="r"><dt>Newest write</dt><dd>Aug 3</dd></div>
+          <div class="r"><dt>Last deploy</dt><dd>Aug 25</dd></div>
+          <div class="r"><dt>Custom domain</dt><dd class="warn">none</dd></div>
+        </dl>
+      </div>
+      <div class="legacy">
+        <h3 class="side-h">FlowSuite Legacy</h3>
+        <span class="ref">keegxjuckohhtxllqxak &middot; us-east-1</span>
+        <dl>
+          <div class="r"><dt>Tables</dt><dd>75</dd></div>
+          <div class="r"><dt>Populated</dt><dd>46</dd></div>
+          <div class="r"><dt>Rows</dt><dd>3,981</dd></div>
+          <div class="r"><dt>Organisations</dt><dd>1</dd></div>
+          <div class="r"><dt>People</dt><dd>19 employees</dd></div>
+          <div class="r"><dt>RLS off</dt><dd class="warn">43 tables, 26 with rows</dd></div>
+          <div class="r"><dt>Newest write</dt><dd>Jul 21</dd></div>
+          <div class="r"><dt>Last deploy</dt><dd>Jul 18</dd></div>
+          <div class="r"><dt>Custom domain</dt><dd class="good">flowsuite.caresmn.com</dd></div>
+        </dl>
+      </div>
+    </div>
+
+    <p style="max-width:var(--measure);font-size:15px;color:var(--ink-soft);margin:18px 0 0;line-height:1.6;">Legacy's activity is not evenly stale. Its content tables stopped in February and March, its people tables in April, and exactly one table &mdash; <code class="inline">moneyflow_tasks</code> &mdash; was touched on July 21. That is the shape of a database somebody visited once, not one still in service.</p>
+  </section>
+
+  <!-- MODULES -->
+  <section class="wide">
+    <span class="kicker">02 &mdash; The three sellable modules</span>
+    <h2>What the blueprint prices, against what the tables show.</h2>
+    <p class="sub">All three are sold as FlowSuite licences. None of the three is fully inside FlowSuite Pro.</p>
+
+    <div class="mods">
+
+      <div class="mod">
+        <div class="mh">
+          <h3>FlowSuite Ledger</h3>
+          <span class="price">$199/mo Core Licence</span>
+          <span class="bar" style="background:var(--stop-wash);color:var(--stop)">Scattered across three homes</span>
+        </div>
+        <div class="body">
+          <p class="ev"><b>In Pro:</b> chart_of_accounts <b>239</b> &middot; iif_je_history <b>640</b> &middot; budget_cells <b>1,452</b> &middot; ap_aging_lines <b>217</b> &middot; cc_purchases <b>148</b> &middot; je_entries <b>1</b> &middot; je_entry_lines <b class="gap">0</b></p>
+          <p>Sold on &ldquo;Plaid banking, chronological transaction capture, and double-entry reconciliation.&rdquo; Three claims, three different locations.</p>
+          <p>The <strong>double-entry engine</strong> is scaffolded in Pro and has never posted a line: one journal entry exists and it has no lines under it. The <strong>working ledger</strong> &mdash; 3,433 posted entries, reconciled to statements &mdash; is <code class="inline">LedgerWorkspace.jsx</code> in cares-works, built for ProGraphics. <strong>Plaid</strong> is in neither: its three edge functions are deployed on cares-works and its secrets were never set, so no bank has ever connected.</p>
+          <p>This is the module the blueprint leans on hardest and the one furthest from being a FlowSuite thing.</p>
+        </div>
+      </div>
+
+      <div class="mod">
+        <div class="mh">
+          <h3>FlowSuite Compliance</h3>
+          <span class="price">$99/mo Add-on</span>
+          <span class="bar" style="background:var(--open-wash);color:var(--open)">Documents real, mechanism unused</span>
+        </div>
+        <div class="body">
+          <p class="ev"><b>In Pro:</b> employee_documents <b>116</b> &middot; employee_union_memberships <b>15</b> &middot; union_cba_documents <b>1</b> &middot; org_unions <b>2</b> &middot; ice_packet_tokens <b class="gap">0</b></p>
+          <p>The pitch is the token: a secure, restricted, read-only link handed to an ICE or DOL auditor during a surprise visit. The document store behind it is real &mdash; 116 employee documents. The token table exists and <strong>has never issued one</strong>.</p>
+          <p>So the demo is a story, not a click-through. That is a fixable gap and a small one, but it is the entire value proposition of the module.</p>
+        </div>
+      </div>
+
+      <div class="mod">
+        <div class="mh">
+          <h3>FlowSuite Accountability</h3>
+          <span class="price">$149/mo Management Pack</span>
+          <span class="bar" style="background:var(--ok-wash);color:var(--ok)">The one that is actually built</span>
+        </div>
+        <div class="body">
+          <p class="ev"><b>In Pro:</b> discipline_records <b>29</b> &middot; discipline_signatures <b>96</b> &middot; discipline_reviews <b>18</b> &middot; discipline_status_history <b>27</b> &middot; discipline_ladder_steps <b>12</b> &middot; separation_records <b>8</b> &middot; separation_tasks <b>59</b> &middot; recognition_records <b>1</b></p>
+          <p>Real records, real signatures, a configured discipline ladder, a separation workflow. This module has been used in anger, which is exactly what the &ldquo;before-and-after measurements from your active clients&rdquo; line in the blueprint needs.</p>
+          <p>Its dependency is not code. The blueprint pairs it with <em>Culture Under Construction</em>, the 20-week manager development system, and requires a workbook purchase. That book is unwritten.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- QBO -->
+  <section>
+    <span class="kicker">03 &mdash; A correction</span>
+    <h2>QuickBooks OAuth exists. It is just in the other database.</h2>
+    <p class="sub">The written record says there is no live QuickBooks connection anywhere and that no page may imply one.</p>
+    <p>That is true of cares-works. It is not true of FlowSuite Pro, which carries <code class="inline">org_qbo_connections</code> with one row, <code class="inline">qbo_app_secrets</code> with one, and <code class="inline">qbo_oauth_states</code> with thirteen. The connection row has the full shape of a real integration &mdash; <code class="inline">realm_id</code>, <code class="inline">access_token</code>, <code class="inline">refresh_token</code>, <code class="inline">expires_at</code>, <code class="inline">scopes</code>, <code class="inline">last_synced_at</code>, <code class="inline">last_sync_status</code>.</p>
+    <p>Thirteen OAuth states means the handshake was attempted at least thirteen times. Whether the surviving connection is live, expired, or a sandbox artefact has not been checked, and the tokens were deliberately not read.</p>
+    <p style="color:var(--ink-soft);font-size:15px;">Worth settling before a client meeting, because &ldquo;we have no QuickBooks connection&rdquo; and &ldquo;we have one and don't know its state&rdquo; are different sentences to say in a room.</p>
+  </section>
+
+  <!-- MIGRATION -->
+  <section class="wide">
+    <span class="kicker">04 &mdash; What crossed, and what did not</span>
+    <h2>Somebody already did most of this migration.</h2>
+    <p class="sub">Pro carries a set of <code class="inline">legacy_*</code> tables whose counts match Legacy's originals exactly. That is not coincidence &mdash; it is a deliberate, completed export.</p>
+
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Data</th><th class="num">Legacy</th><th class="num">In Pro</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>cashflow_ap</td><td class="num dim">104</td><td class="num dim">104</td><td><span class="pill ok">migrated exactly</span></td></tr>
+          <tr><td>cashflow_snapshots</td><td class="num dim">31</td><td class="num dim">31</td><td><span class="pill ok">migrated exactly</span></td></tr>
+          <tr><td>cashflow_pl</td><td class="num dim">29</td><td class="num dim">29</td><td><span class="pill ok">migrated exactly</span></td></tr>
+          <tr><td>cashflow_ar</td><td class="num dim">16</td><td class="num dim">16</td><td><span class="pill ok">migrated exactly</span></td></tr>
+          <tr><td>iif_account_map</td><td class="num dim">21</td><td class="num dim">21</td><td><span class="pill ok">migrated exactly</span></td></tr>
+          <tr><td>payroll_payment_orders</td><td class="num dim">3</td><td class="num dim">3</td><td><span class="pill ok">migrated exactly</span></td></tr>
+          <tr><td>iif_je_history</td><td class="num dim">646</td><td class="num dim">640 + 529</td><td><span class="pill ok">migrated, superset</span></td></tr>
+          <tr><td>coa_accounts</td><td class="num dim">326</td><td class="num dim">239 + 325</td><td><span class="pill ok">migrated, restructured</span></td></tr>
+          <tr><td>employees</td><td class="num dim">19</td><td class="num dim">51 profiles</td><td><span class="pill ok">superseded</span></td></tr>
+          <tr><td>mileage_logs</td><td class="num dim">77</td><td class="num dim">69 submissions</td><td><span class="pill warn">reshaped &mdash; verify</span></td></tr>
+          <tr><td>standing_deductions</td><td class="num dim">50</td><td class="num dim">25 + 45</td><td><span class="pill warn">reshaped &mdash; verify</span></td></tr>
+          <tr><td><strong>contract_sections</strong></td><td class="num dim">108</td><td class="num dim">1 CBA doc</td><td><span class="pill bad">did not cross</span></td></tr>
+          <tr><td><strong>job_sleeves</strong></td><td class="num dim">1,067</td><td class="num dim">305</td><td><span class="pill bad">history left behind</span></td></tr>
+          <tr><td><strong>stations</strong></td><td class="num dim">1,000</td><td class="num dim">48</td><td><span class="pill bad">history left behind</span></td></tr>
+          <tr><td>products / categories</td><td class="num dim">13 / 7</td><td class="num dim">none</td><td><span class="pill warn">no equivalent</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p style="max-width:var(--measure);font-size:15px;color:var(--ink-soft);margin:18px 0 0;line-height:1.6;">The financial core crossed cleanly and the people moved to a better model. What stayed behind is <strong>108 contract sections</strong> &mdash; the union contract broken into clauses, which is precisely the raw material the Compliance module is sold on &mdash; and roughly two thousand rows of print-shop scan history.</p>
+  </section>
+
+  <!-- RISK -->
+  <section>
+    <span class="kicker">05 &mdash; The clock</span>
+    <h2>The exposure, stated precisely.</h2>
+    <p class="sub">An earlier summary described this as nineteen people's payroll being wide open. That overstates it in one direction and understates the awkwardness in another. Here is the measured version.</p>
+
+    <div class="risk">
+      <span class="lbl">Legacy &mdash; row-level security off on 43 tables, 26 of them holding rows</span>
+      <p>The genuinely sensitive tables are <strong>protected</strong>: <code class="inline">employees</code>, <code class="inline">disciplines</code>, <code class="inline">onboarding</code>, <code class="inline">standing_deductions</code> and <code class="inline">employee_requests</code> all have RLS on.</p>
+      <p>What is unprotected and populated is a smaller, more specific set &mdash; <strong>seven tables holding fewer than ninety rows of personal data</strong> &mdash; alongside about 3,400 rows of operational and financial data with no personal content. Two of the seven concern separations and payroll notes about named people.</p>
+      <p style="font-size:14.5px;color:var(--ink-soft)">The seven are named in the session transcript rather than on this page. A project ref plus a public anon key plus a published list of unprotected tables is a working route in, and this page is hosted. The export step needs those names; reading the page does not.</p>
+      <p>Small in volume. Not small in kind: separations and payroll notes about named people are the two categories you would least want readable with a public key, and the whole set is reachable by anyone holding the anon key for a project that is still running.</p>
+    </div>
+
+    <p style="margin-top:20px;">Pro's own exposure is four <code class="inline">_bak_*</code> snapshot tables holding 530 rows, left from a July 20&ndash;21 migration. Same fix, much lower stakes.</p>
+
+    <p>The reason this has not been patched is real and worth restating: <strong>enabling RLS without policies locks the application out.</strong> On a live database that is an outage. On a dormant one it is not.</p>
+  </section>
+
+  <!-- THE MOVE -->
+  <section>
+    <span class="kicker">06 &mdash; What this adds up to</span>
+    <h2>One move solves four problems.</h2>
+    <p class="sub">Not a recommendation to act tonight &mdash; a statement of what is coupled to what, so the morning conversation starts from the shape of it.</p>
+
+    <div class="steps">
+      <div class="step"><span class="n">01</span><p><strong>Export contract_sections and the scan history out of Legacy.</strong><span class="g">108 clauses and roughly 2,000 scan rows. The clauses matter most &mdash; they are the material the Compliance module is sold on, and they exist nowhere else.</span></p></div>
+      <div class="step"><span class="n">02</span><p><strong>Retire Legacy.</strong><span class="g">Closes the row-level-security exposure without an outage, because there is no live app to lock out. Drops one Supabase project. Nothing has written to it in six weeks and nothing but one table in five months.</span></p></div>
+      <div class="step"><span class="n">03</span><p><strong>Move <code class="inline">flowsuite.caresmn.com</code> onto Pro.</strong><span class="g">The platform being licensed at $199&ndash;$499/mo currently demos on a vercel.app subdomain while the dormant copy holds the real name. This is the cheapest credibility fix available and it is blocked only by step 2.</span></p></div>
+      <div class="step"><span class="n">04</span><p><strong>Settle where the Ledger lives.</strong><span class="g">Either the ProGraphics ledger moves into Pro, or FlowSuite is redefined as the umbrella brand and the ledger is licensed from cares-works. Both are defensible. What is not defensible is a sales sheet that names one and a codebase that is the other.</span></p></div>
+      <div class="step"><span class="n">05</span><p><strong>Issue one I-9 token.</strong><span class="g">The Compliance module's entire pitch, currently at zero. One working token turns a story into a demo.</span></p></div>
+    </div>
+  </section>
+
+  <section>
+    <span class="kicker">07 &mdash; Open questions</span>
+    <h2>Things this pass could not settle.</h2>
+    <p class="sub">Listed so they are not mistaken for findings.</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Question</th><th>Why it is open</th></tr></thead>
+        <tbody>
+          <tr><td>Is the QBO connection live?</td><td class="dim">Tokens deliberately not read. <code class="inline">last_sync_status</code> unchecked.</td></tr>
+          <tr><td>Who are the two paying clients?</td><td class="dim">Pro holds 3 orgs. The blueprint says two are paying. Not matched up.</td></tr>
+          <tr><td>Is the DAC tenant a client or a build?</td><td class="dim">15 clients, 796 incidents, 73 goals &mdash; real usage, unknown commercial status.</td></tr>
+          <tr><td>Did mileage and deductions cross correctly?</td><td class="dim">Counts are close but reshaped. Needs a row-level check, not a count.</td></tr>
+          <tr><td>What does Legacy's app still serve?</td><td class="dim">Its Vercel project deployed Jul 18. Nobody has confirmed no human still opens it.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</div>
+
+<footer class="page">
+  <p>
+    <b>Method</b> — every count is <code class="inline">count(*)</code> executed against the live database on 2026-09-06. Postgres row estimates were not used and disagree materially.<br>
+    <b>Not read</b> — no access token, refresh token, employee record, payroll figure or document body was opened. Table names and row counts only.<br>
+    <b>Withheld</b> — the specific unprotected table names are deliberately not on this page. Everything else is.
+  </p>
+</footer>
