@@ -126,6 +126,8 @@ const BUILD_PROGRESS = [
     ["Real transactions imported (CSV)", "done"],
     ["Upload transactions per account", "done"],
     ["Plaid — connect a bank / card", "done"],
+    ["Plaid — pull new transactions in", "wip"],
+    ["Plaid balances tie to the books", "done"],
     ["Today's live balances at the top", "done"],
   ] },
   { label: "Notebook", items: [
@@ -134,6 +136,7 @@ const BUILD_PROGRESS = [
     ["Customer payments link to invoices", "done"],
     ["Pay a card — transfer, not expense", "done"],
     ["Hand-enter a check / cash / deposit", "done"],
+    ["Check numbers show on every line", "done"],
     ["Cleared-items history", "done"],
   ] },
   { label: "Reconciliation", items: [
@@ -145,7 +148,11 @@ const BUILD_PROGRESS = [
   ] },
   { label: "Bills", items: [
     ["Record a vendor bill", "done"],
+    ["Delete a bill", "done"],
     ["Pay a bill by printed check", "done"],
+    ["Recipient name + address on the check", "done"],
+    ["Check numbers on paid bills", "done"],
+    ["View a written check (no redo)", "done"],
     ["Check lands in the register", "done"],
   ] },
   { label: "Card payoff plan", items: [
@@ -153,9 +160,12 @@ const BUILD_PROGRESS = [
     ["Pay-now amounts (waterfall the budget)", "done"],
     ["Credit line + utilization", "done"],
     ["0% promo end date", "done"],
+    ["Payment due date + minimum (from statement)", "todo"],
   ] },
   { label: "Lists — customers, vendors, items", items: [
     ["Customers — add / edit full info", "done"],
+    ["Exemption certificates (ST3) on file", "done"],
+    ["Customer & vendor past-order history", "done"],
     ["Vendors — payment history + merge dupes", "done"],
     ["Items & services", "done"],
   ] },
@@ -170,7 +180,9 @@ const BUILD_PROGRESS = [
   ] },
   { label: "Sales tax", items: [
     ["Auto-tally taxable / exempt / collected", "done"],
+    ["MN jurisdiction breakdown (9.025%)", "done"],
     ["Period picker (month / quarter / year)", "done"],
+    ["Per-period filing tracker", "done"],
     ["Printable MN filing worksheet", "done"],
   ] },
   { label: "Reports", items: [
@@ -184,6 +196,11 @@ const BUILD_PROGRESS = [
     ["Bank reconciliations page", "done"],
     ["Branding / logo", "done"],
     ["Users & roles", "wip"],
+  ] },
+  { label: "Safety — nothing vanishes", items: [
+    ["Every entry stays visible in the register", "wip"],
+    ["Undo / recover a deleted item", "todo"],
+    ["Full change history (audit trail)", "todo"],
   ] },
 ];
 
