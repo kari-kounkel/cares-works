@@ -534,8 +534,9 @@ footer.page .markers b { color: var(--ink-soft); font-weight: 500; }
     <a href="#assets"><span class="n">08</span> Asset ledger</a>
     <a href="#corrections"><span class="n">09</span> In flight</a>
     <a href="#blueprint"><span class="n">10</span> The blueprint</a>
-    <a href="#streamline"><span class="n">11</span> Too many things</a>
-    <a href="#wild"><span class="n">12</span> Caught in the wild</a>
+    <a href="#founders"><span class="n">11</span> The Founders funnel</a>
+    <a href="#streamline"><span class="n">12</span> Too many things</a>
+    <a href="#wild"><span class="n">13</span> Caught in the wild</a>
   </nav>
 
   <main class="doc">
@@ -913,9 +914,61 @@ Kari Hoglund Kounkel LLC &amp; CARES Consulting, Inc.
     </section>
 
     <!-- 11 -->
+    <section id="founders">
+      <div class="sec-head">
+        <span class="sec-kicker">11 &mdash; The Founders funnel</span>
+        <h2>The Keeper&rsquo;s four steps, measured against the repo.</h2>
+        <p>From <em>The Founders League Digital Playbook</em>. This one is further along than the estate suggested &mdash; the <code class="inline">founders</code> repo carries a real quiz, a real hub router and a marble system. It is also where two things collide.</p>
+      </div>
+
+      <div class="scoreboard">
+        <div class="sb-cell"><span class="n good">13</span><span class="l">hub containers<br>routed</span></div>
+        <div class="sb-cell"><span class="n bad">2</span><span class="l">hubs with<br>content in them</span></div>
+        <div class="sb-cell"><span class="n bad">5</span><span class="l">of 65 card<br>prompts written</span></div>
+        <div class="sb-cell"><span class="n mid">6</span><span class="l">marbles &mdash; but the<br>wrong kind</span></div>
+        <div class="sb-cell"><span class="n bad">$0</span><span class="l">of $249 + $27/mo<br>collectable</span></div>
+      </div>
+
+      <div class="tablewrap" style="margin-top:22px;">
+        <table>
+          <thead><tr><th>Funnel step</th><th>Blueprint</th><th>What is actually there</th></tr></thead>
+          <tbody>
+            <tr><td>1 &middot; Quiz hook</td><td class="dim">13-question BLL quiz</td><td class="dim"><span class="state live">built</span> LoveLanguageQuiz.jsx, live</td></tr>
+            <tr><td>2 &middot; Workbook</td><td class="dim">$249, 300 pages</td><td class="dim"><span class="state dark">no payment path</span></td></tr>
+            <tr><td>3 &middot; Clubhouse</td><td class="dim">$27/mo membership</td><td class="dim"><span class="state warn">priced, not wired</span></td></tr>
+            <tr><td>4 &middot; Enterprise</td><td class="dim">$3.5k&ndash;$7.5k workshops</td><td class="dim"><span class="state live">the consulting brand exists</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="corrections" style="margin-top:22px;">
+        <div class="correction">
+          <h3>The 13-question quiz has been built twice.</h3>
+          <p><code class="inline">LoveLanguageQuiz.jsx</code> lives in the founders repo with its own <code class="inline">QUESTIONS</code> and <code class="inline">RESULTS</code>. The 13-question diagnostic on <code class="inline">/floridagirl</code> lives in cares-works, scores three bands, and renders one of four reads. Same machine, same question count, two codebases, neither reusable by the other.</p>
+          <p class="verdict">Verdict &mdash; this is the fourth-CRM pattern wearing a different hat. One scoring engine, two question sets and two result sets, is the shape that serves both and any diagnostic after them.</p>
+        </div>
+        <div class="correction">
+          <h3>&ldquo;Marbles&rdquo; names two incompatible systems.</h3>
+          <p>In the repo, <code class="inline">marbles.js</code> is a hidden-gem hunt: six ids in <code class="inline">localStorage</code>, cleared when the browser is. In the playbook, a marble is a season credential &mdash; hold all five stations of a weekly theme, record a 60-second video answering all five prompts, community votes to approve, thirteen across the season, stored on a member profile.</p>
+          <p class="verdict">Verdict &mdash; the delightful one is built. The one the product is sold on needs member profiles, marble records, video and a vote, and none of it exists: <code class="inline">founders_leads</code> holds 3 rows, <code class="inline">founders_rsvps</code> 1.</p>
+        </div>
+        <div class="correction">
+          <h3>Eleven of thirteen hubs are empty containers.</h3>
+          <p>Every slug resolves &mdash; <code class="inline">/vision</code> through <code class="inline">/legacy</code> &mdash; and only <code class="inline">vision</code> and <code class="inline">marketing</code> carry sections. The other eleven return the &ldquo;rolling out&rdquo; shell. The 13-week YouTube campaign sends weeks 3 through 13 straight at them.</p>
+          <p class="verdict">Verdict &mdash; the container-not-content design is genuinely good and is why this is a filling job, not a rebuild. The printed QR codes will never go stale. They will just land somewhere polite and empty until the hubs are filled.</p>
+        </div>
+      </div>
+
+      <div class="exception" style="margin-top:22px;">
+        <span class="lbl">Worth keeping, and worth copying</span>
+        <p>The printed QR points at a hub <em>container</em>, never at a piece of content, so the <code class="inline">sections</code> array can be refilled forever without a printed code ever going dead. That is the same problem the <em>Court of Accounts</em> barcode has &mdash; and that barcode was pointed at a domain instead, which is why it is still dark.</p>
+      </div>
+    </section>
+
+    <!-- 12 -->
     <section id="streamline">
       <div class="sec-head">
-        <span class="sec-kicker">11 &mdash; Too many things</span>
+        <span class="sec-kicker">12 &mdash; Too many things</span>
         <h2>Repos are free. Databases are not.</h2>
         <p>The cost worry has been pointed at the wrong axis. GitHub gives unlimited repos, public and private, at no charge, and Vercel bills per seat rather than per project &mdash; seventeen projects cost exactly what one costs. Supabase is the line that scales per thing: the org is on <strong>Pro</strong>, and all nine projects are active, none paused.</p>
       </div>
@@ -956,10 +1009,10 @@ Kari Hoglund Kounkel LLC &amp; CARES Consulting, Inc.
       <p style="font-size:14.5px;color:var(--ink-faint);margin:18px 0 0;line-height:1.6;">Plans verified from the APIs, not from invoices &mdash; the Supabase org reports <code class="inline">plan: pro</code>. Actual billing has not been read and is not visible to this session.</p>
     </section>
 
-    <!-- 12 -->
+    <!-- 13 -->
     <section id="wild">
       <div class="sec-head">
-        <span class="sec-kicker">12 — Caught in the wild</span>
+        <span class="sec-kicker">13 — Caught in the wild</span>
         <h2>Conventions added since this page was built.</h2>
         <p>Everything above was ratified in <code class="inline">CLAUDE.md</code> or stated preferences. This part is live: add a rule the moment it's discovered, and it stays here for the next session to read.</p>
       </div>
