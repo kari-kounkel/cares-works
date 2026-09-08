@@ -2601,7 +2601,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             </div>
           </div>
           {(() => {
-            const newBank = (entity.rawEntries || []).filter(e => e.source_hash && (e.created_at || "") > bankSeenAt).length;
+            const newBank = (entity.rawEntries || []).filter(e => e.source_hash && !e.match_status && (e.created_at || "") > bankSeenAt).length;
             if (!newBank) return null;
             return (
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap", background: "#eef6ff", border: "1px solid #cfe4ff", borderRadius: 10, padding: "9px 14px", marginTop: 12 }}>
