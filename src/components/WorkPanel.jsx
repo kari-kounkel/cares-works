@@ -50,6 +50,15 @@ function dueLabel(days) {
 // those describe a weekend that already happened.
 const FILEABLE = ["urgent", "focus", "inprogress", "brainstorm", "complete"];
 
+// Where a row came from. Derived from the data rather than hardcoded, so a new
+// origin (the Minuteman desk checklist was the fourth) shows up on its own.
+const SOURCE_LABEL = {
+  everything: "Board cards",
+  rollout: "Rollout",
+  minuteman: "Minuteman",
+  board: "Added here",
+};
+
 export default function WorkPanel({ rows, onToggleDone, onToggleCheck, onRefresh, onAdd, onMove, onDelete }) {
   const [source, setSource] = useState("all");
   const [project, setProject] = useState("");
@@ -60,7 +69,7 @@ export default function WorkPanel({ rows, onToggleDone, onToggleCheck, onRefresh
 
   if (rows === null) {
     return (
-      <Panel color={N.blue} rgb={N_RGB.blue} title="The Work" subtitle="Everything Board + Monday 7AM Rollout" onRefresh={onRefresh}>
+      <Panel color={N.blue} rgb={N_RGB.blue} title="The Work" subtitle="Everything you owe yourself" onRefresh={onRefresh}>
         <Quiet>Loading the work…</Quiet>
       </Panel>
     );
@@ -180,7 +189,8 @@ export default function WorkPanel({ rows, onToggleDone, onToggleCheck, onRefresh
 
   return (
     <Panel color={N.blue} rgb={N_RGB.blue} title="The Work"
-      subtitle="Everything Board + Monday 7AM Rollout" onRefresh={onRefresh}>
+      subtitle={`${rows.length} items from ${new Set(rows.map((r) => r.source)).size} places`}
+      onRefresh={onRefresh}>
       {rows.length === 0 ? <Quiet>Nothing here yet.</Quiet> : (
         <>
           <Tiles items={[
@@ -193,8 +203,8 @@ export default function WorkPanel({ rows, onToggleDone, onToggleCheck, onRefresh
 
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
             {tab("all", "Everything")}
-            {tab("everything", "Board cards")}
-            {tab("rollout", "Rollout")}
+            {[...new Set(rows.map((r) => r.source))].sort()
+              .map((sc) => tab(sc, SOURCE_LABEL[sc] || sc))}
             <select value={project} onChange={(e) => setProject(e.target.value)}
               style={{ fontFamily: "'DM Mono', monospace", fontSize: 10.5, padding: "5px 8px", borderRadius: 7, border: `1px solid ${N.rule}`, background: N.white, color: N.muted, maxWidth: 230 }}>
               <option value="">All projects</option>

@@ -83,3 +83,11 @@ create index if not exists board_work_user_idx
 alter table public.board_work drop constraint if exists board_work_source_check;
 alter table public.board_work add constraint board_work_source_check
   check (source in ('everything', 'rollout', 'board'));
+
+-- The Minuteman Press transition checklist is a fourth origin: a printed desk
+-- checklist (PDF), not a system with an API. 49 tasks across 15 sections, all
+-- due 2026-10-15. The section rides in `projects` so the existing project
+-- filter slices by it without a schema change.
+alter table public.board_work drop constraint if exists board_work_source_check;
+alter table public.board_work add constraint board_work_source_check
+  check (source in ('everything', 'rollout', 'board', 'minuteman'));
