@@ -46,11 +46,17 @@ function dueLabel(days) {
   return `${days} days`;
 }
 
-export default function WorkPanel({ rows, onToggleDone, onToggleCheck, onRefresh }) {
+// Buckets Kari can file something into by hand. The rollout days aren't here —
+// those describe a weekend that already happened.
+const FILEABLE = ["urgent", "focus", "inprogress", "brainstorm", "complete"];
+
+export default function WorkPanel({ rows, onToggleDone, onToggleCheck, onRefresh, onAdd, onMove, onDelete }) {
   const [source, setSource] = useState("all");
   const [project, setProject] = useState("");
   const [showDone, setShowDone] = useState(false);
   const [expanded, setExpanded] = useState(() => new Set());
+  const [adding, setAdding] = useState(false);
+  const [draft, setDraft] = useState({ title: "", bucket: "focus" });
 
   if (rows === null) {
     return (
@@ -133,6 +139,19 @@ export default function WorkPanel({ rows, onToggleDone, onToggleCheck, onRefresh
               {r.owner && chip(r.owner, N.white, N.blueDark, "owner")}
               {(r.projects || []).slice(0, 2).map((p) => chip(p, N.white, N.muted, "p" + p))}
               {(r.tags || []).map((t) => chip(t, "#f0fdf4", N.pinkDark, "t" + t))}
+
+              {/* Refiling and removing live on the row, so a card can move out
+                  of Brainstorm the moment it stops being a someday. */}
+              <select value={FILEABLE.includes(r.bucket) ? r.bucket : ""} onChange={(e) => onMove(r.id, e.target.value)}
+                title="Move to"
+                style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: N.mutedLite, background: N.white, border: `1px solid ${N.rule}`, borderRadius: 4, padding: "1px 3px", cursor: "pointer" }}>
+                {!FILEABLE.includes(r.bucket) && <option value="">{r.bucket || "—"}</option>}
+                {FILEABLE.map((b) => (
+                  <option key={b} value={b}>{BUCKETS.find((x) => x.key === b)?.label || b}</option>
+                ))}
+              </select>
+              <button onClick={() => onDelete(r)} title="Remove from the board"
+                style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: N.mutedLite, background: "none", border: "none", cursor: "pointer", padding: "0 3px" }}>✕</button>
             </div>
           )}
 
@@ -185,7 +204,37 @@ export default function WorkPanel({ rows, onToggleDone, onToggleCheck, onRefresh
               style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase", color: N.muted, background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>
               {showDone ? "Hide done" : `Show done (${doneRows.length})`}
             </button>
+            <button onClick={() => setAdding((v) => !v)}
+              style={{ fontFamily: "'Figtree', sans-serif", fontSize: 12.5, fontWeight: 700, background: adding ? N.white : N.blue, color: adding ? N.muted : N.white, border: `1px solid ${adding ? N.rule : N.blue}`, borderRadius: 7, padding: "5px 13px", cursor: "pointer", marginLeft: "auto" }}>
+              {adding ? "Cancel" : "+ Add work"}
+            </button>
           </div>
+
+          {adding && (
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const title = draft.title.trim();
+              if (!title) return;
+              onAdd(title, draft.bucket);
+              setDraft({ title: "", bucket: draft.bucket });
+              setAdding(false);
+            }}
+              style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14, padding: 12, background: N.white, border: `1px solid ${N.rule}`, borderRadius: 10 }}>
+              <input autoFocus value={draft.title} placeholder="What needs doing?"
+                onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+                style={{ flex: "1 1 260px", minWidth: 0, fontFamily: "inherit", fontSize: 13.5, padding: "8px 10px", border: `1px solid ${N.rule}`, borderRadius: 7, color: N.ink }} />
+              <select value={draft.bucket} onChange={(e) => setDraft({ ...draft, bucket: e.target.value })}
+                style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, padding: "8px 9px", border: `1px solid ${N.rule}`, borderRadius: 7, background: N.white, color: N.muted }}>
+                {FILEABLE.map((b) => (
+                  <option key={b} value={b}>{BUCKETS.find((x) => x.key === b)?.label || b}</option>
+                ))}
+              </select>
+              <button type="submit"
+                style={{ fontFamily: "'Figtree', sans-serif", fontSize: 13, fontWeight: 700, background: N.blue, color: N.white, border: "none", borderRadius: 7, padding: "8px 16px", cursor: "pointer", boxShadow: "0 4px 14px rgba(0,128,255,0.35)" }}>
+                Add
+              </button>
+            </form>
+          )}
 
           {groups.length === 0 ? <Quiet>Nothing open under that filter.</Quiet> : (
             <div className="work-cols" style={{ display: "flex", gap: 26, alignItems: "flex-start", maxHeight: 620, overflowY: "auto" }}>

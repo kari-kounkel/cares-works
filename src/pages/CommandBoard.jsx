@@ -231,6 +231,30 @@ export default function CommandBoard({ session }) {
     await supabase.from("board_work").update({ done: next, done_at: at }).eq("id", rowId);
   }
 
+  // Work added here has no upstream list — source 'board'. source_id just has
+  // to be unique per user, and the clock supplies that.
+  async function addWork(title, bucket) {
+    const row = {
+      user_id: uid, source: "board", source_id: "b" + Date.now(),
+      title, bucket, tab: "board", projects: [], tags: [], checklist: [], links: [],
+    };
+    const { data } = await supabase.from("board_work").insert(row).select().maybeSingle();
+    if (data) setWork((rows) => [data, ...(rows || [])]);
+  }
+
+  async function moveWork(rowId, bucket) {
+    setWork((rows) => rows.map((r) => (r.id === rowId ? { ...r, bucket } : r)));
+    await supabase.from("board_work").update({ bucket }).eq("id", rowId);
+  }
+
+  // Deleting here does not touch the Everything Board — that copy is still
+  // whole — but this is the only copy Kari looks at now, so it asks first.
+  async function deleteWork(row) {
+    if (!window.confirm(`Remove "${row.title}" from the board?`)) return;
+    setWork((rows) => rows.filter((r) => r.id !== row.id));
+    await supabase.from("board_work").delete().eq("id", row.id);
+  }
+
   // Checklist items are {id, done, text} — 465 of them across the cards, and
   // the smallest real unit of work in here. They tick in place.
   async function toggleCheck(row, idx) {
@@ -342,7 +366,8 @@ export default function CommandBoard({ session }) {
             Rollout's 36 items, moved into board_work and shown together. */}
         <div style={{ marginBottom: 18 }}>
           <WorkPanel rows={work} onRefresh={loadWork}
-            onToggleDone={toggleWork} onToggleCheck={toggleCheck} />
+            onToggleDone={toggleWork} onToggleCheck={toggleCheck}
+            onAdd={addWork} onMove={moveWork} onDelete={deleteWork} />
         </div>
 
         {/* THE ONE LIST — the actual work. Full width and first, because a board
