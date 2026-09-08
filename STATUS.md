@@ -340,6 +340,7 @@ Kari's private live dashboard at `tools.caresmn.com/board` — her week, her unr
   - **Still Unread** — unread INBOX threads: sender, subject, snippet, relative age, an over-a-week flag, deep-linking to `mail.google.com/…/#inbox/<threadId>`. Tiles: unread / over a week / today.
   - **Who Owes You** — QBO A/R Aging Summary. Tiles for open A/R, current, past due; a proportional aging-bucket bar; top overdue customers; negative buckets flagged as unapplied credits rather than summed as debt.
   - **Milestones** — editable label + date rows from `board_milestones`. Seeded with Minuteman Press exit 2026-10-15 and Chasing Chickens launch 2026-10-28, under both of Kari's sign-ins.
+- ✅ **The Kingdom** panel (added 9/8, full width, first on the page) — all fourteen web properties against the house baseline, seeded from the asset ledger in `docs/standing-orders.html`. First real scan: **14/14 up, ASK widget on 11, a working analytics tag on 6, a favicon on 6** — 37 of 56 measured cells green.
 - ✅ **The Work** panel (added 9/8, full width, first on the page) — the Everything Board's 108 cards and the Monday 7AM Rollout's 36 items, moved into `public.board_work`. 144 rows: 100 open, 44 done, 465 checklist sub-items. Buckets in priority order, filters by source and by project, checklists expand and tick in place, and work can be added, refiled and removed on the board itself.
 - ✅ **The One List** panel (added 9/8, full width, first on the page) — the actual work. 65 items in 7 groups: 100 already built, 2 ticked, **45 left to do**, 18 parked. Ticking on the board writes the same `kari_tool_data` row the cockpit writes.
 - ✅ Two entry points, so the board is never a remembered URL: an owner-only card at the top of `/dashboard` (gated to `kari@karikounkel.com` + `kari@caresmn.com`) and a `kari_cockpits` tile on `/kari`.
@@ -348,6 +349,12 @@ Kari's private live dashboard at `tools.caresmn.com/board` — her week, her unr
 - ✅ Live on production: `dpl_BQC54k45H7SoXK5R2YbWB1KjSf7A`, `target: production`, `state: READY`, commit `23b059b`, aliased to `tools.caresmn.com`.
 
 **Decisions**
+- **Measured and declared are two different greens and are never added together.** `board_properties.probe` is written only by the scanner (`?panel=kingdom&scan=1`, which fetches every host and reports: does it answer, is there a real analytics tag, is the ASK widget on it, does it declare a favicon). `board_properties.checks` is written only by Kari (sign-in, password reset, transactional mail, payments) — no fetch can answer those. The panel scores them separately and labels the two halves. A single number blending "we looked" with "she said so" would be worse than no number.
+- **A placeholder tag scores red, not green.** `scotthoglundart.com` ships `G-XXXXXXXXXX` — analytics that looks installed and records nothing. The probe reads measurement ids and rejects placeholders, putting the reason in the cell's tooltip. This is the whole point of a scoreboard: a false green is worse than a red.
+- **Not applicable is a third state, and it leaves the denominator.** Declared cells cycle ? → ✓ → ✕ → n/a. Marking a static brochure site "n/a" for payments drops it from the total rather than counting it as a failure, so the score means something.
+- **Scanning is opt-in.** Fourteen live fetches take seconds, so the panel serves the last recorded scan on load and only re-scans on the button. Costs no new Serverless Function — `data.js` already routes on `?panel=`, which matters at 10 of 12.
+- **The baseline is four measured items and four declared ones**, not a wishlist. Anything that cannot be either measured or answered yes/no by Kari does not belong in the grid.
+
 - **The work moved; the sources were not emptied.** Kari asked for the lists "moved into this new place". The Everything Board's Supabase and the Rollout Tracker's cockpit HTML are untouched — this is a copy until she says to retire them, because a one-way move of 144 items on the strength of one sentence is not reversible. `board_work` is unique on `(user_id, source, source_id)`, so re-running the import updates in place rather than doubling.
 - **The import ran over the REST API, not through the chat.** The everything-board project's service key is not available locally, so the 108 cards were read via the Supabase MCP (which writes oversized results to a file) and pushed to cares-works with a service key pulled from Vercel, used, and deleted. The card text never passed through the conversation, and no second service key had to be stored anywhere.
 - **Her user id differs between the two projects** — `d6831f92-…` on everything-board, `7ee067cc-…` here. Separate Supabase projects mean separate `auth.users`. Rows were remapped on import; anything else pulled from that project needs the same remap.
@@ -378,6 +385,8 @@ Kari's private live dashboard at `tools.caresmn.com/board` — her week, her unr
 - Encrypted refresh tokens live in `public.board_connections`, readable only by the service-role key.
 
 **Where it stopped**
+9/8, overnight (later): The Kingdom panel shipped — fourteen properties, four measured columns and four declared ones, on commit `eda091f`. The first scan is already stored, so the grid is populated on first open rather than making Kari wait on fourteen fetches. Verified in a browser against the real rows: 37/56 measured green, the declared cells cycle, and n/a leaves the denominator.
+
 9/8, overnight: the work lists moved in. `public.board_work` holds 144 items — 108 Everything Board cards (82 open) and 36 Rollout items (18 open) — and The Work panel shipped with add / refile / remove and tickable checklists. Live at `dpl_7UiZCnQ54kvpRjk3bWJu2J1o9wiL` on commit `ddc22db`, still 10 functions. Verified in a browser against the real rows before shipping: counts, checklist expansion, the source and project filters, adding an item, and the mobile layout.
 
 9/8, later: The One List panel shipped — `dpl_8gv2QS9d6bnR8DBtg7AqMGDZ4BSD`, `target: production`, `READY`, commit `ee6dcc4`, still 10 functions. The board now opens on 45 things to do and a 62% progress bar instead of an empty desk.
@@ -387,6 +396,11 @@ Kari's private live dashboard at `tools.caresmn.com/board` — her week, her unr
 The session also got ahead of itself once: Kari was asked to pick a QuickBooks company and a secret-handover method before she had been told what was built or what state anything was in. Build status first, decisions second.
 
 **Pending / frozen items**
+- **The declared half of the Kingdom grid is entirely unanswered** — 0 of 56 cells. Sign-in, password reset, transactional mail and payments are unknown for all fourteen properties until Kari ticks them. The measured half is filled in.
+- What the first scan turned up, unresolved: `scotthoglundart.com` has a placeholder analytics id; `keepstead.pro` and `chickens.karikounkel.com` carry neither analytics nor the ASK widget; eight of fourteen properties declare no favicon; `karikounkel.shop` and `accounts.karikounkel.com` both report `G-WHKMKCD1SD`, i.e. the shop's traffic lands in the CARES Works stream rather than its own. Standing Orders already flags the same question about MARCO's `G-LQZGMT7X4Y`.
+- The scan is manual. Nothing runs it on a schedule, so the grid is as fresh as the last time someone pressed the button.
+- The baseline is not yet written down anywhere as prose — it exists only as the eight columns in `src/components/KingdomPanel.jsx`. Standing Orders is where a conventions page would belong.
+- Nothing turns a red cell into a `board_work` row yet; the scoreboard and the work list do not talk to each other.
 - The Everything Board (`everything.karikounkel.com`, Supabase `iwrrkhzjfjlgpqmzlxqb`) and the Rollout Tracker cockpit **still hold their own copies**. Nothing decides which is canonical yet, so edits made in either of those places will not reach the board, and vice versa. Retiring them — or turning `everything.karikounkel.com` into a second front end over `board_work` — is undecided. Card `s7dex1vr`, "Keepstead — Phase 2 Migrate Everything Board", is the card this was.
 - Re-running the import would overwrite board-side edits to imported rows with whatever the old sources still say, because the upsert takes the source as truth. It is safe to re-run only while the sources are considered canonical.
 - The Work panel has no search, no due-date editing, and no way to add a checklist item to a card — only to tick the 465 that came across. Titles cannot be edited after they are added.
@@ -405,6 +419,9 @@ The session also got ahead of itself once: Kari was asked to pick a QuickBooks c
 - `C:\dev\cares-works\docs\command-board-spec.md` (the build spec this was written from)
 - `C:\dev\cares-works\sql\command-board.sql` (applied — `board_connections`, `board_milestones`)
 - `C:\dev\cares-works\src\pages\CommandBoard.jsx` (all five panels)
+- `C:\dev\cares-works\sql\board-properties.sql` (applied — `board_properties`, seeded from the Standing Orders asset ledger)
+- `C:\dev\cares-works\src\components\KingdomPanel.jsx` (the scoreboard — the eight baseline columns are defined at the top of this file)
+- `C:\dev\cares-works\api\board\_panels.js` (`kingdomPanel` — the scanner, including the placeholder-id rule)
 - `C:\dev\cares-works\sql\board-work.sql` (applied — `board_work`, plus the widened source constraint)
 - `C:\dev\cares-works\src\components\WorkPanel.jsx` (The Work — presentational, takes rows + callbacks), `src\components\boardChrome.jsx` (Panel/Tiles/Quiet/ConnectState)
 - `C:\dev\cares-works\src\lib\oneList.js` (parses the cockpit HTML into items + progress stats), `src\cockpits\the_one_list.html` (the list itself — edit the items HERE, nowhere else)
