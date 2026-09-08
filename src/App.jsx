@@ -56,6 +56,8 @@ import CourtOfAccountsHome from "./pages/CourtOfAccountsHome";
 import LedgerWorkspace from "./pages/LedgerWorkspace";
 import EmersonWorkspace from "./pages/EmersonWorkspace";
 import InvoicePublic from "./pages/InvoicePublic";
+import InvoiceDocPublic from "./pages/InvoiceDocPublic";
+import InvoiceMaker from "./pages/InvoiceMaker";
 import { FRAME_COCKPITS, CLOUD_COCKPITS } from "./cockpits/registry";
 
 export function navigate(path) {
@@ -125,6 +127,9 @@ export default function App() {
 
   // Public, no-login customer invoice view: /i/<token>. Must be reachable before any auth gate.
   if (path.startsWith("/i/")) return <InvoicePublic token={path.slice(3).replace(/\/$/, "")} />;
+
+  // Same idea for the invoice maker's own invoices: /inv/<token>, no login.
+  if (path.startsWith("/inv/")) return <InvoiceDocPublic token={path.slice(5).replace(/\/$/, "")} />;
 
   if (loading) return (
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#ffffff", fontFamily: "'Figtree', sans-serif", color: "#64748b", fontSize: 15 }}>Loading...</div>
@@ -203,6 +208,12 @@ export default function App() {
   if (path === "/board" || path === "/board/") {
     if (!session) { navigate("/login"); return null; }
     return <CommandBoard session={session} />;
+  }
+
+  // The invoice maker — every brand she invoices under, in one place.
+  if (path === "/invoices" || path === "/invoices/") {
+    if (!session) { navigate("/login"); return null; }
+    return <InvoiceMaker session={session} />;
   }
 
   if (path === "/kari") {
