@@ -5,9 +5,9 @@
 // themselves are in _panels.js.
 
 import { requireUser, json } from "./_lib.js";
-import { calendarPanel, mailPanel, arPanel } from "./_panels.js";
+import { calendarPanel, mailPanel, arPanel, kingdomPanel } from "./_panels.js";
 
-const PANELS = { calendar: calendarPanel, mail: mailPanel, ar: arPanel };
+const PANELS = { calendar: calendarPanel, mail: mailPanel, ar: arPanel, kingdom: kingdomPanel };
 
 export default async function handler(req, res) {
   const panel = PANELS[String(req.query?.panel || "")];

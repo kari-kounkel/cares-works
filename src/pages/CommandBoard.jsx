@@ -4,6 +4,7 @@ import { navigate } from "../App";
 import { N, N_RGB, FONT_LINK, SignatureFooter, WASH_BG_LITE, HERO_TEXT_GRAD_BLUE } from "../design/neon";
 import { Panel, Tiles, Quiet, ConnectState, fmtTime } from "../components/boardChrome";
 import WorkPanel from "../components/WorkPanel";
+import KingdomPanel from "../components/KingdomPanel";
 import { oneListGroups, oneListProgress, oneListCounts, ONE_LIST_TOOL_KEY, ONE_LIST_HREF } from "../lib/oneList";
 
 // Command Board — tools.caresmn.com/board
@@ -94,6 +95,9 @@ export default function CommandBoard({ session }) {
   const [showParked, setShowParked] = useState(false);
 
   const [work, setWork] = useState(null); // null = still loading
+
+  const [kingdom, setKingdom] = useState(null);
+  const [scanning, setScanning] = useState(false);
 
   // Re-render once a minute so the "now" marker and the countdowns stay honest
   // on a page that's been open since 5am.
@@ -209,6 +213,34 @@ export default function CommandBoard({ session }) {
   }, [uid]);
 
   useEffect(() => { loadOne(); }, [loadOne]);
+
+  // --- The Kingdom -----------------------------------------------------------
+  // Loads last-recorded state cheaply; a scan (fourteen live fetches) only
+  // happens when asked for.
+
+  const loadKingdom = useCallback(async (scan) => {
+    if (scan) setScanning(true);
+    try {
+      const body = await authed("/api/board/data?panel=kingdom" + (scan ? "&scan=1" : ""));
+      setKingdom(body);
+    } catch (err) {
+      setKingdom({ ok: false, error: err.message || "unreachable" });
+    } finally {
+      setScanning(false);
+    }
+  }, [authed]);
+
+  useEffect(() => { if (uid) loadKingdom(false); }, [uid, loadKingdom]);
+
+  // Declared checks are Kari's answer, so they are written straight from here.
+  // The scanner never touches this column.
+  async function setCheck(prop, key, value) {
+    const checks = { ...(prop.checks || {}) };
+    if (value === null || value === undefined) delete checks[key];
+    else checks[key] = value;
+    setKingdom((k) => ({ ...k, properties: k.properties.map((p) => (p.id === prop.id ? { ...p, checks } : p)) }));
+    await supabase.from("board_properties").update({ checks }).eq("id", prop.id);
+  }
 
   // --- The Work --------------------------------------------------------------
   // Everything Board cards + Monday 7AM Rollout items, both moved into
@@ -361,6 +393,12 @@ export default function CommandBoard({ session }) {
             <button onClick={() => setNotice(null)} style={{ background: "none", border: "none", color: N.muted, cursor: "pointer" }}>✕</button>
           </div>
         )}
+
+        {/* THE KINGDOM — where every property stands against the baseline. */}
+        <div style={{ marginBottom: 18 }}>
+          <KingdomPanel data={kingdom} scanning={scanning}
+            onScan={() => loadKingdom(true)} onSetCheck={setCheck} />
+        </div>
 
         {/* THE WORK — the Everything Board's 108 cards and the Monday 7AM
             Rollout's 36 items, moved into board_work and shown together. */}
