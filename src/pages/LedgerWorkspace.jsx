@@ -3276,8 +3276,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         {v.status === "Invoiced" && <span style={{ fontSize: 10, fontWeight: 700, color: "#5a7a63", background: "#eafaf0", border: "1px solid #cfe9d6", borderRadius: 100, padding: "3px 9px", letterSpacing: "0.04em" }}>INVOICED</span>}
         <button onClick={() => editOrder(v)} style={btnPaper(N.muted)}>Edit</button>
         {v.poNumber && <button onClick={() => openPoSend(v)} style={btnPaper(N.blue)}>{v.status === "PO sent" ? "✉ Resend PO" : "✉ Email PO"}</button>}
-        <button onClick={() => setOpenInv(v)} style={btnPaper(N.text)}>View / print</button>
-        {v.customer && v.customer !== "—" && v.status !== "Invoiced" && <button onClick={() => convertToInvoice(v)} style={{ ...btnBlue, background: N.blue }}>Convert to invoice →</button>}
+        <button onClick={() => setOpenInv(v)} style={{ ...btnBlue, background: N.blue }}>Open{v.customer && v.customer !== "—" && v.status !== "Invoiced" ? " / bill" : ""} →</button>
         <button onClick={() => deleteOrder(v.id)} title="Delete order" style={{ border: "1px solid " + N.rule, background: "none", color: N.muted, cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontSize: 12, fontWeight: 600, borderRadius: 100, padding: "6px 12px" }}>Delete</button>
       </div>
     );
