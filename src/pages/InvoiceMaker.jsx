@@ -346,6 +346,7 @@ export default function InvoiceMaker({ session }) {
               onPickBrand={(b) => set({ brand_id: b.id, header_image_url: null, preset_key: null })}
               onPreset={applyPreset}
               onSave={save} busy={busy} link={link}
+              docs={docs}
               events={events.filter((e) => e.doc_id === doc.id)}
               onSend={sendEmail} onLog={logEvent}
               onMarkPaid={markPaid} onDelete={removeDoc} upload={upload}
@@ -468,7 +469,7 @@ function DocRow({ d, b, onOpen, onDuplicate }) {
 // ============================================================================
 // The form
 // ============================================================================
-function EditPane({ doc, set, brands, brandOf, onPickBrand, onPreset, onSave, busy, link, onMarkPaid, onDelete, upload, onEditBrand, flash, events = [], onSend, onLog }) {
+function EditPane({ doc, set, brands, brandOf, onPickBrand, onPreset, onSave, busy, link, onMarkPaid, onDelete, upload, onEditBrand, flash, docs = [], events = [], onSend, onLog }) {
   const b = brandOf(doc.brand_id);
   const presets = brands.flatMap((x) =>
     (x.presets || []).map((p) => ({
@@ -480,6 +481,28 @@ function EditPane({ doc, set, brands, brandOf, onPickBrand, onPreset, onSave, bu
   ).sort((m, n) => (m.brand_id === doc.brand_id ? -1 : 0) - (n.brand_id === doc.brand_id ? -1 : 0));
   const t = totalsOf(doc);
   const [copied, setCopied] = useState(false);
+
+  // Everyone billed before, newest first, one entry per name. Taken from the
+  // invoices themselves rather than a customer table, so there is nothing to
+  // keep in step and nothing to go stale.
+  const people = useMemo(() => {
+    const seen = new Map();
+    for (const d of docs) {
+      const name = (d.bill_to_name || "").trim();
+      if (!name) continue;
+      const key = name.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.set(key, { key, name, email: d.bill_to_email || "", address: d.bill_to_address || "", phone: d.bill_to_phone || "" });
+    }
+    return [...seen.values()];
+  }, [docs]);
+
+  const usePerson = (c) => set({
+    bill_to_name: c.name,
+    bill_to_email: c.email || "",
+    bill_to_address: c.address || "",
+    bill_to_phone: c.phone || "",
+  });
   const [sendNote, setSendNote] = useState("");
 
   const lines = doc.line_items || [];
@@ -569,7 +592,31 @@ function EditPane({ doc, set, brands, brandOf, onPickBrand, onPreset, onSave, bu
       ) : null}
 
       <Card title="Bill to">
-        <Field label="Name"><input value={doc.bill_to_name || ""} onChange={(e) => set({ bill_to_name: e.target.value })} style={inp} /></Field>
+        {people.length ? (
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
+            {people.slice(0, 8).map((c) => (
+              <button key={c.key} onClick={() => usePerson(c)}
+                title={[c.email, c.address].filter(Boolean).join(" · ")}
+                style={{
+                  border: "1px solid " + N.rule, background: N.white, borderRadius: 999,
+                  padding: "5px 12px", cursor: "pointer", fontSize: 12, color: N.muted, fontFamily: "inherit",
+                }}>
+                {c.name}
+              </button>
+            ))}
+          </div>
+        ) : null}
+        <Field label="Name">
+          <input list="im-people" value={doc.bill_to_name || ""} style={inp}
+            onChange={(e) => {
+              const v = e.target.value;
+              const hit = people.find((c) => c.name.toLowerCase() === v.trim().toLowerCase());
+              if (hit) usePerson(hit); else set({ bill_to_name: v });
+            }} />
+          <datalist id="im-people">
+            {people.map((c) => <option key={c.key} value={c.name} />)}
+          </datalist>
+        </Field>
         <Field label="Email"><input value={doc.bill_to_email || ""} onChange={(e) => set({ bill_to_email: e.target.value })} style={inp} /></Field>
         <Field label="Address"><textarea value={doc.bill_to_address || ""} onChange={(e) => set({ bill_to_address: e.target.value })} style={{ ...inp, minHeight: 60, resize: "vertical" }} /></Field>
         <Field label="Phone"><input value={doc.bill_to_phone || ""} onChange={(e) => set({ bill_to_phone: e.target.value })} style={inp} /></Field>
