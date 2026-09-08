@@ -704,6 +704,9 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [checkOffX, setCheckOffX] = useState(() => { try { return parseFloat(localStorage.getItem("cw_checkAlignX")) || 0; } catch (e) { return 0; } }); // inches, printer alignment nudge (remembered)
   const [checkOffY, setCheckOffY] = useState(() => { try { return parseFloat(localStorage.getItem("cw_checkAlignY")) || 0; } catch (e) { return 0; } });
   useEffect(() => { try { localStorage.setItem("cw_checkAlignX", String(checkOffX)); localStorage.setItem("cw_checkAlignY", String(checkOffY)); } catch (e) { /* storage may be blocked */ } }, [checkOffX, checkOffY]);
+  // Per-browser view choice: steno notebook (default — Betty's) vs. a plain register table (Kari's).
+  const [regView, setRegView] = useState(() => { try { return localStorage.getItem("cw_reg_view") === "1"; } catch (e) { return false; } });
+  useEffect(() => { try { localStorage.setItem("cw_reg_view", regView ? "1" : "0"); } catch (e) { /* storage may be blocked */ } }, [regView]);
   const blankInvoice = { customer: "", email: "", ship: "", taxStatus: "Taxable", lines: [{ desc: "", qty: "1", price: "" }] };
   const [invDraft, setInvDraft] = useState(blankInvoice);
 
@@ -1381,6 +1384,21 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     window.alert(`Pulled ${data && data.added != null ? data.added : 0} new transaction${data && data.added === 1 ? "" : "s"} into the notebook.`);
     setReloadTick(t => t + 1);
   }
+  // Auto-sync the bank feed quietly when the workspace opens, so nobody has to hunt for a button.
+  async function syncPlaidSilent() {
+    if (!liveOrgId) return;
+    try {
+      const { data } = await supabase.functions.invoke("plaid-sync", { body: { org_id: liveOrgId } });
+      if (data && data.added > 0) setReloadTick(t => t + 1);
+    } catch (e) { /* quiet — the visible Sync now button surfaces errors */ }
+  }
+  const autoSyncedRef = useRef(false);
+  useEffect(() => {
+    if (!live || !liveOrgId || autoSyncedRef.current) return;
+    autoSyncedRef.current = true;
+    const t = setTimeout(() => { syncPlaidSilent(); }, 1500);
+    return () => clearTimeout(t);
+  }, [live, liveOrgId]);
 
   async function saveAccount() {
     const id = acctEditId;
@@ -2614,6 +2632,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginTop: 12 }}>
             <button onClick={() => { setShowAddLine(s => !s); setShowPayCard(false); setAddedCount(0); setTimeout(() => payeeRef.current && payeeRef.current.focus(), 40); }} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 16px" }}>{showAddLine ? "Close" : "+ Add a line"}</button>
             <button onClick={() => { setShowPayCard(s => !s); setShowAddLine(false); }} style={btnPaper(N.blue)}>{showPayCard ? "Close" : "Pay a card"}</button>
+            <button onClick={syncPlaid} disabled={!!plaidBusy} title="Pull new transactions from the connected bank/cards" style={btnPaper(N.blue)}>{plaidBusy === "syncing" ? "Syncing…" : "🔄 Sync now"}</button>
             <select value={acctFilter} onChange={e => setAcctFilter(e.target.value)} title="Show only one account" style={{ ...inputSt, padding: "8px 10px", fontSize: 12, fontWeight: acctFilter ? 700 : 400, color: acctFilter ? N.blueDark : N.text, borderColor: acctFilter ? N.blue : N.rule }}>
               <option value="">All accounts</option>
               {accountList.map(a => <option key={a.id} value={a.name}>{a.name}</option>)}
@@ -2625,8 +2644,14 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               <option value="vendor">Sort: Vendor (A–Z)</option>
               <option value="account">Sort: Pymt by</option>
             </select>
-            <div style={{ marginLeft: "auto", fontSize: 12, fontWeight: 700, color: N.pinkDark, background: "#eafaf0", border: "1px solid #bff0d3", padding: "7px 12px", borderRadius: 100, whiteSpace: "nowrap" }}>
-              {items.length} in the notebook
+            <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ display: "flex", border: "1px solid " + N.rule, borderRadius: 100, overflow: "hidden" }} title="Switch how your transactions look — this only changes your own view">
+                <button onClick={() => setRegView(false)} style={{ border: "none", cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontSize: 12, fontWeight: 600, padding: "7px 12px", background: !regView ? N.blue : N.white, color: !regView ? N.white : N.muted }}>Notebook</button>
+                <button onClick={() => setRegView(true)} style={{ border: "none", cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontSize: 12, fontWeight: 600, padding: "7px 12px", background: regView ? N.blue : N.white, color: regView ? N.white : N.muted }}>Register</button>
+              </div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: N.pinkDark, background: "#eafaf0", border: "1px solid #bff0d3", padding: "7px 12px", borderRadius: 100, whiteSpace: "nowrap" }}>
+                {items.length} in the notebook
+              </div>
             </div>
           </div>
         </div>
@@ -2712,7 +2737,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           </div>
         )}
 
-        {/* Steno pad */}
+        {/* Steno pad (Betty's default view) */}
+        {!regView && (
         <div style={{ position: "relative", background: "#e9f0e2", border: "1px solid #cdd8c2", borderRadius: 12, padding: "12px 16px 16px 52px", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: 0, bottom: 0, left: 40, width: 1, background: "#d98b8b" }} />
           <div style={{ position: "absolute", top: 10, left: 15, display: "flex", flexDirection: "column", gap: 5 }}>
@@ -2838,6 +2864,61 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             ];
           })}
         </div>
+        )}
+
+        {regView && (
+        <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, overflow: "hidden" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "78px 64px 1fr 150px 150px 96px 96px 34px", padding: "9px 14px", background: "#f7fafd", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.06em", color: N.muted, alignItems: "center" }}>
+            <span>DATE</span><span>CHECK#</span><span>DESCRIPTION</span><span>ACCOUNT</span><span>CATEGORY</span><span style={{ textAlign: "right" }}>OUT</span><span style={{ textAlign: "right" }}>IN</span><span></span>
+          </div>
+          {visibleItems.length === 0 && <div style={{ padding: "26px", textAlign: "center", color: N.muted, fontSize: 14 }}>{q ? "Nothing matches that." : "All caught up."}</div>}
+          {visibleItems.map((x, i) => {
+            const ckm = x.reference ? (/^check/i.test(x.reference) ? x.reference.replace(/^check\s*#?\s*/i, "") : (/^\d+$/.test(x.reference) ? x.reference : "")) : "";
+            const editing = editLineId === x.id;
+            return (
+              <div key={x.id} style={{ borderTop: "1px solid " + N.rule, background: x.cleared ? "#e2edf7" : "transparent" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "78px 64px 1fr 150px 150px 96px 96px 34px", padding: "7px 14px", alignItems: "center", fontSize: 13, color: N.text }}>
+                  <span style={{ color: N.muted }}>{x.date}</span>
+                  <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: N.blueDark }}>{ckm}</span>
+                  <span style={{ minWidth: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={x.payee}>{x.payee}</span>
+                  <select value={x.accountId || ""} title="Which bank or card?" onChange={e => { const id = e.target.value; const nm = accountList.find(a => a.id === id)?.name || "—"; setAccount(x.id, id || null, nm); }} style={{ ...inputSt, fontSize: 11, padding: "4px 6px", maxWidth: 144, marginRight: 6 }}>
+                    <option value="">— account —</option>
+                    {accountList.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                  </select>
+                  {x.category === "Card payment" ? (
+                    <span style={{ fontSize: 11, color: N.blueDark }}>↔ Card payment</span>
+                  ) : (
+                    <select value={x.category || ""} onChange={e => { if (e.target.value === "__new__") { const nm = window.prompt("New account name:"); if (nm && nm.trim()) addCategory(nm, x.id); } else setCategory(x.id, e.target.value); }} style={{ ...inputSt, fontSize: 11, padding: "4px 6px", maxWidth: 144, marginRight: 6 }}>
+                      <option value="">— category —</option>
+                      {(entity.categories || []).slice().sort((a, b) => a.localeCompare(b)).map(c => <option key={c} value={c}>{c}</option>)}
+                      <option value="__new__">＋ Add…</option>
+                    </select>
+                  )}
+                  <span style={{ textAlign: "right", color: "#26303f" }}>{x.direction !== "in" ? money(x.amount) : ""}</span>
+                  <span style={{ textAlign: "right", color: N.green, fontWeight: 600 }}>{x.direction === "in" ? money(x.amount) : ""}</span>
+                  <span style={{ display: "flex", gap: 4, justifyContent: "flex-end" }}>
+                    <button onClick={() => { if (editing) { setEditLineId(null); } else { setEditLineId(x.id); setEditDraft({ date: x.dateISO || "", payee: x.payee || "", amount: String(x.amount || ""), direction: x.direction || "out" }); } }} title="Edit line" style={{ border: "none", background: "none", cursor: "pointer", color: editing ? N.blue : N.muted, fontSize: 14 }}>✎</button>
+                  </span>
+                </div>
+                {editing && (
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", padding: "0 14px 12px 14px" }}>
+                    <div style={{ display: "flex", border: "1px solid " + N.rule, borderRadius: 100, overflow: "hidden" }}>
+                      <button onClick={() => setEditDraft(d => ({ ...d, direction: "out" }))} style={{ border: "none", cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontSize: 12, fontWeight: 600, padding: "7px 12px", background: editDraft.direction === "out" ? N.pinkDark : N.white, color: editDraft.direction === "out" ? N.white : N.muted }}>Out</button>
+                      <button onClick={() => setEditDraft(d => ({ ...d, direction: "in" }))} style={{ border: "none", cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontSize: 12, fontWeight: 600, padding: "7px 12px", background: editDraft.direction === "in" ? N.green : N.white, color: editDraft.direction === "in" ? N.white : N.muted }}>In</button>
+                    </div>
+                    <input type="date" value={editDraft.date} onChange={e => setEditDraft(d => ({ ...d, date: e.target.value }))} style={{ ...inputSt, width: 150 }} />
+                    <input list="pg-vendor-list" value={editDraft.payee} onChange={e => setEditDraft(d => ({ ...d, payee: e.target.value }))} placeholder="Payee" style={{ ...inputSt, flex: 1, minWidth: 180 }} />
+                    <input value={editDraft.amount} onChange={e => setEditDraft(d => ({ ...d, amount: e.target.value }))} placeholder="$ amount" style={{ ...inputSt, width: 120 }} />
+                    <button onClick={saveLine} style={{ ...btnBlue, background: N.blue, fontSize: 13, padding: "9px 16px" }}>Save</button>
+                    <button onClick={() => deleteLine(x.id)} style={btnPaper(N.pinkDark)}>Delete</button>
+                    <button onClick={() => setEditLineId(null)} style={btnPaper(N.muted)}>Cancel</button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        )}
 
         {(() => {
           const acctById = {}; (entity.rawAccounts || []).forEach(a => { acctById[a.id] = a.name; });
