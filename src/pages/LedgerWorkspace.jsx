@@ -202,10 +202,16 @@ const BUILD_PROGRESS = [
     ["Branding / logo", "done"],
     ["Users & roles", "wip"],
   ] },
+  { label: "History — copy from past work", items: [
+    ["Order/PO history you can copy-paste from", "todo"],
+    ["Group by vendor / customer / number / date", "todo"],
+    ["Its own page — out of Admin", "todo"],
+  ] },
   { label: "Safety — nothing vanishes", items: [
     ["Every entry stays visible in the register", "wip"],
-    ["Undo / recover a deleted item", "todo"],
-    ["Full change history (audit trail)", "todo"],
+    ["Converting a PO keeps it — never deletes/buries", "todo"],
+    ["Undo / recover a deleted item (soft delete)", "todo"],
+    ["Log who did what, and when (audit trail)", "todo"],
   ] },
 ];
 
