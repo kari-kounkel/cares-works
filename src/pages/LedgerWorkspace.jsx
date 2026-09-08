@@ -2606,6 +2606,9 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     if (sortBy === "account") return (a.source || "~").localeCompare(b.source || "~") || (b.dateISO || "").localeCompare(a.dateISO || "");
     return (b.dateISO || "").localeCompare(a.dateISO || ""); // date-desc (default)
   });
+  // The register groups by account (unless one account is already picked): all of an account's
+  // lines together under one header, newest first within each.
+  const regItems = acctFilter ? visibleItems : [...visibleItems].sort((a, b) => (a.source || "~~").localeCompare(b.source || "~~") || (b.dateISO || "").localeCompare(a.dateISO || ""));
   const recentInNotebook = filteredItems.filter(x => recentIds.includes(x.id)).length;
 
   // Everything typed anywhere becomes a payee suggestion — vendors, customers, and
@@ -2889,11 +2892,11 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           <div style={{ display: "grid", gridTemplateColumns: "78px 64px 1fr 150px 150px 96px 96px 34px", padding: "9px 14px", background: "#f7fafd", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.06em", color: N.muted, alignItems: "center" }}>
             <span>DATE</span><span>CHECK#</span><span>DESCRIPTION</span><span>ACCOUNT</span><span>CATEGORY</span><span style={{ textAlign: "right" }}>OUT</span><span style={{ textAlign: "right" }}>IN</span><span></span>
           </div>
-          {visibleItems.length === 0 && <div style={{ padding: "26px", textAlign: "center", color: N.muted, fontSize: 14 }}>{q ? "Nothing matches that." : "All caught up."}</div>}
-          {visibleItems.map((x, i) => {
+          {regItems.length === 0 && <div style={{ padding: "26px", textAlign: "center", color: N.muted, fontSize: 14 }}>{q ? "Nothing matches that." : "All caught up."}</div>}
+          {regItems.map((x, i) => {
             const ckm = x.reference ? (/^check/i.test(x.reference) ? x.reference.replace(/^check\s*#?\s*/i, "") : (/^\d+$/.test(x.reference) ? x.reference : "")) : "";
             const editing = editLineId === x.id;
-            const prevSrc = i > 0 ? visibleItems[i - 1].source : null;
+            const prevSrc = i > 0 ? regItems[i - 1].source : null;
             const showHead = !acctFilter && x.source !== prevSrc;
             return [
               showHead && <div key={x.id + "-h"} style={{ padding: "8px 14px 6px", borderTop: i === 0 ? "none" : "2px solid " + N.rule, background: "#eef3f8", fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.08em", fontWeight: 700, color: N.blueDark }}>{(x.source && x.source !== "—" ? x.source : "— not assigned to an account —").toUpperCase()}</div>,
