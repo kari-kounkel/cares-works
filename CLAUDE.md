@@ -16,6 +16,11 @@
 ## Rules for this folder
 - All work for this project lives here: `C:\dev\cares-works`. Do not write project files into other C:\dev folders, OneDrive, Desktop, or Temp unless Kari explicitly says so.
 - Before ending a session, or whenever Kari says "update STATUS.md", rewrite STATUS.md: What this is / Where it lives / Built so far / Decisions / Where it stopped / Next steps / Pending items / Key files. Keep the format.
+- **Keep the three ProGraphics trackers in sync — every time ledger work ships or the plan changes, update all three in the same turn, not just one:**
+  1. The in-app **BUILD PROGRESS** sidebar — the `BUILD_PROGRESS` array in `src/pages/LedgerWorkspace.jsx` (mark items done/wip/todo; add new ones).
+  2. **STATUS.md** — the plan of record.
+  3. The **Command Board** card — Everything Board Supabase `iwrrkhzjfjlgpqmzlxqb`, card `70fd14b5-eab8-4e3e-9c9f-6a5ffa916734` ("Finish ProGraphics — non-payroll QBO replacement"), its `checklist` jsonb (`{id,done,text}`). Tick items done there when they ship.
+  An item finished in the app must read finished in STATUS and be ticked on the card. Don't let them drift.
 - Re-surface every item under "Pending / frozen items" before starting new work. Kari will not bring them up herself.
 - Claude runs git and SQL itself — commit, push, deploy. Do not hand Kari commands to run.
 - Kari's workflow: files are moved in File Explorer; Git Bash with `cd /c/dev/cares-works` (forward slashes). Never suggest Windows-backslash cd or cp/copy commands.
