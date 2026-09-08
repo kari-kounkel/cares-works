@@ -118,6 +118,18 @@ export async function saveConnection(userId, provider, fields) {
   if (error) throw new Error(error.message);
 }
 
+// Patch an existing connection. Refreshes must NOT go through saveConnection:
+// an upsert re-proposes the whole row, and a payload without refresh_token_enc
+// trips that column's NOT NULL before Postgres ever reaches the conflict clause.
+export async function updateConnection(userId, provider, fields) {
+  const { error } = await db()
+    .from("board_connections")
+    .update({ ...fields, updated_at: new Date().toISOString() })
+    .eq("user_id", userId)
+    .eq("provider", provider);
+  if (error) throw new Error(error.message);
+}
+
 export async function noteError(userId, provider, message) {
   await db()
     .from("board_connections")
@@ -140,14 +152,6 @@ export function json(res, status, body) {
   res.setHeader("Content-Type", "application/json");
   res.setHeader("Cache-Control", "no-store");
   return res.status(status).json(body);
-}
-
-// A panel that has never been connected, or whose refresh token has expired,
-// is not an error the page should blank itself over — it's a state with a
-// button. Every panel route answers with this shape so the client can render
-// "Connect Google" / "Reconnect QuickBooks" instead of a stack trace.
-export function needsConnect(res, provider, reason) {
-  return json(res, 200, { ok: false, needsConnect: provider, reason: reason || null });
 }
 
 // --- Token refresh ----------------------------------------------------------
@@ -185,7 +189,7 @@ export async function googleAccessToken(userId) {
     return { error: reason };
   }
 
-  await saveConnection(userId, "google", {
+  await updateConnection(userId, "google", {
     access_token_enc: encrypt(data.access_token),
     access_expires_at: new Date(Date.now() + (data.expires_in || 3600) * 1000).toISOString(),
     last_error: null,
@@ -230,7 +234,7 @@ export async function qboAccessToken(userId) {
     last_error: null,
   };
   if (data.refresh_token) patch.refresh_token_enc = encrypt(data.refresh_token);
-  await saveConnection(userId, "qbo", patch);
+  await updateConnection(userId, "qbo", patch);
 
   return { token: data.access_token, realmId: conn.realm_id };
 }

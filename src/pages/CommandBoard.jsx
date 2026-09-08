@@ -209,9 +209,9 @@ export default function CommandBoard({ session }) {
     [authed]
   );
 
-  const loadCal = useCallback(() => load(setCal, "/api/board/calendar"), [load]);
-  const loadMail = useCallback(() => load(setMail, `/api/board/mail?today=${ymd(new Date())}`), [load]);
-  const loadAr = useCallback(() => load(setAr, "/api/board/ar"), [load]);
+  const loadCal = useCallback(() => load(setCal, "/api/board/data?panel=calendar"), [load]);
+  const loadMail = useCallback(() => load(setMail, `/api/board/data?panel=mail&today=${ymd(new Date())}`), [load]);
+  const loadAr = useCallback(() => load(setAr, "/api/board/data?panel=ar"), [load]);
 
   useEffect(() => {
     if (!uid) return;
@@ -226,7 +226,7 @@ export default function CommandBoard({ session }) {
     setConnecting(provider);
     try {
       const { data } = await supabase.auth.getSession();
-      const r = await fetch(`/api/board/${provider}-auth`, {
+      const r = await fetch(`/api/board/auth?provider=${provider}`, {
         method: "POST",
         headers: { Authorization: `Bearer ${data?.session?.access_token}` },
       });
