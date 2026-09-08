@@ -7,7 +7,7 @@
 // Each returns a body object; none of them throw upward. A feed that can't
 // answer returns a shape the panel knows how to draw as a state, not an error.
 
-import { googleAccessToken, qboAccessToken, qboApiBase } from "./_lib.js";
+import { googleAccessToken, qboAccessToken, qboApiBase, db } from "./_lib.js";
 
 const needsConnect = (provider, reason) => ({ ok: false, needsConnect: provider, reason: reason || null });
 
@@ -270,4 +270,109 @@ export async function arPanel(user) {
   } catch (err) {
     return { ok: false, error: err.message || "quickbooks_failed" };
   }
+}
+
+// --- The Kingdom -------------------------------------------------------------
+//
+// "Where am I at?" across every property Kari owns.
+//
+// Two kinds of answer, deliberately not blended. This function only produces
+// the MEASURED kind: it fetches each host and reports what is actually on it.
+// The declared kind — does sign-in work, is password reset real, is email
+// wired, can it take money — is Kari's to tick, lives in board_properties.checks,
+// and is never touched here.
+
+const PROBE_TIMEOUT = 8000;
+
+// Any analytics, not a particular one — the point is whether a property is
+// measured at all.
+const ANALYTICS = /googletagmanager\.com|gtag\s*\(|plausible\.io|umami|posthog|usefathom|fathom\.js|@vercel\/analytics|va\.vercel-scripts\.com/i;
+
+// Measurement ids, so a tag that was pasted in and never filled out does not
+// score as green. scotthoglundart.com ships G-XXXXXXXXXX: analytics that looks
+// installed and records nothing. A false green is worse than a red.
+const GA_ID = /(?:gtag\/js\?id=|gtag\s*\(\s*['"]config['"]\s*,\s*['"])([A-Za-z0-9_-]{4,20})/g;
+const PLACEHOLDER = /^(?:G|UA|GTM)[-_]?X+$|XXXX/i;
+
+function analyticsOf(html) {
+  if (!ANALYTICS.test(html)) return { analytics: false, analyticsId: null };
+  const ids = [...html.matchAll(GA_ID)].map((m) => m[1]);
+  const real = ids.filter((id) => !PLACEHOLDER.test(id));
+  if (ids.length && !real.length) {
+    // A tag is present but every id on the page is a placeholder.
+    return { analytics: false, analyticsId: ids[0], analyticsPlaceholder: true };
+  }
+  return { analytics: true, analyticsId: real[0] || null };
+}
+const ASK_WIDGET = /chat\.karikounkel\.com\/widget\.js/i;
+const FAVICON = /<link[^>]+rel=["'][^"']*icon/i;
+
+async function probe(host) {
+  const started = Date.now();
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), PROBE_TIMEOUT);
+  try {
+    const r = await fetch("https://" + host, {
+      signal: ctrl.signal,
+      redirect: "follow",
+      headers: { "User-Agent": "CARES-Works-Command-Board/1.0 (baseline check)" },
+    });
+    // Only the head of the document is needed, and some of these pages are big.
+    const html = (await r.text()).slice(0, 400_000);
+    const title = (html.match(/<title[^>]*>([^<]{1,120})/i) || [])[1];
+    return {
+      ok: r.status < 400,
+      http: r.status,
+      ms: Date.now() - started,
+      ...analyticsOf(html),
+      ask: ASK_WIDGET.test(html),
+      favicon: FAVICON.test(html),
+      title: title ? title.trim() : null,
+      at: new Date().toISOString(),
+    };
+  } catch (err) {
+    // A property that will not answer is a finding, not an error.
+    return {
+      ok: false,
+      http: null,
+      ms: Date.now() - started,
+      error: err.name === "AbortError" ? "timeout" : (err.message || "unreachable"),
+      at: new Date().toISOString(),
+    };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+export async function kingdomPanel(user, query) {
+  const sb = db();
+  const { data: rows, error } = await sb
+    .from("board_properties")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("sort");
+
+  if (error) return { ok: false, error: error.message };
+  if (!rows?.length) return { ok: true, asOf: new Date().toISOString(), properties: [] };
+
+  // Scanning fourteen sites takes seconds, so it only happens when asked for —
+  // otherwise the panel serves whatever the last scan recorded.
+  if (String(query?.scan || "") !== "1") {
+    return { ok: true, asOf: new Date().toISOString(), scanned: false, properties: rows };
+  }
+
+  const probes = await Promise.all(rows.map((r) => probe(r.host).then((p) => ({ r, p }))));
+  const at = new Date().toISOString();
+
+  // One write per property. Only `probe` is touched — `checks` is Kari's.
+  await Promise.all(probes.map(({ r, p }) =>
+    sb.from("board_properties").update({ probe: p, probed_at: at }).eq("id", r.id)
+  ));
+
+  return {
+    ok: true,
+    asOf: at,
+    scanned: true,
+    properties: probes.map(({ r, p }) => ({ ...r, probe: p, probed_at: at })),
+  };
 }
