@@ -69,13 +69,27 @@ Client: ProGraphics Enterprises Inc. — Dave Erickson (`prographicsinc@aol.com`
 
 **Still open from 8/24 (history is INCOMPLETE — was the prior live thread):** (1) descriptions trimmed/capped when hand-loaded, so old invoices can't be fully copied; (2) past purchase orders never came over (export was "Open PO Detail" = open only); (3) customer payments/checks received don't show (history is invoices-only). Kari wants ONE simple list of real old orders they can copy/reuse — not summaries.
 
-**Next steps** (also on Everything Board card `pgledg01`)
-1. **THE TRUST/POSTING-ENGINE WORK (top priority, do in daylight — NOT a 1am patch).** First MAP every path in the ledger where a transaction can appear to vanish or two screens can disagree (bill status vs register, "Mark paid (no check)" posting nothing, account-filter hiding, noted-hiding, reprint deleting, fuzzy check↔bill matching), lay the whole set out for Kari before changing code. Then close them by moving to ONE `postEntry()` where paying a bill IS the register entry, permanently linked. Lead sub-item: a proper **mark-don't-delete Void** (keep the check line, mark it VOID, drop it from the balance, reopen the bill — never delete, so check numbers don't leave gaps).
-2. **Plaid** — Kari has approval and has ALREADY done the sandbox plumbing test (don't suggest it again). Next is `PLAID_ENV=production` + matching production secret, then connect the real CorTrust/Citi/US Bank accounts. WATCH the first real sync for duplicates vs already-entered/imported transactions.
-3. **Point the ProGraphics domain** — Kari has the DNS records + GoDaddy access. Confirm which hostname → which target (likely Vercel `cares-works`) before editing DNS.
-4. Build an **in-app uploader** (client-side xlsx/CSV parse) so full invoice history loads UNTRIMMED into `ledger_history`; load **past POs** onto vendor AND customer; show **customer payments/checks received** on history.
-5. Cash-basis **sales-tax display** + verify Q1 $151.18 / Q2 $198.10 / Q3 $27.08 against the real MN DOR account on-site; wire doc-upload for the filed ST1s.
-6. Fiscal-year live **P&L + Balance Sheet** reports; finish prior-year P&L screen; resolve trial-balance CPA flags (loan balance, inventory $0, AR cash/accrual, Cap One/Sam's business-or-personal). Show **check numbers in notebook lines** (from `reference`).
+**THE PLAN TO FINISH — a real non-payroll QBO replacement, double-entry (Kari, 9/8, the definitive scope).** This is the agreed roadmap; work it in phases, in daylight, not 1am patches. Mirrored on the in-app BUILD PROGRESS sidebar.
+
+_Phase 1 — Nothing can vanish (safety, earns back trust, stops the bleeding):_
+1. **Soft-delete / void everywhere** — recoverable; replaces the hard-delete which was REMOVED 9/8 from orders, the PO/order detail, and invoices (invoices keep the existing Void). Interim state: those things can't be hard-deleted at all until soft-delete lands.
+2. **Audit trail** — log WHO did what, WHEN, on every create/convert/pay/void/delete. `ledger_doc_events` has no user_id today, so "who converted/deleted this" is currently UNANSWERABLE — that was a live pain point (Cedar Valley PO #2133 got converted + hard-deleted 9/8 ~4pm and we couldn't say who).
+3. **Converting a PO keeps it** visible as the vendor record (convert already keeps the row, but the post-convert PO reads as a stray → someone deletes it; make it clearly kept).
+
+_Phase 2 — Truly double-entry (the core Kari asked for from the start):_
+4. **One `postEntry()`** every path flows through — each action posts a balanced debit/credit journal.
+5. **Real chart of accounts** (asset/liability/equity/income/expense) under the simple category UI.
+6. **A/R and A/P as real balances** (invoice→A/R, bill→A/P, payment draws down).
+7. **Opening balances from the 3/31/26 return posted as equity**, CPA-approved.
+8. **Trial balance that always balances.**
+
+_Phase 3 — Reports that prove it (QBO parity, non-payroll):_
+9. P&L fiscal-year (from 4/1); Balance Sheet fiscal-year; General Ledger/account detail; A/R aging + A/P aging; Expense detail by category; sales-tax liability (built — verify vs MN DOR: Q1 $151.18 / Q2 $198.10 / Q3 $27.08).
+
+_Phase 4 — Edges:_
+10. Order/PO **history browser** — copy-paste, group by vendor/customer/number/date, OUT of Admin (Kari 9/8). Also the untrimmed in-app xlsx/CSV uploader into `ledger_history`; past POs onto vendor+customer; customer payments on history.
+11. Customer & vendor **statements**; **1099** vendor tracking; year-end/fiscal close.
+12. **Point the ProGraphics domain** (DNS + GoDaddy in hand); wire `admin@prographicsvinyl.com` sender once prographicsvinyl.com is verified in the hub's SendGrid account (see pending).
 
 **Pending / frozen items**
 - History is invoice-only + trimmed; past POs and customer payments missing (see Next steps 1–3) — the current live thread.
