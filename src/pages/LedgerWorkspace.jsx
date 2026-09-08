@@ -1721,7 +1721,10 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   function sendInvoice(v) {
     const url = window.location.origin + "/i/" + v.token;
     const emailText = `Hi ${v.customer},\n\nHere's your invoice from ${entity.name}${v.number ? " (No. " + v.number + ")" : ""} for ${money(v.amount)}.\n\nView it here: ${url}\n\n${entity.customerNote || "Thank you for your business."}`;
-    if (v.status === "Draft") invoiceStatus(v.id, "sent");
+    // Opening this panel is NOT sending. The invoice stays Draft until an email actually
+    // goes out (send-invoice-email stamps it only after the hub confirms) or until the
+    // "I sent it myself" button below is used. Marking it sent here made invoices read
+    // Sent when nothing had left — #8732 sat that way from 9/7.
     try { navigator.clipboard && navigator.clipboard.writeText(url); } catch (e) { /* clipboard may be blocked */ }
     setEmailState(null);
     setSentLink({ url, emailText, customer: v.customer, invoiceId: v.id, email: v.email });
@@ -3314,8 +3317,18 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 <input readOnly value={sentLink.url} onFocus={e => e.target.select()} style={{ ...inputSt, fontSize: 13 }} />
                 <button onClick={() => { try { navigator.clipboard.writeText(sentLink.url); } catch (e) {} }} style={{ ...btnBlue, background: N.blue }}>Copy</button>
               </div>
-              <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+              <div style={{ display: "flex", gap: 8, justifyContent: "space-between", alignItems: "center", flexWrap: "wrap" }}>
+                <button
+                  onClick={async () => { await invoiceStatus(sentLink.invoiceId, "sent"); setSentLink(null); }}
+                  title="Use this if you emailed or handed over the link yourself — it only changes the status, it doesn't send anything"
+                  style={btnPaper(N.blueDark)}
+                >
+                  I sent it myself — mark it Sent
+                </button>
                 <button onClick={() => setSentLink(null)} style={btnPaper(N.muted)}>Done</button>
+              </div>
+              <div style={{ fontSize: 11, color: N.muted, marginTop: 10, textAlign: "right" }}>
+                Closing this leaves the invoice as it is. Nothing is marked Sent until an email goes out or you say so.
               </div>
             </div>
           </div>
