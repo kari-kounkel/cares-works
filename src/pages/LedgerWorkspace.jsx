@@ -2344,6 +2344,10 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   }
 
   async function convertToInvoice(v) {
+    if (!window.confirm(
+      `Bill ${v.customer && v.customer !== "—" ? v.customer : "the customer"} for this job now? This creates the customer invoice.` +
+      (v.poNumber ? `\n\nYour PO #${v.poNumber} to ${v.vendor || "the vendor"} is NOT deleted — it stays on the Orders page (under Closed) and can still be emailed. Only convert once the vendor has made the job.` : "")
+    )) return;
     if (live && liveOrgId) {
       let num = v.number;
       if (!v.number) {
