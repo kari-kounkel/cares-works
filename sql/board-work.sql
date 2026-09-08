@@ -73,3 +73,13 @@ create policy board_work_delete on public.board_work
 
 create index if not exists board_work_user_idx
   on public.board_work (user_id, done, source, bucket);
+
+-- ------------------------------------------------------------------
+-- Items created on the Command Board itself have no upstream source.
+-- Without this the check constraint rejects anything Kari adds here,
+-- which would make the board a read-only mirror of two places she has
+-- stopped using.
+-- ------------------------------------------------------------------
+alter table public.board_work drop constraint if exists board_work_source_check;
+alter table public.board_work add constraint board_work_source_check
+  check (source in ('everything', 'rollout', 'board'));
