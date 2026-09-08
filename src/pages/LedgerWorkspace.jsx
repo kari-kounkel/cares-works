@@ -211,7 +211,10 @@ const BUILD_PROGRESS = [
     ["Users & roles", "wip"],
   ] },
   { label: "History — copy from past work", items: [
-    ["Order/PO history you can copy-paste from", "todo"],
+    ["753 historical POs imported from QuickBooks", "done"],
+    ["They show in Orders → Closed, like any closed PO", "done"],
+    ["Copy an old line item into a new PO / new customer", "todo"],
+    ["Import invoices, linked to POs by number", "todo"],
     ["Group by vendor / customer / number / date", "todo"],
     ["Its own page — out of Admin", "todo"],
   ] },
@@ -3389,8 +3392,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   function Orders() {
     // New Orders = every in-progress job (the pending customer bill), EXCEPT an in-house PO
     // (no customer) that's already been sent — that one lives only on Purchase Orders.
-    const currentOrders = invoices.filter(v => v.docType === "order" && v.status !== "Invoiced" && v.status !== "Void");
-    const closedOrders = invoices.filter(v => v.docType === "order" && (v.status === "Invoiced" || v.status === "Void")).slice().sort((a, b) => (b.issueDate || "").localeCompare(a.issueDate || ""));
+    const currentOrders = invoices.filter(v => v.docType === "order" && v.status !== "Invoiced" && v.status !== "Void" && v.status !== "Historical");
+    const closedOrders = invoices.filter(v => v.docType === "order" && (v.status === "Invoiced" || v.status === "Void" || v.status === "Historical")).slice().sort((a, b) => (b.issueDate || "").localeCompare(a.issueDate || ""));
     const orderRow = (v, i, arr) => (
       <div key={v.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 16px", borderBottom: i === arr.length - 1 ? "none" : "1px solid " + N.rule, flexWrap: "wrap" }}>
         <div style={{ width: 64, fontSize: 12, color: N.muted }}>{v.poNumber ? `PO #${v.poNumber}` : "Order"}</div>
@@ -3410,6 +3413,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         })()}
         {v.poNumber && v.status === "PO sent" && <span style={{ fontSize: 10, fontWeight: 700, color: N.blueDark, background: "#eef6ff", border: "1px solid #cfe4ff", borderRadius: 100, padding: "3px 9px", letterSpacing: "0.04em" }}>PO SENT</span>}
         {v.status === "Invoiced" && <span style={{ fontSize: 10, fontWeight: 700, color: "#5a7a63", background: "#eafaf0", border: "1px solid #cfe9d6", borderRadius: 100, padding: "3px 9px", letterSpacing: "0.04em" }}>INVOICED</span>}
+        {v.status === "Historical" && <span title="Imported from QuickBooks history" style={{ fontSize: 10, fontWeight: 700, color: N.muted, background: "#f2efe8", border: "1px solid " + N.rule, borderRadius: 100, padding: "3px 9px", letterSpacing: "0.04em" }}>HISTORICAL</span>}
         <button onClick={() => editOrder(v)} style={btnPaper(N.muted)}>Edit</button>
         {v.poNumber && <button onClick={() => openPoSend(v)} style={btnPaper(N.blue)}>{v.status === "PO sent" ? "✉ Resend PO" : "✉ Email PO"}</button>}
         <button onClick={() => setOpenInv(v)} style={{ ...btnBlue, background: N.blue }}>Open{v.customer && v.customer !== "—" && v.status !== "Invoiced" ? " / bill" : ""} →</button>

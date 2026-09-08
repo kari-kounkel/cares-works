@@ -88,11 +88,13 @@ _Phase 3 — Reports that prove it (QBO parity, non-payroll):_
 
 _Phase 4 — Edges:_
 10. Order/PO **history browser** — copy-paste, group by vendor/customer/number/date, OUT of Admin (Kari 9/8). Also the untrimmed in-app xlsx/CSV uploader into `ledger_history`; past POs onto vendor+customer; customer payments on history.
+    - **DONE 9/8: 753 historical POs imported** from the QBO "Open Purchase Order Detail" export (1,175 line items, PO #1001–2132, vendors only — that report carries no end-customer, so `customer_name=''`). Stored as `invoices` rows `doc_type='order'`, `status='historical'`; they render in **Orders → Closed** exactly like closed POs, with a HISTORICAL badge, openable/editable (so line items are copy-pasteable). One collision: historical Anico #2133 was NOT imported — the live Cedar Valley #2133 already holds that number (ON CONFLICT kept the live one); decide whether Anico needs a fresh number.
+    - STILL TODO: the frictionless "copy an old line item into a NEW PO / new customer" reuse workflow; grouping; its own page; and importing the INVOICES (blocked — the invoice export's P.O. Number column is empty, so there's no key to auto-link invoice→PO yet).
 11. Customer & vendor **statements**; **1099** vendor tracking; year-end/fiscal close.
 12. **Point the ProGraphics domain** (DNS + GoDaddy in hand); wire `admin@prographicsvinyl.com` sender once prographicsvinyl.com is verified in the hub's SendGrid account (see pending).
 
 **Pending / frozen items**
-- History is invoice-only + trimmed; past POs and customer payments missing (see Next steps 1–3) — the current live thread.
+- Past POs now imported (753, see Phase 4 item 10). Still missing from history: customer payments, and the invoice import (blocked on the empty P.O. Number key). Vendor-lifetime history in the old `ledger_history` uploader remains invoice-only + trimmed.
 - Vendor lifetime totals in history are unreliable (Check Detail +/- offset pairs net to $0) — the transaction list is fine, the total isn't.
 - Punctuation strip caught domains: "Amazon.com"→"Amazoncom", "Stamps.com"→"Stampscom" — special-case if wanted.
 - Plaid: fully built; blocked ONLY on Kari setting `PLAID_CLIENT_ID` / `PLAID_SECRET` / `PLAID_ENV` secrets in Supabase (gotcha: the secret must match the env — production secret if `PLAID_ENV=production`). No redeploy needed after setting.
