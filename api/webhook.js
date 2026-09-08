@@ -46,6 +46,44 @@ export default async function handler(req, res) {
     return res.status(400).send("Webhook signature failed: " + err.message);
   }
 
+  // An invoice from the invoice maker, paid by card or bank debit. Bank debits
+  // complete asynchronously — the session can come back "completed" while the
+  // money is still in flight — so only a paid session marks the invoice paid,
+  // and async_payment_succeeded catches the rest days later.
+  if (
+    (event.type === "checkout.session.completed" ||
+      event.type === "checkout.session.async_payment_succeeded") &&
+    event.data.object?.metadata?.kind === "invoice-doc"
+  ) {
+    const session = event.data.object;
+    const invoiceId = session.metadata.invoice_id;
+    if (!invoiceId) return res.status(200).json({ received: true, skipped: "no invoice id" });
+
+    if (session.payment_status !== "paid") {
+      return res.status(200).json({ received: true, pending: session.payment_status });
+    }
+
+    const paid = session.amount_total || 0;
+    const method = (session.payment_method_types || []).includes("us_bank_account") ? "bank" : "card";
+    const { error } = await supabase
+      .from("invoice_docs")
+      .update({
+        status: "paid",
+        amount_paid_cents: paid,
+        paid_at: new Date().toISOString(),
+        paid_method: "stripe-" + method,
+        paid_reference: session.payment_intent || session.id,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", invoiceId);
+
+    if (error) {
+      console.error("Invoice paid update failed:", error);
+      return res.status(500).send("Database error: " + error.message);
+    }
+    return res.status(200).json({ received: true, invoice: invoiceId });
+  }
+
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
     // Skip one-time payments (e.g. MARCO proposal deposits); memberships only.
