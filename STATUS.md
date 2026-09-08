@@ -439,3 +439,51 @@ The session also got ahead of itself once: Kari was asked to pick a QuickBooks c
 - `C:\dev\cares-works\src\lib\oneList.js` (parses the cockpit HTML into items + progress stats), `src\cockpits\the_one_list.html` (the list itself — edit the items HERE, nowhere else)
 - `C:\dev\cares-works\api\board\_lib.js` (session check, AES-256-GCM, signed state, token refresh), `_panels.js` (the three feeds), `auth.js`, `callback.js`, `data.js`
 - `C:\dev\cares-works\src\App.jsx` (the `/board` route), `src\pages\Dashboard.jsx` (`OWNER_EMAILS` + the Command Board card)
+
+---
+
+### Invoices (the invoice maker)
+`tools.caresmn.com/invoices` — one place to invoice from any of Kari's businesses. Pick who it's from, click what it's for, and the invoice puts on that brand's face: logo, colors, the picture across the top, the remit address, the bank details. Built 9/8. Separate from the ProGraphics ledger, which keeps its own invoices, numbering and register.
+
+**Built so far**
+- ✅ Migration `sql/invoice-maker.sql`, applied to `qcikhcnclduakriextsz`: `invoice_brands` + `invoice_docs`, both owner-scoped RLS (`auth.uid() = user_id`).
+- ✅ Four brands seeded, all editable in the app: **CARES Works** (neon blue + green, `/cares-works-neon-logo.png`, prefix `CW-`), **CARES Consulting** (neon blue with green/pink/orange flares per Kari 9/8 — no longer the slate/orange Maddie palette, `CC-`), **Kari Kounkel** (`K-`), **Court of Accounts** (`COA-`, presets carry the book cover as the header image).
+- ✅ `/invoices` (`src/pages/InvoiceMaker.jsx`) behind the same `if (!session)` gate as `/board`: brand tiles, purpose presets, bill-to, lines, discount, tax, note, pictures, payment-lane switches, live preview, copy-link, mailto draft, "check came in" / "ACH landed", duplicate, delete. Also the brand editor — colors, fonts, logo and header uploads, ACH and remit details, terms, numbering, and the preset list.
+- ✅ `/inv/<token>` (`src/pages/InvoiceDocPublic.jsx`) — no login, reachable above the auth gate, same as `/i/<token>`. Prints to PDF.
+- ✅ `api/invoice-checkout.js` — Stripe Checkout with `card` + `us_bank_account`. `GET` is the floridagirl-style health check. **Verified live 9/8**: `key_valid: true`, `charges_enabled: true`, `mode: live`, and a real `cs_live_…` session created from a test invoice, showing both Card and US bank account under "K Co LLC | CARES Consulting Inc".
+- ✅ `api/webhook.js` handles `metadata.kind = "invoice-doc"` and marks the row paid. The Stripe endpoint `we_1TMdnTEOQJdY217b68GFt1Dw` had `checkout.session.async_payment_succeeded` **added on 9/8 with Kari's say-so** — without it, bank debits would have settled days later with nothing listening.
+- ✅ Live on production: `dpl_BSEeHztBNUcmxLkHUuQWLAN7YbNA`, `state: READY`, commit `d9c698f`.
+
+**Decisions**
+- **A brand is a row, not a case in a switch.** Colors, logo, header image, fonts, remit address, bank details, which lanes are on, and the presets all live in `invoice_brands`. A new business is a new row. Nothing about any business is compiled into the code.
+- **One component renders both the preview and the customer's page** (`src/components/InvoiceSheet.jsx`). If they were two components they would drift, and then the preview would be lying about what the customer sees.
+- **Numbers come from `next_invoice_doc_number()` under a `for update` row lock**, with a unique index on `(brand_id, number)` behind it. This is the 8730 collision — invoice numbers reused across three customers — deliberately not repeated.
+- **A draft has no page.** `get_invoice_doc` returns null for a draft, so a link pasted early resolves to nothing rather than to a half-written invoice. Numbering happens at "make the link", not at save.
+- **The browser never names the price.** `api/invoice-checkout` reads the amount off the row with the service key; the page sends only a token.
+- **`tax_rate` is `numeric(9,6)`.** At `(6,4)` it stored 9.025% as 9.03% and overcharged the test invoice nine cents. Found in a browser, not in review.
+- **A completed Checkout session is not payment.** Bank debits arrive `unpaid`/`processing`; only `payment_status = 'paid'` marks the invoice paid.
+- **One Stripe account for now** (Kari 9/8: "I use one bank account"). `invoice_brands.stripe_account_ref` exists unused so per-brand keys can be added later without a migration.
+
+**Where it stopped**
+9/8. Everything customer-facing was checked on production: the page renders, stamps viewed, prints, and the three payment lanes appear. The maker screen at `/invoices` has **not been seen rendered** — it is behind Kari's login, her Chrome extension is not connected, and building a way around the auth gate was correctly blocked. It compiles and deploys; it has not been watched working.
+
+**Next steps**
+1. Pull this year's invoices in. Kari, 9/8: "we're going to have to pull in some invoices for this year… i've had a very unofficial system." Where they live has not been established — that is the first question, then a bulk insert into `invoice_docs` (the shape is one row per invoice, `line_items` as `[{desc,qty,price}]` in dollars).
+2. Remit addresses and bank details are blank on all four brands, so the check and ACH cards do not print yet.
+3. Sending is copy-link or a `mailto:` draft. There is no send-and-log path like the ledger's `send-invoice-email`.
+
+**Pending / frozen items**
+- No invoice is emailed from the app, so nothing logs a send; `sent_at` is set by the "make the link" button, not by an actual send.
+- Nothing tells Kari when an invoice is opened or paid — it is visible only by opening `/invoices`.
+- Partial payments can only be recorded as paid-in-full from the UI; `amount_paid_cents` supports part-payment but nothing writes a partial except Stripe.
+- `/invoices` is reachable by any signed-in user, who would see their own empty list — the same shape as `/board`.
+- These invoices are not in the ProGraphics ledger and not in any books. Nothing posts them to a register, and no sales tax is filed off them.
+- Presets seeded with `price: 0` except The Look ($750), because no other prices were established.
+
+**Key files**
+- `C:\dev\cares-works\sql\invoice-maker.sql` (applied — `invoice_brands`, `invoice_docs`, `get_invoice_doc`, `next_invoice_doc_number`)
+- `C:\dev\cares-works\src\components\InvoiceSheet.jsx` (the invoice itself — the look lives here, driven entirely by the brand row)
+- `C:\dev\cares-works\src\pages\InvoiceMaker.jsx` (the maker and the brand editor)
+- `C:\dev\cares-works\src\pages\InvoiceDocPublic.jsx` (`/inv/<token>`)
+- `C:\dev\cares-works\api\invoice-checkout.js` (Stripe session + health check), `api\webhook.js` (marks it paid)
+- `C:\dev\cares-works\src\App.jsx` (the `/invoices` and `/inv/` routes)
