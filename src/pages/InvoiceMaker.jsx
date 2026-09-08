@@ -88,15 +88,24 @@ export default function InvoiceMaker({ session }) {
     setView("edit");
   }
 
-  // Clicking what it's FOR: lines, note and picture all follow the preset.
-  function applyPreset(brand, preset) {
+  // Clicking what it's FOR: lines, note and picture follow the preset.
+  //
+  // Every preset is offered under every brand — Kari, 9/8: "you won't let me
+  // select consulting hours under cares CONSULTING ding dong." The work does not
+  // sort itself by which business she happens to be billing from.
+  //
+  // The one thing that does NOT travel is the picture. A preset borrowed from
+  // another brand would otherwise drag that brand's image onto this invoice,
+  // which is exactly what the K Co brand architecture says not to do.
+  function applyPreset(preset) {
     if (!preset) { set({ preset_key: null }); return; }
+    const borrowed = preset.brand_id !== doc?.brand_id;
     set({
-      preset_key: preset.key,
+      preset_key: preset.uid,
       purpose: preset.label || "",
       line_items: (preset.lines || []).map((l) => ({ desc: l.desc || "", qty: Number(l.qty) || 1, price: Number(l.price) || 0 })),
       note: preset.note || "",
-      header_image_url: preset.header_image_url || null,
+      header_image_url: borrowed ? null : (preset.header_image_url || null),
     });
   }
 
@@ -415,7 +424,14 @@ function DocRow({ d, b, onOpen, onDuplicate }) {
 // ============================================================================
 function EditPane({ doc, set, brands, brandOf, onPickBrand, onPreset, onSave, busy, link, onMarkPaid, onDelete, upload, onEditBrand, flash }) {
   const b = brandOf(doc.brand_id);
-  const presets = b?.presets || [];
+  const presets = brands.flatMap((x) =>
+    (x.presets || []).map((p) => ({
+      ...p,
+      brand_id: x.id,
+      brand_name: x.name,
+      uid: x.id + ":" + p.key,
+    }))
+  ).sort((m, n) => (m.brand_id === doc.brand_id ? -1 : 0) - (n.brand_id === doc.brand_id ? -1 : 0));
   const t = totalsOf(doc);
   const [copied, setCopied] = useState(false);
 
@@ -470,20 +486,24 @@ function EditPane({ doc, set, brands, brandOf, onPickBrand, onPreset, onSave, bu
         <Card title="What it's for">
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {presets.map((p) => {
-              const on = p.key === doc.preset_key;
+              const on = p.uid === doc.preset_key;
+              const own = p.brand_id === doc.brand_id;
               return (
-                <button key={p.key} onClick={() => onPreset(b, p)}
+                <button key={p.uid} onClick={() => onPreset(p)}
+                  title={own ? p.label : `${p.label} — kept under ${p.brand_name}`}
                   style={{
                     border: on ? `2px solid ${b.accent_color}` : "1px solid " + N.rule,
                     background: on ? `${b.accent_color}0f` : N.white,
                     borderRadius: 999, padding: "7px 14px", cursor: "pointer", fontSize: 12.5,
-                    fontWeight: on ? 700 : 500, color: on ? N.ink : N.muted, fontFamily: "inherit",
+                    fontWeight: on ? 700 : 500, color: on ? N.ink : own ? N.muted : N.mutedLite,
+                    fontFamily: "inherit",
                   }}>
                   {p.label}
+                  {own ? null : <span style={{ fontSize: 10.5, opacity: 0.75 }}> · {p.brand_name}</span>}
                 </button>
               );
             })}
-            {presets.length === 0 ? <span style={{ fontSize: 12.5, color: N.muted }}>No presets on this brand yet — <button onClick={() => onEditBrand(b)} style={linkBtn}>add some</button>.</span> : null}
+            {presets.length === 0 ? <span style={{ fontSize: 12.5, color: N.muted }}>Nothing saved yet — <button onClick={() => onEditBrand(b)} style={linkBtn}>add some</button>.</span> : null}
           </div>
           <Field label="Or say it in your own words" style={{ marginTop: 12 }}>
             <input value={doc.purpose || ""} onChange={(e) => set({ purpose: e.target.value })} style={inp} placeholder="Website build, March" />
