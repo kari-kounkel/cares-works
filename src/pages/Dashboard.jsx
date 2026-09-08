@@ -20,6 +20,9 @@ const MOBILE_DASH = `
   }
 `;
 
+// Both of Kari's sign-ins. The Command Board card is hers alone.
+const OWNER_EMAILS = ["kari@karikounkel.com", "kari@caresmn.com"];
+
 const CATEGORY_ORDER = ["bookkeeping", "money", "people", "clientwork", "leadership", "utilities"];
 const CAT_LABELS = { bookkeeping: "Bookkeeping", money: "Money", people: "People", clientwork: "Client Work", leadership: "Leadership", utilities: "Utilities" };
 const CAT_ICONS = { bookkeeping: "📒", money: "💰", people: "👥", clientwork: "🤝", leadership: "🎯", utilities: "🛠️" };
@@ -242,6 +245,29 @@ export default function Dashboard({ session }) {
                 Start with one problem. Find one tool. Fix one thing.
               </p>
             </div>
+
+            {/* COMMAND BOARD — owner only. This is the page Kari lands on after
+                login, so the board has to be findable from here, not from a
+                remembered URL. The /kari cockpit hub carries the same tile. */}
+            {OWNER_EMAILS.includes((session?.user?.email || "").toLowerCase()) && (
+              <div style={{ marginBottom: 32 }}>
+                <NeonBox color={N.blue} rgb={N_RGB.blue} style={{ padding: "20px 22px" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 18, flexWrap: "wrap" }}>
+                    <div style={{ display: "flex", gap: 14, alignItems: "flex-start", minWidth: 260, flex: "1 1 340px" }}>
+                      <span style={{ fontSize: 30, lineHeight: 1 }}>🛰️</span>
+                      <div>
+                        <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9.5, letterSpacing: "0.2em", textTransform: "uppercase", color: N.blue, marginBottom: 5 }}>Private · Live</div>
+                        <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 21, color: N.ink, lineHeight: 1.2 }}>Command Board</div>
+                        <p style={{ color: N.muted, fontSize: 13.5, margin: "5px 0 0", lineHeight: 1.5, maxWidth: 460 }}>
+                          Your week, your unread mail, who owes you, and the countdowns — one page, refreshing itself.
+                        </p>
+                      </div>
+                    </div>
+                    <NeonBtn color={N.blue} onClick={() => navigate("/board")}>Open the board →</NeonBtn>
+                  </div>
+                </NeonBox>
+              </div>
+            )}
 
             {/* PICK UP WHERE YOU LEFT OFF */}
             {recentSessions.length > 0 && (

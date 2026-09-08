@@ -39,6 +39,7 @@ import PayrollCalculator from "./pages/PayrollCalculator";
 import Ledger from "./pages/Ledger";
 import MemeMaker from "./pages/MemeMaker";
 import KariCockpits from "./pages/KariCockpits";
+import CommandBoard from "./pages/CommandBoard";
 import KariOneList from "./pages/KariOneList";
 import KariCockpitFrame from "./pages/KariCockpitFrame";
 import BudgetBuilder from "./pages/BudgetBuilder";
@@ -195,6 +196,13 @@ export default function App() {
   if (path === "/" && session && primaryOrg) {
     navigate(ORG_HOME[primaryOrg] || "/org/" + primaryOrg);
     return null;
+  }
+
+  // Command Board — Kari's live dashboard. Same login gate as /kari; the panels
+  // themselves fetch through api/board/*, which re-checks the session server-side.
+  if (path === "/board" || path === "/board/") {
+    if (!session) { navigate("/login"); return null; }
+    return <CommandBoard session={session} />;
   }
 
   if (path === "/kari") {
