@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "../supabaseClient";
 import { navigate } from "../App";
 import { N, N_RGB, FONT_LINK, NeonBox, SignatureFooter, WASH_BG_LITE, HERO_TEXT_GRAD_BLUE } from "../design/neon";
+import { oneListGroups, oneListProgress, oneListCounts, ONE_LIST_TOOL_KEY, ONE_LIST_HREF } from "../lib/oneList";
 
 // Command Board — tools.caresmn.com/board
 //
@@ -23,6 +24,7 @@ const MOBILE = `
     .board-grid { grid-template-columns: 1fr !important; }
     .board-page { padding: 24px 16px 48px !important; }
     .board-h1 { font-size: 27px !important; }
+    .onelist-cols { column-count: 1 !important; }
   }
 `;
 
@@ -159,6 +161,9 @@ export default function CommandBoard({ session }) {
   const [stonesLoading, setStonesLoading] = useState(true);
   const [editing, setEditing] = useState(false);
 
+  const [oneTicks, setOneTicks] = useState(null); // null = still loading
+  const [showParked, setShowParked] = useState(false);
+
   // Re-render once a minute so the "now" marker and the countdowns stay honest
   // on a page that's been open since 5am.
   const [, setTick] = useState(0);
@@ -257,6 +262,33 @@ export default function CommandBoard({ session }) {
 
   useEffect(() => { loadStones(); }, [loadStones]);
 
+  // --- The One List ----------------------------------------------------------
+  // Items come from the cockpit's own HTML; ticks come from the same
+  // kari_tool_data row the cockpit writes, so the two stay one list.
+
+  const loadOne = useCallback(async () => {
+    if (!uid) return;
+    const { data } = await supabase
+      .from("kari_tool_data")
+      .select("data")
+      .eq("user_id", uid)
+      .eq("tool_key", ONE_LIST_TOOL_KEY)
+      .maybeSingle();
+    setOneTicks(data?.data || {});
+  }, [uid]);
+
+  useEffect(() => { loadOne(); }, [loadOne]);
+
+  async function toggleOne(id) {
+    const next = { ...(oneTicks || {}) };
+    if (next[id]) delete next[id]; else next[id] = 1;
+    setOneTicks(next);
+    await supabase.from("kari_tool_data").upsert(
+      { user_id: uid, tool_key: ONE_LIST_TOOL_KEY, data: next, updated_at: new Date().toISOString() },
+      { onConflict: "user_id,tool_key" }
+    );
+  }
+
   async function patchStone(id, patch) {
     setStones((rows) => rows.map((r) => (r.id === id ? { ...r, ...patch } : r)));
     await supabase.from("board_milestones").update(patch).eq("id", id);
@@ -345,6 +377,111 @@ export default function CommandBoard({ session }) {
             <button onClick={() => setNotice(null)} style={{ background: "none", border: "none", color: N.muted, cursor: "pointer" }}>✕</button>
           </div>
         )}
+
+        {/* THE ONE LIST — the actual work. Full width and first, because a board
+            that shows a calendar and no to-do list reads as "nothing to do". */}
+        <div style={{ marginBottom: 18 }}>
+          <Panel color={N.green} rgb={N_RGB.pink} title="The One List"
+            subtitle="FlowSuite Pro — what's standing, and what's left"
+            asOf={null} onRefresh={loadOne}>
+            {oneTicks === null ? <Quiet>Loading the list…</Quiet> : (() => {
+              const groups = oneListGroups();
+              const counts = oneListCounts(oneTicks);
+              const prog = oneListProgress();
+              // Built features never appear as rows — the file only itemises what
+              // is left — so progress is the authored built count plus her ticks.
+              const doneTotal = (prog.built || 0) + counts.done;
+              const total = prog.total || doneTotal + counts.open;
+              const pct = total ? Math.round((doneTotal / total) * 100) : 0;
+              const live = groups.filter((g) => !g.parked);
+              const parkedGroups = groups.filter((g) => g.parked);
+
+              const row = (it) => {
+                const done = Boolean(oneTicks[it.id]);
+                return (
+                  <label key={it.id} style={{ display: "flex", gap: 9, alignItems: "flex-start", padding: "6px 0", borderTop: `1px solid ${N.rule}`, cursor: "pointer" }}>
+                    <input type="checkbox" checked={done} onChange={() => toggleOne(it.id)}
+                      style={{ marginTop: 3, accentColor: N.green, cursor: "pointer", flexShrink: 0 }} />
+                    <span style={{ flex: 1, minWidth: 0 }}>
+                      <span style={{ fontSize: 13.5, fontWeight: done ? 400 : 600, color: done ? N.mutedLite : N.ink, textDecoration: done ? "line-through" : "none", display: "block" }}>
+                        {it.name}
+                      </span>
+                      {it.note && !done && (
+                        <span style={{ fontSize: 11.5, color: N.mutedLite, display: "block", lineHeight: 1.45, marginTop: 1 }}>{it.note}</span>
+                      )}
+                      {it.views.length > 0 && !done && (
+                        <span style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 3 }}>
+                          {it.views.map((v) => (
+                            <span key={v} style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.06em", color: N.blue, border: `1px solid ${N.rule}`, borderRadius: 4, padding: "1px 5px" }}>{v}</span>
+                          ))}
+                        </span>
+                      )}
+                    </span>
+                  </label>
+                );
+              };
+
+              const groupBlock = (g) => {
+                const open = g.items.filter((it) => !oneTicks[it.id]).length;
+                return (
+                  <div key={g.key} style={{ marginBottom: 18, breakInside: "avoid" }}>
+                    <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
+                      <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 15.5, color: N.ink }}>
+                        {g.emoji} {g.title}
+                      </span>
+                      <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: open ? N.blue : N.green, whiteSpace: "nowrap" }}>
+                        {open ? `${open} left` : "all done"}
+                      </span>
+                    </div>
+                    {g.detail && <div style={{ fontSize: 11.5, color: N.mutedLite, margin: "2px 0 4px", lineHeight: 1.45 }}>{g.detail}</div>}
+                    {g.items.map(row)}
+                  </div>
+                );
+              };
+
+              return (
+                <>
+                  <Tiles items={[
+                    { label: "Already built", value: prog.built ?? "—", color: N.green },
+                    { label: "Ticked by you", value: counts.done, color: N.green },
+                    { label: "Left to do", value: counts.open, color: N.blue },
+                    { label: "Parked", value: counts.parked, color: N.mutedLite },
+                  ]} />
+
+                  <div style={{ marginBottom: 16 }}>
+                    <div style={{ height: 10, borderRadius: 100, background: N.wall, border: `1px solid ${N.rule}`, overflow: "hidden" }}>
+                      <div style={{ width: `${pct}%`, height: "100%", background: `linear-gradient(90deg, ${N.blue}, ${N.green})`, boxShadow: `0 0 12px rgba(34,197,94,0.5)` }} />
+                    </div>
+                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10.5, color: N.muted, marginTop: 6 }}>
+                      {doneTotal} of {total} done — {pct}% of what you designed is standing.
+                    </div>
+                  </div>
+
+                  <div className="onelist-cols" style={{ columnCount: 2, columnGap: 26 }}>
+                    {live.map(groupBlock)}
+                  </div>
+
+                  <div style={{ display: "flex", gap: 16, alignItems: "center", marginTop: 4, flexWrap: "wrap" }}>
+                    <button onClick={() => setShowParked((v) => !v)}
+                      style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", color: N.muted, background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>
+                      {showParked ? "Hide parked" : `Show parked (${counts.parked})`}
+                    </button>
+                    <a href={ONE_LIST_HREF} onClick={(e) => { e.preventDefault(); navigate(ONE_LIST_HREF); }}
+                      style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", color: N.blue, textDecoration: "underline" }}>
+                      Open the full list →
+                    </a>
+                  </div>
+
+                  {showParked && (
+                    <div className="onelist-cols" style={{ columnCount: 2, columnGap: 26, marginTop: 14, opacity: 0.72 }}>
+                      {parkedGroups.map(groupBlock)}
+                    </div>
+                  )}
+                </>
+              );
+            })()}
+          </Panel>
+        </div>
 
         <div className="board-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18, alignItems: "start" }}>
 
