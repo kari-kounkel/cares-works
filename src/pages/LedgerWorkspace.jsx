@@ -1465,6 +1465,18 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     setReloadTick(t => t + 1);
   }
 
+  // Assign the next document number by reading the current max FRESH from the DB — never from a
+  // possibly-stale in-memory snapshot (that stale value is what caused the #-collisions). The unique
+  // index on (org_id, number) is the backstop if two saves still race.
+  async function nextDocNumber(kind) {
+    const col = kind === "po" ? "po_number" : "invoice_number";
+    let max = kind === "po" ? 2132 : 8728;
+    if (liveOrgId) {
+      const { data } = await supabase.from("invoices").select(col).eq("org_id", liveOrgId).not(col, "is", null);
+      for (const r of (data || [])) { const n = parseInt(r[col], 10); if (!isNaN(n) && n > max) max = n; }
+    }
+    return max + 1;
+  }
   async function createInvoice() {
     const lines = invDraft.lines.filter(l => l.desc.trim());
     if (!invDraft.customer.trim() || lines.length === 0) return;
@@ -1472,7 +1484,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     const tax = invDraft.taxStatus === "Taxable" ? Math.round(subtotal * MN_TAX_RATE) : 0;
     const total = subtotal + tax;
     const draft = invDraft;
-    const num = entity.nextInvoiceNumber || 1001;
+    const num = (live && liveOrgId) ? await nextDocNumber("invoice") : (entity.nextInvoiceNumber || 1001);
     setShowInvForm(false);
     setInvDraft(blankInvoice);
     if (live && liveOrgId) {
@@ -2237,7 +2249,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     const draft = orderDraft;
     const asPo = draft.mode === "po";
     const editing = editingOrder;
-    const po = editing ? (editing.poNumber || entity.nextPoNumber || 2133) : (entity.nextPoNumber || 2133);
+    const po = (editing && editing.poNumber) ? editing.poNumber : ((live && liveOrgId) ? await nextDocNumber("po") : (entity.nextPoNumber || 2133));
     setShowOrderForm(false);
     setOrderDraft(blankOrder);
     setEditingOrder(null);
@@ -2335,7 +2347,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     if (live && liveOrgId) {
       let num = v.number;
       if (!v.number) {
-        num = entity.nextInvoiceNumber || 1001;
+        num = await nextDocNumber("invoice");
         await supabase.from("ledger_orgs").update({ next_invoice_number: num + 1 }).eq("id", liveOrgId);
       }
       // A PO must never disappear when it's billed — we keep the purchase order (and its vendor
@@ -3339,7 +3351,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 {poMode && <span style={{ color: N.blueDark }}>PO #{(editingOrder && editingOrder.poNumber) || entity.nextPoNumber} to vendor: <b>{money(costSub)}</b> &nbsp;·&nbsp; </span>}
                 <span style={{ color: poMode ? "#5a7a63" : N.muted }}>{poMode ? "Invoice to customer: " : "Subtotal "}{money(sub)}{orderDraft.taxStatus === "Taxable" ? ` + MN tax ${money(tax)}` : ""} · <b style={{ color: N.ink }}>{money(sub + tax)}</b></span>
               </div>
-              <button onClick={createOrder} style={{ ...btnBlue, background: N.blue, fontSize: 14, padding: "10px 18px" }}>{editingOrder ? "Update" : (poMode ? "Save job + PO →" : "Save job →")}</button>
+              <button onClick={createOrder} disabled={artworkBusy} style={{ ...btnBlue, background: artworkBusy ? N.mutedLite : N.blue, fontSize: 14, padding: "10px 18px", cursor: artworkBusy ? "default" : "pointer" }}>{artworkBusy ? "Uploading artwork…" : (editingOrder ? "Update" : (poMode ? "Save job + PO →" : "Save job →"))}</button>
             </div>
           </div>
         )}
