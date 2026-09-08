@@ -458,6 +458,7 @@ function mapInvoice(v) {
     date: d ? d.toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "",
     issueDate: v.issue_date || "",
     shipAddress: v.ship_address || "",
+    artwork: Array.isArray(v.artwork_urls) ? v.artwork_urls : [],
     createdAt: v.created_at || "", sentAt: v.sent_at || "", viewedAt: v.viewed_at || "", paidAt: v.paid_at || "",
   };
 }
@@ -685,8 +686,9 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [overpayFor, setOverpayFor] = useState(null); // invoice being resolved for an overpayment
   const [overpayAmt, setOverpayAmt] = useState("");
   const [showOrderForm, setShowOrderForm] = useState(false);
-  const blankOrder = { mode: "invoice", date: "", customer: "", vendor: "", email: "", ship: "", taxStatus: "Taxable", lines: [{ item: "", desc: "", qty: "1", cost: "", price: "" }] };
+  const blankOrder = { mode: "invoice", date: "", customer: "", vendor: "", email: "", ship: "", taxStatus: "Taxable", lines: [{ item: "", desc: "", qty: "1", cost: "", price: "" }], artwork: [] };
   const [orderDraft, setOrderDraft] = useState(blankOrder);
+  const [artworkBusy, setArtworkBusy] = useState(false);
   const [editingOrder, setEditingOrder] = useState(null);
   const [showBillForm, setShowBillForm] = useState(false);
   const blankBill = { vendor: "", amount: "", due: "", category: "", memo: "" };
@@ -1911,6 +1913,20 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   ))}
                 </div>
 
+                {(openInv.artwork || []).length > 0 && (
+                  <div style={{ marginBottom: 16 }}>
+                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", color: N.muted, marginBottom: 8 }}>ARTWORK / PROOF</div>
+                    <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                      {(openInv.artwork || []).map((a, i) => {
+                        const isImg = /\.(png|jpe?g|gif|webp|svg)$/i.test(a.name || "") || (a.type || "").startsWith("image/");
+                        return isImg
+                          ? <a key={i} href={a.url} target="_blank" rel="noreferrer" style={{ display: "block" }}><img src={a.url} alt={a.name} style={{ maxWidth: 240, maxHeight: 240, borderRadius: 8, border: "1px solid " + N.rule, objectFit: "contain", background: "#fff" }} /></a>
+                          : <a key={i} href={a.url} target="_blank" rel="noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, color: N.blue, border: "1px solid " + N.rule, borderRadius: 8, padding: "10px 14px", textDecoration: "none" }}>📄 {a.name}</a>;
+                      })}
+                    </div>
+                  </div>
+                )}
+
                 {!packMode && <div style={{ display: "flex", justifyContent: "flex-end" }}>
                   {isPo ? (
                   <div style={{ width: 250 }}>
@@ -2236,6 +2252,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         customer_name: cleanName(draft.customer) || null, customer_email: draft.email.trim() || null,
         line_items: lines.map(l => ({ item: (l.item || "").trim(), desc: (l.desc || "").trim(), qty: parseInt(l.qty) || 1, cost: parseFloat(l.cost) || 0, price: parseFloat(l.price) || 0 })),
         tax_status: draft.taxStatus, subtotal_cents: subtotal, tax_cents: tax, total_cents: total,
+        artwork_urls: draft.artwork || [],
       };
       if (draft.date) fields.issue_date = draft.date;
       fields.ship_address = (draft.ship || "").trim() || null;
@@ -2291,6 +2308,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         item: l.item || "", desc: l.desc || "", qty: String(l.qty || 1),
         cost: l.cost ? String(l.cost) : "", price: l.price ? String(l.price) : "",
       })),
+      artwork: v.artwork || [],
     });
     setSection("orders");
     setShowOrderForm(true);
@@ -2335,6 +2353,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           line_items: items, tax_status: v.tax || "Taxable",
           subtotal_cents: subtotal, tax_cents: tax, total_cents: subtotal + tax,
           issue_date: v.issueDate || null, ship_address: v.shipAddress || null,
+          artwork_urls: v.artwork || [],
         }).select("id").single();
         await supabase.from("invoices").update({ status: "invoiced" }).eq("id", v.id);
         await logDocEvent(v.id, "billed", "Invoiced as #" + num + " — PO kept for vendor history");
@@ -3284,6 +3303,31 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             ))}
             <button onClick={() => setOrderDraft(d => ({ ...d, lines: [...d.lines, { item: "", desc: "", qty: "1", cost: "", price: "" }] }))} style={{ ...btnPaper(N.blue), marginBottom: 14 }}>+ Add line</button>
             {poMode && <div style={{ fontSize: 12, color: N.muted, marginTop: -6, marginBottom: 12 }}><b style={{ color: N.blueDark }}>Cost</b> is what you pay the vendor — it prints on the PO. <b style={{ color: "#5a7a63" }}>Price</b> is what you charge the customer — it becomes the invoice.</div>}
+            <div style={{ borderTop: "1px solid " + N.rule, paddingTop: 12, marginBottom: 14 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: (orderDraft.artwork || []).length ? 10 : 0 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: N.ink }}>🎨 Artwork / proof</span>
+                <label style={{ ...btnPaper(N.blue), cursor: artworkBusy ? "default" : "pointer" }}>
+                  {artworkBusy ? "Uploading…" : "+ Attach artwork"}
+                  <input type="file" accept="image/*,application/pdf" multiple disabled={artworkBusy} onChange={e => { uploadArtwork(e.target.files); e.target.value = ""; }} style={{ display: "none" }} />
+                </label>
+                <span style={{ fontSize: 11, color: N.muted }}>Images or PDF — prints on the PO so the vendor sees what to make.</span>
+              </div>
+              {(orderDraft.artwork || []).length > 0 && (
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                  {(orderDraft.artwork || []).map((a, i) => {
+                    const isImg = /\.(png|jpe?g|gif|webp|svg)$/i.test(a.name || "") || (a.type || "").startsWith("image/");
+                    return (
+                      <div key={i} style={{ position: "relative", width: 84, height: 84, borderRadius: 8, border: "1px solid " + N.rule, overflow: "hidden", background: "#f7fafd" }}>
+                        {isImg
+                          ? <a href={a.url} target="_blank" rel="noreferrer"><img src={a.url} alt={a.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} /></a>
+                          : <a href={a.url} target="_blank" rel="noreferrer" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", fontSize: 11, color: N.muted, padding: 4, textAlign: "center", textDecoration: "none" }}>📄<span style={{ overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%", whiteSpace: "nowrap" }}>{a.name}</span></a>}
+                        <button onClick={() => setOrderDraft(d => ({ ...d, artwork: d.artwork.filter((_, j) => j !== i) }))} title="Remove" style={{ position: "absolute", top: 2, right: 2, width: 18, height: 18, borderRadius: "50%", border: "none", background: "rgba(0,0,0,0.6)", color: "#fff", cursor: "pointer", fontSize: 12, lineHeight: "18px", padding: 0 }}>×</button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
               <span style={{ fontSize: 12, color: N.muted }}>Sales tax:</span>
               {["Exempt", "Taxable", "Shipped"].map(t => (
@@ -3870,6 +3914,26 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     );
   }
 
+  // Attach artwork / proofs to an order-PO. Stored in the public org-assets bucket so the
+  // link keeps working on the printed and emailed PO. Multiple files allowed.
+  async function uploadArtwork(files) {
+    if (!files || !files.length || !liveOrgId) return;
+    setArtworkBusy(true);
+    try {
+      const added = [];
+      for (const file of Array.from(files)) {
+        if (file.size > 15 * 1024 * 1024) { window.alert(`"${file.name}" is over 15 MB — please use a smaller file.`); continue; }
+        const safe = (file.name || "artwork").replace(/[^a-zA-Z0-9._-]/g, "_");
+        const path = `${liveOrgId}/artwork/${Date.now()}-${Math.random().toString(36).slice(2, 7)}-${safe}`;
+        const { error: upErr } = await supabase.storage.from("org-assets").upload(path, file, { upsert: false, cacheControl: "3600", contentType: file.type || undefined });
+        if (upErr) throw upErr;
+        const { data: pub } = supabase.storage.from("org-assets").getPublicUrl(path);
+        added.push({ url: pub.publicUrl, name: file.name || "artwork", type: file.type || "" });
+      }
+      if (added.length) setOrderDraft(d => ({ ...d, artwork: [...(d.artwork || []), ...added] }));
+    } catch (e) { window.alert("Couldn't upload that artwork: " + (e.message || e)); }
+    setArtworkBusy(false);
+  }
   async function uploadLogo(file) {
     if (!file || !liveOrgId) return;
     if (file.size > 5 * 1024 * 1024) { window.alert("That image is over 5 MB — please use a smaller one."); return; }
