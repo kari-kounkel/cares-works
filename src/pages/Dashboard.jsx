@@ -605,12 +605,12 @@ export default function Dashboard({ session }) {
         {activeTab === "court" && (
           <div>
             <div style={{ display: "flex", gap: 32, alignItems: "flex-start", marginBottom: 36, flexWrap: "wrap" }}>
-              <img src="/court-of-accounts-cover.jpg" alt="Court of Accounts — A Tale of Ledgers, Loyalty, and Fancy Chickens"
+              <img src="/court-of-accounts-cover.jpg" alt="Court of Accounts — A Tale of Ledgers, Loyalty, and Dressed-Up Chickens"
                 style={{ width: 180, height: "auto", borderRadius: 12, boxShadow: "0 8px 24px rgba(0,128,255,0.28)", flexShrink: 0 }} />
               <div style={{ flex: 1, minWidth: 240 }}>
                 <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase", color: N.orange, marginBottom: 10, fontWeight: 700 }}>The Serialized Parable</div>
                 <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 34, color: N.ink, marginBottom: 12, lineHeight: 1.15 }}>Court of Accounts</h1>
-                <p style={{ color: N.ink, fontSize: 15, marginBottom: 16, fontStyle: "italic", fontFamily: "'DM Serif Display', serif" }}>A Tale of Ledgers, Loyalty, and Fancy Chickens.</p>
+                <p style={{ color: N.ink, fontSize: 15, marginBottom: 16, fontStyle: "italic", fontFamily: "'DM Serif Display', serif" }}>A Tale of Ledgers, Loyalty, and Dressed-Up Chickens.</p>
                 <p style={{ color: N.muted, fontSize: 14, marginBottom: 16, lineHeight: 1.6 }}>
                   A business parable set in the Kingdom of Eggerton. One chapter drops per month — a tiny kingdom learns the difference between busy and profitable, the cost of loyalty, and what to do when the chickens get fancy.
                 </p>

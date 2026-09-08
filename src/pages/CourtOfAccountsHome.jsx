@@ -73,7 +73,7 @@ function GoldBtn({ href, onClick, children, solid = true }) {
 export default function CourtOfAccountsHome({ session }) {
   useEffect(() => {
     const prev = document.title;
-    document.title = "Court of Accounts — A Tale of Ledgers, Loyalty, and Fancy Chickens";
+    document.title = "Court of Accounts — A Tale of Ledgers, Loyalty, and Dressed-Up Chickens";
     return () => { document.title = prev; };
   }, []);
 
@@ -87,7 +87,7 @@ export default function CourtOfAccountsHome({ session }) {
         <div className="coa-wrap" style={{ maxWidth: 940, margin: "0 auto", padding: "0 24px" }}>
           <div className="coa-hero">
             <img className="coa-cover" src="/court-of-accounts-cover.jpg"
-              alt="Court of Accounts — A Tale of Ledgers, Loyalty, and Fancy Chickens"
+              alt="Court of Accounts — A Tale of Ledgers, Loyalty, and Dressed-Up Chickens"
               style={{ height: "auto", borderRadius: 4, display: "block", boxShadow: "0 26px 38px rgba(27,58,107,0.18), 0 8px 14px rgba(0,0,0,0.10)" }} />
             <div style={{ flex: "1 1 320px" }}>
               <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.28em", textTransform: "uppercase", color: C.goldDeep, fontWeight: 700, marginBottom: 18 }}>
@@ -97,7 +97,7 @@ export default function CourtOfAccountsHome({ session }) {
                 Court of Accounts
               </h1>
               <p style={{ fontFamily: "'DM Serif Display', serif", fontStyle: "italic", fontSize: "clamp(16px, 2.4vw, 21px)", color: C.inkSoft, marginBottom: 20 }}>
-                A Tale of Ledgers, Loyalty, and Fancy Chickens.
+                A Tale of Ledgers, Loyalty, and Dressed-Up Chickens.
               </p>
               <p style={{ fontSize: 16, color: C.inkSoft, marginBottom: 28, maxWidth: 460 }}>
                 A tiny kingdom learns the difference between busy and profitable, the cost of

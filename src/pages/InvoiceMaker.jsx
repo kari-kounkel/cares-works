@@ -116,7 +116,12 @@ export default function InvoiceMaker({ session }) {
       const t = totalsOf(doc);
       let number = doc.number;
       if (send && !number) {
-        const { data, error } = await supabase.rpc("next_invoice_doc_number", { p_brand: doc.brand_id });
+        // Numbers are date-based by default (LB-20260908), so the invoice's own
+        // date decides it — not the day she happened to press the button.
+        const { data, error } = await supabase.rpc("next_invoice_doc_number", {
+          p_brand: doc.brand_id,
+          p_date: doc.issue_date || today(),
+        });
         if (error) throw error;
         number = data;
       }
@@ -332,7 +337,7 @@ function newBrand() {
     presets: [], stripe_enabled: true, ach_enabled: true, check_enabled: true,
     ach_bank: "", ach_routing: "", ach_account: "", ach_notify: "",
     check_payable_to: "", remit_address: "", terms: "", footer_note: "",
-    number_prefix: "", next_number: 1001, sort: 99, archived: false,
+    number_prefix: "", number_format: "date", next_number: 1001, sort: 99, archived: false,
   };
 }
 
@@ -731,9 +736,19 @@ function BrandPane({ b, setB, onSave, busy, upload }) {
         <Field label="Terms (bottom of the invoice)"><textarea value={b.terms || ""} onChange={(e) => set({ terms: e.target.value })} style={{ ...inp, minHeight: 54, resize: "vertical" }} /></Field>
         <Field label="Footer line (under the paper)"><input value={b.footer_note || ""} onChange={(e) => set({ footer_note: e.target.value })} style={inp} /></Field>
         <Row2>
-          <Field label="Number prefix"><input value={b.number_prefix || ""} onChange={(e) => set({ number_prefix: e.target.value })} style={inp} placeholder="CW-" /></Field>
-          <Field label="Next number"><input type="number" value={b.next_number ?? 1001} onChange={(e) => set({ next_number: Number(e.target.value) })} style={inp} /></Field>
+          <Field label="Number prefix"><input value={b.number_prefix || ""} onChange={(e) => set({ number_prefix: e.target.value })} style={inp} placeholder="LB-" /></Field>
+          <Field label="Numbering">
+            <select value={b.number_format || "date"} onChange={(e) => set({ number_format: e.target.value })} style={inp}>
+              <option value="date">By date — {(b.number_prefix || "")}{new Date().toISOString().slice(0, 10).replace(/-/g, "")}</option>
+              <option value="sequence">Running number — {(b.number_prefix || "")}{b.next_number ?? 1001}</option>
+            </select>
+          </Field>
         </Row2>
+        {(b.number_format || "date") === "sequence" ? (
+          <Field label="Next number"><input type="number" value={b.next_number ?? 1001} onChange={(e) => set({ next_number: Number(e.target.value) })} style={{ ...inp, width: 140 }} /></Field>
+        ) : (
+          <div style={{ fontSize: 12, color: N.muted, marginTop: -4 }}>A second invoice for this brand on the same day gets -2, then -3.</div>
+        )}
       </Card>
 
       <div style={{ display: "flex", gap: 8, marginTop: 16 }}>

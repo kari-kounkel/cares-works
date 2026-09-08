@@ -27,7 +27,7 @@ const MOBILE_COURT = `
 `;
 
 
-const SUFFIX = " from COURT OF ACCOUNTS A Tale of Ledgers Loyalty and Fancy Chickens";
+const SUFFIX = " from COURT OF ACCOUNTS A Tale of Ledgers Loyalty and Dressed-Up Chickens";
 
 const CHAPTERS = {
   prologue: {
