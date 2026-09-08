@@ -456,6 +456,7 @@ function mapInvoice(v) {
     status: v.status === "in_progress" ? "In progress" : v.status === "po_sent" ? "PO sent" : v.status === "invoiced" ? "Invoiced" : cap(v.status),
     date: d ? d.toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "",
     issueDate: v.issue_date || "",
+    dueDate: v.due_date || "",
     shipAddress: v.ship_address || "",
     artwork: Array.isArray(v.artwork_urls) ? v.artwork_urls : [],
     createdAt: v.created_at || "", sentAt: v.sent_at || "", viewedAt: v.viewed_at || "", paidAt: v.paid_at || "",
@@ -1880,6 +1881,12 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                     <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 24, letterSpacing: "0.16em", color: brand, fontWeight: 500 }}>{packMode ? "PACKING SLIP" : (isPo ? "PURCHASE ORDER" : "INVOICE")}</div>
                     {isPo ? (openInv.poNumber && <div style={{ fontSize: 13, color: N.ink, marginTop: 5 }}>PO #{openInv.poNumber}</div>) : (openInv.number && <div style={{ fontSize: 13, color: N.ink, marginTop: 5 }}>No. {openInv.number}{revised && <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", color: "#8a5a00", background: "#fdf5e3", border: "1px solid #f0d89a", borderRadius: 6, padding: "1px 7px", marginLeft: 8 }}>REVISED</span>}</div>)}
                     <div style={{ fontSize: 12, color: N.muted, marginTop: 2 }}>Date: {openInv.date}</div>
+                    {!isPo && (() => {
+                      const term = (!openInv.dueDate || !openInv.issueDate || openInv.dueDate <= openInv.issueDate)
+                        ? "Due upon receipt"
+                        : "Due by " + new Date(openInv.dueDate + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+                      return <div style={{ fontSize: 12, color: N.muted, marginTop: 2, fontWeight: 600 }}>{term}</div>;
+                    })()}
                   </div>
                 </div>
 
