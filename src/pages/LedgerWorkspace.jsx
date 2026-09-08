@@ -94,9 +94,8 @@ export const ENTITIES = {
 };
 
 const SECTIONS = [
-  { key: "orders", label: "New Orders" },
+  { key: "orders", label: "Orders" },
   { key: "invoices", label: "Invoices" },
-  { key: "purchaseorders", label: "Purchase Orders" },
   { key: "salestax", label: "Sales tax" },
   { key: "notebook", label: "Notebook" },
   { key: "giving", label: "Donations" },
@@ -689,6 +688,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const blankOrder = { mode: "invoice", date: "", customer: "", vendor: "", email: "", ship: "", taxStatus: "Taxable", lines: [{ item: "", desc: "", qty: "1", cost: "", price: "" }], artwork: [] };
   const [orderDraft, setOrderDraft] = useState(blankOrder);
   const [artworkBusy, setArtworkBusy] = useState(false);
+  const [showClosedOrders, setShowClosedOrders] = useState(false);
   const [editingOrder, setEditingOrder] = useState(null);
   const [showBillForm, setShowBillForm] = useState(false);
   const blankBill = { vendor: "", amount: "", due: "", category: "", memo: "" };
@@ -3249,7 +3249,34 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   function Orders() {
     // New Orders = every in-progress job (the pending customer bill), EXCEPT an in-house PO
     // (no customer) that's already been sent — that one lives only on Purchase Orders.
-    const orderList = invoices.filter(v => v.docType === "order" && v.status !== "Invoiced" && !(v.status === "PO sent" && (!v.customer || v.customer === "—")));
+    const currentOrders = invoices.filter(v => v.docType === "order" && v.status !== "Invoiced" && v.status !== "Void");
+    const closedOrders = invoices.filter(v => v.docType === "order" && (v.status === "Invoiced" || v.status === "Void")).slice().sort((a, b) => (b.issueDate || "").localeCompare(a.issueDate || ""));
+    const orderRow = (v, i, arr) => (
+      <div key={v.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 16px", borderBottom: i === arr.length - 1 ? "none" : "1px solid " + N.rule, flexWrap: "wrap" }}>
+        <div style={{ width: 64, fontSize: 12, color: N.muted }}>{v.poNumber ? `PO #${v.poNumber}` : "Order"}</div>
+        <div style={{ flex: 1, minWidth: 150 }}>
+          <div style={{ fontSize: 15, color: N.ink, fontWeight: 600 }}>{v.customer && v.customer !== "—" ? v.customer : (v.vendor ? "In-house · " + v.vendor : "Order")}</div>
+          <div style={{ fontSize: 12, color: N.muted }}>{v.item}{v.vendor && v.customer && v.customer !== "—" ? ` · vendor: ${v.vendor}` : ""}</div>
+        </div>
+        {(() => {
+          const costTot = (v.lines || []).reduce((s, l) => s + (l.cost || 0) * (l.qty || 1), 0);
+          const priceTot = (v.lines || []).reduce((s, l) => s + (l.price || 0) * (l.qty || 1), 0);
+          return (
+            <div style={{ textAlign: "right", width: 150, fontSize: 12, lineHeight: 1.4 }}>
+              {v.poNumber ? <div style={{ color: N.blueDark }}>PO cost <b>{money(costTot)}</b></div> : null}
+              <div style={{ color: "#5a7a63" }}>Invoice <b>{money(priceTot)}</b></div>
+            </div>
+          );
+        })()}
+        {v.poNumber && v.status === "PO sent" && <span style={{ fontSize: 10, fontWeight: 700, color: N.blueDark, background: "#eef6ff", border: "1px solid #cfe4ff", borderRadius: 100, padding: "3px 9px", letterSpacing: "0.04em" }}>PO SENT</span>}
+        {v.status === "Invoiced" && <span style={{ fontSize: 10, fontWeight: 700, color: "#5a7a63", background: "#eafaf0", border: "1px solid #cfe9d6", borderRadius: 100, padding: "3px 9px", letterSpacing: "0.04em" }}>INVOICED</span>}
+        <button onClick={() => editOrder(v)} style={btnPaper(N.muted)}>Edit</button>
+        {v.poNumber && <button onClick={() => openPoSend(v)} style={btnPaper(N.blue)}>{v.status === "PO sent" ? "✉ Resend PO" : "✉ Email PO"}</button>}
+        <button onClick={() => setOpenInv(v)} style={btnPaper(N.text)}>View / print</button>
+        {v.customer && v.customer !== "—" && v.status !== "Invoiced" && <button onClick={() => convertToInvoice(v)} style={{ ...btnBlue, background: N.blue }}>Convert to invoice →</button>}
+        <button onClick={() => deleteOrder(v.id)} title="Delete order" style={{ border: "1px solid " + N.rule, background: "none", color: N.muted, cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontSize: 12, fontWeight: 600, borderRadius: 100, padding: "6px 12px" }}>Delete</button>
+      </div>
+    );
     const setLine = (i, patch) => setOrderDraft(d => ({ ...d, lines: d.lines.map((l, j) => (j === i ? { ...l, ...patch } : l)) }));
     const poMode = orderDraft.mode === "po";
     const sub = orderDraft.lines.reduce((s, l) => s + (parseFloat(l.price) || 0) * (parseInt(l.qty) || 1), 0);
@@ -3260,8 +3287,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       <div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, flexWrap: "wrap", gap: 10 }}>
           <div>
-            <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>New Orders</div>
-            <div style={{ fontSize: 13, color: N.muted }}>Every job in progress. Start it here; add a PO if a vendor makes it; hit <b style={{ color: N.blue }}>Convert to invoice</b> to bill the customer when it's done.</div>
+            <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>Orders</div>
+            <div style={{ fontSize: 13, color: N.muted }}>Every job — current ones up top, closed (already billed) below the divider. Start one here; add a PO if a vendor makes it; hit <b style={{ color: N.blue }}>Convert to invoice</b> to bill the customer.</div>
           </div>
           <button onClick={() => { if (showOrderForm) { setShowOrderForm(false); setEditingOrder(null); setOrderDraft(blankOrder); } else { setShowOrderForm(true); } }} style={{ ...btnBlue, background: N.blue, fontSize: 14, padding: "10px 18px" }}>{showOrderForm ? "Close" : "+ New order"}</button>
         </div>
@@ -3357,35 +3384,26 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         )}
 
         <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, overflow: "hidden" }}>
-          {orderList.length === 0 ? (
+          {currentOrders.length === 0 ? (
             <div style={{ padding: "30px 20px", textAlign: "center", color: N.muted, fontSize: 14 }}>No open orders. Click “New order” to start one.</div>
-          ) : orderList.map((v, i) => (
-            <div key={v.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 16px", borderBottom: i === orderList.length - 1 ? "none" : "1px solid " + N.rule, flexWrap: "wrap" }}>
-              <div style={{ width: 64, fontSize: 12, color: N.muted }}>{v.poNumber ? `PO #${v.poNumber}` : "Order"}</div>
-              <div style={{ flex: 1, minWidth: 150 }}>
-                <div style={{ fontSize: 15, color: N.ink, fontWeight: 600 }}>{v.customer && v.customer !== "—" ? v.customer : (v.vendor ? "In-house · " + v.vendor : "Order")}</div>
-                <div style={{ fontSize: 12, color: N.muted }}>{v.item}{v.vendor && v.customer && v.customer !== "—" ? ` · vendor: ${v.vendor}` : ""}</div>
-              </div>
-              {(() => {
-                const costTot = (v.lines || []).reduce((s, l) => s + (l.cost || 0) * (l.qty || 1), 0);
-                const priceTot = (v.lines || []).reduce((s, l) => s + (l.price || 0) * (l.qty || 1), 0);
-                return (
-                  <div style={{ textAlign: "right", width: 150, fontSize: 12, lineHeight: 1.4 }}>
-                    {v.poNumber ? <div style={{ color: N.blueDark }}>PO cost <b>{money(costTot)}</b></div> : null}
-                    <div style={{ color: "#5a7a63" }}>Invoice <b>{money(priceTot)}</b></div>
-                  </div>
-                );
-              })()}
-              {v.poNumber && v.status === "PO sent" && <span style={{ fontSize: 10, fontWeight: 700, color: N.blueDark, background: "#eef6ff", border: "1px solid #cfe4ff", borderRadius: 100, padding: "3px 9px", letterSpacing: "0.04em" }}>PO SENT</span>}
-              <button onClick={() => editOrder(v)} style={btnPaper(N.muted)}>Edit</button>
-              {v.poNumber && <button onClick={() => openPoSend(v)} style={btnPaper(N.blue)}>{v.status === "PO sent" ? "✉ Resend PO" : "✉ Email PO"}</button>}
-              <button onClick={() => setOpenInv(v)} style={btnPaper(N.text)}>View / print</button>
-              {v.customer && v.customer !== "—" && <button onClick={() => convertToInvoice(v)} style={{ ...btnBlue, background: N.blue }}>Convert to invoice →</button>}
-              <button onClick={() => deleteOrder(v.id)} title="Delete order" style={{ border: "1px solid " + N.rule, background: "none", color: N.muted, cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontSize: 12, fontWeight: 600, borderRadius: 100, padding: "6px 12px" }}>Delete</button>
-            </div>
-          ))}
+          ) : currentOrders.map((v, i) => orderRow(v, i, currentOrders))}
         </div>
-        <div style={{ fontSize: 12, color: N.muted, marginTop: 10 }}>An order holds the full spec so it can be reordered. Send the PO to your vendor; when it's made, hit <b style={{ color: N.blue }}>Convert to invoice</b> to bill the customer.</div>
+
+        {closedOrders.length > 0 && (
+          <div style={{ marginTop: 18 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "0 0 8px" }}>
+              <div style={{ flex: 1, height: 1, background: N.rule }} />
+              <button onClick={() => setShowClosedOrders(s => !s)} style={{ background: "none", border: "none", color: N.muted, fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", cursor: "pointer", fontFamily: "'Figtree', sans-serif", whiteSpace: "nowrap" }}>{showClosedOrders ? "▲ HIDE" : "▾ SHOW"} CLOSED · PAST PURCHASE ORDERS ({closedOrders.length})</button>
+              <div style={{ flex: 1, height: 1, background: N.rule }} />
+            </div>
+            {showClosedOrders && (
+              <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, overflow: "hidden", opacity: 0.9 }}>
+                {closedOrders.map((v, i) => orderRow(v, i, closedOrders))}
+              </div>
+            )}
+          </div>
+        )}
+        <div style={{ fontSize: 12, color: N.muted, marginTop: 10 }}>An order holds the full spec so it can be reordered. Send the PO to your vendor; when it's made, hit <b style={{ color: N.blue }}>Convert to invoice</b> to bill the customer. Closed orders — already billed — sit under the divider.</div>
       </div>
     );
   }
@@ -5736,7 +5754,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   else if (activeSection === "notebook") body = entity.ledgerStyle === "register" ? Register() : Notebook();
   else if (activeSection === "invoices") body = Invoices();
   else if (activeSection === "orders") body = Orders();
-  else if (activeSection === "purchaseorders") body = PurchaseOrders();
+  else if (activeSection === "purchaseorders") body = Orders();
   else if (activeSection === "salestax") body = SalesTax();
   else if (activeSection === "giving") body = Giving();
   else if (activeSection === "reports") body = entity.reportStyle === "nonprofit" ? StatementOfActivities() : Reports();
