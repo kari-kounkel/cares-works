@@ -12,17 +12,17 @@ import { Panel, Quiet } from "./boardChrome";
 // A number that mixes "we checked" with "she said so" is worse than no number.
 
 const MEASURED = [
-  { key: "ok",        label: "Up",        hint: "Answers on https" },
-  { key: "analytics", label: "Analytics", hint: "Any analytics tag on the page" },
-  { key: "ask",       label: "ASK",       hint: "The Ask Kari widget is loaded" },
-  { key: "favicon",   label: "Icon",      hint: "Declares a favicon" },
+  { key: "ok",        label: "Up",    hint: "Answers on https" },
+  { key: "analytics", label: "Stats", hint: "A working analytics tag (a placeholder id does not count)" },
+  { key: "ask",       label: "ASK",   hint: "The Ask Kari widget is loaded" },
+  { key: "favicon",   label: "Icon",  hint: "Declares a favicon" },
 ];
 
 const DECLARED = [
-  { key: "auth",  label: "Sign-in",  hint: "Someone can log in" },
-  { key: "reset", label: "Reset",    hint: "Password reset actually works" },
-  { key: "email", label: "Email",    hint: "Transactional mail wired to the hub" },
-  { key: "pay",   label: "Payments", hint: "Can take money (or n/a)" },
+  { key: "auth",  label: "Login", hint: "Someone can log in" },
+  { key: "reset", label: "Reset", hint: "Password reset actually works" },
+  { key: "email", label: "Mail",  hint: "Transactional mail wired to the hub" },
+  { key: "pay",   label: "Pay",   hint: "Can take money (or n/a)" },
 ];
 
 // Declared checks cycle: unknown → yes → no → not applicable → unknown.
@@ -38,7 +38,7 @@ function Cell({ state, onClick, title }) {
   return (
     <div title={title} onClick={onClick}
       style={{
-        width: 26, height: 22, borderRadius: 5, background: look.bg,
+        width: 30, height: 22, borderRadius: 5, background: look.bg,
         border: `1px solid ${look.bd}`, color: look.fg,
         display: "flex", alignItems: "center", justifyContent: "center",
         fontFamily: "'DM Mono', monospace", fontSize: 11, fontWeight: 700,
@@ -83,7 +83,7 @@ export default function KingdomPanel({ data, scanning, onScan, onSetCheck }) {
   }
 
   const head = (label, hint) => (
-    <div key={label} title={hint} style={{ width: 26, flexShrink: 0, fontFamily: "'DM Mono', monospace", fontSize: 8, letterSpacing: "0.02em", color: N.muted, textAlign: "center", lineHeight: 1.1, wordBreak: "break-word" }}>
+    <div key={label} title={hint} style={{ width: 30, flexShrink: 0, fontFamily: "'DM Mono', monospace", fontSize: 8.5, letterSpacing: "0.02em", color: N.muted, textAlign: "center", lineHeight: 1.1, whiteSpace: "nowrap" }}>
       {label}
     </div>
   );
@@ -134,8 +134,8 @@ export default function KingdomPanel({ data, scanning, onScan, onSetCheck }) {
           </div>
           <div style={{ display: "flex", gap: 4, padding: "3px 0 7px" }}>
             <div style={{ flex: 1, minWidth: 170 }} />
-            <div style={{ width: MEASURED.length * 30, fontFamily: "'DM Mono', monospace", fontSize: 8, letterSpacing: "0.08em", textTransform: "uppercase", color: N.blue, textAlign: "center" }}>measured</div>
-            <div style={{ width: DECLARED.length * 30, fontFamily: "'DM Mono', monospace", fontSize: 8, letterSpacing: "0.08em", textTransform: "uppercase", color: N.pinkDark, textAlign: "center" }}>you say</div>
+            <div style={{ width: MEASURED.length * 34, fontFamily: "'DM Mono', monospace", fontSize: 8, letterSpacing: "0.08em", textTransform: "uppercase", color: N.blue, textAlign: "center" }}>measured</div>
+            <div style={{ width: DECLARED.length * 34, fontFamily: "'DM Mono', monospace", fontSize: 8, letterSpacing: "0.08em", textTransform: "uppercase", color: N.pinkDark, textAlign: "center" }}>you say</div>
           </div>
 
           {props.map((p) => {
