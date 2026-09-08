@@ -2875,7 +2875,10 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           {visibleItems.map((x, i) => {
             const ckm = x.reference ? (/^check/i.test(x.reference) ? x.reference.replace(/^check\s*#?\s*/i, "") : (/^\d+$/.test(x.reference) ? x.reference : "")) : "";
             const editing = editLineId === x.id;
-            return (
+            const prevSrc = i > 0 ? visibleItems[i - 1].source : null;
+            const showHead = !acctFilter && x.source !== prevSrc;
+            return [
+              showHead && <div key={x.id + "-h"} style={{ padding: "8px 14px 6px", borderTop: i === 0 ? "none" : "2px solid " + N.rule, background: "#eef3f8", fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.08em", fontWeight: 700, color: N.blueDark }}>{(x.source && x.source !== "—" ? x.source : "— not assigned to an account —").toUpperCase()}</div>,
               <div key={x.id} style={{ borderTop: "1px solid " + N.rule, background: x.cleared ? "#e2edf7" : "transparent" }}>
                 <div style={{ display: "grid", gridTemplateColumns: "78px 64px 1fr 150px 150px 96px 96px 34px", padding: "7px 14px", alignItems: "center", fontSize: 13, color: N.text }}>
                   <span style={{ color: N.muted }}>{x.date}</span>
@@ -2915,7 +2918,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                   </div>
                 )}
               </div>
-            );
+            ];
           })}
         </div>
         )}
