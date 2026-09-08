@@ -81,6 +81,27 @@ export default async function handler(req, res) {
       console.error("Invoice paid update failed:", error);
       return res.status(500).send("Database error: " + error.message);
     }
+
+    // Tell Kari. Stripe's own notification emails don't reach her, so the money
+    // landing has to announce itself. Never fatal: the payment is recorded
+    // whether or not the note goes out.
+    try {
+      await fetch(process.env.SUPABASE_URL + "/functions/v1/invoice-paid-notify", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + process.env.SUPABASE_SERVICE_KEY,
+        },
+        body: JSON.stringify({
+          doc_id: invoiceId,
+          method: "stripe-" + method,
+          reference: session.payment_intent || session.id,
+        }),
+      });
+    } catch (notifyErr) {
+      console.error("Paid notification failed:", notifyErr.message);
+    }
+
     return res.status(200).json({ received: true, invoice: invoiceId });
   }
 

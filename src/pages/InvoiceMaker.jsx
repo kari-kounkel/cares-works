@@ -58,6 +58,7 @@ const blankDoc = (brand) => ({
 export default function InvoiceMaker({ session }) {
   const [brands, setBrands] = useState([]);
   const [docs, setDocs] = useState([]);
+  const [events, setEvents] = useState([]);
   const [view, setView] = useState("list");      // list | edit | brand
   const [doc, setDoc] = useState(null);          // the invoice being edited
   const [brandDraft, setBrandDraft] = useState(null);
@@ -66,14 +67,23 @@ export default function InvoiceMaker({ session }) {
   const [loaded, setLoaded] = useState(false);
 
   const load = useCallback(async () => {
-    const [{ data: b }, { data: d }] = await Promise.all([
+    const [{ data: b }, { data: d }, { data: e }] = await Promise.all([
       supabase.from("invoice_brands").select("*").eq("archived", false).order("sort").order("name"),
       supabase.from("invoice_docs").select("*").order("created_at", { ascending: false }),
+      supabase.from("invoice_doc_events").select("*").order("created_at", { ascending: false }).limit(500),
     ]);
     setBrands(b || []);
     setDocs(d || []);
+    setEvents(e || []);
     setLoaded(true);
   }, []);
+
+  // The action list. Nothing here is ever updated or deleted — an audit trail
+  // you can rewrite is not one — so this only ever appends.
+  async function logEvent(docId, type, detail) {
+    if (!docId) return;
+    await supabase.from("invoice_doc_events").insert({ doc_id: docId, event_type: type, detail: detail || null });
+  }
 
   useEffect(() => { load(); }, [load]);
 
@@ -169,13 +179,38 @@ export default function InvoiceMaker({ session }) {
         if (error) throw error;
         saved = data;
       }
+      if (!doc.id) await logEvent(saved.id, "created", "Invoice started");
+      else if (!send) await logEvent(saved.id, "revised", "Edited");
+      if (send && !doc.number) await logEvent(saved.id, "numbered", "Numbered " + number + " — link is live");
+
       setDoc(saved);
       await load();
-      flash(send ? "Ready to send — link copied below." : "Saved.");
+      flash(send ? "Numbered and ready to send." : "Saved.");
       return saved;
     } catch (err) {
       flash(err.message || "Could not save.");
       return null;
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // Actually send it, through the same kcocares hub the ledger's invoices use.
+  async function sendEmail(d, note) {
+    if (!d?.id) return;
+    if (d.status === "draft") { flash("Number it first — a draft has no live link."); return; }
+    if (!d.bill_to_email) { flash("No email address on this invoice."); return; }
+    setBusy(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("send-invoice-doc", {
+        body: { doc_id: d.id, origin: window.location.origin, message: note || "" },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      await load();
+      flash("Sent to " + data.to + (data.bcc ? " · copy to you" : ""));
+    } catch (err) {
+      flash(err.message || "Could not send it.");
     } finally {
       setBusy(false);
     }
@@ -194,6 +229,7 @@ export default function InvoiceMaker({ session }) {
     }).eq("id", d.id);
     setBusy(false);
     if (error) { flash(error.message); return; }
+    await logEvent(d.id, "paid", "Marked paid by " + method + (ref ? " — " + ref : ""));
     await load();
     if (doc?.id === d.id) setDoc({ ...doc, status: "paid", amount_paid_cents: d.total_cents, paid_method: method });
     flash("Marked paid.");
@@ -310,6 +346,8 @@ export default function InvoiceMaker({ session }) {
               onPickBrand={(b) => set({ brand_id: b.id, header_image_url: null, preset_key: null })}
               onPreset={applyPreset}
               onSave={save} busy={busy} link={link}
+              events={events.filter((e) => e.doc_id === doc.id)}
+              onSend={sendEmail} onLog={logEvent}
               onMarkPaid={markPaid} onDelete={removeDoc} upload={upload}
               onEditBrand={(b) => { setBrandDraft({ ...b }); setView("brand"); }}
               flash={flash}
@@ -430,7 +468,7 @@ function DocRow({ d, b, onOpen, onDuplicate }) {
 // ============================================================================
 // The form
 // ============================================================================
-function EditPane({ doc, set, brands, brandOf, onPickBrand, onPreset, onSave, busy, link, onMarkPaid, onDelete, upload, onEditBrand, flash }) {
+function EditPane({ doc, set, brands, brandOf, onPickBrand, onPreset, onSave, busy, link, onMarkPaid, onDelete, upload, onEditBrand, flash, events = [], onSend, onLog }) {
   const b = brandOf(doc.brand_id);
   const presets = brands.flatMap((x) =>
     (x.presets || []).map((p) => ({
@@ -442,6 +480,7 @@ function EditPane({ doc, set, brands, brandOf, onPickBrand, onPreset, onSave, bu
   ).sort((m, n) => (m.brand_id === doc.brand_id ? -1 : 0) - (n.brand_id === doc.brand_id ? -1 : 0));
   const t = totalsOf(doc);
   const [copied, setCopied] = useState(false);
+  const [sendNote, setSendNote] = useState("");
 
   const lines = doc.line_items || [];
   const setLine = (i, patch) => set({ line_items: lines.map((l, j) => (j === i ? { ...l, ...patch } : l)) });
@@ -449,7 +488,10 @@ function EditPane({ doc, set, brands, brandOf, onPickBrand, onPreset, onSave, bu
   const delLine = (i) => set({ line_items: lines.filter((_, j) => j !== i) });
 
   function copyLink() {
-    navigator.clipboard.writeText(link).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2500); });
+    navigator.clipboard.writeText(link).then(() => {
+      setCopied(true); setTimeout(() => setCopied(false), 2500);
+      onLog(doc.id, "link_copied", "Copied the link");
+    });
   }
 
   function mailDraft() {
@@ -614,13 +656,39 @@ function EditPane({ doc, set, brands, brandOf, onPickBrand, onPreset, onSave, bu
         <Card title="Their link">
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
             <input readOnly value={link} onFocus={(e) => e.target.select()} style={{ ...inp, flex: 1, minWidth: 200, fontFamily: "'DM Mono', monospace", fontSize: 12 }} />
-            <Btn onClick={copyLink}>{copied ? "Copied" : "Copy"}</Btn>
-            <Btn ghost onClick={mailDraft}>Email draft</Btn>
+            <Btn onClick={copyLink}>{copied ? "Copied" : "Copy link"}</Btn>
             <a href={link} target="_blank" rel="noreferrer" style={{ ...linkBtn, textDecoration: "none" }}>open</a>
           </div>
-          <div style={{ fontSize: 12, color: N.muted, marginTop: 8 }}>
-            {doc.viewed_at ? `They opened it ${new Date(doc.viewed_at).toLocaleString()}.` : "Not opened yet."}
-            {doc.paid_at ? ` Paid ${new Date(doc.paid_at).toLocaleDateString()}${doc.paid_method ? " by " + doc.paid_method : ""}.` : ""}
+
+          <Field label="A line to go with it (optional)" style={{ marginTop: 12 }}>
+            <input value={sendNote} onChange={(e) => setSendNote(e.target.value)} style={inp}
+              placeholder="Lovely to see you Thursday — here's the invoice." />
+          </Field>
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            <Btn primary disabled={busy || !doc.bill_to_email} onClick={() => onSend(doc, sendNote)}>
+              {doc.bill_to_email ? "Email it to " + doc.bill_to_email : "No email on this invoice"}
+            </Btn>
+            <Btn ghost onClick={() => { mailDraft(); onLog(doc.id, "email_drafted", "Opened a draft in her own mail app"); }}>
+              Open in my mail app
+            </Btn>
+          </div>
+          <div style={{ fontSize: 11.5, color: N.muted, marginTop: 6 }}>
+            Sending goes out from CARES Works with a copy to you, and lands in the list below.
+          </div>
+
+          <div style={{ marginTop: 16, borderTop: "1px solid " + N.rule, paddingTop: 12 }}>
+            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", color: N.muted, marginBottom: 8 }}>WHAT'S HAPPENED</div>
+            {events.length === 0 ? (
+              <div style={{ fontSize: 12.5, color: N.muted }}>Nothing logged yet.</div>
+            ) : events.map((e) => (
+              <div key={e.id} style={{ display: "flex", gap: 10, fontSize: 12.5, padding: "4px 0", borderBottom: "1px solid #f1f5f9" }}>
+                <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: N.muted, whiteSpace: "nowrap" }}>
+                  {new Date(e.created_at).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
+                </span>
+                <span style={{ fontWeight: 600, textTransform: "capitalize" }}>{String(e.event_type).replace(/_/g, " ")}</span>
+                <span style={{ color: N.muted, flex: 1, minWidth: 0 }}>{e.detail}</span>
+              </div>
+            ))}
           </div>
         </Card>
       ) : doc.id ? (
