@@ -5,13 +5,13 @@ _Rebuilt from chat transcripts on 2026-08-25. Update this file at the end of eve
 `C:\dev\cares-works` is the Vite + React 18 app behind CARES Works (`tools.caresmn.com`), Kari's multi-tenant SaaS of bookkeeping/admin tools, plus everything static served out of its `public/` folder. It holds four client sub-projects: the ProGraphics ledger (QuickBooks replacement for Dave & Betty Erickson), the Minuteman Press Uptown website + union-shop site + proposals, the CARES Works product itself (design system, pricing, org workspaces, River of Life facility rentals, COA Library, proposals), and the New Life in Christ (Pastor David) sample site + org workspace. All data lives in one Supabase project; routing is manual `window.location.pathname` in `src/App.jsx`.
 
 ## Where it lives
-- Live site: `https://tools.caresmn.com` (CARES Works). Tenant routes seen in chat: `/prographics`, `/emerson`, `/org/river-of-life`, `/rent/river-of-life`, `/proposals`, `/proposals/prographics`, `/tools/coa-library`, `/steward`.
+- Live site: `https://tools.caresmn.com` (CARES Works). Tenant routes seen in chat: `/prographics`, `/emerson`, `/org/river-of-life`, `/rent/river-of-life`, `/proposals`, `/proposals/prographics`, `/tools/coa-library`, `/steward`, `/board` (Kari's Command Board).
 - Static Minuteman pages served from `public/` on the same Vercel deploy: `/mmpuptown/…`, `/mmpunionshop/`, `/proposals/minuteman`, `/proposals/minuteman-website`, `/store-options/…`, `/demo/mmp.html`. Final custom domains for the Minuteman sites: not stated (verify). Existing live site is `mmpuptown.com` (not ours).
-- Vercel: deploys on push, ~1 min build. Vercel project name: (verify).
+- Vercel: deploys on push, ~1 min build. Vercel project `cares-works` (`prj_LXPWJjKXEA3TLXsqrnE95EKxHFdr`, team `team_MzJfjdVk8hjUhRXEzk8iyMbt`).
 - Supabase (cares-works): project ref `qcikhcnclduakriextsz`. ProGraphics org id `51c83c73-b406-4cfa-9626-b600b3c30236`.
 - Supabase (kcocares notification hub, used for email/SMS): ref `rhbmuxvbmmlbkjegwtgr`, edge function `hub` v10 (SendGrid + Twilio, `x-hub-secret` auth, supports `bcc`).
 - Edge functions on `qcikhcnclduakriextsz`: `send-invoice-email` v7, `send-po-email` v2, `send-receipt-email` v2, `plaid-link-token`, `plaid-exchange`, `plaid-sync`.
-- GitHub remote: not stated in excerpts (verify). Known pushed commits: `477fbb9`, `61bf64c`.
+- GitHub remote: `https://github.com/kari-kounkel/cares-works` (public). Known pushed commits: `477fbb9`, `61bf64c`.
 - QBO MCP connection confirmed to "PRO GRAPHICS ENTERPRISES, INC." (as of the ProGraphics chat).
 
 ## Chats that built it
@@ -327,3 +327,62 @@ Three real bugs caught and fixed, each by a different method — worth noting be
 - `C:\dev\cares-works\api\floridagirl-deposit.js` ($750 Look checkout — keep the cents amount in step with the page)
 - `C:\dev\cares-works\public\proposals\maddie\index.html` (the pattern for Stripe + secure upload), `public\proposals\marco\`, `public\proposals\amy\`, `public\proposals\itabelkoo\`
 - `C:\dev\cares-works\api\maddie-deposit.js`, `api\marco-deposit.js`, `api\webhook.js`
+
+---
+
+### Command Board
+Kari's private live dashboard at `tools.caresmn.com/board` — her week, her unread inbox, who owes money, and milestone countdowns on one self-refreshing page. Recreates the "Mustard Board" Claude artifact natively, with our own OAuth, so it no longer depends on claude.ai or Claude's connectors. Built 9/7–9/8 from `docs/command-board-spec.md`.
+
+**Built so far**
+- ✅ Route `/board` in `src/App.jsx`, behind the same `if (!session)` gate as `/kari`.
+- ✅ Four panels in `src/pages/CommandBoard.jsx`, on the neon system (`src/design/neon.jsx`, palette `N`) — white cards, neon outlines, blue/green:
+  - **Week Ahead** — 7 days of Google Calendar, across every calendar ticked in her Google sidebar (not just `primary`), all-day + timed, a NOW marker, each event linking back to Google Calendar.
+  - **Still Unread** — unread INBOX threads: sender, subject, snippet, relative age, an over-a-week flag, deep-linking to `mail.google.com/…/#inbox/<threadId>`. Tiles: unread / over a week / today.
+  - **Who Owes You** — QBO A/R Aging Summary. Tiles for open A/R, current, past due; a proportional aging-bucket bar; top overdue customers; negative buckets flagged as unapplied credits rather than summed as debt.
+  - **Milestones** — editable label + date rows from `board_milestones`. Seeded with Minuteman Press exit 2026-10-15 and Chasing Chickens launch 2026-10-28, under both of Kari's sign-ins.
+- ✅ Two entry points, so the board is never a remembered URL: an owner-only card at the top of `/dashboard` (gated to `kari@karikounkel.com` + `kari@caresmn.com`) and a `kari_cockpits` tile on `/kari`.
+- ✅ Migration `sql/command-board.sql`, applied to `qcikhcnclduakriextsz`: `board_connections` + `board_milestones`, both RLS-on.
+- ✅ Three Vercel functions under `api/board/`, deployed and probed on production: unknown panel → 400, missing or invalid session → 401, GET on a POST route → 405, forged OAuth state → 302 to `/board?board_error=bad_state`.
+- ✅ Live on production: `dpl_BQC54k45H7SoXK5R2YbWB1KjSf7A`, `target: production`, `state: READY`, commit `23b059b`, aliased to `tools.caresmn.com`.
+
+**Decisions**
+- **The browser never sees a provider token.** `board_connections` is RLS-enabled with **no policies at all** — which denies anon and authenticated outright, leaving only the service-role key used by `api/board/*` able to read it. Adding any policy to that table hands tokens to the browser.
+- **Refresh tokens are encrypted at rest**, AES-256-GCM keyed off `BOARD_TOKEN_KEY`, stored as `v1:<iv>:<tag>:<ciphertext>`. The same key HMACs the OAuth `state`.
+- **No token ever rides in a URL.** The connect button POSTs (authenticated) to `/api/board/auth`, which returns a consent URL carrying an HMAC-signed, 10-minute `state` holding the user id and provider. The callback trusts that signature, not the query string, so a forged state cannot attach someone else's Google account to Kari's row.
+- **Ten functions is the ceiling, and we are at it.** The Hobby plan allows **12 Serverless Functions per deployment**; the repo already ran seven, and the first Command Board deploy failed with `exceeded_serverless_functions_per_deployment` at fourteen. The seven board routes were collapsed to three (`auth.js` takes `?provider=`, `data.js` takes `?panel=`, one `callback.js` serves both providers, with the feeds as plain functions in `_panels.js`). `lambdaRuntimeStats` on the live deployment reads `{"nodejs":10}`. **Any new `api/*.js` file spends one of the two remaining slots.** Files under `api/` whose names start with `_` are libraries, not functions, and cost nothing.
+- **One redirect URI covers both providers** — `https://tools.caresmn.com/api/board/callback` — because the signed state already says which provider is answering. It is registered separately inside each provider's own console.
+- **Token refresh uses UPDATE, never UPSERT.** A refresh payload carries no `refresh_token_enc`, and Postgres checks that column's NOT NULL while forming the proposed row — *before* `ON CONFLICT` is ever reached. An upsert would therefore have failed every refresh, roughly hourly. `saveConnection` (upsert) is for the initial connect only; `updateConnection` is for refreshes.
+- **Countdowns count whole calendar days**, `Math.round` between two local midnights — the floridagirl lesson, applied. Milestone dates are stored as `date`, not `timestamptz`; a timestamp is what produces "8 days left" on a 7-day window. `Math.round` also survives the two DST days that are not 24 hours long.
+- **Panels fail alone.** Every feed returns a body the page draws as a *state* — loading, error, or a connect/reconnect button — so a dead Google never blanks the receivables, and nothing throws up into the page. Each panel carries its own "as of h:mm" stamp and its own manual refresh.
+- **Day-grouping happens in the browser, not the server.** Only the browser knows the viewer's zone. All-day events stay bare `YYYY-MM-DD` over the wire; converting them to timestamps server-side is what slides an all-day event onto the wrong day.
+- **Gmail counts come from count-only queries**, not from pulling messages: the exact unread number from `labels/INBOX.threadsUnread`, plus two `maxResults=1` searches. Only 12 messages are fetched as metadata, and no message body is ever requested.
+- **Multi-client from day one.** Everything is keyed `(user_id, provider)`, so a second client connecting their own Google/QBO is a new row, not a new table. The client edition ships Calendar + QBO + Milestones only — Gmail's restricted-scope CASA assessment is not worth it until a paying client.
+- Google consent runs in **Testing** mode, which expires refresh tokens after ~7 days. That surfaces as `invalid_grant`, is recorded on `board_connections.last_error`, and renders as the panel's "Reconnect Google" state. Publishing to production is a later decision (Calendar verification is light; Gmail triggers the heavy restricted-scope review).
+
+**Where secrets live**
+- Vercel project env, all three environments, never in the repo: `BOARD_TOKEN_KEY` (generated 9/8 — encrypts refresh tokens and signs OAuth state), `QBO_ENV` (= `production`), plus the pre-existing `SUPABASE_URL` / `SUPABASE_SERVICE_KEY`.
+- **Not yet set:** `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `QBO_CLIENT_ID`, `QBO_CLIENT_SECRET`. Those come out of a Google Cloud project and an Intuit developer app that do not exist yet.
+- Encrypted refresh tokens live in `public.board_connections`, readable only by the service-role key.
+
+**Where it stopped**
+9/8: everything that does not require Kari's Google and Intuit accounts is built, merged to `main`, and live on production. `/board` renders, the Milestones panel works on real data, and the three OAuth-backed panels render their "Connect Google" / "Connect QuickBooks" state because no client credentials exist yet.
+
+The session also got ahead of itself once: Kari was asked to pick a QuickBooks company and a secret-handover method before she had been told what was built or what state anything was in. Build status first, decisions second.
+
+**Pending / frozen items**
+- Week Ahead and Still Unread show their connect state until a Google Cloud project exists (OAuth consent screen in Testing, Kari as a test user, scopes `calendar.readonly` + `gmail.readonly`, redirect `https://tools.caresmn.com/api/board/callback`) and its two credentials are set on Vercel. The consent-screen app name in the spec is **Command Board**.
+- Who Owes You shows its connect state until an Intuit developer app exists with that same redirect URI and its two credentials are set on Vercel.
+- Which QBO company the A/R panel reads is decided at Intuit's consent screen; whichever is picked gets stored as `realm_id`. Kari noted on 9/8 that she already has to reconnect QuickBooks whenever she switches customers — so one stored company may be the wrong shape for how she actually works. Unresolved.
+- Google Testing mode expires the refresh token about weekly; the panel will ask to reconnect roughly that often until the consent screen is published.
+- Nothing notifies anyone when a connection expires. It is visible only by opening `/board`.
+- The A/R parser is written against QBO's `AgedReceivables` report shape but has never run against a real response, because no QBO app exists yet. Column detection (`Current` matched by name, total taken as the last column) is the part most likely to need adjusting on first contact.
+- Milestones are per-user rows; the two seeded ones exist separately under each of Kari's two sign-ins, so editing one account's copy does not change the other's.
+- The email allowlist (`OWNER_EMAILS` in `src/pages/Dashboard.jsx`) gates the *card*, not the page. `/board` itself is reachable by any signed-in user, who would see their own empty milestones and unconnected panels. Tightening that is a decision, not a bug.
+- `/board` carries the ASK widget (`chat.karikounkel.com/widget.js`) and the CARES IP footer. Analytics and SMS provider names were never confirmed, so nothing analytics-related was wired.
+
+**Key files**
+- `C:\dev\cares-works\docs\command-board-spec.md` (the build spec this was written from)
+- `C:\dev\cares-works\sql\command-board.sql` (applied — `board_connections`, `board_milestones`)
+- `C:\dev\cares-works\src\pages\CommandBoard.jsx` (all four panels)
+- `C:\dev\cares-works\api\board\_lib.js` (session check, AES-256-GCM, signed state, token refresh), `_panels.js` (the three feeds), `auth.js`, `callback.js`, `data.js`
+- `C:\dev\cares-works\src\App.jsx` (the `/board` route), `src\pages\Dashboard.jsx` (`OWNER_EMAILS` + the Command Board card)
