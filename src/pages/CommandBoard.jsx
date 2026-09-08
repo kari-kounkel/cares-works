@@ -1,7 +1,9 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "../supabaseClient";
 import { navigate } from "../App";
-import { N, N_RGB, FONT_LINK, NeonBox, SignatureFooter, WASH_BG_LITE, HERO_TEXT_GRAD_BLUE } from "../design/neon";
+import { N, N_RGB, FONT_LINK, SignatureFooter, WASH_BG_LITE, HERO_TEXT_GRAD_BLUE } from "../design/neon";
+import { Panel, Tiles, Quiet, ConnectState, fmtTime } from "../components/boardChrome";
+import WorkPanel from "../components/WorkPanel";
 import { oneListGroups, oneListProgress, oneListCounts, ONE_LIST_TOOL_KEY, ONE_LIST_HREF } from "../lib/oneList";
 
 // Command Board — tools.caresmn.com/board
@@ -25,6 +27,7 @@ const MOBILE = `
     .board-page { padding: 24px 16px 48px !important; }
     .board-h1 { font-size: 27px !important; }
     .onelist-cols { column-count: 1 !important; }
+    .work-cols { flex-direction: column !important; }
   }
 `;
 
@@ -32,14 +35,6 @@ const MOBILE = `
 
 const pad = (n) => String(n).padStart(2, "0");
 const ymd = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-
-const fmtTime = (iso) => {
-  try {
-    return new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-  } catch {
-    return "";
-  }
-};
 
 const usd = (n) =>
   (n < 0 ? "-" : "") +
@@ -80,72 +75,6 @@ function ago(iso) {
   return `${Math.floor(days / 7)}w`;
 }
 
-// --- chrome ------------------------------------------------------------------
-
-function Panel({ color, rgb, title, subtitle, asOf, stale, onRefresh, children }) {
-  return (
-    <NeonBox color={color} rgb={rgb} style={{ padding: 0, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-      <div style={{ padding: "16px 18px 12px", borderBottom: `1px solid ${N.rule}`, display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-        <div>
-          <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: N.ink, lineHeight: 1.2 }}>{title}</div>
-          {subtitle && <div style={{ fontSize: 12.5, color: N.muted, marginTop: 3 }}>{subtitle}</div>}
-        </div>
-        <button
-          onClick={onRefresh}
-          title="Refresh now"
-          style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase", color: stale ? N.mutedLite : N.muted, background: "none", border: "none", cursor: "pointer", padding: 0, whiteSpace: "nowrap" }}
-        >
-          {asOf ? `as of ${fmtTime(asOf)}` : "—"} ↻
-        </button>
-      </div>
-      <div style={{ padding: "14px 18px 18px", flex: 1 }}>{children}</div>
-    </NeonBox>
-  );
-}
-
-function Tiles({ items }) {
-  return (
-    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
-      {items.map((t) => (
-        <div key={t.label} style={{ flex: "1 1 92px", background: N.white, border: `1px solid ${N.rule}`, borderRadius: 10, padding: "9px 12px" }}>
-          <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 21, color: t.color || N.ink, lineHeight: 1.1 }}>{t.value}</div>
-          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9.5, letterSpacing: "0.1em", textTransform: "uppercase", color: N.muted, marginTop: 3 }}>{t.label}</div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-const Quiet = ({ children }) => (
-  <div style={{ fontSize: 13.5, color: N.muted, padding: "10px 0", lineHeight: 1.55 }}>{children}</div>
-);
-
-// A panel that can't reach its provider says so, and offers the one button that
-// fixes it. It never renders as an empty panel or a blank page.
-function ConnectState({ provider, reason, onConnect, busy }) {
-  const isGoogle = provider === "google";
-  const name = isGoogle ? "Google" : "QuickBooks";
-  const expired = reason === "expired" || reason === "unauthorized";
-  return (
-    <div style={{ padding: "6px 0 4px" }}>
-      <div style={{ fontSize: 13.5, color: N.muted, lineHeight: 1.55, marginBottom: 12 }}>
-        {reason === "not_connected"
-          ? `Not connected to ${name} yet.`
-          : expired
-          ? `The ${name} connection expired.`
-          : `${name} didn't answer${reason ? ` — ${reason}` : ""}.`}
-      </div>
-      <button
-        onClick={onConnect}
-        disabled={busy}
-        style={{ fontFamily: "'Figtree', sans-serif", fontSize: 13, fontWeight: 700, background: isGoogle ? N.blue : N.green, color: N.white, border: "none", borderRadius: 8, padding: "9px 16px", cursor: busy ? "wait" : "pointer", boxShadow: `0 4px 14px ${isGoogle ? "rgba(0,128,255,0.4)" : "rgba(34,197,94,0.4)"}` }}
-      >
-        {busy ? "Opening…" : `${reason === "not_connected" ? "Connect" : "Reconnect"} ${name}`}
-      </button>
-    </div>
-  );
-}
-
 // --- page --------------------------------------------------------------------
 
 export default function CommandBoard({ session }) {
@@ -163,6 +92,8 @@ export default function CommandBoard({ session }) {
 
   const [oneTicks, setOneTicks] = useState(null); // null = still loading
   const [showParked, setShowParked] = useState(false);
+
+  const [work, setWork] = useState(null); // null = still loading
 
   // Re-render once a minute so the "now" marker and the countdowns stay honest
   // on a page that's been open since 5am.
@@ -279,6 +210,35 @@ export default function CommandBoard({ session }) {
 
   useEffect(() => { loadOne(); }, [loadOne]);
 
+  // --- The Work --------------------------------------------------------------
+  // Everything Board cards + Monday 7AM Rollout items, both moved into
+  // public.board_work. RLS scopes the select, so no user filter is needed here.
+
+  const loadWork = useCallback(async () => {
+    if (!uid) return;
+    const { data } = await supabase
+      .from("board_work")
+      .select("*")
+      .order("source_moved_at", { ascending: false, nullsFirst: false });
+    setWork(data || []);
+  }, [uid]);
+
+  useEffect(() => { loadWork(); }, [loadWork]);
+
+  async function toggleWork(rowId, next) {
+    const at = next ? new Date().toISOString() : null;
+    setWork((rows) => rows.map((r) => (r.id === rowId ? { ...r, done: next, done_at: at } : r)));
+    await supabase.from("board_work").update({ done: next, done_at: at }).eq("id", rowId);
+  }
+
+  // Checklist items are {id, done, text} — 465 of them across the cards, and
+  // the smallest real unit of work in here. They tick in place.
+  async function toggleCheck(row, idx) {
+    const next = (row.checklist || []).map((c, i) => (i === idx ? { ...c, done: !c.done } : c));
+    setWork((rows) => rows.map((r) => (r.id === row.id ? { ...r, checklist: next } : r)));
+    await supabase.from("board_work").update({ checklist: next }).eq("id", row.id);
+  }
+
   async function toggleOne(id) {
     const next = { ...(oneTicks || {}) };
     if (next[id]) delete next[id]; else next[id] = 1;
@@ -377,6 +337,13 @@ export default function CommandBoard({ session }) {
             <button onClick={() => setNotice(null)} style={{ background: "none", border: "none", color: N.muted, cursor: "pointer" }}>✕</button>
           </div>
         )}
+
+        {/* THE WORK — the Everything Board's 108 cards and the Monday 7AM
+            Rollout's 36 items, moved into board_work and shown together. */}
+        <div style={{ marginBottom: 18 }}>
+          <WorkPanel rows={work} onRefresh={loadWork}
+            onToggleDone={toggleWork} onToggleCheck={toggleCheck} />
+        </div>
 
         {/* THE ONE LIST — the actual work. Full width and first, because a board
             that shows a calendar and no to-do list reads as "nothing to do". */}
