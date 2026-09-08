@@ -38,38 +38,37 @@ export function totalsOf({ line_items = [], discount_cents = 0, tax_rate = 0 }) 
   return { subtotal_cents: subtotal, discount_cents: discount, tax_cents: tax, total_cents: subtotal - discount + tax };
 }
 
-const hexToRgb = (hex, fallback = "0,128,255") => {
-  const m = /^#?([0-9a-f]{6})$/i.exec(String(hex || "").trim());
-  if (!m) return fallback;
-  const i = parseInt(m[1], 16);
-  return `${(i >> 16) & 255},${(i >> 8) & 255},${i & 255}`;
-};
-
-// The accent plus whichever flares the brand carries — the band, the rules and
-// the wash are all built from this one list.
+// The accent plus whichever flares the brand carries. The INVOICE itself only
+// ever uses the first of these — see the note on the sheet below. The ramp is
+// for the maker's own brand tiles, where telling four brands apart at a glance
+// is the whole job.
 export function brandRamp(b = {}) {
   return [b.accent_color, b.flare_color, b.flare2_color, b.flare3_color].filter(Boolean);
 }
 
+// Quiet grey shading behind the paper. Kari, 9/8: "i don't want these to look
+// like rainbows.. i want a little shading, the great logo, and black otherwise
+// for the vendor info." So: no brand color in the background at all.
 export function pageWash(b = {}) {
-  const ramp = brandRamp(b);
-  const a = hexToRgb(ramp[0] || "#0080ff");
-  const c = hexToRgb(ramp[1] || ramp[0] || "#0080ff");
-  return `radial-gradient(ellipse at 12% -5%, rgba(${a},0.13), transparent 55%),
-          radial-gradient(ellipse at 88% 0%, rgba(${c},0.10), transparent 55%),
-          ${b.page_color || "#f4f7fb"}`;
+  return `radial-gradient(ellipse at 50% -10%, rgba(10,10,20,0.05), transparent 60%),
+          ${b.page_color || "#f5f6f8"}`;
 }
 
 export default function InvoiceSheet({ inv, onPay = null, paying = "", showPayment = true }) {
   const b = inv.brand || {};
+  // The invoice is black on white with soft grey shading. The logo is what
+  // carries the color, and the brand's ONE accent gets three restrained jobs —
+  // the word INVOICE, the hairline under the head, and the balance figure.
+  // The flare colors are not printed on an invoice at all.
   const ink = b.ink_color || "#0a0a14";
   const paper = b.paper_color || "#ffffff";
-  const accent = b.accent_color || "#0080ff";
-  const ramp = brandRamp(b);
+  const accent = b.accent_color || ink;
   const body = `'${b.body_font || "Figtree"}', system-ui, sans-serif`;
   const head = `'${b.heading_font || "DM Serif Display"}', Georgia, serif`;
-  const muted = "#64748b";
-  const rule = "#e2e8f0";
+  const muted = "#6b7280";
+  const rule = "#e5e7eb";
+  const logoH = Number(b.logo_max_height) || 72;
+  const hero = Boolean(b.logo_url) && logoH >= 140;
 
   const lines = Array.isArray(inv.line_items) ? inv.line_items : [];
   const images = Array.isArray(inv.images) ? inv.images.filter(Boolean) : [];
@@ -78,10 +77,6 @@ export default function InvoiceSheet({ inv, onPay = null, paying = "", showPayme
   const due = Math.max(t.total_cents - paid, 0);
   const settled = inv.status === "paid" || due === 0;
   const taxPct = Number(inv.tax_rate) ? (Number(inv.tax_rate) * 100).toFixed(3).replace(/\.?0+$/, "") + "%" : "";
-
-  const band = ramp.length > 1
-    ? `linear-gradient(90deg, ${ramp.join(", ")})`
-    : accent;
 
   const payable = b.check_payable_to || b.name;
 
@@ -106,23 +101,32 @@ export default function InvoiceSheet({ inv, onPay = null, paying = "", showPayme
       <div style={{ maxWidth: 720, margin: "0 auto" }}>
         <div className="inv-paper" style={{ background: paper, borderRadius: 16, boxShadow: "0 14px 50px rgba(10,10,20,0.10)", overflow: "hidden" }}>
 
-          {/* The band: the brand's picture if it has one, otherwise its colors. */}
+          {/* A picture across the top only if the brand or the invoice has one.
+              No color band — the logo below is the color on this page. */}
           {inv.header_image_url ? (
-            <div style={{ height: 132, background: `url(${inv.header_image_url}) center/cover no-repeat`, borderBottom: `4px solid ${accent}` }} />
-          ) : (
-            <div style={{ height: 8, background: band }} />
-          )}
+            <div style={{ height: 150, background: `url(${inv.header_image_url}) center/cover no-repeat`, borderBottom: "1px solid " + rule }} />
+          ) : null}
 
-          <div className="inv-pad" style={{ padding: "34px 42px 30px" }}>
-            <div className="inv-cols" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 22, marginBottom: 28 }}>
-              <div>
-                {b.logo_url
-                  ? <img src={b.logo_url} alt={b.name} style={{ maxHeight: 58, maxWidth: 280, display: "block", marginBottom: 6 }} />
-                  : <div style={{ fontFamily: head, fontSize: 28, lineHeight: 1.15 }}>{b.name}</div>}
-                {b.tagline ? <div style={{ fontSize: 12, color: muted, marginTop: 2 }}>{b.tagline}</div> : null}
-                {b.from_block ? <div style={{ fontSize: 12, color: muted, marginTop: 6, whiteSpace: "pre-line", lineHeight: 1.5 }}>{b.from_block}</div> : null}
+          <div className="inv-pad" style={{ padding: "36px 42px 30px" }}>
+            {/* A big logo gets the top of the page to itself — Kari, 9/8: "i want
+                that logo big, man.. i want it to shine on that page." Anything
+                under 140px tall keeps the ordinary logo-left/meta-right head. */}
+            {hero ? (
+              <div style={{ textAlign: "center", marginBottom: 26 }}>
+                <img src={b.logo_url} alt={b.name} style={{ maxHeight: logoH, maxWidth: "88%", width: "auto", display: "inline-block" }} />
+                {b.tagline ? <div style={{ fontSize: 12.5, color: muted, marginTop: 10, letterSpacing: "0.02em" }}>{b.tagline}</div> : null}
               </div>
-              <div style={{ textAlign: "right" }}>
+            ) : null}
+
+            <div className="inv-cols" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 26, marginBottom: 24 }}>
+              <div style={{ minWidth: 0 }}>
+                {hero ? null : b.logo_url
+                  ? <img src={b.logo_url} alt={b.name} style={{ maxHeight: logoH, maxWidth: 340, width: "auto", display: "block", marginBottom: 8 }} />
+                  : <div style={{ fontFamily: head, fontSize: 30, lineHeight: 1.15 }}>{b.name}</div>}
+                {!hero && b.tagline ? <div style={{ fontSize: 12, color: muted, marginTop: 2 }}>{b.tagline}</div> : null}
+                {b.from_block ? <div style={{ fontSize: 12, color: muted, marginTop: hero ? 0 : 6, whiteSpace: "pre-line", lineHeight: 1.5 }}>{b.from_block}</div> : null}
+              </div>
+              <div style={{ textAlign: "right", flexShrink: 0 }}>
                 <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 24, letterSpacing: "0.16em", color: accent, fontWeight: 500 }}>
                   {b.doc_label || "INVOICE"}
                 </div>
@@ -132,10 +136,12 @@ export default function InvoiceSheet({ inv, onPay = null, paying = "", showPayme
                   ? <div style={{ fontSize: 12, color: muted }}>Due {fmtDate(inv.due_date)}</div>
                   : inv.terms_label ? <div style={{ fontSize: 12, color: muted }}>{inv.terms_label}</div> : null}
                 {settled ? (
-                  <div style={{ display: "inline-block", marginTop: 8, fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.14em", color: "#15803d", border: "1.5px solid #86efac", background: "#f0fdf4", borderRadius: 6, padding: "3px 9px" }}>PAID</div>
+                  <div style={{ display: "inline-block", marginTop: 8, fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.14em", color: ink, border: "1px solid " + rule, background: "#f4f4f5", borderRadius: 6, padding: "3px 9px" }}>PAID</div>
                 ) : null}
               </div>
             </div>
+
+            <div style={{ height: 1, background: accent, opacity: 0.5, marginBottom: 22 }} />
 
             <div className="inv-cols" style={{ display: "flex", gap: 44, flexWrap: "wrap", marginBottom: 22 }}>
               <div>
@@ -154,7 +160,7 @@ export default function InvoiceSheet({ inv, onPay = null, paying = "", showPayme
             </div>
 
             <div style={{ border: "1px solid " + rule, borderRadius: 12, overflow: "hidden", marginBottom: 16 }}>
-              <div className="inv-row" style={{ display: "grid", gridTemplateColumns: "1fr 50px 92px 100px", gap: 8, padding: "10px 15px", background: `rgba(${hexToRgb(accent)},0.05)`, fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", color: muted }}>
+              <div className="inv-row" style={{ display: "grid", gridTemplateColumns: "1fr 50px 92px 100px", gap: 8, padding: "10px 15px", background: "#f7f7f8", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.1em", color: muted }}>
                 <span>DESCRIPTION</span><span style={{ textAlign: "center" }}>QTY</span><span style={{ textAlign: "right" }}>RATE</span><span style={{ textAlign: "right" }}>AMOUNT</span>
               </div>
               {lines.length === 0 ? (
@@ -178,7 +184,7 @@ export default function InvoiceSheet({ inv, onPay = null, paying = "", showPayme
                   <span>Total</span><span>{money(t.total_cents)}</span>
                 </div>
                 {paid ? <Row label="Paid" value={"−" + money(paid)} muted={muted} /> : null}
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, marginTop: 8, fontWeight: 600, color: settled ? "#16a34a" : accent }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, marginTop: 8, fontWeight: 600, color: settled ? "#15803d" : accent }}>
                   <span>{settled ? "Paid — thank you" : "Balance due"}</span><span>{money(due)}</span>
                 </div>
               </div>
@@ -193,7 +199,7 @@ export default function InvoiceSheet({ inv, onPay = null, paying = "", showPayme
             ) : null}
 
             {inv.note ? (
-              <div style={{ marginTop: 22, padding: "14px 16px", borderRadius: 10, background: `rgba(${hexToRgb(ramp[1] || accent)},0.07)`, borderLeft: `3px solid ${ramp[1] || accent}`, fontSize: 13.5, lineHeight: 1.6, whiteSpace: "pre-line" }}>
+              <div style={{ marginTop: 22, padding: "14px 16px", borderRadius: 10, background: "#fafafa", borderLeft: `3px solid ${rule}`, fontSize: 13.5, lineHeight: 1.6, whiteSpace: "pre-line" }}>
                 {inv.note}
               </div>
             ) : null}
@@ -205,7 +211,6 @@ export default function InvoiceSheet({ inv, onPay = null, paying = "", showPayme
             {b.terms ? <div style={{ marginTop: 18, fontSize: 11.5, color: muted, lineHeight: 1.6, whiteSpace: "pre-line" }}>{b.terms}</div> : null}
           </div>
 
-          <div style={{ height: 6, background: band }} />
         </div>
 
         {b.footer_note ? (
@@ -241,7 +246,7 @@ function PaymentBlock({ inv, b, accent, ink, muted, rule, due, payable, onPay, p
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
 
         {card ? (
-          <div style={{ ...box, borderColor: accent }}>
+          <div style={{ ...box, borderColor: ink }}>
             <div style={label}>ONLINE</div>
             <div style={{ marginBottom: 10 }}>Card or bank debit, paid now.</div>
             {onPay ? (
@@ -249,7 +254,7 @@ function PaymentBlock({ inv, b, accent, ink, muted, rule, due, payable, onPay, p
                 onClick={() => onPay()}
                 disabled={!!paying}
                 className="noprint"
-                style={{ background: accent, color: "#fff", border: "none", borderRadius: 9, padding: "10px 16px", fontSize: 14, fontWeight: 600, cursor: paying ? "wait" : "pointer", width: "100%", fontFamily: "inherit" }}
+                style={{ background: ink, color: "#fff", border: "none", borderRadius: 9, padding: "10px 16px", fontSize: 14, fontWeight: 600, cursor: paying ? "wait" : "pointer", width: "100%", fontFamily: "inherit" }}
               >
                 {paying === "loading" ? "Opening…" : `Pay ${money(due)}`}
               </button>

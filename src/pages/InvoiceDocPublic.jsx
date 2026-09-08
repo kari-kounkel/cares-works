@@ -71,7 +71,7 @@ export default function InvoiceDocPublic({ token }) {
         </div>
         <button
           onClick={() => window.print()}
-          style={{ background: inv.brand?.accent_color || "#0080ff", color: "#fff", border: "none", borderRadius: 8, padding: "9px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}
+          style={{ background: inv.brand?.ink_color || "#0a0a14", color: "#fff", border: "none", borderRadius: 8, padding: "9px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}
         >
           Print / Save PDF
         </button>

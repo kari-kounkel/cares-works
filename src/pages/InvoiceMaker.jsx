@@ -239,7 +239,7 @@ export default function InvoiceMaker({ session }) {
       header_image_url: doc.header_image_url || b.header_image_url || null,
       brand: {
         name: b.name, slug: b.slug, tagline: b.tagline, from_block: b.from_block,
-        reply_to_email: b.reply_to_email, logo_url: b.logo_url,
+        reply_to_email: b.reply_to_email, logo_url: b.logo_url, logo_max_height: b.logo_max_height,
         accent_color: b.accent_color, flare_color: b.flare_color, flare2_color: b.flare2_color, flare3_color: b.flare3_color,
         ink_color: b.ink_color, paper_color: b.paper_color, page_color: b.page_color,
         heading_font: b.heading_font, body_font: b.body_font, doc_label: b.doc_label,
@@ -316,7 +316,7 @@ export default function InvoiceMaker({ session }) {
 function newBrand() {
   return {
     slug: "", name: "", tagline: "", from_block: "", reply_to_email: "",
-    logo_url: "", header_image_url: "",
+    logo_url: "", header_image_url: "", logo_max_height: 72,
     accent_color: "#0080ff", flare_color: "#22c55e", flare2_color: "", flare3_color: "",
     ink_color: "#0a0a14", paper_color: "#ffffff", page_color: "#f4f7fb",
     heading_font: "DM Serif Display", body_font: "Figtree", doc_label: "INVOICE",
@@ -621,6 +621,9 @@ function BrandPane({ b, setB, onSave, busy, upload }) {
             <input value={b.logo_url || ""} onChange={(e) => set({ logo_url: e.target.value })} style={{ ...inp, flex: 1, minWidth: 180 }} placeholder="/cares-works-neon-logo.png" />
             <FilePick label="Upload" onFile={async (f) => { const url = await upload(f, "logo"); if (url) set({ logo_url: url }); }} />
           </div>
+        </Field>
+        <Field label="How tall the logo prints (px) — a square lockup wants 150–220, a wordmark 60–80">
+          <input type="number" value={b.logo_max_height ?? 72} onChange={(e) => set({ logo_max_height: Number(e.target.value) })} style={{ ...inp, width: 120 }} />
         </Field>
         <Field label="Picture across the top of every invoice">
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
