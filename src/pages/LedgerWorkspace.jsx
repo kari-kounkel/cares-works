@@ -686,7 +686,14 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [overpayFor, setOverpayFor] = useState(null); // invoice being resolved for an overpayment
   const [overpayAmt, setOverpayAmt] = useState("");
   const [showOrderForm, setShowOrderForm] = useState(false);
-  const blankOrder = { mode: "invoice", date: "", customer: "", vendor: "", email: "", ship: "", taxStatus: "Taxable", lines: [{ item: "", desc: "", qty: "1", cost: "", price: "" }], artwork: [] };
+  const blankOrder = { mode: "invoice", date: "", customer: "", vendor: "", email: "", ship: "", taxStatus: "Taxable", terms: "receipt", dueDate: "", lines: [{ item: "", desc: "", qty: "1", cost: "", price: "" }], artwork: [] };
+  const dueFromTerms = (terms, issue, custom) => {
+    const base = issue || new Date().toISOString().slice(0, 10);
+    if (terms === "custom") return custom || base;
+    const days = terms === "net15" ? 15 : terms === "net30" ? 30 : 0;
+    const d = new Date(base + "T00:00:00"); d.setDate(d.getDate() + days);
+    return d.toISOString().slice(0, 10);
+  };
   const [orderDraft, setOrderDraft] = useState(blankOrder);
   const [artworkBusy, setArtworkBusy] = useState(false);
   const [showClosedOrders, setShowClosedOrders] = useState(false);
@@ -2292,6 +2299,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         artwork_urls: draft.artwork || [],
       };
       if (draft.date) fields.issue_date = draft.date;
+      fields.due_date = dueFromTerms(draft.terms || "receipt", draft.date, draft.dueDate);
       fields.ship_address = (draft.ship || "").trim() || null;
       if (asPo) fields.vendor_name = draft.vendor.trim() || null;
       if (editing) {
@@ -2346,6 +2354,8 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         cost: l.cost ? String(l.cost) : "", price: l.price ? String(l.price) : "",
       })),
       artwork: v.artwork || [],
+      terms: (v.dueDate && v.issueDate && v.dueDate > v.issueDate) ? "custom" : "receipt",
+      dueDate: (v.dueDate && v.issueDate && v.dueDate > v.issueDate) ? v.dueDate : "",
     });
     setSection("orders");
     setShowOrderForm(true);
@@ -2394,6 +2404,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           line_items: items, tax_status: v.tax || "Taxable",
           subtotal_cents: subtotal, tax_cents: tax, total_cents: subtotal + tax,
           issue_date: v.issueDate || null, ship_address: v.shipAddress || null,
+          due_date: v.dueDate || v.issueDate || null,
           artwork_urls: v.artwork || [],
         }).select("id").single();
         await supabase.from("invoices").update({ status: "invoiced" }).eq("id", v.id);
@@ -3400,6 +3411,16 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
               <span style={{ fontSize: 12, color: N.muted }}>{poMode ? "PO date" : "Invoice date"}</span>
               <input type="date" value={orderDraft.date || ""} onChange={e => setOrderDraft(d => ({ ...d, date: e.target.value }))} style={{ ...inputSt, width: 170 }} />
+              {!poMode && (<>
+                <span style={{ fontSize: 12, color: N.muted, marginLeft: 8 }}>Terms</span>
+                <select value={orderDraft.terms || "receipt"} onChange={e => setOrderDraft(d => ({ ...d, terms: e.target.value }))} style={{ ...inputSt, width: 168 }}>
+                  <option value="receipt">Due upon receipt</option>
+                  <option value="net15">Net 15</option>
+                  <option value="net30">Net 30</option>
+                  <option value="custom">Pick a due date…</option>
+                </select>
+                {orderDraft.terms === "custom" && <input type="date" value={orderDraft.dueDate || ""} onChange={e => setOrderDraft(d => ({ ...d, dueDate: e.target.value }))} title="Due date" style={{ ...inputSt, width: 160 }} />}
+              </>)}
               <span style={{ fontSize: 11, color: N.mutedLite }}>{editingOrder ? "leave to keep the original date" : "blank = today"}</span>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: orderDraft.mode === "po" ? "1fr 1fr" : "1fr", gap: 10, marginBottom: 12 }}>
