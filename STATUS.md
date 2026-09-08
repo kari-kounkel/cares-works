@@ -340,12 +340,17 @@ Kari's private live dashboard at `tools.caresmn.com/board` — her week, her unr
   - **Still Unread** — unread INBOX threads: sender, subject, snippet, relative age, an over-a-week flag, deep-linking to `mail.google.com/…/#inbox/<threadId>`. Tiles: unread / over a week / today.
   - **Who Owes You** — QBO A/R Aging Summary. Tiles for open A/R, current, past due; a proportional aging-bucket bar; top overdue customers; negative buckets flagged as unapplied credits rather than summed as debt.
   - **Milestones** — editable label + date rows from `board_milestones`. Seeded with Minuteman Press exit 2026-10-15 and Chasing Chickens launch 2026-10-28, under both of Kari's sign-ins.
+- ✅ **The One List** panel (added 9/8, full width, first on the page) — the actual work. 65 items in 7 groups: 100 already built, 2 ticked, **45 left to do**, 18 parked. Ticking on the board writes the same `kari_tool_data` row the cockpit writes.
 - ✅ Two entry points, so the board is never a remembered URL: an owner-only card at the top of `/dashboard` (gated to `kari@karikounkel.com` + `kari@caresmn.com`) and a `kari_cockpits` tile on `/kari`.
 - ✅ Migration `sql/command-board.sql`, applied to `qcikhcnclduakriextsz`: `board_connections` + `board_milestones`, both RLS-on.
 - ✅ Three Vercel functions under `api/board/`, deployed and probed on production: unknown panel → 400, missing or invalid session → 401, GET on a POST route → 405, forged OAuth state → 302 to `/board?board_error=bad_state`.
 - ✅ Live on production: `dpl_BQC54k45H7SoXK5R2YbWB1KjSf7A`, `target: production`, `state: READY`, commit `23b059b`, aliased to `tools.caresmn.com`.
 
 **Decisions**
+- **The One List has one source of truth, and it is the cockpit's own HTML.** `src/lib/oneList.js` parses `src/cockpits/the_one_list.html` — the very file `/kari/the-one-list` runs — into groups and items. Copying the 65 items into a table or a JS array would have created a second copy that drifts the first time Kari edits either one. Tick state reads and writes `public.kari_tool_data`, `tool_key = "the_one_list"`, shaped `{"<id>": 1}` — byte-identical to what the cockpit writes, so a box ticked in either place is ticked in both.
+- **Done items stay on the board.** Kari's call, 9/8: "don't get rid of the stuff that's done either. i want to see some progress." Completed items render in place, struck through, and count toward the bar. Only *parked* collapses, behind a toggle, and it stays out of the "left to do" count.
+- **Progress counts the work that never appears as a row.** The One List itemises only what is *left*; the 100 features already standing exist in the file solely as header stats. The bar therefore reads authored-built + her ticks over the authored total — 102 of 164, 62% — rather than 2 of 65, which would have shown a person with nothing to show for a year.
+- **"Build backlog" was the wrong label for The One List.** It was described that way on 9/8 and Kari corrected it: 65 items with 2 ticked is 63 things to do, whatever they build. It is the largest concrete work list in the estate and it belongs on the board.
 - **The browser never sees a provider token.** `board_connections` is RLS-enabled with **no policies at all** — which denies anon and authenticated outright, leaving only the service-role key used by `api/board/*` able to read it. Adding any policy to that table hands tokens to the browser.
 - **Refresh tokens are encrypted at rest**, AES-256-GCM keyed off `BOARD_TOKEN_KEY`, stored as `v1:<iv>:<tag>:<ciphertext>`. The same key HMACs the OAuth `state`.
 - **No token ever rides in a URL.** The connect button POSTs (authenticated) to `/api/board/auth`, which returns a consent URL carrying an HMAC-signed, 10-minute `state` holding the user id and provider. The callback trusts that signature, not the query string, so a forged state cannot attach someone else's Google account to Kari's row.
@@ -365,11 +370,16 @@ Kari's private live dashboard at `tools.caresmn.com/board` — her week, her unr
 - Encrypted refresh tokens live in `public.board_connections`, readable only by the service-role key.
 
 **Where it stopped**
+9/8, later: The One List panel shipped — `dpl_8gv2QS9d6bnR8DBtg7AqMGDZ4BSD`, `target: production`, `READY`, commit `ee6dcc4`, still 10 functions. The board now opens on 45 things to do and a 62% progress bar instead of an empty desk.
+
 9/8: everything that does not require Kari's Google and Intuit accounts is built, merged to `main`, and live on production. `/board` renders, the Milestones panel works on real data, and the three OAuth-backed panels render their "Connect Google" / "Connect QuickBooks" state because no client credentials exist yet.
 
 The session also got ahead of itself once: Kari was asked to pick a QuickBooks company and a secret-handover method before she had been told what was built or what state anything was in. Build status first, decisions second.
 
 **Pending / frozen items**
+- **The Everything Board is not on the board yet, and it is the other real work list.** It lives at `everything.karikounkel.com` in its own Supabase project `iwrrkhzjfjlgpqmzlxqb` — **108 cards, 82 of them open**, across 16 universes (CARES Consulting Inc 34, Flows and Solutions 33, K Co Curated 27, Marketing Plans 11). Not stale: `projects/inprogress` was touched 9/6, and holds `cwdash01` "Ship or keep polishing the CARES Works dashboard", `archvf01`, and `pgledg01` — the card STATUS.md already cites. Standing Orders calls it "stale 8/25 — the cockpit work supersedes it"; the card count was right, "superseded" was not.
+- Wiring that panel costs **zero new Vercel functions** (`data.js` already routes on `?panel=`), which matters at 10 of 12. The blocker is auth: `cards` and `universes` are `auth.uid() = user_id`, so the publishable key returns nothing and a cross-project read needs that project's **service-role key** as one env var. The Supabase MCP hands out publishable keys only, so that value has to come from Kari. The alternative is migrating the 108 cards into the cares-works Supabase — which is card `s7dex1vr`, "Keepstead — Phase 2 Migrate Everything Board", open since April.
+- The **Monday 7AM Rollout Tracker** is not surfaced on the board. Its HTML is in the gated `kari_cockpit_html` table and its state is a 56KB blob in `kari_tool_data`, last written 2026-06-23. It is a whole cockpit rather than a list, so it would suit a link better than a panel — undecided.
 - Week Ahead and Still Unread show their connect state until a Google Cloud project exists (OAuth consent screen in Testing, Kari as a test user, scopes `calendar.readonly` + `gmail.readonly`, redirect `https://tools.caresmn.com/api/board/callback`) and its two credentials are set on Vercel. The consent-screen app name in the spec is **Command Board**.
 - Who Owes You shows its connect state until an Intuit developer app exists with that same redirect URI and its two credentials are set on Vercel.
 - Which QBO company the A/R panel reads is decided at Intuit's consent screen; whichever is picked gets stored as `realm_id`. Kari noted on 9/8 that she already has to reconnect QuickBooks whenever she switches customers — so one stored company may be the wrong shape for how she actually works. Unresolved.
@@ -383,6 +393,7 @@ The session also got ahead of itself once: Kari was asked to pick a QuickBooks c
 **Key files**
 - `C:\dev\cares-works\docs\command-board-spec.md` (the build spec this was written from)
 - `C:\dev\cares-works\sql\command-board.sql` (applied — `board_connections`, `board_milestones`)
-- `C:\dev\cares-works\src\pages\CommandBoard.jsx` (all four panels)
+- `C:\dev\cares-works\src\pages\CommandBoard.jsx` (all five panels)
+- `C:\dev\cares-works\src\lib\oneList.js` (parses the cockpit HTML into items + progress stats), `src\cockpits\the_one_list.html` (the list itself — edit the items HERE, nowhere else)
 - `C:\dev\cares-works\api\board\_lib.js` (session check, AES-256-GCM, signed state, token refresh), `_panels.js` (the three feeds), `auth.js`, `callback.js`, `data.js`
 - `C:\dev\cares-works\src\App.jsx` (the `/board` route), `src\pages\Dashboard.jsx` (`OWNER_EMAILS` + the Command Board card)
