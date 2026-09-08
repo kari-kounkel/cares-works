@@ -42,6 +42,7 @@ const blankDoc = (brand) => ({
   bill_to_phone: "",
   line_items: [{ desc: "", qty: 1, price: 0 }],
   images: [],
+  attachments: [],
   header_image_url: null,
   discount_cents: 0,
   tax_rate: 0,
@@ -139,6 +140,7 @@ export default function InvoiceMaker({ session }) {
         bill_to_phone: doc.bill_to_phone || null,
         line_items: doc.line_items || [],
         images: doc.images || [],
+        attachments: doc.attachments || [],
         header_image_url: doc.header_image_url || null,
         discount_cents: t.discount_cents,
         tax_rate: Number(doc.tax_rate) || 0,
@@ -215,6 +217,7 @@ export default function InvoiceMaker({ session }) {
 
   async function upload(file, kind) {
     if (!file) return null;
+    if (file.size > 25 * 1024 * 1024) { flash("That file is over 25 MB — too big to attach."); return null; }
     const clean = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
     const path = `invoice-maker/${session?.user?.id || "kari"}/${kind}-${Date.now()}-${clean}`;
     const { error } = await supabase.storage.from("org-assets").upload(path, file, { cacheControl: "3600", upsert: false, contentType: file.type || undefined });
@@ -572,6 +575,22 @@ function EditPane({ doc, set, brands, brandOf, onPickBrand, onPreset, onSave, bu
             <FilePick label="Add picture" onFile={async (f) => { const url = await upload(f, "image"); if (url) set({ images: [...(doc.images || []), url] }); }} />
           </div>
         </Field>
+        <Field label="Files to send with it (PDF, or anything)">
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {(doc.attachments || []).map((f, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12.5, color: N.muted }}>
+                <a href={f.url} target="_blank" rel="noreferrer" style={{ color: N.blue, flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{f.name}</a>
+                {f.size ? <span>{Math.max(Math.round(f.size / 1024), 1)} KB</span> : null}
+                <button onClick={() => set({ attachments: doc.attachments.filter((_, j) => j !== i) })}
+                  style={{ background: "transparent", border: "none", color: N.mutedLite, cursor: "pointer", fontSize: 15 }}>×</button>
+              </div>
+            ))}
+            <FilePick label="Attach a file" accept="" onFile={async (f) => {
+              const url = await upload(f, "file");
+              if (url) set({ attachments: [...(doc.attachments || []), { name: f.name, url, size: f.size, type: f.type }] });
+            }} />
+          </div>
+        </Field>
         <Field label="Note to yourself (never printed)"><input value={doc.internal_note || ""} onChange={(e) => set({ internal_note: e.target.value })} style={inp} /></Field>
       </Card>
 
@@ -816,12 +835,12 @@ function Color({ label, value, onChange }) {
   );
 }
 
-function FilePick({ label, onFile }) {
+function FilePick({ label, onFile, accept = "image/*" }) {
   const [busy, setBusy] = useState(false);
   return (
     <label style={{ ...linkBtn, cursor: busy ? "wait" : "pointer", textDecoration: "underline" }}>
       {busy ? "uploading…" : label}
-      <input type="file" accept="image/*" style={{ display: "none" }}
+      <input type="file" {...(accept ? { accept } : {})} style={{ display: "none" }}
         onChange={async (e) => {
           const f = e.target.files?.[0];
           e.target.value = "";

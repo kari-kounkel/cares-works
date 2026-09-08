@@ -72,6 +72,7 @@ export default function InvoiceSheet({ inv, onPay = null, paying = "", showPayme
 
   const lines = Array.isArray(inv.line_items) ? inv.line_items : [];
   const images = Array.isArray(inv.images) ? inv.images.filter(Boolean) : [];
+  const files = Array.isArray(inv.attachments) ? inv.attachments.filter((f) => f && f.url) : [];
   const t = totalsOf(inv);
   const paid = Number(inv.amount_paid_cents) || 0;
   const due = Math.max(t.total_cents - paid, 0);
@@ -194,6 +195,22 @@ export default function InvoiceSheet({ inv, onPay = null, paying = "", showPayme
               <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 24 }}>
                 {images.map((src, i) => (
                   <img key={i} src={src} alt="" style={{ maxHeight: 150, maxWidth: "100%", borderRadius: 10, border: "1px solid " + rule }} />
+                ))}
+              </div>
+            ) : null}
+
+            {files.length ? (
+              <div style={{ marginTop: 24 }}>
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.14em", color: muted, marginBottom: 8 }}>ATTACHED</div>
+                {files.map((f, i) => (
+                  <a key={i} href={f.url} target="_blank" rel="noreferrer"
+                     style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", border: "1px solid " + rule, borderRadius: 9, marginBottom: 6, textDecoration: "none", color: ink, fontSize: 13.5 }}>
+                    <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.08em", color: muted, border: "1px solid " + rule, borderRadius: 4, padding: "2px 5px" }}>
+                      {(f.name || "").split(".").pop().slice(0, 4).toUpperCase() || "FILE"}
+                    </span>
+                    <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{f.name || "Attachment"}</span>
+                    {f.size ? <span style={{ fontSize: 11.5, color: muted }}>{Math.max(Math.round(f.size / 1024), 1)} KB</span> : null}
+                  </a>
                 ))}
               </div>
             ) : null}
