@@ -190,11 +190,19 @@ const BUILD_PROGRESS = [
     ["Per-period filing tracker", "done"],
     ["Printable MN filing worksheet", "done"],
   ] },
+  { label: "Real double-entry engine", items: [
+    ["One posting engine — every action posts a balanced entry", "todo"],
+    ["Real chart of accounts (asset/liability/equity/income/expense)", "todo"],
+    ["Opening balances from the 3/31 return, as equity", "wip"],
+    ["Trial balance that always balances", "todo"],
+    ["A/R and A/P carried as real balances", "todo"],
+  ] },
   { label: "Reports", items: [
     ["Prior-year P&L (from filed return)", "done"],
-    ["Profit & Loss — from April 1", "todo"],
-    ["Opening balances / trial balance", "done"],
+    ["Profit & Loss — fiscal year (from April 1)", "todo"],
     ["Balance sheet — fiscal year", "todo"],
+    ["General ledger / account detail", "todo"],
+    ["A/R aging (who owes you) + A/P aging (what you owe)", "todo"],
     ["Expense detail by category", "todo"],
   ] },
   { label: "Admin panel", items: [
@@ -2083,7 +2091,6 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                     <button onClick={() => { const v = openInv; setOpenInv(null); editOrder(v); }} style={btnPaper(N.muted)}>Edit</button>
                     {openInv.customer && openInv.customer !== "—" && openInv.status !== "Invoiced" && <button onClick={() => { const v = openInv; setOpenInv(null); convertToInvoice(v); }} style={{ ...btnBlue, background: N.blue }}>Convert to invoice →</button>}
                     {openInv.status === "Invoiced" && <span style={{ fontSize: 12, fontWeight: 700, color: "#5a7a63", background: "#eef7f0", border: "1px solid #cfe9d6", borderRadius: 100, padding: "6px 12px", alignSelf: "center" }}>✓ Invoiced</span>}
-                    <button onClick={() => { const id = openInv.id; setOpenInv(null); deleteOrder(id); }} style={btnPaper(N.pinkDark)}>Delete</button>
                   </>
                 ) : (
                   <>
@@ -2100,7 +2107,6 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                         {openInv.status === "Paid" && (openInv.payments || []).length === 0 && <button onClick={() => { invoiceStatus(openInv.id, "sent"); setOpenInv(null); }} style={btnPaper(N.muted)}>Unmark paid</button>}
                         {(openInv.status === "Sent" || openInv.status === "Viewed") && <button onClick={() => { invoiceStatus(openInv.id, "draft"); setOpenInv(null); }} style={btnPaper(N.muted)}>← Back to draft</button>}
                         {openInv.status !== "Void" && <button onClick={() => voidInvoice(openInv)} style={btnPaper(N.muted)}>Void</button>}
-                        <button onClick={() => deleteInvoice(openInv)} style={btnPaper(N.pinkDark)}>Delete</button>
                       </>
                     )}
                   </>
@@ -3394,7 +3400,6 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         <button onClick={() => editOrder(v)} style={btnPaper(N.muted)}>Edit</button>
         {v.poNumber && <button onClick={() => openPoSend(v)} style={btnPaper(N.blue)}>{v.status === "PO sent" ? "✉ Resend PO" : "✉ Email PO"}</button>}
         <button onClick={() => setOpenInv(v)} style={{ ...btnBlue, background: N.blue }}>Open{v.customer && v.customer !== "—" && v.status !== "Invoiced" ? " / bill" : ""} →</button>
-        <button onClick={() => deleteOrder(v.id)} title="Delete order" style={{ border: "1px solid " + N.rule, background: "none", color: N.muted, cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontSize: 12, fontWeight: 600, borderRadius: 100, padding: "6px 12px" }}>Delete</button>
       </div>
     );
     const setLine = (i, patch) => setOrderDraft(d => ({ ...d, lines: d.lines.map((l, j) => (j === i ? { ...l, ...patch } : l)) }));
