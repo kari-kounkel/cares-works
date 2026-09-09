@@ -720,6 +720,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [orderDraft, setOrderDraft] = useState(blankOrder);
   const [artworkBusy, setArtworkBusy] = useState(false);
   const [showClosedOrders, setShowClosedOrders] = useState(false);
+  const [orderSort, setOrderSort] = useState("date"); // date | vendor | customer
   const [editingOrder, setEditingOrder] = useState(null);
   const [showBillForm, setShowBillForm] = useState(false);
   const blankBill = { vendor: "", amount: "", due: "", category: "", memo: "" };
@@ -3392,8 +3393,23 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   function Orders() {
     // New Orders = every in-progress job (the pending customer bill), EXCEPT an in-house PO
     // (no customer) that's already been sent — that one lives only on Purchase Orders.
-    const currentOrders = invoices.filter(v => v.docType === "order" && v.status !== "Invoiced" && v.status !== "Void" && v.status !== "Historical");
-    const closedOrders = invoices.filter(v => v.docType === "order" && (v.status === "Invoiced" || v.status === "Void" || v.status === "Historical")).slice().sort((a, b) => (b.issueDate || "").localeCompare(a.issueDate || ""));
+    // Newest-first is the default; by vendor or by customer are the other two ways Dave
+    // and Betty look for an old job. Blank names sort to the bottom either way, so the
+    // 753 imported POs with no customer don't pile up at the top of a customer sort.
+    const byName = key => (a, b) => {
+      const x = (a[key] || "").trim(), y = (b[key] || "").trim();
+      const xBlank = !x || x === "—", yBlank = !y || y === "—";
+      if (xBlank !== yBlank) return xBlank ? 1 : -1;
+      const n = x.localeCompare(y, undefined, { sensitivity: "base" });
+      return n !== 0 ? n : (b.issueDate || "").localeCompare(a.issueDate || "");
+    };
+    const sortOrders = list => list.slice().sort(
+      orderSort === "vendor" ? byName("vendor")
+      : orderSort === "customer" ? byName("customer")
+      : (a, b) => (b.issueDate || "").localeCompare(a.issueDate || "")
+    );
+    const currentOrders = sortOrders(invoices.filter(v => v.docType === "order" && v.status !== "Invoiced" && v.status !== "Void" && v.status !== "Historical"));
+    const closedOrders = sortOrders(invoices.filter(v => v.docType === "order" && (v.status === "Invoiced" || v.status === "Void" || v.status === "Historical")));
     const orderRow = (v, i, arr) => (
       <div key={v.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 16px", borderBottom: i === arr.length - 1 ? "none" : "1px solid " + N.rule, flexWrap: "wrap" }}>
         <div style={{ width: 64, fontSize: 12, color: N.muted }}>{v.poNumber ? `PO #${v.poNumber}` : "Order"}</div>
@@ -3432,7 +3448,21 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: N.ink }}>Orders</div>
             <div style={{ fontSize: 13, color: N.muted }}>Every job — current ones up top, closed (already billed) below the divider. Start one here; add a PO if a vendor makes it; hit <b style={{ color: N.blue }}>Convert to invoice</b> to bill the customer.</div>
           </div>
-          <button onClick={() => { if (showOrderForm) { setShowOrderForm(false); setEditingOrder(null); setOrderDraft(blankOrder); } else { setShowOrderForm(true); } }} style={{ ...btnBlue, background: N.blue, fontSize: 14, padding: "10px 18px" }}>{showOrderForm ? "Close" : "+ New order"}</button>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ fontSize: 12, color: N.muted }}>Sort</span>
+              {[["date", "Newest"], ["vendor", "Vendor"], ["customer", "Customer"]].map(([k, label]) => (
+                <button
+                  key={k}
+                  onClick={() => setOrderSort(k)}
+                  style={{ fontSize: 12.5, padding: "7px 14px", borderRadius: 100, cursor: "pointer", fontFamily: "'Figtree', sans-serif", fontWeight: 500, border: "1px solid " + (orderSort === k ? N.blue : N.rule), background: orderSort === k ? N.blue : N.white, color: orderSort === k ? N.white : N.text }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <button onClick={() => { if (showOrderForm) { setShowOrderForm(false); setEditingOrder(null); setOrderDraft(blankOrder); } else { setShowOrderForm(true); } }} style={{ ...btnBlue, background: N.blue, fontSize: 14, padding: "10px 18px" }}>{showOrderForm ? "Close" : "+ New order"}</button>
+          </div>
         </div>
 
         {showOrderForm && (
