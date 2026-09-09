@@ -213,6 +213,7 @@ const BUILD_PROGRESS = [
   { label: "History — copy from past work", items: [
     ["753 historical POs imported from QuickBooks", "done"],
     ["They show in Orders → Closed, like any closed PO", "done"],
+    ["Search any PO — number, vendor, customer, item, spec", "done"],
     ["Copy an old line item into a new PO / new customer", "todo"],
     ["Import invoices, linked to POs by number", "todo"],
     ["Group by vendor / customer / number / date", "todo"],
@@ -721,6 +722,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [artworkBusy, setArtworkBusy] = useState(false);
   const [showClosedOrders, setShowClosedOrders] = useState(false);
   const [orderSort, setOrderSort] = useState("date"); // date | vendor | customer
+  const [orderSearch, setOrderSearch] = useState(""); // Orders search — find any job/PO by number, name, item, or spec
   const [editingOrder, setEditingOrder] = useState(null);
   const [showBillForm, setShowBillForm] = useState(false);
   const blankBill = { vendor: "", amount: "", due: "", category: "", memo: "" };
@@ -3270,7 +3272,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
               {/* Customer name across the top */}
               <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                 <div style={{ fontSize: 16, color: N.ink, fontWeight: 700, textDecoration: voided ? "line-through" : "none", minWidth: 0 }}>
-                  {v.number ? <span style={{ color: N.blue, fontFamily: "'DM Mono', monospace", fontSize: 13, marginRight: 8 }}>#{v.number}</span> : null}{v.customer}{rev && <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.06em", color: "#8a5a00", background: "#fdf5e3", border: "1px solid #f0d89a", borderRadius: 5, padding: "1px 6px", marginLeft: 8 }}>REVISED</span>}
+                  {v.number ? <span style={{ color: N.muted, fontFamily: "'DM Mono', monospace", fontSize: 13, fontWeight: 500, marginRight: 8 }}>#{v.number}</span> : null}{v.customer}{rev && <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.06em", color: "#8a5a00", background: "#fdf5e3", border: "1px solid #f0d89a", borderRadius: 5, padding: "1px 6px", marginLeft: 8 }}>REVISED</span>}
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, whiteSpace: "nowrap" }}>
                   <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: STATUS_COLOR[v.status] || N.muted, background: (STATUS_COLOR[v.status] || N.muted) + "18", padding: "4px 10px", borderRadius: 100 }}>{v.status}</span>
@@ -3408,8 +3410,22 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
       : orderSort === "customer" ? byName("customer")
       : (a, b) => (b.issueDate || "").localeCompare(a.issueDate || "")
     );
-    const currentOrders = sortOrders(invoices.filter(v => v.docType === "order" && v.status !== "Invoiced" && v.status !== "Void" && v.status !== "Historical"));
-    const closedOrders = sortOrders(invoices.filter(v => v.docType === "order" && (v.status === "Invoiced" || v.status === "Void" || v.status === "Historical")));
+    // Search across everything you'd look a job up by: PO/invoice number, customer,
+    // vendor, the item summary, and every line's spec (so "Finnleo", "Q148069", a
+    // vendor, or a decades-old part number all find their PO). Terms are AND-ed, so
+    // "koozie 2024" narrows to Koozie jobs from 2024.
+    const q = orderSearch.trim().toLowerCase();
+    const terms = q ? q.split(/\s+/) : [];
+    const matchOrder = v => {
+      if (!terms.length) return true;
+      const hay = [
+        v.poNumber, v.number, v.customer, v.vendor, v.item, v.issueDate,
+        ...(v.lines || []).flatMap(l => [l.item, l.desc]),
+      ].filter(Boolean).join(" ").toLowerCase();
+      return terms.every(t => hay.includes(t));
+    };
+    const currentOrders = sortOrders(invoices.filter(v => v.docType === "order" && v.status !== "Invoiced" && v.status !== "Void" && v.status !== "Historical").filter(matchOrder));
+    const closedOrders = sortOrders(invoices.filter(v => v.docType === "order" && (v.status === "Invoiced" || v.status === "Void" || v.status === "Historical")).filter(matchOrder));
     const orderRow = (v, i, arr) => (
       <div key={v.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 16px", borderBottom: i === arr.length - 1 ? "none" : "1px solid " + N.rule, flexWrap: "wrap" }}>
         <div style={{ width: 64, fontSize: 12, color: N.muted }}>{v.poNumber ? `PO #${v.poNumber}` : "Order"}</div>
@@ -3449,6 +3465,16 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
             <div style={{ fontSize: 13, color: N.muted }}>Every job — current ones up top, closed (already billed) below the divider. Start one here; add a PO if a vendor makes it; hit <b style={{ color: N.blue }}>Convert to invoice</b> to bill the customer.</div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+              <span style={{ position: "absolute", left: 12, color: N.muted, fontSize: 13, pointerEvents: "none" }}>🔍</span>
+              <input
+                value={orderSearch}
+                onChange={e => setOrderSearch(e.target.value)}
+                placeholder="Search POs — number, vendor, customer, item…"
+                style={{ ...inputSt, width: 280, paddingLeft: 32, paddingRight: orderSearch ? 28 : 12 }}
+              />
+              {orderSearch && <button onClick={() => setOrderSearch("")} title="Clear" style={{ position: "absolute", right: 8, border: "none", background: "none", color: N.muted, cursor: "pointer", fontSize: 16, lineHeight: 1, padding: 0 }}>×</button>}
+            </div>
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <span style={{ fontSize: 12, color: N.muted }}>Sort</span>
               {[["date", "Newest"], ["vendor", "Vendor"], ["customer", "Customer"]].map(([k, label]) => (
@@ -3565,20 +3591,24 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           </div>
         )}
 
-        <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, overflow: "hidden" }}>
-          {currentOrders.length === 0 ? (
-            <div style={{ padding: "30px 20px", textAlign: "center", color: N.muted, fontSize: 14 }}>No open orders. Click “New order” to start one.</div>
-          ) : currentOrders.map((v, i) => orderRow(v, i, currentOrders))}
-        </div>
+        {q && <div style={{ fontSize: 12.5, color: N.muted, marginBottom: 8 }}>{currentOrders.length + closedOrders.length === 0 ? <>Nothing matches “<b style={{ color: N.ink }}>{orderSearch}</b>”.</> : <><b style={{ color: N.ink }}>{currentOrders.length + closedOrders.length}</b> match{currentOrders.length + closedOrders.length === 1 ? "" : "es"} for “<b style={{ color: N.ink }}>{orderSearch}</b>”.</>}</div>}
+
+        {(currentOrders.length > 0 || !q) && (
+          <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, overflow: "hidden" }}>
+            {currentOrders.length === 0 ? (
+              <div style={{ padding: "30px 20px", textAlign: "center", color: N.muted, fontSize: 14 }}>No open orders. Click “New order” to start one.</div>
+            ) : currentOrders.map((v, i) => orderRow(v, i, currentOrders))}
+          </div>
+        )}
 
         {closedOrders.length > 0 && (
           <div style={{ marginTop: 18 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "0 0 8px" }}>
               <div style={{ flex: 1, height: 1, background: N.rule }} />
-              <button onClick={() => setShowClosedOrders(s => !s)} style={{ background: "none", border: "none", color: N.muted, fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", cursor: "pointer", fontFamily: "'Figtree', sans-serif", whiteSpace: "nowrap" }}>{showClosedOrders ? "▲ HIDE" : "▾ SHOW"} CLOSED · PAST PURCHASE ORDERS ({closedOrders.length})</button>
+              <button onClick={() => setShowClosedOrders(s => !s)} style={{ background: "none", border: "none", color: N.muted, fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", cursor: "pointer", fontFamily: "'Figtree', sans-serif", whiteSpace: "nowrap" }}>{(showClosedOrders || q) ? "▲ HIDE" : "▾ SHOW"} CLOSED · PAST PURCHASE ORDERS ({closedOrders.length}{q ? " matching" : ""})</button>
               <div style={{ flex: 1, height: 1, background: N.rule }} />
             </div>
-            {showClosedOrders && (
+            {(showClosedOrders || q) && (
               <div style={{ background: N.white, border: "1px solid " + N.rule, borderRadius: 12, overflow: "hidden", opacity: 0.9 }}>
                 {closedOrders.map((v, i) => orderRow(v, i, closedOrders))}
               </div>
