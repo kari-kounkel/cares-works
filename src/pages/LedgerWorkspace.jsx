@@ -702,6 +702,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   const [docMoreOpen, setDocMoreOpen] = useState(false); // reveal the secondary actions on the doc modal
   const [sentLink, setSentLink] = useState(null);
   const [emailState, setEmailState] = useState(null);
+  const [emailTo, setEmailTo] = useState(""); // editable recipient(s) in the send box — comma-separates two addresses
   const [poEmailTo, setPoEmailTo] = useState("");   // vendor email for the PO send box
   const [poEmailMsg, setPoEmailMsg] = useState(null); // {sending} | {ok} | {err}
   const [poSend, setPoSend] = useState(null);       // the PO being emailed from a list row (one-click send popup)
@@ -1745,6 +1746,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     // Sent when nothing had left — #8732 sat that way from 9/7.
     try { navigator.clipboard && navigator.clipboard.writeText(url); } catch (e) { /* clipboard may be blocked */ }
     setEmailState(null);
+    setEmailTo((v.email || "").trim());
     setSentLink({ url, emailText, customer: v.customer, invoiceId: v.id, email: v.email });
     setOpenInv(null);
   }
@@ -1767,11 +1769,16 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   // One-click send via the send-invoice-email Edge Function (Resend behind it).
   async function emailInvoiceNow() {
     if (!sentLink || !sentLink.invoiceId) return;
+    // Recipients: whatever's in the box, one or two addresses separated by a comma.
+    const recips = (emailTo || "").split(/[,;]/).map(s => s.trim()).filter(Boolean);
+    if (recips.length === 0) { setEmailState({ err: "Type an email address to send to." }); return; }
+    const bad = recips.find(r => !/.+@.+\..+/.test(r));
+    if (bad) { setEmailState({ err: `"${bad}" doesn't look like an email address.` }); return; }
     if (testMode) { setEmailState({ ok: "nobody — test mode, not really sent" }); return; }
     setEmailState("sending");
     try {
       const { data, error } = await supabase.functions.invoke("send-invoice-email", {
-        body: { invoice_id: sentLink.invoiceId, origin: window.location.origin },
+        body: { invoice_id: sentLink.invoiceId, origin: window.location.origin, to: recips.join(",") },
       });
       if (error || (data && data.error)) {
         let msg = (data && data.error) || (error && error.message) || "Send failed.";
@@ -3326,14 +3333,22 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
                 {emailState && emailState.ok ? (
                   <div style={{ fontSize: 13, color: N.pinkDark, fontWeight: 600 }}>✓ Sent to {emailState.ok}</div>
                 ) : (
-                  <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                    <button onClick={emailInvoiceNow} disabled={emailState === "sending"} style={{ ...btnBlue, background: N.blue }}>
-                      {emailState === "sending" ? "Sending…" : sentLink.email ? `Send email to ${sentLink.email}` : "Send email"}
-                    </button>
-                    {emailState && emailState.err && <span style={{ fontSize: 12, color: N.red }}>{emailState.err}</span>}
+                  <div>
+                    <div style={{ fontSize: 11, color: N.muted, marginBottom: 4 }}>Send to (separate two addresses with a comma):</div>
+                    <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                      <input
+                        value={emailTo}
+                        onChange={e => setEmailTo(e.target.value)}
+                        placeholder="customer@email.com, second@email.com"
+                        style={{ ...inputSt, flex: 1, minWidth: 220, fontSize: 13 }}
+                      />
+                      <button onClick={emailInvoiceNow} disabled={emailState === "sending"} style={{ ...btnBlue, background: N.blue }}>
+                        {emailState === "sending" ? "Sending…" : "Send"}
+                      </button>
+                    </div>
+                    {emailState && emailState.err && <div style={{ fontSize: 12, color: N.red, marginTop: 6 }}>{emailState.err}</div>}
                   </div>
                 )}
-                {!sentLink.email && <div style={{ fontSize: 12, color: N.muted, marginTop: 6 }}>We'll use the email on the customer's record if the invoice doesn't have one.</div>}
               </div>
 
               <div style={{ fontSize: 11, color: N.muted, marginBottom: 6 }}>Or copy the link to text/share it:</div>
