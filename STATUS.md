@@ -5,7 +5,7 @@ _Rebuilt from chat transcripts on 2026-08-25. Update this file at the end of eve
 `C:\dev\cares-works` is the Vite + React 18 app behind CARES Works (`tools.caresmn.com`), Kari's multi-tenant SaaS of bookkeeping/admin tools, plus everything static served out of its `public/` folder. It holds four client sub-projects: the ProGraphics ledger (QuickBooks replacement for Dave & Betty Erickson), the Minuteman Press Uptown website + union-shop site + proposals, the CARES Works product itself (design system, pricing, org workspaces, River of Life facility rentals, COA Library, proposals), and the New Life in Christ (Pastor David) sample site + org workspace. All data lives in one Supabase project; routing is manual `window.location.pathname` in `src/App.jsx`.
 
 ## Where it lives
-- Live site: `https://tools.caresmn.com` (CARES Works). Tenant routes seen in chat: `/prographics`, `/emerson`, `/org/river-of-life`, `/rent/river-of-life`, `/proposals`, `/proposals/prographics`, `/tools/coa-library`, `/steward`, `/board` (Kari's Command Board).
+- Live site: `https://tools.caresmn.com` (CARES Works). Tenant routes seen in chat: `/prographics`, `/emerson`, `/org/river-of-life`, `/rent/river-of-life`, `/proposals`, `/proposals/prographics`, `/tools/coa-library`, `/steward`, `/board` (Kari's Command Board), `/chickens` (The Coop — her memoir workroom).
 - Static Minuteman pages served from `public/` on the same Vercel deploy: `/mmpuptown/…`, `/mmpunionshop/`, `/proposals/minuteman`, `/proposals/minuteman-website`, `/store-options/…`, `/demo/mmp.html`. Final custom domains for the Minuteman sites: not stated (verify). Existing live site is `mmpuptown.com` (not ours).
 - Vercel: deploys on push, ~1 min build. Vercel project `cares-works` (`prj_LXPWJjKXEA3TLXsqrnE95EKxHFdr`, team `team_MzJfjdVk8hjUhRXEzk8iyMbt`).
 - Supabase (cares-works): project ref `qcikhcnclduakriextsz`. ProGraphics org id `51c83c73-b406-4cfa-9626-b600b3c30236`.
@@ -506,3 +506,40 @@ The session also got ahead of itself once: Kari was asked to pick a QuickBooks c
 - `C:\dev\cares-works\src\pages\InvoiceDocPublic.jsx` (`/inv/<token>`)
 - `C:\dev\cares-works\api\invoice-checkout.js` (Stripe session + health check), `api\webhook.js` (marks it paid)
 - `C:\dev\cares-works\src\App.jsx` (the `/invoices` and `/inv/` routes)
+
+
+---
+
+### The Coop (Chasing Chickens)
+Kari's private working draft of the memoir *Chasing Chickens*. Route `/chickens` on `tools.caresmn.com`. Built by Nate (Cowork) 9/9 to replace the claude.ai artifact "The Coop" so the book lives on her own stack; finished and shipped from Claude Code the same day. Nothing on it is public.
+
+**Built so far**
+- ✅ `src/pages/Coop.jsx` — the whole page. 66 chapters in six movements (Mustard 9, The Pile-On 8, The Chickens 10, The Breaking 13, The Rebuild 13, The Porch 13) — 283 questions and 190 verbatim passages: her passages with dates and source chats, alternate tellings behind a disclosure, editable questions with an answer box under each, a draft box, notes, and a per-chapter status (open / answering / drafted / done). Plus a Timeline tab (editable table) and a plan tab. Sidebar pips show what's answered; the header shows the running answered/total count.
+- ✅ Autosave, 800 ms debounce, with "saving… / saved 4:12 AM / not saved — <reason>" in the header. A failed save re-queues the chapter instead of losing it.
+- ✅ `public/chickens/coop-data.json` (552 KB) — all static content. **Generated from `C:\CLAUDE\archive\projects\Chasing-Chickens\`; regenerate there, never hand-edit.**
+- ✅ `sql/coop.sql` — applied to `qcikhcnclduakriextsz` as migration `coop_chasing_chickens_workroom`. Tables `coop_chapters(user_id, id, data jsonb)` and `coop_docs(user_id, id ∈ {timeline, plan}, data jsonb)`, composite PK `(user_id, id)`, RLS `user_id = auth.uid()`, `to authenticated` only — verified on the live database: RLS on, one policy each.
+- ✅ `/chickens` route in `src/App.jsx`, session-gated like `/board`; signed out it redirects to `/login`.
+- ✅ Shipped as commit `f368218` on 9/9.
+
+**Decisions**
+- **Content is a file, edits are rows.** The passages ship as static JSON on the deploy; only what Kari types goes to Supabase. Regenerating the archive never touches her answers.
+- **No anon access to either table, by design.** The publishable key in the browser can't read or write them without a session, so an unfinished memoir isn't one guessed URL away.
+- **A chapter row is one jsonb blob** (`{title, questions:[{q,a}], draft, notes, status}`), not normalized columns — the questions are hers to reword, add, and delete, so the shape has to bend without a migration.
+- Questions are editable and removable; removing one that has an answer asks first.
+
+**Where it stopped**
+9/9. Committed, pushed, deployed. The route, the JSON asset and the tables were each checked; the page **has not been watched saving** — that needs Kari's own login, the same wall the `/invoices` maker screen sits behind.
+
+**Pending / frozen items**
+- Nothing from the claude.ai artifact was carried over: Kari had made no edits there as of 9/9. If she writes on the artifact before switching, those answers exist only there — Nate can read the artifact db and the rows can be inserted.
+- Autosave is the only save. There is no explicit save button, no version history, and no export — what's in the boxes is what exists.
+- The draft boxes are plain textarea. No formatting, no word count, no print/PDF view of a finished chapter.
+- The timeline seeds from the JSON the first time and is a saved copy after that — regenerating `coop-data.json` won't update a timeline she has already edited.
+- `/chickens` is reachable by any signed-in user, who would see the passages (they ship in the static JSON) with empty answer boxes of their own. Same shape as `/invoices` and `/board`.
+
+**Key files**
+- `C:\dev\cares-works\src\pages\Coop.jsx` (the page)
+- `C:\dev\cares-works\public\chickens\coop-data.json` (generated content — never hand-edit)
+- `C:\dev\cares-works\sql\coop.sql` (applied)
+- `C:\dev\cares-works\docs\HANDOFF-COOP-2026-09-09.md` (Nate's handoff)
+- Source archive: `C:\CLAUDE\archive\projects\Chasing-Chickens\`
