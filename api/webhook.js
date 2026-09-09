@@ -64,7 +64,22 @@ export default async function handler(req, res) {
     }
 
     const paid = session.amount_total || 0;
-    const method = (session.payment_method_types || []).includes("us_bank_account") ? "bank" : "card";
+
+    // What they ACTUALLY paid with, off the charge — not off
+    // session.payment_method_types, which lists everything the session offered
+    // and so called every card payment a bank debit.
+    let method = "online";
+    try {
+      const intent = await stripe.paymentIntents.retrieve(session.payment_intent, {
+        expand: ["latest_charge"],
+      });
+      const type = intent?.latest_charge?.payment_method_details?.type;
+      if (type === "card") method = "card";
+      else if (type === "us_bank_account") method = "bank";
+      else if (type) method = type;
+    } catch (methodErr) {
+      console.error("Could not read the payment method:", methodErr.message);
+    }
     const { error } = await supabase
       .from("invoice_docs")
       .update({
