@@ -266,6 +266,22 @@ export default function Dashboard({ session }) {
                     <NeonBtn color={N.blue} onClick={() => navigate("/board")}>Open the board →</NeonBtn>
                   </div>
                 </NeonBox>
+
+                <NeonBox color={N.pink} rgb={N_RGB.pink} style={{ padding: "20px 22px", marginTop: 14 }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 18, flexWrap: "wrap" }}>
+                    <div style={{ display: "flex", gap: 14, alignItems: "flex-start", minWidth: 260, flex: "1 1 340px" }}>
+                      <span style={{ fontSize: 30, lineHeight: 1 }}>🧾</span>
+                      <div>
+                        <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9.5, letterSpacing: "0.2em", textTransform: "uppercase", color: N.pink, marginBottom: 5 }}>Private · Live</div>
+                        <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 21, color: N.ink, lineHeight: 1.2 }}>Invoices</div>
+                        <p style={{ color: N.muted, fontSize: 13.5, margin: "5px 0 0", lineHeight: 1.5, maxWidth: 460 }}>
+                          Pick who it's from, click what it's for. Card, bank transfer or check — and it tells you when they open it.
+                        </p>
+                      </div>
+                    </div>
+                    <NeonBtn color={N.pink} onClick={() => navigate("/invoices")}>Make an invoice →</NeonBtn>
+                  </div>
+                </NeonBox>
               </div>
             )}
 

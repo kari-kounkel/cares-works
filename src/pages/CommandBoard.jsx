@@ -5,6 +5,7 @@ import { N, N_RGB, FONT_LINK, SignatureFooter, WASH_BG_LITE, HERO_TEXT_GRAD_BLUE
 import { Panel, Tiles, Quiet, ConnectState, fmtTime } from "../components/boardChrome";
 import WorkPanel from "../components/WorkPanel";
 import KingdomPanel from "../components/KingdomPanel";
+import InvoicesPanel from "../components/InvoicesPanel";
 import { oneListGroups, oneListProgress, oneListCounts, ONE_LIST_TOOL_KEY, ONE_LIST_HREF } from "../lib/oneList";
 
 // Command Board — tools.caresmn.com/board
@@ -95,6 +96,8 @@ export default function CommandBoard({ session }) {
   const [showParked, setShowParked] = useState(false);
 
   const [work, setWork] = useState(null); // null = still loading
+  const [invoices, setInvoices] = useState([]);
+  const [invoicesAt, setInvoicesAt] = useState(null);
 
   const [kingdom, setKingdom] = useState(null);
   const [scanning, setScanning] = useState(false);
@@ -245,6 +248,24 @@ export default function CommandBoard({ session }) {
   // --- The Work --------------------------------------------------------------
   // Everything Board cards + Monday 7AM Rollout items, both moved into
   // public.board_work. RLS scopes the select, so no user filter is needed here.
+
+  // Her own invoices. RLS scopes the select; the brand comes along so each row
+  // can wear its own color without a second round trip.
+  const loadInvoices = useCallback(async () => {
+    if (!uid) return;
+    const { data } = await supabase
+      .from("invoice_docs")
+      .select("id, number, status, bill_to_name, total_cents, amount_paid_cents, issue_date, paid_at, public_token, invoice_brands(name, accent_color)")
+      .order("issue_date", { ascending: false });
+    setInvoices((data || []).map((r) => ({
+      ...r,
+      brand_name: r.invoice_brands?.name || "",
+      brand_color: r.invoice_brands?.accent_color || null,
+    })));
+    setInvoicesAt(new Date().toISOString());
+  }, [uid]);
+
+  useEffect(() => { loadInvoices(); }, [loadInvoices]);
 
   const loadWork = useCallback(async () => {
     if (!uid) return;
@@ -609,6 +630,12 @@ export default function CommandBoard({ session }) {
               </>
             )}
           </Panel>
+        </div>
+
+        {/* INVOICES — her own billing, across every brand. Distinct from "Who
+            Owes You" next door, which is ProGraphics' A/R out of QuickBooks. */}
+        <div style={{ marginBottom: 18 }}>
+          <InvoicesPanel rows={invoices} asOf={invoicesAt} onRefresh={loadInvoices} />
         </div>
 
         {/* THE KINGDOM — where every property stands against the baseline. */}
