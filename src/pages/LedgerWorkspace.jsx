@@ -478,7 +478,9 @@ function mapInvoice(v) {
     tax: v.tax_status || "Exempt",
     taxAmt: (v.tax_cents || 0) / 100,
     status: v.status === "in_progress" ? "In progress" : v.status === "po_sent" ? "PO sent" : v.status === "invoiced" ? "Invoiced" : cap(v.status),
-    date: d ? d.toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "",
+    // Month + day for this year; add the year once it's a different year, so the
+    // 2008–2025 historical POs don't all read like they happened last week.
+    date: d ? d.toLocaleDateString("en-US", d.getFullYear() === new Date().getFullYear() ? { month: "short", day: "numeric" } : { month: "short", day: "numeric", year: "numeric" }) : "",
     issueDate: v.issue_date || "",
     dueDate: v.due_date || "",
     shipAddress: v.ship_address || "",
@@ -3428,7 +3430,10 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
     const closedOrders = sortOrders(invoices.filter(v => v.docType === "order" && (v.status === "Invoiced" || v.status === "Void" || v.status === "Historical")).filter(matchOrder));
     const orderRow = (v, i, arr) => (
       <div key={v.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 16px", borderBottom: i === arr.length - 1 ? "none" : "1px solid " + N.rule, flexWrap: "wrap" }}>
-        <div style={{ width: 64, fontSize: 12, color: N.muted }}>{v.poNumber ? `PO #${v.poNumber}` : "Order"}</div>
+        <div style={{ width: 76, fontSize: 12, color: N.muted }}>
+          <div>{v.poNumber ? `PO #${v.poNumber}` : "Order"}</div>
+          {v.date && <div style={{ fontSize: 11, color: N.mutedLite, marginTop: 2 }}>{v.date}</div>}
+        </div>
         <div style={{ flex: 1, minWidth: 150 }}>
           <div style={{ fontSize: 15, color: N.ink, fontWeight: 600 }}>{v.customer && v.customer !== "—" ? v.customer : (v.vendor ? "In-house · " + v.vendor : "Order")}</div>
           <div style={{ fontSize: 12, color: N.muted }}>{v.item}{v.vendor && v.customer && v.customer !== "—" ? ` · vendor: ${v.vendor}` : ""}</div>
