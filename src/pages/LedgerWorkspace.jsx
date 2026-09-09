@@ -1525,6 +1525,15 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
   // index on (org_id, number) is the backstop if two saves still race.
   async function nextDocNumber(kind) {
     const col = kind === "po" ? "po_number" : "invoice_number";
+    // The number MUST come from the whole table, not a page of it. A plain select caps at
+    // 1000 rows, so once the imported history pushed past that, maxing in JS started missing
+    // the real high number and handing back one that already exists (a convert then vanished
+    // on the duplicate). ledger_next_number() does the max in the database — no cap.
+    if (liveOrgId) {
+      const { data, error } = await supabase.rpc("ledger_next_number", { p_org: liveOrgId, p_kind: kind === "po" ? "po" : "invoice" });
+      if (!error && data != null) return Number(data);
+    }
+    // Fallback only if the RPC is somehow unavailable — same (capped) logic as before.
     let max = kind === "po" ? 2132 : 8728;
     if (liveOrgId) {
       const { data } = await supabase.from("invoices").select(col).eq("org_id", liveOrgId).not(col, "is", null);
@@ -2427,7 +2436,7 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
         const items = Array.isArray(v.lines) ? v.lines : [];
         const subtotal = items.reduce((s, l) => s + Math.round((parseFloat(l.price) || 0) * 100) * (parseInt(l.qty) || 1), 0);
         const tax = v.tax === "Taxable" ? Math.round(subtotal * MN_TAX_RATE) : 0;
-        const { data: invRow } = await supabase.from("invoices").insert({
+        const { data: invRow, error: invErr } = await supabase.from("invoices").insert({
           org_id: liveOrgId, user_id: session.user.id,
           doc_type: "invoice", status: "draft", invoice_number: String(num),
           customer_name: v.customer && v.customer !== "—" ? v.customer : null, customer_email: v.email || null,
@@ -2437,9 +2446,15 @@ export default function LedgerWorkspace({ entity: propEntity, entityKey, orgId, 
           due_date: v.dueDate || v.issueDate || null,
           artwork_urls: v.artwork || [],
         }).select("id").single();
+        // If the invoice didn't save, DON'T stamp the PO invoiced — that's how a convert used to
+        // "vanish": the invoice failed but the PO still flipped, so nothing showed as a bill.
+        if (invErr || !invRow) {
+          window.alert("Couldn't create the invoice, so nothing was changed — the PO is untouched. " + (invErr?.message || "Please try again."));
+          return;
+        }
         await supabase.from("invoices").update({ status: "invoiced" }).eq("id", v.id);
         await logDocEvent(v.id, "billed", "Invoiced as #" + num + " — PO kept for vendor history");
-        if (invRow) await logDocEvent(invRow.id, "created", "Billed from PO #" + v.poNumber);
+        await logDocEvent(invRow.id, "created", "Billed from PO #" + v.poNumber);
       } else {
         const patch = { doc_type: "invoice", status: "draft" };
         if (!v.number) patch.invoice_number = String(num);
