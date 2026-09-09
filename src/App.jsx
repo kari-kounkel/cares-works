@@ -40,6 +40,7 @@ import Ledger from "./pages/Ledger";
 import MemeMaker from "./pages/MemeMaker";
 import KariCockpits from "./pages/KariCockpits";
 import CommandBoard from "./pages/CommandBoard";
+import Coop from "./pages/Coop";
 import KariOneList from "./pages/KariOneList";
 import KariCockpitFrame from "./pages/KariCockpitFrame";
 import BudgetBuilder from "./pages/BudgetBuilder";
@@ -201,6 +202,12 @@ export default function App() {
   if (path === "/" && session && primaryOrg) {
     navigate(ORG_HOME[primaryOrg] || "/org/" + primaryOrg);
     return null;
+  }
+
+  // The Coop — Chasing Chickens working draft. Same login gate as /board; rows are RLS-locked to the user.
+  if (path === "/chickens" || path === "/chickens/") {
+    if (!session) { navigate("/login"); return null; }
+    return <Coop session={session} />;
   }
 
   // Command Board — Kari's live dashboard. Same login gate as /kari; the panels
