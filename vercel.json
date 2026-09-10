@@ -1,12 +1,55 @@
 {
   "rewrites": [
-    { "source": "/((?!proposals/)(?!marco/)(?!floridagirl).*)", "destination": "/index.html" }
+    {
+      "source": "/((?!proposals/)(?!marco/)(?!floridagirl)(?!clean-books/).*)",
+      "destination": "/index.html"
+    }
   ],
   "headers": [
-    { "source": "/marco", "headers": [{ "key": "Cache-Control", "value": "no-store, must-revalidate" }] },
-    { "source": "/marco/", "headers": [{ "key": "Cache-Control", "value": "no-store, must-revalidate" }] },
-    { "source": "/marco/index.html", "headers": [{ "key": "Cache-Control", "value": "no-store, must-revalidate" }] },
-    { "source": "/marco/walkthrough.html", "headers": [{ "key": "Cache-Control", "value": "no-store, must-revalidate" }] },
-    { "source": "/marco/test-drive.html", "headers": [{ "key": "Cache-Control", "value": "no-store, must-revalidate" }] }
+    {
+      "source": "/marco",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/marco/",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/marco/index.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/marco/walkthrough.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/marco/test-drive.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, must-revalidate"
+        }
+      ]
+    }
   ]
 }
