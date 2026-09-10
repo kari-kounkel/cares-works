@@ -281,3 +281,158 @@ footer.site .legal {
   .callout { grid-template-columns: 1fr; padding: 28px 24px; gap: 20px; }
   footer.site .foot-inner { grid-template-columns: 1fr; gap: 24px; }
 }
+
+/* ==================================================================
+   FORMS — quote / order / send-files capture
+   Added 2026-09-09. Nothing above this line styled a form.
+   ================================================================== */
+
+.form-layout { display: grid; grid-template-columns: 1fr 320px; gap: 40px; align-items: start; }
+@media (max-width: 900px) { .form-layout { grid-template-columns: 1fr; gap: 28px; } }
+
+.form-card {
+  background: var(--white); border: 1px solid var(--line);
+  border-radius: 10px; padding: 30px 32px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.04);
+}
+@media (max-width: 560px) { .form-card { padding: 22px 18px; } }
+
+fieldset.fieldgroup { border: 0; padding: 0; margin: 0 0 34px; }
+fieldset.fieldgroup:last-of-type { margin-bottom: 20px; }
+
+.fieldgroup-title {
+  font-size: 12px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase;
+  color: var(--green); padding-bottom: 9px; margin-bottom: 20px;
+  border-bottom: 2px solid var(--green-light);
+}
+
+.field { margin-bottom: 18px; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.field-row.thirds { grid-template-columns: 1fr 1fr 1fr; }
+@media (max-width: 620px) { .field-row, .field-row.thirds { grid-template-columns: 1fr; gap: 0; } }
+
+.field label, .field .label {
+  display: block; font-size: 13.5px; font-weight: 700;
+  color: var(--ink); margin-bottom: 6px;
+}
+.req { color: var(--orange-deep); font-weight: 800; margin-left: 2px; }
+.optional { color: var(--ink-fade); font-weight: 500; font-size: 12px; margin-left: 4px; }
+
+.field input[type="text"], .field input[type="email"], .field input[type="tel"],
+.field input[type="number"], .field input[type="date"],
+.field select, .field textarea {
+  width: 100%; font-family: inherit; font-size: 15px; color: var(--ink);
+  background: var(--white); border: 1.5px solid var(--line);
+  border-radius: 7px; padding: 11px 13px; transition: border-color .14s, box-shadow .14s;
+}
+.field textarea { min-height: 108px; resize: vertical; line-height: 1.55; }
+.field select { appearance: none; cursor: pointer; padding-right: 38px;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b6b6b' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center; }
+
+.field input:focus, .field select:focus, .field textarea:focus {
+  outline: none; border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(29,122,68,.13);
+}
+.field input:disabled, .field select:disabled, .field textarea:disabled {
+  background: var(--cream); color: var(--ink-mute); cursor: not-allowed;
+}
+.field .hint { font-size: 12.5px; color: var(--ink-mute); margin-top: 5px; line-height: 1.45; }
+
+/* invalid only after a submit attempt, so the form isn't red while you type */
+.form-card.validated .field input:invalid,
+.form-card.validated .field select:invalid,
+.form-card.validated .field textarea:invalid { border-color: #c0392b; }
+.form-card.validated .field input:invalid ~ .hint,
+.form-card.validated .field select:invalid ~ .hint { color: #c0392b; }
+
+.checkline { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 11px; }
+.checkline input { width: 17px; height: 17px; margin-top: 2px; accent-color: var(--green); flex-shrink: 0; cursor: pointer; }
+.checkline label { margin: 0; font-weight: 500; font-size: 14.5px; cursor: pointer; }
+
+.file-drop {
+  border: 2px dashed var(--line); border-radius: 9px; background: var(--paper);
+  padding: 26px 20px; text-align: center; cursor: pointer;
+  transition: border-color .14s, background .14s;
+}
+.file-drop:hover, .file-drop.dragover { border-color: var(--green); background: var(--green-light); }
+.file-drop .fd-icon { font-size: 26px; margin-bottom: 7px; }
+.file-drop .fd-main { font-weight: 700; font-size: 14.5px; color: var(--ink); }
+.file-drop .fd-sub { font-size: 12.5px; color: var(--ink-mute); margin-top: 4px; }
+.file-list { list-style: none; padding: 0; margin: 12px 0 0; }
+.file-list li {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  font-size: 13.5px; background: var(--cream); border-radius: 6px;
+  padding: 8px 12px; margin-bottom: 6px;
+}
+.file-list .fl-size { color: var(--ink-mute); font-size: 12.5px; flex-shrink: 0; }
+.file-list .fl-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-list button {
+  background: none; border: 0; color: var(--orange-deep); cursor: pointer;
+  font-size: 17px; line-height: 1; padding: 0 2px; flex-shrink: 0;
+}
+
+.form-actions {
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  border-top: 1px solid var(--line); padding-top: 22px; margin-top: 4px;
+}
+.form-actions .btn[disabled] { opacity: .55; cursor: not-allowed; }
+.form-actions .fa-note { font-size: 12.5px; color: var(--ink-mute); }
+
+.form-alert { border-radius: 8px; padding: 14px 16px; font-size: 14.5px; margin-bottom: 22px; line-height: 1.5; }
+.form-alert.error { background: #fdecea; border: 1px solid #f5c6c0; color: #922b21; }
+
+.form-success { text-align: center; padding: 46px 26px; }
+.form-success .fs-mark {
+  width: 62px; height: 62px; border-radius: 50%; background: var(--green-light);
+  color: var(--green); font-size: 31px; line-height: 62px; margin: 0 auto 18px;
+}
+.form-success h3 { font-size: 25px; margin-bottom: 10px; }
+.form-success p { color: var(--ink-soft); max-width: 430px; margin: 0 auto 8px; }
+.form-success .fs-ref {
+  display: inline-block; margin-top: 16px; background: var(--cream);
+  border: 1px solid var(--line); border-radius: 7px; padding: 9px 16px;
+  font-size: 14px; font-weight: 700; letter-spacing: .03em;
+}
+
+.form-aside { position: sticky; top: 22px; }
+@media (max-width: 900px) { .form-aside { position: static; } }
+.aside-card {
+  background: var(--cream); border: 1px solid var(--line);
+  border-radius: 10px; padding: 22px 22px 20px; margin-bottom: 18px;
+}
+.aside-card h4 { font-size: 15.5px; margin-bottom: 11px; }
+.aside-card p, .aside-card li { font-size: 13.8px; color: var(--ink-soft); line-height: 1.6; }
+.aside-card ul { padding-left: 17px; margin: 0; }
+.aside-card li { margin-bottom: 7px; }
+.aside-card .big-phone {
+  display: block; font-size: 21px; font-weight: 800; color: var(--green); margin-bottom: 3px;
+}
+
+/* ==================================================================
+   PRODUCTION MARKERS ARE NOT PUBLIC
+   The CHRISTINE notes, the "image needed" flags and the empty image
+   placeholders are instructions to the client, not content. They were
+   rendering to every visitor. They now appear only while she is
+   actually editing, and her preview toggle hides them like anyone else
+   sees the page.
+   ================================================================== */
+
+.ck-note,
+.ck-todo { display: none; }
+
+.ck-image-slot:not(.brand-logo) {
+  background: none; border: none; padding: 0; margin: 0;
+}
+.ck-image-slot:not(.brand-logo)::before { content: none; }
+
+body.mmp-edit-mode:not(.mmp-preview) .ck-note { display: block; }
+body.mmp-edit-mode:not(.mmp-preview) .ck-todo { display: inline-block; }
+
+body.mmp-edit-mode:not(.mmp-preview) .ck-image-slot:not(.brand-logo):not(:has(img)) {
+  background: #f5f1ea; border: 2px dashed #c9beac;
+  padding: 40px 20px; margin: 14px 0;
+}
+body.mmp-edit-mode:not(.mmp-preview) .ck-image-slot:not(.brand-logo):not(:has(img))::before {
+  content: '📷 IMAGE SLOT: ';
+}
