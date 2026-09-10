@@ -26,3 +26,9 @@
 - Kari's workflow: files are moved in File Explorer; Git Bash with `cd /c/dev/cares-works` (forward slashes). Never suggest Windows-backslash cd or cp/copy commands.
 - Everything lives in a git repo with a GitHub remote. Nothing floats outside version control.
 - The map of every project, folder, and chat is at `C:\dev\DEV-INDEX.md`.
+
+## Theme rule — colors and fonts (added 2026-09-10)
+- There is ONE palette and ONE font set for caresmn.com and tools.caresmn.com: white ground, neon blue `#0080ff` + neon green `#22c55e`, ink `#0a0a14`, DM Serif Display (headings) / Figtree (body) / DM Mono (labels).
+- React pages import it from `src/design/neon.jsx`. Static pages under `public/` link `https://tools.caresmn.com/theme/cares.css` (same tokens). The caresmn.com repo links that same URL.
+- No page, tool, article, or proposal defines its own colors or fonts. If a design needs a color that isn't in the theme, the theme changes first, in one place, and everything inherits it.
+- A page that arrives in a different palette (warm paper, orange, serif body, etc.) is wrong even if it looks nice. Kari: "this is incongruous with my other stuff."
