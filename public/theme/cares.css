@@ -51,3 +51,9 @@ tr:last-child td{border-bottom:0}
 .foot{max-width:860px;margin:48px auto 0;padding-top:18px;border-top:1px solid var(--rule);font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:.06em}
 @media (max-width:640px){h1{font-size:32px}.hero{grid-template-columns:1fr}.hero img{max-width:220px}.stats{grid-template-columns:1fr}}
 @media print{body{background:#fff}.box,.stat,.sidebar,.door,.hero img{box-shadow:none}.top nav{display:none}}
+/* signature footer (mirrors SignatureFooter in neon.jsx) */
+.sig{max-width:860px;margin:56px auto 0;padding:40px 16px 24px;text-align:center;border-top:1px solid var(--rule)}
+.sig .pill{display:inline-block;padding:10px 26px;background:linear-gradient(135deg,var(--blue),var(--greenDark));border-radius:100px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.2em;color:#fff;font-weight:700;box-shadow:0 6px 20px rgba(0,128,255,.35);margin-bottom:22px}
+.sig .ip{max-width:640px;margin:0 auto 14px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.06em;color:var(--muted);line-height:1.7}
+.sig .links{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.06em;color:var(--muted)}
+.sig .links a{color:var(--blue);text-decoration:none}

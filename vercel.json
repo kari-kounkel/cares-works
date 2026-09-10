@@ -1,7 +1,7 @@
 {
   "rewrites": [
     {
-      "source": "/((?!proposals/)(?!marco/)(?!floridagirl)(?!clean-books/)(?!theme/).*)",
+      "source": "/((?!proposals/)(?!marco/)(?!floridagirl)(?!clean-books/)(?!theme/)(?!sitemap\\.xml)(?!robots\\.txt).*)",
       "destination": "/index.html"
     }
   ],
