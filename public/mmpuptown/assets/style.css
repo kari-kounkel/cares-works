@@ -436,3 +436,57 @@ body.mmp-edit-mode:not(.mmp-preview) .ck-image-slot:not(.brand-logo):not(:has(im
 body.mmp-edit-mode:not(.mmp-preview) .ck-image-slot:not(.brand-logo):not(:has(img))::before {
   content: '📷 IMAGE SLOT: ';
 }
+
+/* ==================================================================
+   FRANK'S HALFTONE ART, PRESENTED AS A PRESS PROOF
+   The hero image is a halftone dot field on white. Dropped into a box
+   on green it read as a stray photo. Here the white becomes the paper:
+   a proof sheet with crop marks, a CMYK colour bar and a slug, resting
+   at a slight angle on a second sheet. The image itself is untouched
+   and still editable; only its presentation changes.
+   ================================================================== */
+
+.hero-visual:has(.ck-image-slot img) {
+  background: none; border: none; padding: 14px 10px 26px; min-height: 0;
+}
+.hero-visual .ck-image-slot:has(img) {
+  position: relative; display: block;
+  width: min(100%, 330px); margin: 0 auto;
+  padding: 24px 24px 44px;
+  background:
+    linear-gradient(#1a1a1a, #1a1a1a) left 5px top 24px / 13px 1px no-repeat,
+    linear-gradient(#1a1a1a, #1a1a1a) left 24px top 5px / 1px 13px no-repeat,
+    linear-gradient(#1a1a1a, #1a1a1a) right 5px top 24px / 13px 1px no-repeat,
+    linear-gradient(#1a1a1a, #1a1a1a) right 24px top 5px / 1px 13px no-repeat,
+    linear-gradient(#1a1a1a, #1a1a1a) left 5px bottom 44px / 13px 1px no-repeat,
+    linear-gradient(#1a1a1a, #1a1a1a) left 24px bottom 25px / 1px 13px no-repeat,
+    linear-gradient(#1a1a1a, #1a1a1a) right 5px bottom 44px / 13px 1px no-repeat,
+    linear-gradient(#1a1a1a, #1a1a1a) right 24px bottom 25px / 1px 13px no-repeat,
+    #ffffff !important;
+  border-radius: 1px;
+  transform: rotate(2.2deg);
+  box-shadow:
+    -14px 10px 0 -4px #f1ece0,
+    0 32px 52px -24px rgba(0, 0, 0, .65),
+    0 2px 6px rgba(0, 0, 0, .18);
+}
+.hero-visual .ck-image-slot:has(img) img {
+  display: block; width: 100%; height: auto;
+  mix-blend-mode: multiply;
+}
+.hero-visual .ck-image-slot:has(img)::after {
+  content: ""; position: absolute; left: 24px; bottom: 15px;
+  width: 88px; height: 9px;
+  background: linear-gradient(90deg,
+    #00a3e0 0 25%, #e6007e 25% 50%, #ffe600 50% 75%, #1a1a1a 75% 100%);
+}
+.hero-visual .ck-image-slot:has(img)::before {
+  content: "MP UPTOWN \00B7 PROOF 01 \00B7 4/C";
+  position: absolute; right: 24px; bottom: 15px; margin: 0; display: block;
+  font: 700 8.5px/9px ui-monospace, Consolas, Menlo, monospace;
+  font-style: normal; letter-spacing: .08em; text-transform: uppercase;
+  color: #8d8d8d;
+}
+@media (max-width: 900px) {
+  .hero-visual .ck-image-slot:has(img) { width: min(78%, 300px); }
+}
