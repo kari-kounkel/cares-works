@@ -21,6 +21,11 @@
   var SUPABASE_ANON = 'sb_publishable_GifRjDSjTWuHSiN-y7b7ZQ_AFOMvkkh';
   var CART_KEY = 'mmp_cart_v1';
 
+  // Product photos from Frank's current site (mpuptown.com, hosted by Firespring).
+  // Hotlinked for now. Copy them into our own storage before that site is retired,
+  // and confirm reuse rights: some Firespring images are platform-licensed stock.
+  var FRANK_IMG = 'https://cdn.firespring.com/images/';
+
   /* ---------------- catalog ---------------- */
 
   var CATEGORIES = [
@@ -38,7 +43,7 @@
   ]};
 
   var PRODUCTS = [
-    { id: 'business-cards', cat: 'business-essentials', route: 'store',
+    { id: 'business-cards', image: FRANK_IMG + '467c6edc-19dc-467e-9c97-6058c06fd704.png', cat: 'business-essentials', route: 'store',
       name: 'Business cards', blurb: 'Standard 3.5 × 2, full colour, cut and boxed.',
       unit: 'cards',
       tiers: [ {q:250,p:45}, {q:500,p:65}, {q:1000,p:89}, {q:2500,p:175} ],
@@ -54,7 +59,7 @@
           {value:'soft', label:'Soft-touch laminate', mult:1.35} ]}
       ]},
 
-    { id: 'letterhead', cat: 'business-essentials', route: 'store',
+    { id: 'letterhead', image: FRANK_IMG + '29829f14-fb3d-4985-abe8-dd2798852a0a.jpg', cat: 'business-essentials', route: 'store',
       name: 'Letterhead', blurb: '8.5 × 11 on premium text stock.', unit: 'sheets',
       tiers: [ {q:250,p:78}, {q:500,p:112}, {q:1000,p:165} ],
       options: [
@@ -64,7 +69,7 @@
         SIDES
       ]},
 
-    { id: 'envelopes', cat: 'business-essentials', route: 'store',
+    { id: 'envelopes', image: FRANK_IMG + 'dc6d4450-699c-4822-a287-521df293bc1c.jpg', cat: 'business-essentials', route: 'store',
       name: 'Envelopes', blurb: '#10 business envelopes, printed one colour or full.', unit: 'envelopes',
       tiers: [ {q:250,p:92}, {q:500,p:138}, {q:1000,p:198} ],
       options: [
@@ -73,11 +78,11 @@
           {value:'yes', label:'Left window', mult:1.09} ]}
       ]},
 
-    { id: 'ncr-forms', cat: 'business-essentials', route: 'custom',
+    { id: 'ncr-forms', image: FRANK_IMG + '34d8a4f7-df62-4668-889b-cbc57ec8a90e.jpg', cat: 'business-essentials', route: 'custom',
       name: 'NCR carbonless forms', blurb: 'Multi-part forms, sequential numbering available.', unit: 'sets',
       tiers: [], options: [] },
 
-    { id: 'flyers', cat: 'marketing', route: 'store',
+    { id: 'flyers', image: FRANK_IMG + '18300f85-1d0a-4981-b74d-efd5d82b8071.jpg', cat: 'marketing', route: 'store',
       name: 'Flyers', blurb: 'Full colour, your choice of size and stock.', unit: 'flyers',
       tiers: [ {q:100,p:52}, {q:250,p:78}, {q:500,p:118}, {q:1000,p:189} ],
       options: [
@@ -91,7 +96,7 @@
         SIDES
       ]},
 
-    { id: 'brochures', cat: 'marketing', route: 'store',
+    { id: 'brochures', image: FRANK_IMG + '76850388-24e8-4286-b67c-8c1324c0a0d3.png', cat: 'marketing', route: 'store',
       name: 'Brochures', blurb: 'Folded, full colour, scored so they fold clean.', unit: 'brochures',
       tiers: [ {q:100,p:118}, {q:250,p:189}, {q:500,p:295}, {q:1000,p:465} ],
       options: [
@@ -104,7 +109,7 @@
           {value:'80c', label:'80lb matte cover', mult:1.28} ]}
       ]},
 
-    { id: 'postcards', cat: 'marketing', route: 'store',
+    { id: 'postcards', image: FRANK_IMG + 'b426c1bb-957f-4464-967b-286beeddf667.jpg', cat: 'marketing', route: 'store',
       name: 'Postcards', blurb: 'Mailable sizes, USPS-compliant. We can mail them for you.', unit: 'postcards',
       tiers: [ {q:250,p:68}, {q:500,p:98}, {q:1000,p:152}, {q:2500,p:298} ],
       options: [
@@ -115,12 +120,12 @@
         SIDES
       ]},
 
-    { id: 'door-hangers', cat: 'marketing', route: 'store',
+    { id: 'door-hangers', image: FRANK_IMG + '0e16ce41-c3c4-41f5-bd78-e9f8d39f3db6.jpg', cat: 'marketing', route: 'store',
       name: 'Door hangers', blurb: '4.25 × 11 with a die-cut hook.', unit: 'hangers',
       tiers: [ {q:250,p:96}, {q:500,p:142}, {q:1000,p:218} ],
       options: [ SIDES ]},
 
-    { id: 'banners', cat: 'large-format', route: 'store',
+    { id: 'banners', image: FRANK_IMG + 'a2b3efeb-8903-4167-8974-fff8e3c5fb7e.png', cat: 'large-format', route: 'store',
       name: 'Vinyl banners', blurb: '13oz scrim vinyl, hemmed with grommets.', unit: 'banners',
       tiers: [ {q:1,p:78}, {q:2,p:148}, {q:5,p:340}, {q:10,p:640} ],
       options: [
@@ -133,7 +138,7 @@
           {value:'pole', label:'Pole pockets', mult:1.15} ]}
       ]},
 
-    { id: 'posters', cat: 'large-format', route: 'store',
+    { id: 'posters', image: FRANK_IMG + '86254019-f9e6-43bb-be6b-8d513848a918.jpg', cat: 'large-format', route: 'store',
       name: 'Posters', blurb: 'Indoor posters on satin or matte photo stock.', unit: 'posters',
       tiers: [ {q:1,p:22}, {q:5,p:88}, {q:10,p:158}, {q:25,p:340} ],
       options: [
@@ -142,12 +147,12 @@
           {value:'2436', label:'24 × 36', mult:1.7} ]}
       ]},
 
-    { id: 'yard-signs', cat: 'large-format', route: 'store',
+    { id: 'yard-signs', image: FRANK_IMG + '731fad43-31f7-4f22-837d-d0d96e2823e2.jpg', cat: 'large-format', route: 'store',
       name: 'Yard signs', blurb: '4mm corrugated plastic with wire stakes.', unit: 'signs',
       tiers: [ {q:10,p:145}, {q:25,p:298}, {q:50,p:520}, {q:100,p:890} ],
       options: [ SIDES ]},
 
-    { id: 'labels', cat: 'labels', route: 'store',
+    { id: 'labels', image: FRANK_IMG + '7a2b8d0e-2007-4336-8990-32f16e7dad53.jpg', cat: 'labels', route: 'store',
       name: 'Labels & stickers', blurb: 'Sheets, rolls or die-cut to your shape.', unit: 'labels',
       tiers: [ {q:250,p:64}, {q:500,p:92}, {q:1000,p:138}, {q:2500,p:265} ],
       options: [
@@ -161,7 +166,7 @@
           {value:'custom', label:'Custom die-cut', mult:1.3} ]}
       ]},
 
-    { id: 'tshirts', cat: 'apparel', route: 'pod',
+    { id: 'tshirts', image: FRANK_IMG + '0a64fb49-e8ce-47c6-a30c-a8f5a4d35b05.png', cat: 'apparel', route: 'pod',
       name: 'T-shirts', blurb: 'Printed and shipped by our print-on-demand partner.', unit: 'shirts',
       tiers: [ {q:1,p:24}, {q:10,p:210}, {q:25,p:475}, {q:50,p:880} ],
       options: [
@@ -170,17 +175,17 @@
           {value:'both', label:'Front and back', mult:1.3} ]}
       ]},
 
-    { id: 'hoodies', cat: 'apparel', route: 'pod',
+    { id: 'hoodies', image: FRANK_IMG + '7a42fe1e-b621-49a6-b9a2-b24d38c46efe.jpg', cat: 'apparel', route: 'pod',
       name: 'Hoodies', blurb: 'Printed and shipped by our print-on-demand partner.', unit: 'hoodies',
       tiers: [ {q:1,p:46}, {q:10,p:420}, {q:25,p:975} ],
       options: [] },
 
-    { id: 'union-flyers', cat: 'union-political', route: 'store',
+    { id: 'union-flyers', image: FRANK_IMG + '7fa7b398-d285-4a91-b267-ed977564be93.png', cat: 'union-political', route: 'store',
       name: 'Union-printed flyers', blurb: 'Full colour with the union bug applied.', unit: 'flyers',
       tiers: [ {q:250,p:88}, {q:500,p:132}, {q:1000,p:205} ],
       options: [ SIDES ]},
 
-    { id: 'political-mailers', cat: 'union-political', route: 'custom',
+    { id: 'political-mailers', image: FRANK_IMG + 'c91ed377-dca6-4343-a99c-93275de2f93d.jpg', cat: 'union-political', route: 'custom',
       name: 'Political mailers', blurb: 'Disclaimers, mail permits and list handling. Always quoted.', unit: 'mailers',
       tiers: [], options: [] }
   ];

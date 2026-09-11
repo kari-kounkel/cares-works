@@ -90,7 +90,7 @@
     });
     if (rejected.length) {
       showError('These files are over the 25 MB limit and were not attached: ' +
-        rejected.join(', ') + '. Send them to hello@mmpuptown.com and we will match them to your request.');
+        rejected.join(', ') + '. Send them to mpls@minutemanpress.com and we will match them to your request.');
     }
     renderFiles();
   }
