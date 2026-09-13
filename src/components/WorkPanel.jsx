@@ -56,6 +56,7 @@ const SOURCE_LABEL = {
   everything: "Board cards",
   rollout: "Rollout",
   minuteman: "Minuteman",
+  monet: "Monet",
   board: "Added here",
 };
 

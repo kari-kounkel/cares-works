@@ -91,3 +91,9 @@ alter table public.board_work add constraint board_work_source_check
 alter table public.board_work drop constraint if exists board_work_source_check;
 alter table public.board_work add constraint board_work_source_check
   check (source in ('everything', 'rollout', 'board', 'minuteman'));
+
+-- Monet's lists (2026-09-13): the six-product Codex audit, Emerson, the
+-- accounting spine umbrella, the portfolio shared-infrastructure pass.
+alter table public.board_work drop constraint if exists board_work_source_check;
+alter table public.board_work add constraint board_work_source_check
+  check (source in ('everything', 'rollout', 'board', 'minuteman', 'monet'));

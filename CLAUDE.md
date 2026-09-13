@@ -16,11 +16,15 @@
 ## Rules for this folder
 - All work for this project lives here: `C:\dev\cares-works`. Do not write project files into other C:\dev folders, OneDrive, Desktop, or Temp unless Kari explicitly says so.
 - Before ending a session, or whenever Kari says "update STATUS.md", rewrite STATUS.md: What this is / Where it lives / Built so far / Decisions / Where it stopped / Next steps / Pending items / Key files. Keep the format.
+- **The Command Board is Kari's one to-do list** — tools.caresmn.com/board, table `public.board_work` in the cares-works Supabase (`qcikhcnclduakriextsz`). Kari, 2026-09-13: "we want the command board." New work goes there, done work gets ticked there.
+  - **Never write to the Everything Board** (`everything.karikounkel.com`, Supabase `iwrrkhzjfjlgpqmzlxqb`). It is retired as a to-do list; its cards were copied into `board_work` on 9/8 and 9/13. A session that put an entry there was told by Kari it was wrong — that is why this rule exists. If a task seems to belong on "the board," it is the Command Board.
+  - Add work as a `board_work` row (`source='board'` for anything new; `title`, `bucket` one of urgent/focus/inprogress/brainstorm/complete, optional `due_date`, `projects` jsonb, `checklist` jsonb of `{id,done,text}`). RLS is owner-scoped; Kari's rows are under user_id `7ee067cc-b907-450b-82a2-a6ee64f10a1f` (kari@karikounkel.com).
 - **Keep the three ProGraphics trackers in sync — every time ledger work ships or the plan changes, update all three in the same turn, not just one:**
   1. The in-app **BUILD PROGRESS** sidebar — the `BUILD_PROGRESS` array in `src/pages/LedgerWorkspace.jsx` (mark items done/wip/todo; add new ones).
   2. **STATUS.md** — the plan of record.
-  3. The **Command Board** card — Everything Board Supabase `iwrrkhzjfjlgpqmzlxqb`, card `70fd14b5-eab8-4e3e-9c9f-6a5ffa916734` ("Finish ProGraphics — non-payroll QBO replacement"), its `checklist` jsonb (`{id,done,text}`). Tick items done there when they ship.
-  An item finished in the app must read finished in STATUS and be ticked on the card. Don't let them drift.
+  3. The **Command Board** row — `public.board_work` in cares-works Supabase `qcikhcnclduakriextsz`, `source='everything'`, `source_id='pgledg01'` ("Finish ProGraphics — non-payroll QBO replacement (double-entry)"), its `checklist` jsonb (`{id,done,text}`). Tick items done there when they ship. (This used to point at an Everything Board card; that was a mistake, corrected 9/13.)
+  An item finished in the app must read finished in STATUS and be ticked on the Command Board row. Don't let them drift.
+- **Frozen, per Kari and Monet 2026-09-13 — pending a read-only Codex audit:** no feature development on ProGraphics (the ledger in this repo — `LedgerWorkspace.jsx` and its tables). "Freeze feature tinkering for the moment… do not rebuild anything until we review Codex's assessment." FlowSuite and FlowSuite Pro are frozen too ("stop further Claude changes"), as are Keepstead, Keepstead Pro and Credit Comeback Kit during the audit — those live in other repos. The audit plan is on the Command Board under Monet.
 - Re-surface every item under "Pending / frozen items" before starting new work. Kari will not bring them up herself.
 - Claude runs git and SQL itself — commit, push, deploy. Do not hand Kari commands to run.
 - Kari's workflow: files are moved in File Explorer; Git Bash with `cd /c/dev/cares-works` (forward slashes). Never suggest Windows-backslash cd or cp/copy commands.
