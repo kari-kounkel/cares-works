@@ -232,6 +232,12 @@ The product itself at `tools.caresmn.com` — design system, pricing, org worksp
 - Laurie's phone photos of the facility map / mock invoices / policies — status not shown (verify received).
 - The "Emerson" tenant (`/emerson`) exists but no details in these excerpts (verify).
 
+### Client workpaper links (built 9/13/2026)
+- `tools.caresmn.com/emerson/<32-hex token>` — no-login page (`src/pages/WorkpaperPublic.jsx`, route in `App.jsx` above the auth gates). First link: **Emerson Services – 2025 Workpapers**, all 706 bank transactions for Premier 4161/0449/1398/2259 classified from the statements and compared with QuickBooks (which stops July 2025); 12 open items.
+- Data: `public.workpaper_links` (payload jsonb, token, `notify_email` = kari@caresmn.com, owner = Kari) and `public.workpaper_answers`. Anon cannot read either table; access is only through `get_workpaper_by_token(slug, token)` and `submit_workpaper_answer(slug, token, item_key, answer, name)` (SQL in `sql/workpapers.sql`).
+- Each saved answer triggers edge function `workpaper-answer-notify`, which emails `notify_email` through the hub. Verified 9/13: save, bad-token rejection, email sent (`emailed: true`), direct table read blocked; the test answer was deleted.
+- The payload is built outside the app (bank statements parsed and checked against printed daily balances). There is no in-app screen yet for Kari to list answers; they arrive by email and show on the page itself.
+
 **Key files**
 - `C:\dev\cares-works\src\App.jsx` (routes), `src\design\neon.jsx`
 - `C:\dev\cares-works\src\pages\OrgHome.jsx`, `PublicRent.jsx`, `Pricing.jsx`, `NonprofitSeries.jsx`, `ProposalsIndex.jsx`, `ProposalView.jsx`, `ProposalPublic.jsx`, `COALibrary.jsx`, `Workspace.jsx`, `Dashboard.jsx`, `Landing.jsx`, `Login.jsx`
