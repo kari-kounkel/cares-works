@@ -49,6 +49,8 @@ const CSS = `
 .wp .tie{color:#15803d;font-weight:600}
 .wp tr.acctrow td{font-weight:500}
 .wp-toggle{border:1px solid ${N.rule};background:#fff;border-radius:4px;width:22px;height:22px;line-height:18px;padding:0;cursor:pointer;color:${N.blue};font-size:12px}
+.wp .star{color:${N.blue};font-weight:700;margin-left:3px}
+.wp-foot-note{font-size:13px;color:${N.muted};margin:10px 0 0}
 .wp .coa{display:inline-block;min-width:62px;font-family:'DM Mono',monospace;font-size:12.5px;color:${N.muted}}
 .wp tr.grp td{font-weight:600;color:${N.ink};border-bottom:0;padding-bottom:2px}
 .wp tr.sub td{border-bottom:0;padding-top:3px;padding-bottom:3px}
@@ -70,12 +72,14 @@ const CSS = `
 
 // Chart-of-accounts sections: a one-line account shows as a single row; a parent with
 // sub-accounts shows its heading, the indented sub-accounts, and a subtotal.
-function Groups({ groups }) {
+// An asterisk marks any account (or parent account) that has a question above.
+function Groups({ groups, qs = [] }) {
+  const star = (acct) => qs.includes(acct) ? <span className="star" title="Has a question above">*</span> : null;
   return groups.map(g => g.lines.length === 1 && g.lines[0].acct === g.acct
-    ? <tr key={g.acct}><td><span className="coa">{g.acct}</span>{g.name}</td><td className="num">{money(g.total)}</td></tr>
+    ? <tr key={g.acct}><td><span className="coa">{g.acct}</span>{g.name}{star(g.acct)}</td><td className="num">{money(g.total)}</td></tr>
     : [
-        <tr key={g.acct + "h"} className="grp"><td colSpan={2}><span className="coa">{g.acct}</span>{g.name}</td></tr>,
-        ...g.lines.map(l => <tr key={l.acct} className="sub"><td><span className="coa">{l.acct}</span>{l.name}</td><td className="num">{money(l.amount)}</td></tr>),
+        <tr key={g.acct + "h"} className="grp"><td colSpan={2}><span className="coa">{g.acct}</span>{g.name}{star(g.acct)}</td></tr>,
+        ...g.lines.map(l => <tr key={l.acct} className="sub"><td><span className="coa">{l.acct}</span>{l.name}{star(l.acct)}</td><td className="num">{money(l.amount)}</td></tr>),
         <tr key={g.acct + "t"} className="subtot"><td>Total {g.acct} {g.name}</td><td className="num">{money(g.total)}</td></tr>,
       ]);
 }
@@ -189,19 +193,20 @@ export default function WorkpaperPublic({ slug, token }) {
           <div className="wp-scroll"><table>
             <tbody>
               <tr className="band"><td colSpan={2}>Income</td></tr>
-              <Groups groups={pl.income_groups} />
+              <Groups groups={pl.income_groups} qs={pl.question_accts} />
               <tr className="tot"><td>Total income</td><td className="num">{money(pl.total_income)}</td></tr>
               <tr className="band"><td colSpan={2}>Expenses</td></tr>
-              <Groups groups={pl.expense_groups} />
+              <Groups groups={pl.expense_groups} qs={pl.question_accts} />
               <tr className="tot"><td>Total expenses</td><td className="num">{money(pl.total_expenses)}</td></tr>
               <tr className="net"><td>Net income</td><td className="num">{money(pl.net)}</td></tr>
-              <tr className="band"><td colSpan={2}>Not yet classified — see questions</td></tr>
-              {pl.identify.map(l => <tr key={l.category}><td>{l.category}</td><td className="num">{money(l.amount)}</td></tr>)}
+              <tr className="band"><td colSpan={2}>Not yet classified</td></tr>
+              {pl.identify.map(l => <tr key={l.category}><td>{l.category}<span className="star">*</span></td><td className="num">{money(l.amount)}</td></tr>)}
               <tr className="band"><td colSpan={2}>Transfers</td></tr>
               {pl.transfers.map(l => <tr key={l.category}><td>{l.category}</td><td className="num">{money(l.amount)}</td></tr>)}
               <tr className="tot"><td>Change in bank balances for the year</td><td className="num">{money(pl.cash_change)}</td></tr>
             </tbody>
           </table></div>
+          <p className="wp-foot-note"><span className="star">*</span> Has a question above.</p>
         </section>
 
         {p.proof && (
