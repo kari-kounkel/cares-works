@@ -1,7 +1,7 @@
 // Client workpapers — tools.caresmn.com/<slug>/<token>. No login; the token is the key.
 // Shows the year's profit & loss built from the bank statements, one line per open question
 // with a one-line answer, and the full transaction list. Answers save through
-// submit_workpaper_answer; workpaper-answer-notify emails the owner.
+// submit_workpaper_answer into public.workpaper_answers (no email).
 
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../supabaseClient";
@@ -146,7 +146,6 @@ export default function WorkpaperPublic({ slug, token }) {
   async function saveAnswer(itemKey, text) {
     const { error } = await supabase.rpc("submit_workpaper_answer", { p_slug: slug, p_token: token, p_item_key: itemKey, p_answer: text, p_answered_by: null });
     if (error) return { ok: false, error: "Not saved — " + error.message + ". Press Save again." };
-    supabase.functions.invoke("workpaper-answer-notify", { body: { slug, token, item_key: itemKey } }).catch(() => {});
     const { data } = await supabase.rpc("get_workpaper_by_token", { p_slug: slug, p_token: token });
     if (Array.isArray(data) && data.length) setAnswers(data[0].answers || []);
     return { ok: true };
