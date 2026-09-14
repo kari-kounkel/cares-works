@@ -46,6 +46,9 @@ const CSS = `
 .wp .num{text-align:right;font-family:'DM Mono',monospace;font-variant-numeric:tabular-nums;white-space:nowrap}
 .wp tr.band td{background:#f5f9ff;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:${N.blueDark};padding-top:9px}
 .wp tr.tot td{font-weight:600;border-top:1px solid ${N.ink}}
+.wp .tie{color:#15803d;font-weight:600}
+.wp tr.acctrow td{font-weight:500}
+.wp-toggle{border:1px solid ${N.rule};background:#fff;border-radius:4px;width:22px;height:22px;line-height:18px;padding:0;cursor:pointer;color:${N.blue};font-size:12px}
 .wp .coa{display:inline-block;min-width:62px;font-family:'DM Mono',monospace;font-size:12.5px;color:${N.muted}}
 .wp tr.grp td{font-weight:600;color:${N.ink};border-bottom:0;padding-bottom:2px}
 .wp tr.sub td{border-bottom:0;padding-top:3px;padding-bottom:3px}
@@ -75,6 +78,28 @@ function Groups({ groups }) {
         ...g.lines.map(l => <tr key={l.acct} className="sub"><td><span className="coa">{l.acct}</span>{l.name}</td><td className="num">{money(l.amount)}</td></tr>),
         <tr key={g.acct + "t"} className="subtot"><td>Total {g.acct} {g.name}</td><td className="num">{money(g.total)}</td></tr>,
       ]);
+}
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+function TieOut({ a }) {
+  const [open, setOpen] = useState(false);
+  const ties = a.months.every(m => Math.abs(m.diff) < 0.005);
+  return (
+    <tbody>
+      <tr className="acctrow">
+        <td><button className="wp-toggle" onClick={() => setOpen(!open)} aria-expanded={open}>{open ? "▾" : "▸"}</button> <span className="acct">{a.acct}</span> {a.name} <span className="muted" style={{ fontSize: 12 }}>· {a.count} transactions</span></td>
+        <td className="num">{money(a.begin)}</td><td className="num">{money(a.deposits)}</td><td className="num">{money(a.withdrawals)}</td><td className="num">{money(a.end)}</td>
+        <td className="num tie">{ties ? "✓ 12 of 12" : "✗"}</td>
+      </tr>
+      {open && a.months.map(m => (
+        <tr key={m.month} className="sub">
+          <td>{MONTHS[m.month - 1]} <span className="muted" style={{ fontSize: 12 }}>· {m.count}</span></td>
+          <td className="num">{money(m.begin)}</td><td className="num">{money(m.deposits)}</td><td className="num">{money(m.withdrawals)}</td><td className="num">{money(m.end)}</td>
+          <td className="num tie">{Math.abs(m.diff) < 0.005 ? "✓" : money(m.diff)}</td>
+        </tr>
+      ))}
+    </tbody>
+  );
 }
 
 function Question({ item, saved, onSave, n }) {
@@ -178,6 +203,27 @@ export default function WorkpaperPublic({ slug, token }) {
             </tbody>
           </table></div>
         </section>
+
+        {p.proof && (
+          <section className="wp-sheet" id="tieout">
+            <h2>Bank tie-out</h2>
+            <p className="wp-lede">Every statement checked: beginning balance + deposits − withdrawals = ending balance, and every transaction is in the list below. Open an account to see each month.</p>
+            <div className="wp-scroll"><table>
+              <thead><tr><th>Account</th><th className="num">Jan 1, {p.year}</th><th className="num">Deposits</th><th className="num">Withdrawals</th><th className="num">Dec 31, {p.year}</th><th className="num">Ties</th></tr></thead>
+              {p.proof.map(a => <TieOut key={a.acct} a={a} />)}
+              <tbody>
+                <tr className="tot">
+                  <td>All four accounts</td>
+                  <td className="num">{money(p.proof.reduce((t, a) => t + a.begin, 0))}</td>
+                  <td className="num">{money(p.proof.reduce((t, a) => t + a.deposits, 0))}</td>
+                  <td className="num">{money(p.proof.reduce((t, a) => t + a.withdrawals, 0))}</td>
+                  <td className="num">{money(p.proof.reduce((t, a) => t + a.end, 0))}</td>
+                  <td className="num tie">✓</td>
+                </tr>
+              </tbody>
+            </table></div>
+          </section>
+        )}
 
         <section className="wp-sheet" id="transactions">
           <h2>Transactions</h2>
