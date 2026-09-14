@@ -56,6 +56,7 @@ import ToolsIndex from "./pages/ToolsIndex";
 import CourtOfAccountsHome from "./pages/CourtOfAccountsHome";
 import LedgerWorkspace from "./pages/LedgerWorkspace";
 import EmersonWorkspace from "./pages/EmersonWorkspace";
+import WorkpaperPublic from "./pages/WorkpaperPublic";
 import InvoicePublic from "./pages/InvoicePublic";
 import InvoiceDocPublic from "./pages/InvoiceDocPublic";
 import InvoiceMaker from "./pages/InvoiceMaker";
@@ -131,6 +132,9 @@ export default function App() {
 
   // Same idea for the invoice maker's own invoices: /inv/<token>, no login.
   if (path.startsWith("/inv/")) return <InvoiceDocPublic token={path.slice(5).replace(/\/$/, "")} />;
+
+  // Client workpapers by token, no login: /emerson/<32-hex token>. The bare /emerson door stays login-gated below.
+  if (/^\/emerson\/[0-9a-f]{32}\/?$/.test(path)) return <WorkpaperPublic slug="emerson" token={path.split("/")[2]} />;
 
   if (loading) return (
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#ffffff", fontFamily: "'Figtree', sans-serif", color: "#64748b", fontSize: 15 }}>Loading...</div>
