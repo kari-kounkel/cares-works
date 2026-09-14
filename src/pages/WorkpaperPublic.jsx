@@ -46,6 +46,12 @@ const CSS = `
 .wp .num{text-align:right;font-family:'DM Mono',monospace;font-variant-numeric:tabular-nums;white-space:nowrap}
 .wp tr.band td{background:#f5f9ff;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:${N.blueDark};padding-top:9px}
 .wp tr.tot td{font-weight:600;border-top:1px solid ${N.ink}}
+.wp .coa{display:inline-block;min-width:62px;font-family:'DM Mono',monospace;font-size:12.5px;color:${N.muted}}
+.wp tr.grp td{font-weight:600;color:${N.ink};border-bottom:0;padding-bottom:2px}
+.wp tr.sub td{border-bottom:0;padding-top:3px;padding-bottom:3px}
+.wp tr.sub td:first-child{padding-left:30px}
+.wp tr.subtot td{font-weight:600;border-top:1px solid ${N.rule}}
+.wp tr.subtot td:first-child{padding-left:30px}
 .wp tr.net td{font-weight:700;border-top:1px solid ${N.ink};border-bottom:3px double ${N.ink}}
 .wp .muted{color:${N.muted}} .wp .mono{font-family:'DM Mono',monospace;font-variant-numeric:tabular-nums}
 .wp .acct{font-family:'DM Mono',monospace;font-size:11.5px;border:1px solid ${N.rule};border-radius:4px;padding:0 5px;background:#f8fafc;white-space:nowrap}
@@ -58,6 +64,18 @@ const CSS = `
 .wp-txbox thead th{position:sticky;top:0;background:#fff}
 @media (max-width:700px){.wp-q li{grid-template-columns:1fr auto}.wp-q .text{grid-column:1 / 3}.wp-q .saved{grid-column:1 / 3}.wp-sheet{padding:16px}}
 `;
+
+// Chart-of-accounts sections: a one-line account shows as a single row; a parent with
+// sub-accounts shows its heading, the indented sub-accounts, and a subtotal.
+function Groups({ groups }) {
+  return groups.map(g => g.lines.length === 1 && g.lines[0].acct === g.acct
+    ? <tr key={g.acct}><td><span className="coa">{g.acct}</span>{g.name}</td><td className="num">{money(g.total)}</td></tr>
+    : [
+        <tr key={g.acct + "h"} className="grp"><td colSpan={2}><span className="coa">{g.acct}</span>{g.name}</td></tr>,
+        ...g.lines.map(l => <tr key={l.acct} className="sub"><td><span className="coa">{l.acct}</span>{l.name}</td><td className="num">{money(l.amount)}</td></tr>),
+        <tr key={g.acct + "t"} className="subtot"><td>Total {g.acct} {g.name}</td><td className="num">{money(g.total)}</td></tr>,
+      ]);
+}
 
 function Question({ item, saved, onSave, n }) {
   const [text, setText] = useState("");
@@ -146,11 +164,11 @@ export default function WorkpaperPublic({ slug, token }) {
           <div className="wp-scroll"><table>
             <tbody>
               <tr className="band"><td colSpan={2}>Income</td></tr>
-              {pl.income.map(l => <tr key={l.category}><td>{l.category}</td><td className="num">{money(l.amount)}</td></tr>)}
-              <tr className="tot"><td>Total income</td><td className="num">{money(sum(pl.income))}</td></tr>
+              <Groups groups={pl.income_groups} />
+              <tr className="tot"><td>Total income</td><td className="num">{money(pl.total_income)}</td></tr>
               <tr className="band"><td colSpan={2}>Expenses</td></tr>
-              {pl.expenses.map(l => <tr key={l.category}><td>{l.category}</td><td className="num">{money(l.amount)}</td></tr>)}
-              <tr className="tot"><td>Total expenses</td><td className="num">{money(sum(pl.expenses))}</td></tr>
+              <Groups groups={pl.expense_groups} />
+              <tr className="tot"><td>Total expenses</td><td className="num">{money(pl.total_expenses)}</td></tr>
               <tr className="net"><td>Net income</td><td className="num">{money(pl.net)}</td></tr>
               <tr className="band"><td colSpan={2}>Not yet classified — see questions</td></tr>
               {pl.identify.map(l => <tr key={l.category}><td>{l.category}</td><td className="num">{money(l.amount)}</td></tr>)}
