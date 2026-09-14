@@ -3,7 +3,7 @@
 // with a one-line answer, and the full transaction list. Answers save through
 // submit_workpaper_answer into public.workpaper_answers (no email).
 
-import { useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { supabase } from "../supabaseClient";
 import { N, FONT_LINK, WASH_BG_LITE } from "../design/neon";
 
@@ -50,6 +50,16 @@ const CSS = `
 .wp tr.acctrow td{font-weight:500}
 .wp-toggle{border:1px solid ${N.blue};background:#f5f9ff;border-radius:999px;padding:1px 9px;cursor:pointer;color:${N.blueDark};font-size:12px;font-weight:600;white-space:nowrap;margin-bottom:3px}
 .wp tr.acctrow:hover td{background:#f8fbff}
+.wp .amt{font:inherit;font-family:'DM Mono',monospace;background:none;border:0;border-bottom:1px dashed ${N.blue};color:${N.blueDark};cursor:pointer;padding:0 1px}
+.wp .amt:hover{background:#eef5ff}
+.wp tr.open td{background:#f5f9ff}
+.wp tr.drillrow>td{padding:0 0 12px 0;border-bottom:1px solid ${N.rule}}
+.wp .drill{border:1px solid #d6e6ff;border-radius:8px;background:#fbfdff;margin:4px 0 0}
+.wp .drill-box{max-height:340px;overflow:auto}
+.wp .drill table{font-size:12.5px}
+.wp .drill thead th{position:sticky;top:0;background:#fbfdff}
+.wp .drill-sum{font-family:'DM Mono',monospace;font-size:12.5px;padding:7px 10px;border-top:1px solid #d6e6ff;color:${N.red}}
+.wp .drill-sum.ok{color:#15803d}
 .wp .star{color:${N.blue};font-weight:700;margin-left:3px}
 .wp-foot-note{font-size:13px;color:${N.muted};margin:10px 0 0}
 .wp .coa{display:inline-block;min-width:62px;font-family:'DM Mono',monospace;font-size:12.5px;color:${N.muted}}
@@ -71,17 +81,58 @@ const CSS = `
 @media (max-width:700px){.wp-q li{grid-template-columns:1fr auto}.wp-q .text{grid-column:1 / 3}.wp-q .saved{grid-column:1 / 3}.wp-sheet{padding:16px}}
 `;
 
+// Every amount on the P&L is a button that opens the transactions behind it: date, the
+// statement (account + month) to check it against, the bank's description, and the amount,
+// with the total proven back to the number clicked.
+const Drill = createContext(null);
+
+function DrillTable({ cats, sign, amount }) {
+  const { tx, year } = useContext(Drill);
+  const list = tx.filter(t => cats.includes(t.category)).sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0);
+  const total = Math.round(list.reduce((t, x) => t + x.amount, 0) * sign * 100) / 100;
+  const ok = Math.abs(total - amount) < 0.005;
+  return (
+    <div className="drill">
+      <div className="drill-box"><table>
+        <thead><tr><th>Date</th><th>Check it on statement</th><th>Bank description</th><th className="num">Amount</th></tr></thead>
+        <tbody>{list.map((t, i) => (
+          <tr key={i}>
+            <td className="mono">{t.date.slice(5)}/{year}</td>
+            <td className="mono">{t.acct} · {MONTHS[Number(t.date.slice(5, 7)) - 1]} {year}</td>
+            <td>{t.desc}{t.payee && <div className="muted" style={{ fontSize: 12 }}>{t.payee}</div>}</td>
+            <td className="num">{money(t.amount * sign)}</td>
+          </tr>
+        ))}</tbody>
+      </table></div>
+      <div className={"drill-sum" + (ok ? " ok" : "")}>{list.length} transaction{list.length === 1 ? "" : "s"} = {money(total)} {ok ? "✓ matches" : "— does not match " + money(amount)}</div>
+    </div>
+  );
+}
+
+function PLRow({ id, label, cats, amount, sign = 1, className = "", star = null }) {
+  const { open, setOpen } = useContext(Drill);
+  const isOpen = open === id;
+  return [
+    <tr key={id} className={className + (isOpen ? " open" : "")}>
+      <td>{label}{star}</td>
+      <td className="num"><button className="amt" onClick={() => setOpen(isOpen ? null : id)} aria-expanded={isOpen} title="Show the transactions behind this number">{money(amount)}</button></td>
+    </tr>,
+    isOpen && <tr key={id + "d"} className="drillrow"><td colSpan={2}><DrillTable cats={cats} sign={sign} amount={amount} /></td></tr>,
+  ];
+}
+
 // Chart-of-accounts sections: a one-line account shows as a single row; a parent with
 // sub-accounts shows its heading, the indented sub-accounts, and a subtotal.
 // An asterisk marks any account (or parent account) that has a question above.
-function Groups({ groups, qs = [] }) {
+const lineCat = (l) => l.acct + " " + l.name;
+function Groups({ groups, qs = [], sign }) {
   const star = (acct) => qs.includes(acct) ? <span className="star" title="Has a question above">*</span> : null;
   return groups.map(g => g.lines.length === 1 && g.lines[0].acct === g.acct
-    ? <tr key={g.acct}><td><span className="coa">{g.acct}</span>{g.name}{star(g.acct)}</td><td className="num">{money(g.total)}</td></tr>
+    ? <PLRow key={g.acct} id={"g" + g.acct} label={<><span className="coa">{g.acct}</span>{g.name}</>} star={star(g.acct)} cats={[lineCat(g.lines[0])]} amount={g.total} sign={sign} />
     : [
         <tr key={g.acct + "h"} className="grp"><td colSpan={2}><span className="coa">{g.acct}</span>{g.name}{star(g.acct)}</td></tr>,
-        ...g.lines.map(l => <tr key={l.acct} className="sub"><td><span className="coa">{l.acct}</span>{l.name}{star(l.acct)}</td><td className="num">{money(l.amount)}</td></tr>),
-        <tr key={g.acct + "t"} className="subtot"><td>Total {g.acct} {g.name}</td><td className="num">{money(g.total)}</td></tr>,
+        ...g.lines.map(l => <PLRow key={l.acct + l.name} id={"l" + l.acct + l.name} className="sub" label={<><span className="coa">{l.acct}</span>{l.name}</>} star={star(l.acct)} cats={[lineCat(l)]} amount={l.amount} sign={sign} />),
+        <PLRow key={g.acct + "t"} id={"t" + g.acct} className="subtot" label={"Total " + g.acct + " " + g.name} cats={g.lines.map(lineCat)} amount={g.total} sign={sign} />,
       ]);
 }
 
@@ -133,6 +184,7 @@ export default function WorkpaperPublic({ slug, token }) {
   const [state, setState] = useState({ loading: true, data: null });
   const [answers, setAnswers] = useState([]);
   const [q, setQ] = useState(""); const [fa, setFa] = useState(""); const [fc, setFc] = useState("");
+  const [drillOpen, setDrillOpen] = useState(null);
 
   useEffect(() => {
     (async () => {
@@ -190,22 +242,25 @@ export default function WorkpaperPublic({ slug, token }) {
 
         <section className="wp-sheet" id="pl">
           <h2>Profit &amp; loss — {p.year}</h2>
+          <p className="wp-lede">Click any amount to see the transactions behind it and which bank statement to check each one on.</p>
+          <Drill.Provider value={{ tx, year: p.year, open: drillOpen, setOpen: setDrillOpen }}>
           <div className="wp-scroll"><table>
             <tbody>
               <tr className="band"><td colSpan={2}>Income</td></tr>
-              <Groups groups={pl.income_groups} qs={pl.question_accts} />
-              <tr className="tot"><td>Total income</td><td className="num">{money(pl.total_income)}</td></tr>
+              <Groups groups={pl.income_groups} qs={pl.question_accts} sign={1} />
+              <PLRow id="ti" className="tot" label="Total income" cats={pl.income_groups.flatMap(g => g.lines.map(lineCat))} amount={pl.total_income} sign={1} />
               <tr className="band"><td colSpan={2}>Expenses</td></tr>
-              <Groups groups={pl.expense_groups} qs={pl.question_accts} />
-              <tr className="tot"><td>Total expenses</td><td className="num">{money(pl.total_expenses)}</td></tr>
+              <Groups groups={pl.expense_groups} qs={pl.question_accts} sign={-1} />
+              <PLRow id="te" className="tot" label="Total expenses" cats={pl.expense_groups.flatMap(g => g.lines.map(lineCat))} amount={pl.total_expenses} sign={-1} />
               <tr className="net"><td>Net income</td><td className="num">{money(pl.net)}</td></tr>
               <tr className="band"><td colSpan={2}>Not yet classified</td></tr>
-              {pl.identify.map(l => <tr key={l.category}><td>{l.category}<span className="star">*</span></td><td className="num">{money(l.amount)}</td></tr>)}
+              {pl.identify.map(l => <PLRow key={l.category} id={"i" + l.category} label={l.category} star={<span className="star">*</span>} cats={[l.category]} amount={l.amount} sign={1} />)}
               <tr className="band"><td colSpan={2}>Transfers</td></tr>
-              {pl.transfers.map(l => <tr key={l.category}><td>{l.category}</td><td className="num">{money(l.amount)}</td></tr>)}
+              {pl.transfers.map(l => <PLRow key={l.category} id={"x" + l.category} label={l.category} cats={[l.category]} amount={l.amount} sign={1} />)}
               <tr className="tot"><td>Change in bank balances for the year</td><td className="num">{money(pl.cash_change)}</td></tr>
             </tbody>
           </table></div>
+          </Drill.Provider>
           <p className="wp-foot-note"><span className="star">*</span> Has a question above.</p>
         </section>
 
