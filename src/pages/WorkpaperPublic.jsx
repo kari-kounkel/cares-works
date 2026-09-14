@@ -48,7 +48,8 @@ const CSS = `
 .wp tr.tot td{font-weight:600;border-top:1px solid ${N.ink}}
 .wp .tie{color:#15803d;font-weight:600}
 .wp tr.acctrow td{font-weight:500}
-.wp-toggle{border:1px solid ${N.rule};background:#fff;border-radius:4px;width:22px;height:22px;line-height:18px;padding:0;cursor:pointer;color:${N.blue};font-size:12px}
+.wp-toggle{border:1px solid ${N.blue};background:#f5f9ff;border-radius:999px;padding:1px 9px;cursor:pointer;color:${N.blueDark};font-size:12px;font-weight:600;white-space:nowrap;margin-bottom:3px}
+.wp tr.acctrow:hover td{background:#f8fbff}
 .wp .star{color:${N.blue};font-weight:700;margin-left:3px}
 .wp-foot-note{font-size:13px;color:${N.muted};margin:10px 0 0}
 .wp .coa{display:inline-block;min-width:62px;font-family:'DM Mono',monospace;font-size:12.5px;color:${N.muted}}
@@ -90,8 +91,8 @@ function TieOut({ a }) {
   const ties = a.months.every(m => Math.abs(m.diff) < 0.005);
   return (
     <tbody>
-      <tr className="acctrow">
-        <td><button className="wp-toggle" onClick={() => setOpen(!open)} aria-expanded={open}>{open ? "▾" : "▸"}</button> <span className="acct">{a.acct}</span> {a.name} <span className="muted" style={{ fontSize: 12 }}>· {a.count} transactions</span></td>
+      <tr className="acctrow" onClick={() => setOpen(!open)} style={{ cursor: "pointer" }}>
+        <td><button className="wp-toggle" onClick={e => { e.stopPropagation(); setOpen(!open); }} aria-expanded={open}>{open ? "▾ Hide months" : "▸ Show months"}</button> <span className="acct">{a.acct}</span> {a.name} <span className="muted" style={{ fontSize: 12 }}>· {a.count} transactions</span></td>
         <td className="num">{money(a.begin)}</td><td className="num">{money(a.deposits)}</td><td className="num">{money(a.withdrawals)}</td><td className="num">{money(a.end)}</td>
         <td className="num tie">{ties ? "✓ 12 of 12" : "✗"}</td>
       </tr>
@@ -212,7 +213,7 @@ export default function WorkpaperPublic({ slug, token }) {
         {p.proof && (
           <section className="wp-sheet" id="tieout">
             <h2>Bank tie-out</h2>
-            <p className="wp-lede">Every statement checked: beginning balance + deposits − withdrawals = ending balance, and every transaction is in the list below. Open an account to see each month.</p>
+            <p className="wp-lede">Every statement checked: beginning balance + deposits − withdrawals = ending balance, and every transaction is in the list below. Click an account to see its month-by-month beginning and ending balances.</p>
             <div className="wp-scroll"><table>
               <thead><tr><th>Account</th><th className="num">Jan 1, {p.year}</th><th className="num">Deposits</th><th className="num">Withdrawals</th><th className="num">Dec 31, {p.year}</th><th className="num">Ties</th></tr></thead>
               {p.proof.map(a => <TieOut key={a.acct} a={a} />)}
