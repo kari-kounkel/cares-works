@@ -372,15 +372,13 @@ function render(){
  const order=['BS | Bank Accounts','BS | Accounts Receivable','BS | Other Current Assets','BS | Fixed Assets','BS | Current Liabilities','BS | Credit Cards','BS | Other Current Liabilities','BS | Notes Payable','BS | Long-term Liabilities','BS | Equity','PL | Income','PL | Expenses'];
  let html='',lastStmt='';
  order.forEach(k=>{if(!groups[k])return;const stmt=k.startsWith('BS')?'Balance sheet':'Profit & loss';if(stmt!==lastStmt){html+='<div class="section-h">'+stmt+'</div>';lastStmt=stmt;}
-  html+='<div class="sub-h">'+k.split(' | ')[1]+'</div><div class="tw"><table><tr><th style="width:19%">Account</th><th class="num">'+meta.cols[0]+'<br><span style="font-weight:400;letter-spacing:0;text-transform:none">book → adj → adjusted</span></th><th class="num">'+meta.cols[1]+'</th><th>Status</th><th style="width:13%">Proof — '+meta.cols[0]+'</th><th style="width:13%">Proof — '+meta.cols[1]+'</th><th style="width:22%">Basis / notes</th></tr>';
+  html+='<div class="sub-h">'+k.split(' | ')[1]+'</div><div class="tw"><table><tr><th style="width:19%">Account</th><th class="num">'+meta.cols[0]+'<br><span style="font-weight:400;letter-spacing:0;text-transform:none">book → adj → adjusted</span></th><th style="width:13%">Proof — '+meta.cols[0]+'</th><th class="num">'+meta.cols[1]+'<br><span style="font-weight:400;letter-spacing:0;text-transform:none">book → adj → adjusted</span></th><th style="width:13%">Proof — '+meta.cols[1]+'</th><th>Status</th><th style="width:22%">Basis / notes</th></tr>';
   groups[k].forEach(([r,i])=>{const id=current+i;const sv=row(id);const status=sv.status||r[5];
    html+='<tr id="row-'+id+'"><td class="acct">'+esc(r[0])+'</td>';
    ['a','b'].forEach((col,ci)=>{const bk=r[ci+3];const av=(sv.adj&&sv.adj[col])||'';const hasv=(bk!==null&&bk!=='')||(av!==''&&av!==null);const adjd=hasv?f(pnum(bk)+pnum(av)):'';
-    html+='<td class="num"><div class="wp"><span class="bk">'+f(bk)+'</span><input class="adji" id="adj-'+id+col+'" placeholder="adj" value="'+esc(av)+'" onchange="setAdj(\''+id+'\',\''+col+'\',this.value)"><span class="adjd">'+adjd+'</span></div></td>';});
+    html+='<td class="num"><div class="wp"><span class="bk">'+f(bk)+'</span><input class="adji" id="adj-'+id+col+'" placeholder="adj" value="'+esc(av)+'" onchange="setAdj(\''+id+'\',\''+col+'\',this.value)"><span class="adjd">'+adjd+'</span></div></td>';
+    const fl=(sv.files&&sv.files[col])||[];html+='<td><div class="attach">';fl.forEach(fo=>{html+='<a href="'+esc(fo.path)+'" target="_blank" rel="noopener">📎 '+esc(fo.name)+'</a>';});html+='</div></td>';});
    html+='<td><select class="stsel" id="st-'+id+'" onchange="setS(\''+id+'\',this.value)">';Object.keys(ST).forEach(s=>{html+='<option value="'+s+'"'+(s===status?' selected':'')+'>'+ST[s]+'</option>';});html+='</select><div style="margin-top:5px"><span class="st '+status+'">'+ST[status]+'</span></div><div class="rowtools"><button class="cbtn cm" onclick="comment(\''+id+'\')">💬 comment</button></div></td>';
-   ['a','b'].forEach((col,ci)=>{const fl=(sv.files&&sv.files[col])||[];html+='<td><div class="attach">';
-    fl.forEach(fo=>{html+='<a href="'+esc(fo.path)+'" target="_blank" rel="noopener">📎 '+esc(fo.name)+'</a>';});
-    html+='</div></td>';});
    html+='<td><div class="basis">'+r[7]+'</div><textarea class="note" id="note-'+id+'" placeholder="notes for the CPA / from the CPA" onchange="setN(\''+id+'\',this.value)">'+esc(sv.note||'')+'</textarea></td></tr>';
   });
   html+='</table></div>';
