@@ -1,0 +1,17 @@
+Infinity Alpha Omega LLC,,,,,,,,,
+Transaction Report,,,,,,,,,
+All Dates,,,,,,,,,
+
+,Transaction date,Transaction type,Num,Name,Description,Account Name,Item split account,Amount,Balance
+21200 Due to IAO Corp,,,,,,,,,
+,03/18/2022,Transfer,,,Transfer from IAO Corp to close the account,21200 Due to IAO Corp,Checking (deleted),105.39,105.39
+,04/30/2022,Journal Entry,8,,,21200 Due to IAO Corp,,-319.72,-214.33
+,06/03/2022,Journal Entry,18,,,21200 Due to IAO Corp,,"-1,810.00","-2,024.33"
+,01/01/2025,Journal Entry,KK 2025 Move to 1 Acc,,,21200 Due to IAO Corp,,"2,024.33",0.00
+,01/31/2025,Journal Entry,KK Due To/From Recon,,KK Due To/From Recon,21200 Due to IAO Corp,,"6,957.00","6,957.00"
+Total for 21200 Due to IAO Corp,,,,,,,,"$6,957.00",
+TOTAL,,,,,,,,"$6,957.00",
+
+
+
+"Accrual Basis Monday, September 21, 2026 05:08 PM GMT-05:00",,,,,,,,,

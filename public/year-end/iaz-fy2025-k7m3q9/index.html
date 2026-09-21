@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>IAZ Year-End Cockpit · CARES Works</title>
+<base href="/year-end/iaz-fy2025-k7m3q9/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Figtree:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://tools.caresmn.com/theme/cares.css">
+<style>
+/* Cockpit tokens mapped onto the CARES theme (/theme/cares.css is the one palette). */
+:root{
+  --slate:var(--ink);--slate-deep:var(--ink);--slate-soft:#475569;
+  --orange:var(--blue);--orange-soft:var(--blueHot);--neon:var(--green);
+  --paper:#fff;--card:#ffffff;--card-2:#f8fafc;--line:var(--rule);--band:#f1f5f9;
+  --good:var(--greenDark);--good-bg:#ecfdf5;--warn:#c2410c;--warn-bg:#fff7ed;--maroon:var(--blueDark);--maroon-bg:#eff6ff;--blue-bg:#eff6ff;
+  --serif:'DM Serif Display',Georgia,serif;--body:'Figtree',system-ui,sans-serif;--mono:'DM Mono',ui-monospace,monospace;
+}
+/* Undo the theme's article defaults that this app-style page sets its own way. */
+body{padding:0;background:#fff;font-size:14px;line-height:1.5}
+h1{margin:6px 0 0}
+table{border:0;border-radius:0;border-collapse:collapse;border-spacing:0;margin:0;font-size:inherit}
+th{background:var(--card-2);color:var(--muted)}
+td{padding:6px 10px;background:transparent}
+.wrap{overflow:visible}
+.btn{box-shadow:none;display:inline-block}
+.foot{max-width:none;border-top:0;letter-spacing:0}
+.cbtn.cm{display:none!important}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--body);background:var(--paper);color:var(--ink);font-size:14px;line-height:1.5}
+.wrap{max-width:1360px;margin:0 auto;padding-block:26px 90px;padding-inline:22px}
+header.masthead{border-bottom:3px solid var(--neon);padding-bottom:18px;margin-bottom:18px;display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.brand-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--orange);font-weight:500}
+h1{font-family:var(--serif);font-size:34px;line-height:1.05;color:var(--slate-deep);margin:6px 0 0;font-weight:400;text-wrap:balance}
+.statute{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:8px}
+.seal{font-family:var(--serif);font-size:13px;color:var(--slate-soft);text-align:right;border-left:1px solid var(--line);padding-left:18px;line-height:1.35}
+.savebar{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-family:var(--mono);font-size:11.5px;color:var(--slate-soft);margin:0 0 14px}
+.savebar .dot{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block;margin-right:6px}
+.savebar .dot.ok{background:var(--good)}.savebar .dot.busy{background:var(--orange)}.savebar .dot.ro{background:var(--warn)}
+.tabs{display:flex;gap:6px;margin:8px 0 0;flex-wrap:wrap}
+.tab{font-family:var(--body);font-weight:600;font-size:13px;border:1px solid var(--line);border-bottom:none;background:var(--band);color:var(--slate-soft);padding:9px 16px;border-radius:9px 9px 0 0;cursor:pointer}
+.tab.active{background:var(--card);color:var(--slate-deep)}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:14px 0}
+.mc{background:linear-gradient(135deg,#141b3a,#1d2a5e);color:#fff;border-radius:10px;padding:12px 14px;border-bottom:3px solid var(--neon)}
+.mc .t{font-family:var(--mono);font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:rgba(255,255,255,.62)}
+.mc .v{font-family:var(--mono);font-size:24px;font-weight:500;margin-top:6px;letter-spacing:-.5px}
+:root[data-theme="dark"] .mc, :root:not([data-theme="light"]) .mc{color:#fff}
+.tie{background:var(--card-2);border:1px solid var(--line);border-left:4px solid var(--neon);border-radius:8px;padding:10px 16px;margin:0 0 14px;font-family:var(--mono);font-size:12px;display:flex;gap:26px;flex-wrap:wrap}
+.tie b{color:var(--good)}.tie .bad{color:var(--warn);font-weight:600}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:0 10px 10px 10px;overflow:hidden}
+.section-h{background:var(--slate-deep);color:#fff;padding:10px 16px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+.sub-h{background:var(--band);padding:7px 16px;font-weight:600;color:var(--slate-deep);border-top:1px solid var(--line);font-size:12.5px}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:980px}
+th{background:var(--card-2);color:var(--muted);font-family:var(--mono);font-weight:500;font-size:10px;letter-spacing:.07em;text-transform:uppercase;padding:8px 10px;text-align:left;border-bottom:1px solid var(--line)}
+td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+tr:hover td{background:var(--card-2)}
+.acct{font-weight:600;color:var(--slate-deep)}
+.wp{display:flex;flex-direction:column;gap:2px;align-items:flex-end}
+.wp .bk{color:var(--muted);font-size:11px}
+.wp .adji{width:100px;text-align:right;font-family:var(--mono);font-size:11px;border:1px solid var(--line);border-radius:5px;padding:2px 5px;background:var(--warn-bg);color:var(--ink)}
+.wp .adjd{font-weight:500;border-top:1px solid var(--line);padding-top:2px;font-size:12.5px}
+.neg{color:var(--warn)}
+.st{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;border:1px solid transparent}
+.st.ties,.st.confirmed{background:var(--good-bg);color:var(--good)}
+.st.adjust{background:var(--warn-bg);color:var(--warn)}
+.st.docd{background:var(--blue-bg);color:var(--blue)}
+.st.needdoc{background:var(--band);color:var(--slate-soft);border-color:var(--line)}
+.st.open{background:var(--maroon-bg);color:var(--maroon)}
+select.stsel,textarea.note,input.adji{font-family:var(--body);color:var(--ink)}
+select.stsel{font-size:11.5px;border:1px solid var(--line);border-radius:6px;padding:3px 5px;background:var(--card)}
+textarea.note{width:100%;border:1px solid var(--line);border-radius:6px;padding:5px 7px;font-size:12px;min-height:34px;resize:vertical;background:var(--card);margin-top:4px}
+.basis{font-size:12px;color:var(--ink)}
+.attach{display:flex;flex-direction:column;gap:3px;font-size:11px}
+.attach a{color:var(--blue);font-weight:600;text-decoration:none;word-break:break-word}
+.attach a:hover{text-decoration:underline}
+.attach .needs{color:var(--muted)}
+.rowtools{display:flex;gap:6px;align-items:center;margin-top:5px}
+.cbtn{font-family:var(--body);font-size:11px;font-weight:600;border:1px solid var(--line);background:var(--card);color:var(--slate-soft);border-radius:6px;padding:3px 8px;cursor:pointer}
+.cbtn:hover{background:var(--band)}
+.list{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-top:18px}
+.list h3{margin:0 0 10px;font-family:var(--serif);font-weight:400;font-size:20px;color:var(--slate-deep)}
+.list li{margin:5px 0}
+.je{border-left:4px solid var(--orange)}
+.loan{border:1px solid var(--line);border-radius:8px;margin:8px 0;overflow:hidden}
+.loan-h{display:flex;gap:14px;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--card-2);cursor:pointer;flex-wrap:wrap}
+.loan-sum{font-family:var(--mono);font-size:11.5px;color:var(--slate-soft)}
+.loan-sum b{color:var(--ink);font-weight:500}
+.loan-b{padding:10px 12px}
+.lp{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:8px;font-size:12px;color:var(--slate-soft)}
+.lp label{display:flex;flex-direction:column;gap:3px}
+.mono{font-family:var(--mono)}
+table.am{min-width:820px}
+table.am td{padding:4px 8px;font-size:12px}
+.logo{height:118px;width:auto;display:block}
+.mast-left{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.je table{min-width:760px}
+.je td{font-size:12.5px}
+.q{background:var(--maroon-bg);border-left:4px solid var(--maroon);padding:6px 12px;border-radius:6px;margin:6px 0;font-size:13px}
+.q.ok{background:var(--good-bg);border-left-color:var(--good)}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0;align-items:center}
+.btn{font-family:var(--body);font-weight:600;font-size:13px;border-radius:8px;cursor:pointer;padding:9px 18px;border:1px solid var(--slate);background:var(--slate);color:#fff}
+.btn.ghost{background:transparent;color:var(--slate)}
+.btn.ghost:hover{background:var(--band)}
+.btn.accent{background:var(--neon);border-color:var(--neon);color:#0b1226}
+.hint{font-size:11.5px;color:var(--muted);font-family:var(--mono)}
+.foot{text-align:center;color:var(--muted);font-family:var(--mono);font-size:11px;margin-top:34px;line-height:1.7}
+.foot b{color:var(--slate-soft);font-weight:500}
+:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
+@media (max-width:640px){h1{font-size:26px}.logo{height:84px}.seal{border-left:none;padding-left:0;text-align:left}}
+@media print{.toolbar,.adji,select.stsel,.cbtn,.savebar,.tabs{display:none!important}.panel{border:none}body{background:#fff}textarea.note{border:none;resize:none}table{min-width:0}}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+<header class="masthead">
+  <div class="mast-left"><img class="logo" src="logo.png" alt="CARES Consulting Inc — Clear today. Stronger tomorrow."><div>
+    <div class="brand-eyebrow">CARES Works · Year-End Cockpit</div>
+    <h1>Year-End Reconciliation Cockpit</h1>
+    <div class="statute">I A Z Corporation dba Minuteman Press Uptown · FYE 9/30/2025 and short year to 12/31/2025 · prepared for the CPA · book balances refreshed from QuickBooks 9/21/2026</div>
+  </div></div>
+  <div class="seal">CARES Consulting, Inc.<br>Clear today. Stronger tomorrow.<br><span id="lastsaved" style="font-family:var(--mono);font-size:11px"></span></div>
+</header>
+
+<div class="savebar"><span><span class="dot" id="sdot"></span><span id="smsg">Loading shared state…</span></span><span class="hint">Every status, note and adjustment you change is saved for everyone who opens this link. <button class="cbtn" onclick="askWho()" title="Shown as last saved by">✎ your name</button></span></div>
+
+<div class="tabs" id="tabs"></div>
+<div class="panel">
+  <div style="padding:14px 16px 0">
+    <div class="metrics" id="stats"></div>
+    <div class="tie" id="tie"></div>
+  </div>
+  <div id="board"></div>
+</div>
+
+<div class="toolbar">
+  <button class="btn" id="btnprint" onclick="window.print()">🖨 Print / PDF</button>
+  <span class="hint" id="apphint"></span>
+</div>
+
+<div class="list" id="sched"></div>
+<div class="list" id="loans"></div>
+
+<div class="foot"><b>Powered by CARES Workflows</b> · Proprietary to CARES Consulting, Inc. &amp; Kari Hoglund Kounkel © 2026<br>tools.caresmn.com</div>
+</div>
+
+<script>
+const ST={ties:'Ties out',confirmed:'Confirmed',docd:'Doc attached',adjust:'Adjustment',needdoc:'Need doc',open:'Open'};
+// row = [acct, stmt(BS/PL), sub, colA, colB, default status, doc-needed, basis]
+const DATA={
+ omega:[
+  ['10100 Checking - Old National','BS','Bank Accounts',0,2153.43,'needdoc','Old National statements','Not on 2024 books; opened/used in 2025. 2026 overdrawn (-44,264) — 2026 cleanup.'],
+  ['10900 Cash on Hand','BS','Bank Accounts',614.33,0,'confirmed','—','2024: 614.33. Cleared to 0 by 12/31/2025.'],
+  ['11000 Accounts Receivable','BS','Accounts Receivable',6440.84,2454.93,'adjust','A/R aging','Reduce by bogus IAO Corp $6,957 (Entry 1).'],
+  ['12000 Undeposited Funds','BS','Other Current Assets',875.00,0,'confirmed','—','2024: 875.00; 0 at 2025.'],
+  ['16000 Buildings','BS','Fixed Assets',2022730.00,2022730.00,'needdoc','Closing settlement stmt','Building basis.'],
+  ['16500 Building Improvements','BS','Fixed Assets',690532.01,690532.01,'needdoc','Fixed asset schedule',''],
+  ['16900 Land','BS','Fixed Assets',546000.00,546000.00,'needdoc','Closing statement',''],
+  ['16910 Land Improvements','BS','Fixed Assets',43600.00,43600.00,'confirmed','Fixed asset schedule',''],
+  ['17000 Loan Closing Costs','BS','Fixed Assets',27754.74,27754.74,'needdoc','Loan closing docs',''],
+  ['19000 Accumulated Depreciation','BS','Fixed Assets',-172041.22,-242779.42,'needdoc','Depreciation schedule','2025 adds 70,738.20 depr — ties to P&L. Tie to schedule.'],
+  ['19500 Accumulated Amortization','BS','Fixed Assets',-24199.30,-30938.74,'needdoc','Amortization schedule','2025 adds 6,739.44 — ties to P&L.'],
+  ['15100 Prepaid lease costs','BS','Other Assets',20385.56,19754.06,'needdoc','Prepaid lease schedule',''],
+  ['17100 Organizational costs (set up)','BS','Other Assets',2315.88,2315.88,'confirmed','—',''],
+  ['20000 Accounts Payable','BS','Current Liabilities',0,85807.09,'adjust','Real Estate Comm & Docs.pdf','No A/P on 2024 books — 2024 property tax was not accrued until 2025. Fix 85,807.09 to 82,506.82 (−3,300.27) + add 2025 tax 102,039.90 → 184,546.72 payable. CoJ in 2026.'],
+  ['20500 Old National Bank 0979','BS','Credit Cards',0,17626.41,'needdoc','Credit-card statements','Not on 2024 books.'],
+  ['21200 Due to IAO Corp','BS','Other Current Liabilities',-2024.33,6957.00,'adjust','—','ERROR — reverse to $0 (Entry 1). Dead entity.'],
+  ['21910 Rental - Last Month Rent','BS','Other Current Liabilities',10364.81,8731.48,'needdoc','Tenant deposit schedule',''],
+  ['22500 Unearned Rent','BS','Other Current Liabilities',0,0,'adjust','Deferral schedule','Becomes 17,164.68 after Entry 2.'],
+  ['21000 Due to I A Z Corporation','BS','Long-term Liabilities',490123.27,368372.45,'adjust','IAZ GL','12/31/2025 TIES to IAZ (368,372.45). 12/31/2024 = 490,123.27 — IAZ is a 9/30 filer, no 12/31/24 stmt; confirm to IAZ GL.'],
+  ['21750 MEDA Note 310204 Mortgage','BS','Long-term Liabilities',2398954.55,2398954.55,'confirmed','Monthly MEDA statements','Interest-only. Correct.'],
+  ['21800 City of Minneapolis Note','BS','Long-term Liabilities',850000.00,850000.00,'confirmed','City forgivable-loan agmt','Forgivable. Correct.'],
+  ['32000 Retained Earnings','BS','Equity',-449913.78,-582410.46,'needdoc','Prior-yr close','2024 RE −449,913.78; rolls with 2024 NI to −582,410.46 (= 2025 beginning RE).'],
+  ['Net Income (current year)','BS','Equity',-132496.68,-70461.63,'confirmed','P&L','2024 NI −132,496.68; 2025 NI −70,461.63 (ties to P&L). Closes into RE next year.'],
+  ['48000 Rental Income','PL','Income',null,180825.02,'adjust','Rent roll / leases','Reduce by 15,024.00 deferred (Entry 2). 2024 P&L not provided.'],
+  ['48200 CAM','PL','Income',null,28216.49,'adjust','CAM reconciliation','Reduce by 2,140.68 deferred (Entry 2).'],
+  ['48500 Utilities Reimbursements','PL','Income',null,42027.27,'needdoc','Utility bills + reimb',''],
+  ['62400 Depreciation Expense','PL','Expenses',null,70738.20,'needdoc','Depreciation schedule','Booked — tie to schedule.'],
+  ['63400 Interest Expense','PL','Expenses',null,140923.98,'needdoc','MEDA/City/bank stmts',''],
+  ['69060 Property Taxes','PL','Expenses',null,0,'adjust','Real Estate Comm & Docs.pdf','Not on P&L. 2024 actual 82,506.82 sits in A/P; 2025 actual 102,039.90 record now. CoJ 2026.']
+ ],
+ iaz:[
+  ['1010 US Bank 2204 Operating (deleted)','BS','Bank Accounts',116389.27,9806.67,'ties','Bank statements','Reconciled by Kari for 9/30/2025 and 12/31/2025 — recs and statements attached.'],
+  ['1011 US Bank 2805 Operating','BS','Bank Accounts',0.00,0.00,'confirmed','—','Account opened in 2026 — 0.00 at both 9/30/2025 and 12/31/2025 is correct. Nothing to prove for these periods.'],
+  ['1012 US Bank 2813 Postage','BS','Bank Accounts',0.00,200.00,'adjust','—','Not a real account (Kari). 200.00 sitting here at 12/31 needs to move out.'],
+  ['1020 Cash on Hand','BS','Bank Accounts',0.00,1682.50,'confirmed','—',''],
+  ['1126 Receivables from FLEX CRM','BS','Accounts Receivable',185195.78,126186.61,'ties','Statements Emailed.pdf','Tied out to FLEX by Kari (Sept 2026).'],
+  ['1190 Due from Infinity Alpha Omega','BS','Other Current Assets',370057.08,378590.21,'adjust','Omega balance sheet','Omega 21000 (attached): 370,057.08 at 9/30 — ties IAZ to the penny. 368,372.45 at 12/31 vs IAZ 378,590.21 — 10,217.76 apart; Omega posted KK 2025 Due To/Fr on 12/31 (+1,200 −6,957 −1,859.88 = −7,616.88) that IAZ may not mirror.'],
+  ['1145 Prepaid Insurance','BS','Other Current Assets',3792.09,1516.86,'needdoc','Prepaid schedule',''],
+  ['1165 QuickBooks Tax Holding Account','BS','Other Current Assets',0.00,24250.93,'open','Payroll tax records','Confirm it clears to $0 after remittance.'],
+  ['1500 Asset - Machinery & Equipment','BS','Fixed Assets',1975767.04,1979992.04,'docd','2025 Fixed Asset Schedule','Fixed asset schedule attached — CPA to adjust.'],
+  ['1501 Accum Depr - Mach & Equip','BS','Fixed Assets',-629513.24,-678420.56,'docd','Depreciation schedule','Fixed asset schedule attached — CPA to adjust.'],
+  ['1505 Asset - Vehicles','BS','Fixed Assets',115397.29,115397.29,'confirmed','Fixed asset schedule',''],
+  ['1506 Accum Depr - Vehicles','BS','Fixed Assets',-113858.56,-115397.29,'docd','Depreciation schedule',''],
+  ['1510 Asset - Furniture & Fixtures','BS','Fixed Assets',24337.41,24337.41,'confirmed','Fixed asset schedule',''],
+  ['1511 Accum Depr - Furn & Fixtures','BS','Fixed Assets',-13063.87,-13668.91,'docd','Depreciation schedule',''],
+  ['1530 Asset - Software','BS','Fixed Assets',4195.21,4195.21,'confirmed','Fixed asset schedule','Fully amortized.'],
+  ['1531 Accum Amort - Software','BS','Fixed Assets',-4195.16,-4195.21,'docd','Amort schedule',''],
+  ['1540 Goodwill','BS','Fixed Assets',245828.00,245828.00,'docd','Purchase agreement',''],
+  ['1541 Accum Amort - Goodwill','BS','Fixed Assets',-81645.57,-85742.70,'docd','Amort schedule',''],
+  ['1550 Loan Closing Fees','BS','Fixed Assets',14189.22,14189.22,'docd','Loan closing docs',''],
+  ['1551 Accum Amort - Loan Closing Fees','BS','Fixed Assets',-2542.14,-2796.39,'docd','Amort schedule',''],
+  ['2000 Accounts Payable','BS','Current Liabilities',98097.75,186395.98,'adjust','A/P aging','Doubled in Q. Konica(1835) $115,892 of KM-1 lease bills mis-booked here — reverse, reclass to KM-1 note.'],
+  ['2050 American Exp 6004','BS','Credit Cards',36635.70,50595.85,'confirmed','Amex statements','Book balance stands — statements cycle mid-month, so the following month carries the tie.'],
+  ['2051 US Bank 2957 Credit Card','BS','Credit Cards',43301.18,42621.40,'confirmed','CC statements','Book balance stands — statements cycle mid-month, so the following month carries the tie.'],
+  ['2052 US Bank 7358 Cash Flow Manager','BS','Credit Cards',52862.91,37488.50,'confirmed','CC statements','Book balance stands — statements cycle mid-month, so the following month carries the tie.'],
+  ['2400 Accrued Payroll','BS','Other Current Liabilities',42815.75,30081.85,'adjust','Payroll register','Live 42,815.75 / 30,081.85. Payroll register attached.'],
+  ['2500 PR Liabilities (incl 2501 tax subs)','BS','Other Current Liabilities',-72.67,15411.13,'adjust','941/940/MN notices','Clean deleted subs to $0; reconcile to agency balances.'],
+  ['Payroll liabilities - other subs','BS','Other Current Liabilities',266.80,13206.91,'adjust','Payroll register / agency notices','9/30: 2502 −507.34 + 2504 774.14. 12/31: 1160 −700 + 2500.18 −1,406.64 + 2502 615.09 + 2503 331.90 + 2504 12,259.92. Clean deleted subs.'],
+  ['2600 MN Department of Revenue Payable','BS','Other Current Liabilities',10379.00,6693.00,'needdoc','MN DOR notice',''],
+  ['2610 Accrued State Income Tax','BS','Other Current Liabilities',-260.00,-260.00,'adjust','—','Negative (debit) in a liability — investigate/reclass.'],
+  ['2620 Accrued Federal Income Tax','BS','Other Current Liabilities',-500.00,-500.00,'adjust','—','Negative (debit) in a liability — investigate/reclass.'],
+  ['2715 Due to/from Owner','BS','Other Current Liabilities',81892.52,78277.52,'needdoc','Shareholder loan agmt','Confirm note; screen for personal expenses.'],
+  ['2970.16 Konica Minolta KM-1','BS','Notes Payable',570913.88,517794.45,'adjust','KM-1 amort + lease','How it got here: Konica bills were recorded to A/P instead of the note. Estimated interest payments were recorded; when the payments that were due but not paid were removed, the interest entries stayed — the note and interest expense still carry interest for payments that never happened. Schedule: 602,259.99 / 568,674.31.'],
+  ['2970.14 Canon 868683 Flatbed','BS','Notes Payable',174051.16,157926.16,'adjust','Canon lease + amort','Schedule (2980 Canon combine lease, 1.991%, $5,375/mo to 11/1/2027): 142,833.97 / 127,394.27 — variance vs live book in the loan panel. The June engine was one payment ahead.'],
+  ['2970.17 Konica ROLLEM CPO','BS','Notes Payable',209490.08,201988.85,'adjust','ROLLEM amort + lease','Schedule (2991 Rollem CPO Amortization, 1.828%, $2,728.65/mo to 9/30/2030): 156,346.74 / 148,863.86 — variance vs live book in the loan panel. Check double-posts.'],
+  ['2970.15 Highland Capital Iridesse','BS','Notes Payable',141891.94,136272.70,'adjust','Highland note + amort','Schedule (2988 Highland Capital, 8.204%, $6,050/mo to 11/20/2027): 143,664.33 / 128,356.69 — variance vs live book in the loan panel. Check the Oct–Dec principal splits.'],
+  ['2970.21 MEDA 310205','BS','Notes Payable',221981.70,217334.82,'confirmed','MEDA TValue + statement','Schedule (2999 MEDA TValue 12/16/2024, 5.000%, $1,548.96/mo): 225,588.30 / 223,753.65 — variance vs live book in the loan panel. Loan Balance Reconciliation sheet shows 225,865.05 / 224,065.68 — confirm which MEDA statement wins.'],
+  ['2970.12 SBA 6724567807','BS','Notes Payable',93015.53,91730.93,'adjust','SBA TValue + loan doc','Schedule (2972 SBA TValue, 3.750%, $731/mo): 91,669.95 / 90,332.19 — variance vs live book in the loan panel (timing).'],
+  ['2970.18 NEON (MIGF 30200)','BS','Notes Payable',69303.40,58794.25,'adjust','MIGF30200 statement','Ties the schedule at 9/30 (69,303.40). Q4: the 12/2 Presta withdrawals for NEON020 (312.50, 312.50, 20.83) and a 10/3 Loffler 3,795.60 were posted here — reclass; the 10/2 and 11/4 2,302.93 payments went to 6232 CC fees instead of here.'],
+  ['2970.10 Brown #1','BS','Notes Payable',177500.95,171277.03,'open','Brown note detail','Schedule (2830 Brown Note #1, 7%, $4,167.01/mo from 2/1/2025) would be 154,753.29 / 144,903.21 — but Frank is not paying, so the schedule is not the truth. Need actual principal pmts; accrue interest on the real balance.'],
+  ['2970.11 Brown #2','BS','Notes Payable',82872.48,74872.48,'open','Brown note detail','Schedule (2831 Brown Note #2, 10%, no payments scheduled) accrues to 78,426.10. Book moved 82,872.48 → 74,872.48 in the stub with no payment — find that 8,000.'],
+  ['2970.20 Loeffler KM6136 -8405','BS','Notes Payable',33622.98,35173.86,'adjust','KM6136 amort + lease','Schedule (2996 Loffler KM6136 Amort, 18.972%, orig 40,000 = lease + 25k cash loan, $1,037/mo to 10/23/2028): 28,881.43 / 27,112.58 — variance vs live book in the loan panel. Balance was rising on the books between 9/30 and 12/31 — check that Loffler payments hit the note, not expense.'],
+  ['2970.19 Loeffler SEAL 65 - 6706','BS','Notes Payable',15107.82,15741.06,'adjust','Seal 65 amort + lease','TERMS FOUND. Schedule (2995 Loffler Seal 65 EL, 17.136%, orig 18,873 on 9/15/2023, $470.42/mo to 9/15/2028): 13,169.55 / 12,310.31 — variance vs live book in the loan panel. Same symptom as KM6136 — balance rising 9/30 → 12/31.'],
+  ['2970.13 AIS Retainer','BS','Notes Payable',42981.55,-4918.45,'adjust','AIS lease + amort','Went NEGATIVE. Folder schedule is a scan; rolled from the 12/31/2022 listing balance 87,283.18 at 2.165%, $1,760/mo → est. 32,844 / 27,733. Something ~47.9k posted against this note in Q4 — find it.'],
+  ['2970.22 NEON 2025 Cash Flow (NEON020 A/B/C/D)','BS','Notes Payable',250000.00,250000.00,'docd','NEON020 loan docs + statements','Booked as one $250,000 note. Presta Technologies payments (bank feed): 11/4/2025 458.33 + 458.33 + 30.56 (prorated first interest), 12/2/2025 312.50 + 312.50 + 20.83 — interest-only on A 125k @3%, B 75k @5%, D 25k @1%. The 11/4 amounts were posted to 6285 Office Expense and the 10/2 and 11/4 2,302.93 to 6232 CC fees — reclass. C $25,000 forgiven 10/28/2025 → 225,000.'],
+  ['2973 Note Payable - BMW Financial (deleted)','BS','Notes Payable',3588.29,0.00,'adjust','BMW payoff','Schedule (2973 BMW, 2.9%, matured 10/22/2025): 789.97 at 9/30 (book 3,588.29); 0 at 12/31 ties.'],
+  ['3000 *Opening Balance Equity','BS','Equity',9500.00,9700.00,'adjust','—','Should be ZERO. Reclass to Retained Earnings.'],
+  ['3120 Capital Frank Brown','BS','Equity',55226.24,55226.24,'confirmed','—',''],
+  ['3130 Capital Julie Brown','BS','Equity',71379.69,71379.69,'confirmed','—',''],
+  ['3400 Retained Earnings','BS','Equity',-505478.74,-377516.78,'needdoc','Prior-yr close / return','Shown on the fiscal-year basis: −505,478.74 opening RE at 10/1/2024, rolls with FY net income 127,961.96 to −377,516.78 at 10/1/2025. QBO itself still shows −257,447.21 (fiscal-year setting not flipped yet — awaiting government approval). Equity totals tie either way.'],
+  ['Net Income (period)','BS','Equity',127961.96,-116837.54,'confirmed','P&L','Period net income: FY 10/1/24–9/30/25 = 127,961.96; stub 10/1–12/31/25 = −116,837.54. (QBO calendar-YTD shows −120,069.57 / −236,907.11; the stub is the difference.)'],
+  ['4000 Sales (all revenue)','PL','Income',2422867.21,630839.43,'open','FLEX sales / sales-tax reports','colA = FY 10/1/24–9/30/25 total income; colB = Oct–Dec 25 stub. Tie recorded revenue to FLEX — the decisive FLEX check.'],
+  ['6295 Rent (Premises)','PL','Expenses',111833.33,36871.00,'adjust','Lease + Omega rent income','OVERSTATED ~$45k. Cash transfers to Omega double-booked on top of $6,957/mo accrual — reclass to intercompany.'],
+  ['6245 Depreciation','PL','Expenses',216512.88,54128.22,'docd','2025 Fixed Asset Schedule','Fixed asset schedule attached — CPA to adjust.'],
+  ['6210 Amortization','PL','Expenses',17687.16,4421.79,'docd','Amort schedule','Booked — tie to schedule.'],
+  ['6270 Interest Exp','PL','Expenses',90167.82,13980.57,'needdoc','Loan statements','Tie to loan/schedule interest.']
+ ]
+};
+const META={
+ omega:{name:'Infinity Alpha Omega LLC',short:'Omega',cols:['12/31/2024','12/31/2025'],
+  entries:[
+   ['1','Dr 21200 Due to IAO Corp / Cr 11000 A/R','6,957.00','6,957.00','Reverse bogus IAO Corp entry.'],
+   ['2','Dr 48000 15,024.00 + Dr 48200 2,140.68 / Cr 22500 Unearned Rent','17,164.68','17,164.68','Defer Dec-billed Jan-2026 rent/CAM. Reverse 1/1/26.'],
+   ['3','Dr 69060 Property Taxes (2025) / Cr Property Tax Payable','102,039.90','102,039.90','Record 2025 property tax in 2025.'],
+   ['4','Dr Property Tax Payable / Cr Retained Earnings','3,300.27','3,300.27','Correct 2024 tax 85,807.09 → 82,506.82.'],
+   ['—','2026: book CoJ vs accruals','2026','2026','CoJ $222,539.49 = 82,506.82 + 102,039.90 + 37,992.77 penalties. Lands on Omega July 2026.']
+  ],
+  questions:[['ok','Resolved: property tax by year; CoJ in 2026.'],['ok','Tie intercompany components to IAZ (rent, utilities, bookkeeping) — done on IAZ tab.'],['ok','2024 column rebuilt from the real 12/31/2024 balance sheet.']]},
+ iaz:{name:'I A Z Corporation dba Minuteman Press Uptown',short:'IAZ',cols:['9/30/2025 FYE','12/31/2025'],
+  entries:[
+   ['1','Loan true-ups to folder amortization schedules / offset Ask My Accountant (CPA to split interest vs principal)','net −58,459.15 (9/30)','net −42,723.54 (12/31)','Per-note variances in the Loan panel. Brown #1/#2 and AIS excluded — still open.'],
+   ['2','Reverse Konica(1835) lease bills in A/P → KM-1 note','115,892.10','115,892.10','Stops A/P inflation; lifts KM-1 to correct.'],
+   ['3','Book NEON020 notes A/B/D / Dr suspense (proceeds TBD)','225,000.00','225,000.00','A 125k + B 75k + D 25k. Find where proceeds landed.'],
+   ['4','NEON020-C forgiveness / Cr Other Income','25,000.00','25,000.00','Forgiven 10/28/2025 (CPA: taxable?).'],
+   ['5','Reverse Omega cash transfers out of Rent Expense → Due from Omega','~45,000','~45,000','Rent double-counted on top of $6,957/mo accrual.'],
+   ['6','True up Accrued Payroll to actual','TBD','TBD','Frozen at 28,913.48 — recompute each close.'],
+   ['7','Reclass *Opening Balance Equity → Retained Earnings','10,200.00','10,200.00','OBE should be zero.']
+  ],
+  questions:[
+   ['q','Tie FLEX revenue to sales-tax/monthly reports (decisive FLEX check). Sept 2025 YEAR END sales report is attached on 4000.'],
+   ['q','Find NEON020 $250k proceeds (bank statements ~July 2025).'],
+   ['ok','Resolved 9/21/2026: loan rates and balances pulled from the Loans and Leases folder schedules (Canon 1.991%, ROLLEM 1.828%, KM-1 1.654%, Loffler KM6136 18.972%, Seal 65 17.136%).'],
+   ['q','Brown #1 / #2: get Frank actual principal payments — schedules assume payments he is not making.'],
+   ['q','AIS Retainer: folder schedule is an unreadable scan; the ~47.9k Q4 swing to negative needs the source transaction.'],
+   ['q','KM6136 and Seal 65 balances RISE on the books — Loffler payments are landing in expense, not against the notes. Reclass.'],
+   ['q','MEDA 310205: TValue says 225,588.30 / 223,753.65; Loan Balance Reconciliation sheet says 225,865.05 / 224,065.68 — pick the statement.'],
+   ['q','1010 US Bank 2204: 9/30 rec register 89,804.64 vs live balance sheet 116,389.27 — 26,584.63 of activity dated ≤9/30 landed after the 4/9/2026 rec. Find it. 12/31: rec 10,000.00 vs BS 9,806.67.'],['q','1190 Due from Omega is 378,590.21 live vs Omega 21000 at 368,372.45 — intercompany no longer ties at 12/31.'],['ok','Equity shown on the 9/30 fiscal-year basis (RE −505,478.74 → −377,516.78; NI 127,961.96 / −116,837.54) and foots to the live QBO totals at both dates.'],['q','P&L expense lines (6295, 6245, 6210, 6270) still carry June figures; balance-sheet lines are live as of 9/21/2026.'],
+   ['q','2051 / 2052 card statements attached, but the cycles close 9/9–10/9 and 9/11 — tie 9/30 through the activity between statements.'],
+   ['q','Brian $50k — 2026 (book in IAZ, push to Omega; not rent).']
+  ]}
+};
+// Loan schedules — CARES OneDrive \ Loans and Leases (per-note amortization PDFs). [acct-prefix, 9/30/25, 12/31/25, source, terms, note]
+const SCHED=[
+ ['2970.16',602259.99,568674.31,'2990 Konica Minolta KM-1 Amortization.pdf','1.654% · $12,009.90/mo · to 1/31/2030','Konica bills were recorded to A/P instead of the note. Estimated interest payments were recorded; the payments due-but-not-paid were later removed but the interest was not, so the note still carries interest for payments that never happened.'],
+ ['2970.14',142833.97,127394.27,'2980 Canon combine lease.pdf','1.991% · $5,375/mo · to 11/1/2027','Draft LKM schedule at 3.75% shows 148,798.38 / 134,022.31 — the combine lease is the PBC copy; use it.'],
+ ['2970.17',156346.74,148863.86,'2991 Konica Minolta Rollem CPO Amortization.pdf','1.828% · $2,728.65/mo · to 9/30/2030',''],
+ ['2970.15',143664.33,128356.69,'2988 Note Payable-Highland Capital.pdf','8.204% · $6,050/mo · to 11/20/2027',''],
+ ['2970.21',null,null,'12162024 Tvalue Amortization 2.pdf','5.000% · $1,548.96/mo','Adjusted to MEDA statement balances — no true-up'],
+ ['2970.12',91669.95,90332.19,'12162024 Tvalue Amortization.pdf','3.750% · $731/mo · balloon 6/1/2030',''],
+ ['2970.18',69303.40,63235.68,'2992 Updated 1.9.25 Note Payable-Northside Economic Opportunity.pdf','5.000% · $2,302.93/mo · to 5/18/2028','Older actual-interest schedule: 70,514.85 / 64,462.34'],
+ ['2970.20',28881.43,27112.58,'2996 Loffler KM6136 Amort Schedule.pdf','18.972% · $1,037/mo · to 10/23/2028','Book balance rising — payments expensed'],
+ ['2970.19',13169.55,12310.31,'2995 Nots Payable -Loffler 6706.pdf','17.136% · $470.42/mo · to 9/15/2028','Book balance rising — payments expensed'],
+ ['2973',789.97,0,'BMW Amortization Schedule.pdf','2.9% · matured 10/22/2025',''],
+ ['2970.22',250000,250000,'Presta Technologies withdrawals (2204 bank feed)','A 125k @3% · B 75k @5% · D 25k @1% · interest-only so far','C 25,000 forgiven 10/28/2025 — book should be 225,000 at 12/31'],
+ ['2970.10',null,null,'2830 Consolidated Brown Loan #1.pdf','7% · $4,167.01/mo from 2/1/2025 (not being paid)','OPEN — schedule 154,753.29 / 144,903.21 is not the truth; need actual pmts'],
+ ['2970.11',null,null,'2831 Consolidated Brown Loan #2.pdf','10% · accrues, no pmts scheduled','OPEN — schedule accrues to 78,426.10; need actual pmts'],
+ ['2970.13',null,null,'2976 AIS Lease Amortization Schedule.pdf (scan)','2.165% · $1,760/mo · to 5/22/2027','OPEN — rolled estimate 32,844 / 27,733; find the Q4 swing']
+];
+
+// ---------- state ----------
+let current='iaz';
+let state={};            // {rows:{id:{status,note,adj:{a,b},files:{a:[{name,path}],b:[]}}}, updatedAt, updatedBy}
+let canSave=true, saveTimer=null, saving=false, dirty=false;
+const TOKEN=(location.pathname.split('/').filter(Boolean).pop()||'iaz-fy2025-k7m3q9');
+const SB='https://qcikhcnclduakriextsz.supabase.co', SBK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaWtoY25jbGR1YWtyaWV4dHN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NTc3NDAsImV4cCI6MjA5MTIzMzc0MH0.owUv_C0b0TYisI7v3Lpb2ZGF6TMn1Gwm7oRr26yR2eI';
+const LS='yec_'+TOKEN+'_v1';
+function pnum(v){if(v===null||v===undefined||v==='')return 0;const n=parseFloat(String(v).replace(/[^0-9.\-]/g,''));return isNaN(n)?0:n;}
+function f(v){if(v===null||v===undefined||v==='')return '';const n=Number(v);const s=Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});return n<0?'<span class="neg">('+s+')</span>':s;}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
+function row(id){state.rows=state.rows||{};return state.rows[id]=state.rows[id]||{};}
+function setStatus(dot,msg){document.getElementById('sdot').className='dot '+dot;document.getElementById('smsg').textContent=msg;}
+async function rpc(fn,args){
+ const r=await fetch(SB+'/rest/v1/rpc/'+fn,{method:'POST',headers:{'Content-Type':'application/json','apikey':SBK,'Authorization':'Bearer '+SBK},body:JSON.stringify(args)});
+ if(!r.ok){let m='';try{m=(await r.json()).message||'';}catch(e){}throw new Error(m||('HTTP '+r.status));}
+ return r.json();
+}
+function whoami(){try{return localStorage.getItem('yec_who')||'';}catch(e){return '';}}
+function askWho(){const w=prompt('Your name (shown as "last saved by"):',whoami());if(w!==null){try{localStorage.setItem('yec_who',w.trim());}catch(e){}}}
+
+async function loadState(){
+ try{
+  const rows=await rpc('get_yearend_cockpit',{p_token:TOKEN});
+  if(rows&&rows[0]&&rows[0].state){state=rows[0].state;state.updatedAt=rows[0].updated_at;state.updatedBy=rows[0].updated_by||'';}
+  else{setStatus('ro','This link is not active. Changes stay in this browser.');canSave=false;}
+ }catch(e){setStatus('ro','Could not reach the shared state ('+e.message+'). Changes stay in this browser until it comes back.');}
+ if(!state||!state.rows){state={rows:{}};}
+ try{const ls=JSON.parse(localStorage.getItem(LS)||'null');if(ls&&ls.updatedAt&&(!state.updatedAt||ls.updatedAt>state.updatedAt)&&ls.local){/* unsaved local edits newer than shared: keep them, then push */state=ls;dirty=true;}}catch(e){}
+ render();
+ stamp();
+ if(canSave){setStatus('ok','Shared page ready — changes save for everyone with this link.');if(dirty)scheduleSave();}
+}
+function stamp(){document.getElementById('lastsaved').textContent=state.updatedAt?('last saved '+new Date(state.updatedAt).toLocaleString()+(state.updatedBy?' · '+state.updatedBy:'')):'';}
+function scheduleSave(){
+ state.updatedAt=new Date().toISOString();dirty=true;
+ try{localStorage.setItem(LS,JSON.stringify(Object.assign({},state,{local:true})));}catch(e){}
+ if(canSave===false){setStatus('ro','View-only here — your changes stay in this browser only.');return;}
+ setStatus('busy','Saving…');
+ clearTimeout(saveTimer);saveTimer=setTimeout(doSave,1500);
+}
+async function doSave(){
+ if(saving){clearTimeout(saveTimer);saveTimer=setTimeout(doSave,800);return;}
+ saving=true;
+ const body=Object.assign({},state);delete body.local;delete body.updatedBy;
+ try{
+  const ts=await rpc('save_yearend_cockpit',{p_token:TOKEN,p_state:body,p_updated_by:whoami()||null});
+  dirty=false;state.updatedAt=ts;state.updatedBy=whoami();
+  try{localStorage.removeItem(LS);}catch(e){}
+  setStatus('ok','Saved for everyone '+new Date().toLocaleTimeString());
+  stamp();
+ }catch(e){
+  setStatus('ro','Save failed ('+e.message+'). Your changes are kept in this browser; they will retry on the next change.');
+ }
+ saving=false;
+}
+window.addEventListener('beforeunload',function(ev){if(dirty&&canSave){ev.preventDefault();ev.returnValue='';}});
+async function initCaps(){ /* no artifact runtime here: saving is by token through Supabase */ }
+function comment(id){ /* comments were a claude.ai feature; the Basis / notes box on each row is the shared note now */ }
+
+// ---------- render ----------
+const HIDDEN_TABS=['omega']; // Omega not updated yet — hidden from this CPA team (flip to [] to show)
+function tabs(){let h='';Object.keys(DATA).filter(e=>!HIDDEN_TABS.includes(e)).forEach(e=>{h+='<button class="tab'+(e===current?' active':'')+'" onclick="show(\''+e+'\')">'+META[e].name+'</button>';});document.getElementById('tabs').innerHTML=h;}
+function show(e){current=e;render();}
+function tieCheck(){
+ const rows=DATA[current],meta=META[current];let a=[0,0],l=[0,0],eq=[0,0],aA=[0,0],lA=[0,0],eqA=[0,0];
+ rows.forEach((r,idx)=>{if(r[1]!=='BS')return;const sub=r[2];const adj=(row(current+idx).adj)||{};
+  const isAsset=['Bank Accounts','Accounts Receivable','Other Current Assets','Fixed Assets','Other Assets'].includes(sub);const isEq=sub==='Equity';
+  for(let i=0;i<2;i++){const bv=pnum(r[i+3]);const av=bv+pnum(adj[i===0?'a':'b']);if(isAsset){a[i]+=bv;aA[i]+=av;}else if(isEq){eq[i]+=bv;eqA[i]+=av;}else{l[i]+=bv;lA[i]+=av;}}});
+ let h='<span><b>Foot check</b></span>';
+ for(let i=0;i<2;i++){const bd=a[i]-(l[i]+eq[i]);const ad=aA[i]-(lA[i]+eqA[i]);
+  h+='<span>'+meta.cols[i]+' — book '+(Math.abs(bd)<0.005?'<b>✓ ties</b>':'<span class="bad">✗ off '+f(bd)+'</span>')+' · adjusted '+(Math.abs(ad)<0.005?'<b>✓ ties</b>':'<span class="bad">✗ off '+f(ad)+'</span>')+'</span>';}
+ document.getElementById('tie').innerHTML=h;
+}
+function render(){
+ tabs();
+ const rows=DATA[current],meta=META[current];
+ const groups={};rows.forEach((r,i)=>{const k=r[1]+' | '+r[2];(groups[k]=groups[k]||[]).push([r,i]);});
+ const order=['BS | Bank Accounts','BS | Accounts Receivable','BS | Other Current Assets','BS | Fixed Assets','BS | Current Liabilities','BS | Credit Cards','BS | Other Current Liabilities','BS | Notes Payable','BS | Long-term Liabilities','BS | Equity','PL | Income','PL | Expenses'];
+ let html='',lastStmt='';
+ order.forEach(k=>{if(!groups[k])return;const stmt=k.startsWith('BS')?'Balance sheet':'Profit & loss';if(stmt!==lastStmt){html+='<div class="section-h">'+stmt+'</div>';lastStmt=stmt;}
+  html+='<div class="sub-h">'+k.split(' | ')[1]+'</div><div class="tw"><table><tr><th style="width:19%">Account</th><th class="num">'+meta.cols[0]+'<br><span style="font-weight:400;letter-spacing:0;text-transform:none">book → adj → adjusted</span></th><th class="num">'+meta.cols[1]+'</th><th>Status</th><th style="width:13%">Proof — '+meta.cols[0]+'</th><th style="width:13%">Proof — '+meta.cols[1]+'</th><th style="width:22%">Basis / notes</th></tr>';
+  groups[k].forEach(([r,i])=>{const id=current+i;const sv=row(id);const status=sv.status||r[5];
+   html+='<tr id="row-'+id+'"><td class="acct">'+esc(r[0])+'</td>';
+   ['a','b'].forEach((col,ci)=>{const bk=r[ci+3];const av=(sv.adj&&sv.adj[col])||'';const hasv=(bk!==null&&bk!=='')||(av!==''&&av!==null);const adjd=hasv?f(pnum(bk)+pnum(av)):'';
+    html+='<td class="num"><div class="wp"><span class="bk">'+f(bk)+'</span><input class="adji" id="adj-'+id+col+'" placeholder="adj" value="'+esc(av)+'" onchange="setAdj(\''+id+'\',\''+col+'\',this.value)"><span class="adjd">'+adjd+'</span></div></td>';});
+   html+='<td><select class="stsel" id="st-'+id+'" onchange="setS(\''+id+'\',this.value)">';Object.keys(ST).forEach(s=>{html+='<option value="'+s+'"'+(s===status?' selected':'')+'>'+ST[s]+'</option>';});html+='</select><div style="margin-top:5px"><span class="st '+status+'">'+ST[status]+'</span></div><div class="rowtools"><button class="cbtn cm" onclick="comment(\''+id+'\')">💬 comment</button></div></td>';
+   ['a','b'].forEach((col,ci)=>{const fl=(sv.files&&sv.files[col])||[];html+='<td><div class="attach">';
+    fl.forEach(fo=>{html+='<a href="'+esc(fo.path)+'" target="_blank" rel="noopener">📎 '+esc(fo.name)+'</a>';});
+    html+='</div></td>';});
+   html+='<td><div class="basis">'+r[7]+'</div><textarea class="note" id="note-'+id+'" placeholder="notes for the CPA / from the CPA" onchange="setN(\''+id+'\',this.value)">'+esc(sv.note||'')+'</textarea></td></tr>';
+  });
+  html+='</table></div>';
+ });
+ document.getElementById('board').innerHTML=html;
+ stats();tieCheck();renderSched();renderLoans();
+}
+function stats(){const rows=DATA[current];let c={ties:0,confirmed:0,docd:0,adjust:0,needdoc:0,open:0},att=0;
+ rows.forEach((r,i)=>{const sv=row(current+i);const s=sv.status||r[5];c[s]=(c[s]||0)+1;if(sv.files){att+=((sv.files.a||[]).length+(sv.files.b||[]).length);}});
+ const ch=(n,l)=>'<div class="mc"><div class="t">'+l+'</div><div class="v">'+n+'</div></div>';
+ document.getElementById('stats').innerHTML=ch((c.ties+c.confirmed)+' / '+rows.length,'Ties / confirmed')+ch(c.docd,'Doc attached')+ch(c.adjust,'Adjustments')+ch(c.needdoc,'Need doc')+ch(c.open,'Open')+ch(att,'Documents');
+}
+function setS(id,v){row(id).status=v;scheduleSave();render();}
+function setN(id,v){row(id).note=v;scheduleSave();}
+function setAdj(id,col,v){const r=row(id);r.adj=r.adj||{};r.adj[col]=v;scheduleSave();render();}
+
+
+// ---------- amortization schedules (editable, saved with the page) ----------
+// [key, acct-prefix, label, opening balance, as-of, rate, scheduled payment, first payment date, source, note, prefilled actuals {YYYY-MM:amt}]
+const LOANS=[
+ ['km1','2970.16','Konica Minolta KM-1',735223.51,'2024-09-30',0.01654,12009.90,'2024-10-31','2990 Konica Minolta KM-1 Amortization.pdf','Payments on the last day of each month to 1/31/2030. Konica bills were recorded to A/P instead of the note; estimated interest was recorded and the unpaid payments removed, but the interest was not.',{}],
+ ['canon','2970.14','Canon 868683 Flatbed',203830.65,'2024-09-01',0.01991,5375.00,'2024-10-01','2980 Canon combine lease.pdf','Three leases combined; $5,375 on the 1st to 11/1/2027, then 3,560 and 2,893 tail payments.',{}],
+ ['rollem','2970.17','Konica ROLLEM CPO',185938.93,'2024-09-30',0.01828,2728.65,'2024-10-31','2991 Konica Minolta Rollem CPO Amortization.pdf','$2,728.65 on the last day of each month to 9/30/2030.',{}],
+ ['highland','2970.15','Highland Capital Iridesse',201859.75,'2024-09-20',0.08204,6050.00,'2024-10-20','2988 Note Payable-Highland Capital.pdf','$6,050 on the 20th to 11/20/2027.',{}],
+ ['meda','2970.21','MEDA 310205',232702.27,'2024-09-16',0.05,1548.96,'2024-10-16','12162024 Tvalue Amortization 2.pdf','Book adjusted to the balances MEDA sent — this tab checks their figure, it does not override it.',{}],
+ ['sba','2970.12','SBA 6724567807',96897.55,'2024-09-01',0.0375,731.00,'2024-10-01','12162024 Tvalue Amortization.pdf','$731 on the 1st; balloon 64,713.01 due 6/1/2030.',{}],
+ ['neon','2970.18','NEON (MIGF 30200)',92831.32,'2024-09-18',0.05,2302.93,'2024-10-18','2992 Updated 1.9.25 Note Payable-Northside Economic Opportunity.pdf','$2,302.93 on the 18th to 5/18/2028. Actuals below are the Northside / Presta withdrawals in the 2204 bank feed.',{'2024-10':2302.93,'2024-11':2302.93,'2024-12':2302.93,'2025-01':2302.93,'2025-02':2302.93,'2025-03':2302.93,'2025-04':2302.93,'2025-05':2302.93,'2025-06':2302.93,'2025-07':2302.93,'2025-08':2302.93,'2025-09':2302.93,'2025-10':2302.93,'2025-11':2302.93,'2025-12':2302.93}],
+ ['km6136','2970.20','Loeffler KM6136 -8405',35180.24,'2024-09-23',0.18972,1037.00,'2024-10-23','2996 Loffler KM6136 Amort Schedule.pdf','Lease + $25k cash loan, orig 40,000. $1,037 on the 23rd to 10/23/2028.',{}],
+ ['seal65','2970.19','Loeffler SEAL 65 - 6706',16263.30,'2024-09-15',0.17136,470.42,'2024-10-15','2995 Nots Payable -Loffler 6706.pdf','Orig 18,873 on 9/15/2023. $470.42 on the 15th to 9/15/2028.',{}],
+ ['brown1','2970.10','Brown #1',176051.22,'2024-09-01',0.07,4167.01,'2024-10-01','2830 Consolidated Brown Loan #1.pdf','Schedule assumes $4,167.01/mo from 2/1/2025. Frank is not paying — type 0 for each missed month; interest keeps accruing.',{}],
+ ['brown2','2970.11','Brown #2',75238.48,'2024-09-01',0.10,0,'2024-10-01','2831 Consolidated Brown Loan #2.pdf','No payments scheduled — accrues at 10%. Enter any real payments as actuals.',{}],
+ ['ais','2970.13','AIS Retainer',53152.51,'2024-09-22',0.02165,1760.00,'2024-10-22','2976 AIS Lease Amortization Schedule.pdf (scan)','Opening balance is an ESTIMATE rolled from the 12/31/2022 master listing. Replace when the scan is read.',{}],
+ ['n20a','2970.22','NEON020-A (125,000)',125000,'2025-09-21',0.03,312.50,'2025-11-04','Presta Technologies withdrawals — 2204 bank feed','Interest-only so far: 312.50 = 125,000 × 3% ÷ 12. Rate/start inferred from the payments — confirm against the note.',{'2025-11':458.33,'2025-12':312.50}],
+ ['n20b','2970.22','NEON020-B (75,000)',75000,'2025-09-21',0.05,312.50,'2025-11-04','Presta Technologies withdrawals — 2204 bank feed','Interest-only so far: 312.50 = 75,000 × 5% ÷ 12. Confirm against the note.',{'2025-11':458.33,'2025-12':312.50}],
+ ['n20d','2970.22','NEON020-D (25,000)',25000,'2025-09-21',0.01,20.83,'2025-11-04','Presta Technologies withdrawals — 2204 bank feed','Interest-only so far: 20.83 = 25,000 × 1% ÷ 12. NEON020-C 25,000 forgiven 10/28/2025 — not amortized.',{'2025-11':30.56,'2025-12':20.83}]
+];
+const NMONTHS=84;
+function lstate(k){state.loans=state.loans||{};return state.loans[k]=state.loans[k]||{};}
+function lparam(L){const o=lstate(L[0]);return {bal:o.bal!==undefined&&o.bal!==''?pnum(o.bal):L[3],rate:o.rate!==undefined&&o.rate!==''?pnum(o.rate)/100:L[5],pmt:o.pmt!==undefined&&o.pmt!==''?pnum(o.pmt):L[6],first:o.first||L[7]};}
+function ym(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
+function addM(iso,k){const [y,m,d]=iso.split('-').map(Number);const dt=new Date(y,m-1+k,1);const last=new Date(dt.getFullYear(),dt.getMonth()+1,0).getDate();dt.setDate(Math.min(d,last));return dt;}
+function amort(L){
+ const p=lparam(L),o=lstate(L[0]),act=Object.assign({},L[10],o.act||{});let bal=p.bal;const rows=[];
+ for(let k=0;k<NMONTHS;k++){const dt=addM(p.first,k),key=ym(dt);if(bal<=0.005){rows.push({dt,key,beg:0,sch:0,act:act[key],int:0,prin:0,end:0});continue;}
+  const intr=Math.round(bal*p.rate/12*100)/100;const sch=Math.min(p.pmt,bal+intr);const a=(act[key]!==undefined&&act[key]!=='')?pnum(act[key]):null;const pay=a===null?sch:a;const prin=Math.round((pay-intr)*100)/100;const end=Math.round((bal-prin)*100)/100;
+  rows.push({dt,key,beg:bal,sch,act:act[key],int:intr,prin,end});bal=end;}
+ return rows;
+}
+function balAt(rows,iso,fallback){const t=new Date(iso+'T00:00:00');let b=fallback;rows.forEach(r=>{if(r.dt<=t)b=r.end;});return b;}
+function intBetween(rows,a,b){const ta=new Date(a+'T00:00:00'),tb=new Date(b+'T00:00:00');let s=0;rows.forEach(r=>{if(r.dt>=ta&&r.dt<=tb)s+=r.int;});return Math.round(s*100)/100;}
+function schedBal(pre){ // live schedule balances for the loan panel: sum of matching LOANS
+ let a=null,b=null;LOANS.forEach(L=>{if(L[1]!==pre)return;const rows=amort(L);a=(a||0)+balAt(rows,'2025-09-30',lparam(L).bal);b=(b||0)+balAt(rows,'2025-12-31',lparam(L).bal);});return [a,b];
+}
+function setLP(k,f,v){lstate(k)[f]=v;scheduleSave();render();}
+function setAct(k,key,v){const o=lstate(k);o.act=o.act||{};o.act[key]=v;scheduleSave();render();}
+function toggleLoan(k){const o=lstate(k);o.open=!o.open;render();}
+function fmtD(d){return (d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getDate().toString().padStart(2,'0')+'/'+d.getFullYear();}
+function renderLoans(){
+ const el=document.getElementById('loans');if(current!=='iaz'){el.hidden=true;return;}el.hidden=false;
+ let h='<h3>Amortization schedules — one per note, editable</h3><div class="hint" style="margin-bottom:10px">Each schedule opens at the lender schedule balance after the September 2024 payment. Yellow boxes are inputs; type an actual payment to override the scheduled one (0 = missed month, interest still accrues). Saved with the page.</div>';
+ LOANS.forEach(L=>{const o=lstate(L[0]),p=lparam(L),rows=amort(L);
+  const b930=balAt(rows,'2025-09-30',p.bal),b1231=balAt(rows,'2025-12-31',p.bal),b1226=balAt(rows,'2026-12-31',p.bal);
+  h+='<div class="loan"><div class="loan-h" onclick="toggleLoan(\''+L[0]+'\')"><span class="acct">'+esc(L[1]+' '+L[2])+'</span><span class="loan-sum">9/30/25 <b>'+f(b930)+'</b> · 12/31/25 <b>'+f(b1231)+'</b> · 12/31/26 <b>'+f(b1226)+'</b> · FY25 int <b>'+f(intBetween(rows,'2024-10-01','2025-09-30'))+'</b> · stub int <b>'+f(intBetween(rows,'2025-10-01','2025-12-31'))+'</b></span><span class="hint">'+(o.open?'▲ hide':'▼ open')+'</span></div>';
+  if(o.open){
+   h+='<div class="loan-b"><div class="hint" style="margin-bottom:6px">Source: '+esc(L[8])+' — '+esc(L[9])+'</div><div class="lp">';
+   h+='<label>Opening balance <input class="adji" style="width:120px" value="'+esc(o.bal!==undefined?o.bal:L[3].toFixed(2))+'" onchange="setLP(\''+L[0]+'\',\'bal\',this.value)"></label>';
+   h+='<label>As of <span class="mono">'+esc(L[4])+'</span></label>';
+   h+='<label>Rate % <input class="adji" style="width:70px" value="'+esc(o.rate!==undefined?o.rate:(L[5]*100).toFixed(3))+'" onchange="setLP(\''+L[0]+'\',\'rate\',this.value)"></label>';
+   h+='<label>Scheduled payment <input class="adji" style="width:100px" value="'+esc(o.pmt!==undefined?o.pmt:L[6].toFixed(2))+'" onchange="setLP(\''+L[0]+'\',\'pmt\',this.value)"></label>';
+   h+='<label>First payment <input class="adji" style="width:110px" type="date" value="'+esc(p.first)+'" onchange="setLP(\''+L[0]+'\',\'first\',this.value)"></label></div>';
+   h+='<div class="tw"><table class="am"><tr><th>#</th><th>Date</th><th class="num">Beginning</th><th class="num">Scheduled</th><th class="num">Actual (edit)</th><th class="num">Interest</th><th class="num">Principal</th><th class="num">Ending</th></tr>';
+   rows.forEach((r,i)=>{if(i>=NMONTHS)return;const av=r.act!==undefined&&r.act!==null?r.act:'';h+='<tr><td>'+(i+1)+'</td><td class="mono">'+fmtD(r.dt)+'</td><td class="num">'+f(r.beg)+'</td><td class="num">'+f(r.sch)+'</td><td class="num"><input class="adji" style="width:96px" value="'+esc(av)+'" placeholder="sched" onchange="setAct(\''+L[0]+'\',\''+r.key+'\',this.value)"></td><td class="num">'+f(r.int)+'</td><td class="num">'+f(r.prin)+'</td><td class="num">'+f(r.end)+'</td></tr>';});
+   h+='</table></div></div>';
+  }
+  h+='</div>';});
+ el.innerHTML=h;
+}
+
+// ---------- loan panel ----------
+function schedRows(){const rows=DATA.iaz;return SCHED.map(s0=>{const s=s0.slice();const live=schedBal(s[0]);if(s[1]!==null&&live[0]!==null){s[1]=Math.round(live[0]*100)/100;s[2]=Math.round(live[1]*100)/100;}const idx=rows.findIndex(r=>r[0].startsWith(s[0]+' '));return {s,idx,r:rows[idx]};}).filter(x=>x.idx>=0);}
+function renderSched(){
+ const el=document.getElementById('sched');if(current!=='iaz'){el.hidden=true;return;}el.hidden=false;
+ let tot=[0,0];
+ let h='<h3>Loan panel — book vs amortization schedules</h3><div class="hint" style="margin-bottom:10px">Schedule balances come from the editable schedules below — change a rate, payment or actual there and this panel follows.</div><div class="tw"><table><tr><th>Note</th><th class="num">Book 9/30/25</th><th class="num">Schedule</th><th class="num">Variance</th><th class="num">Book 12/31/25</th><th class="num">Schedule</th><th class="num">Variance</th><th>Source · terms</th></tr>';
+ schedRows().forEach(({s,r})=>{const cells=[];
+  for(let i=0;i<2;i++){const bk=pnum(r[3+i]);const sc=s[1+i];
+   if(sc===null){cells.push('<td class="num">'+f(bk)+'</td><td class="num" style="color:var(--muted)">open</td><td class="num" style="color:var(--muted)">—</td>');}
+   else{const v=Math.round((sc-bk)*100)/100;tot[i]+=v;cells.push('<td class="num">'+f(bk)+'</td><td class="num">'+f(sc)+'</td><td class="num"><b>'+f(v)+'</b></td>');}}
+  h+='<tr><td class="acct">'+esc(r[0])+'</td>'+cells[0]+cells[1]+'<td style="font-size:11.5px"><b>'+esc(s[3])+'</b><br>'+esc(s[4])+(s[5]?'<br><span style="color:var(--warn)">'+esc(s[5])+'</span>':'')+'</td></tr>';});
+ h+='<tr style="background:var(--band);font-weight:600"><td>Net true-up (excl. open notes)</td><td></td><td></td><td class="num">'+f(tot[0])+'</td><td></td><td></td><td class="num">'+f(tot[1])+'</td><td style="font-size:11px;font-weight:400">Positive = notes understated on the books (liability up, income down).</td></tr></table></div>';
+ h+='<div class="toolbar"><button class="btn accent" onclick="applySched()">⚙ Apply schedule true-ups as adjustments</button><button class="btn ghost" onclick="clearSched()">↺ Clear those adjustments</button><span class="hint">Offsets 9/30 net to Retained Earnings and the stub movement to Net Income so the foot check stays ✓. Brown #1/#2 and AIS are left alone until there are actuals.</span></div>';
+ el.innerHTML=h;
+}
+function applySched(){let tot=[0,0];
+ schedRows().forEach(({s,idx,r})=>{if(s[1]===null)return;const rw=row('iaz'+idx);rw.adj=rw.adj||{};
+  for(let i=0;i<2;i++){const v=Math.round((s[1+i]-pnum(r[3+i]))*100)/100;tot[i]+=v;rw.adj[i===0?'a':'b']=v.toFixed(2);}
+  if(!rw.status||['needdoc','open','adjust','docd'].includes(rw.status))rw.status='ties';});
+ const re=DATA.iaz.findIndex(r=>r[0].startsWith('3400 '));const ni=DATA.iaz.findIndex(r=>r[0].startsWith('Net Income'));
+ const a=Math.round(tot[0]*100)/100,b=Math.round(tot[1]*100)/100;
+ row('iaz'+ni).adj={a:(-a).toFixed(2),b:(-(b-a)).toFixed(2)};row('iaz'+re).adj={a:'',b:(-a).toFixed(2)};
+ scheduleSave();render();
+}
+function clearSched(){schedRows().forEach(({s,idx})=>{if(s[1]===null)return;const rw=row('iaz'+idx);if(rw.adj)rw.adj={a:'',b:''};if(rw.status==='ties')rw.status='adjust';});
+ const re=DATA.iaz.findIndex(r=>r[0].startsWith('3400 '));const ni=DATA.iaz.findIndex(r=>r[0].startsWith('Net Income'));[re,ni].forEach(i=>{if(state.rows['iaz'+i])state.rows['iaz'+i].adj={a:'',b:''};});scheduleSave();render();}
+
+render();
+loadState().then(()=>initCaps());
+</script>
+
+</body></html>
