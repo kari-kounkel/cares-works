@@ -141,7 +141,7 @@ table.am td{padding:4px 8px;font-size:12px}
   <div class="mast-left"><img class="logo" src="logo.png" alt="CARES Consulting Inc — Clear today. Stronger tomorrow."><div>
     <div class="brand-eyebrow">CARES Works · Year-End Cockpit <span class="proto">Prototype</span></div>
     <h1>Year-End Reconciliation Cockpit</h1>
-    <div class="statute">I A Z Corporation dba Minuteman Press Uptown · FYE 9/30/2025 and short year to 12/31/2025 · prepared for the CPA · book balances refreshed from QuickBooks 9/21/2026</div>
+    <div class="statute">I A Z Corporation dba Minuteman Press Uptown · FYE 9/30/2025 and short year to 12/31/2025 · prepared for the CPA · book balances refreshed from QuickBooks 9/21/2026 (evening re-pull)</div>
   </div></div>
   <span id="lastsaved" hidden></span>
 </header>
@@ -231,7 +231,7 @@ const DATA={
   ['2051 US Bank 2957 Credit Card','BS','Credit Cards',43301.18,42621.40,'confirmed','CC statements','Book balance stands — statements cycle mid-month, so the following month carries the tie.'],
   ['2052 US Bank 7358 Cash Flow Manager','BS','Credit Cards',52862.91,37488.50,'confirmed','CC statements','Book balance stands — statements cycle mid-month, so the following month carries the tie.'],
   ['2400 Accrued Payroll','BS','Other Current Liabilities',42815.75,30081.85,'ties','Accrual workpaper + payroll register','Accrual calculation workpaper attached ties to book at both dates; accruals and reversals already posted.'],
-  ['2500 PR Liabilities (incl 2501 tax subs)','BS','Other Current Liabilities',-72.67,15411.13,'adjust','941/940/MN notices','Clean deleted subs to $0; reconcile to agency balances.'],
+  ['2500 PR Liabilities (incl 2501 tax subs)','BS','Other Current Liabilities',-72.67,22928.99,'adjust','941/940/MN notices','12/31: MN Unemployment 21,804.14 + FUTA 590.02 + parent 534.83. Clean deleted subs to $0; reconcile to agency balances.'],
   ['Payroll liabilities - other subs','BS','Other Current Liabilities',266.80,13206.91,'adjust','Payroll register / agency notices','9/30: 2502 −507.34 + 2504 774.14. 12/31: 1160 −700 + 2500.18 −1,406.64 + 2502 615.09 + 2503 331.90 + 2504 12,259.92. Clean deleted subs.'],
   ['2600 MN Department of Revenue Payable','BS','Other Current Liabilities',10379.00,6693.00,'needdoc','MN DOR notice',''],
   ['2610 Accrued State Income Tax','BS','Other Current Liabilities',-260.00,-260.00,'adjust','—','Negative (debit) in a liability — investigate/reclass.'],
@@ -255,7 +255,7 @@ const DATA={
   ['3120 Capital Frank Brown','BS','Equity',55226.24,55226.24,'confirmed','—',''],
   ['3130 Capital Julie Brown','BS','Equity',71379.69,71379.69,'confirmed','—',''],
   ['3400 Retained Earnings','BS','Equity',-505478.74,-377516.78,'needdoc','Prior-yr close / return','Shown on the fiscal-year basis: −505,478.74 opening RE at 10/1/2024, rolls with FY net income 127,961.96 to −377,516.78 at 10/1/2025. QBO itself still shows −257,447.21 (fiscal-year setting not flipped yet — awaiting government approval). Equity totals tie either way.'],
-  ['Net Income (period)','BS','Equity',127961.96,-116837.54,'confirmed','P&L','Period net income: FY 10/1/24–9/30/25 = 127,961.96; stub 10/1–12/31/25 = −116,837.54. (QBO calendar-YTD shows −120,069.57 / −236,907.11; the stub is the difference.)'],
+  ['Net Income (period)','BS','Equity',127961.96,-124355.40,'confirmed','P&L','Period net income: FY 10/1/24–9/30/25 = 127,961.96; stub 10/1–12/31/25 = −124,355.40. (QBO calendar-YTD shows −120,069.57 / −244,424.97; the stub is the difference.)'],
   ['4000 Sales (all revenue)','PL','Income',2422867.21,630839.43,'open','FLEX sales / sales-tax reports','colA = FY 10/1/24–9/30/25 total income; colB = Oct–Dec 25 stub. Tie recorded revenue to FLEX — the decisive FLEX check.'],
   ['6295 Rent (Premises)','PL','Expenses',111833.33,36871.00,'adjust','Lease + Omega rent income','OVERSTATED ~$45k. Cash transfers to Omega double-booked on top of $6,957/mo accrual — reclass to intercompany.'],
   ['6245 Depreciation','PL','Expenses',216512.88,54128.22,'docd','2025 Fixed Asset Schedule','Fixed asset schedule attached — CPA to adjust.'],
@@ -464,20 +464,42 @@ function setLP(k,f,v){lstate(k)[f]=v;scheduleSave();render();}
 function setAct(k,key,v){const o=lstate(k);o.act=o.act||{};o.act[key]=v;scheduleSave();render();}
 function toggleLoan(k){const o=lstate(k);o.open=!o.open;render();}
 function fmtD(d){return (d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getDate().toString().padStart(2,'0')+'/'+d.getFullYear();}
+
+function qboMonth(o,key){return (o.qboPayments||[]).filter(p=>p.date.slice(0,7)===key);}
+function qboCashHint(o,key){
+ if(!o.qboReview||key<o.qboReview.from.slice(0,7)||key>o.qboReview.through.slice(0,7))return '';
+ const ps=qboMonth(o,key),used=ps.filter(p=>p.allocated>0),held=ps.filter(p=>p.status==='held'||p.status==='shared unallocated');
+ let s=used.map(p=>p.date.slice(5)+' '+Number(p.allocated).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})).join('; ');
+ if(!s)s='No allocated payment identified';
+ if(held.length)s+=' · allocation open';
+ return '<div class="hint" style="white-space:normal;max-width:220px;margin-top:4px">'+esc(s)+'</div>';
+}
+function qboPaymentDetail(o){
+ if(!o.qboReview)return '';
+ let h='<details style="margin:10px 0"><summary style="cursor:pointer"><b>QuickBooks payment detail through '+esc(o.qboReview.through)+'</b></summary><div class="hint" style="margin:8px 0">'+esc(o.qboReview.notes)+'</div>';
+ h+='<div class="tw"><table class="am"><tr><th>Actual QBO date</th><th class="num">Bank / card payment</th><th class="num">Used in schedule</th><th>Source / allocation</th></tr>';
+ (o.qboPayments||[]).forEach(p=>{let ref='GL row '+p.sourceRow+(p.reference?' · '+p.reference:'');
+ if(p.qboId&&p.qboType)ref='<a href="https://qbo.intuit.com/app/'+encodeURIComponent(p.qboType)+'?txnId='+encodeURIComponent(p.qboId)+'" target="_blank" rel="noopener">'+esc(ref)+'</a>';else ref=esc(ref);
+ h+='<tr><td class="mono">'+esc(p.date)+'</td><td class="num">'+f(p.cash)+'</td><td class="num">'+(p.allocated?f(p.allocated):(p.status==='excluded service'?'Excluded':'Held'))+'</td><td>'+ref+'<div class="hint" style="white-space:normal">'+esc(p.note)+'</div></td></tr>';});
+ h+='</table></div><div class="hint" style="margin:6px 0">Source: '+esc(o.qboReview.source)+'. '+esc(o.qboReview.basis)+'</div>';
+ return h+'</details>';
+}
+function hasQboPaymentReview(prefix){return LOANS.some(L=>L[1]===prefix&&lstate(L[0]).qboReview);}
+
 function renderLoans(prefix){
  let h='';
  LOANS.filter(L=>L[1]===prefix).forEach(L=>{const o=lstate(L[0]),p=lparam(L),rows=amort(L);
   const b930=balAt(rows,'2025-09-30',p.bal),b1231=balAt(rows,'2025-12-31',p.bal),b1226=balAt(rows,'2026-12-31',p.bal);
-  h+='<div class="loan"><div class="loan-h" onclick="toggleLoan(\''+L[0]+'\')"><span class="acct">'+esc(L[1]+' '+L[2])+'</span><span class="loan-sum">9/30/25 <b>'+f(b930)+'</b> · 12/31/25 <b>'+f(b1231)+'</b> · 12/31/26 <b>'+f(b1226)+'</b> · FY25 int <b>'+f(intBetween(rows,'2024-10-01','2025-09-30'))+'</b> · stub int <b>'+f(intBetween(rows,'2025-10-01','2025-12-31'))+'</b></span><span class="hint">'+(o.open?'▲ hide':'▼ open')+'</span></div>';
+  h+='<div class="loan"><div class="loan-h" onclick="toggleLoan(\''+L[0]+'\')"><span class="acct">'+esc(L[1]+' '+L[2])+'</span><span class="loan-sum">Model estimate · 9/30/25 <b>'+f(b930)+'</b> · 12/31/25 <b>'+f(b1231)+'</b> · 12/31/26 <b>'+f(b1226)+'</b> · FY25 int <b>'+f(intBetween(rows,'2024-10-01','2025-09-30'))+'</b> · stub int <b>'+f(intBetween(rows,'2025-10-01','2025-12-31'))+'</b></span><span class="hint">'+(o.open?'▲ hide':'▼ open')+'</span></div>';
   if(o.open){
-   h+='<div class="loan-b"><div class="hint" style="margin-bottom:6px">Source: '+esc(L[8])+' — '+esc(L[9])+'</div><div class="lp">';
+   h+='<div class="loan-b">'+(o.qboReview?'<div class="hint" style="margin-bottom:8px"><b>Payment-based estimate; not a confirmed lender balance.</b> Actuals follow the QBO cash month. The scheduled date below is a monthly model marker; exact cash dates appear under the amount and in the payment detail. Unallocated cash is held, not guessed. 2026 remains forecast.</div>':'')+'<div class="hint" style="margin-bottom:6px">Source: '+esc(L[8])+' — '+esc(L[9])+'</div><div class="lp">';
    h+='<label>Opening balance <input class="adji" style="width:120px" value="'+esc(o.bal!==undefined?o.bal:L[3].toFixed(2))+'" onchange="setLP(\''+L[0]+'\',\'bal\',this.value)"></label>';
    h+='<label>As of <span class="mono">'+esc(L[4])+'</span></label>';
    h+='<label>Rate % <input class="adji" style="width:70px" value="'+esc(o.rate!==undefined?o.rate:(L[5]*100).toFixed(3))+'" onchange="setLP(\''+L[0]+'\',\'rate\',this.value)"></label>';
    h+='<label>Scheduled payment <input class="adji" style="width:100px" value="'+esc(o.pmt!==undefined?o.pmt:L[6].toFixed(2))+'" onchange="setLP(\''+L[0]+'\',\'pmt\',this.value)"></label>';
    h+='<label>First payment <input class="adji" style="width:110px" type="date" value="'+esc(p.first)+'" onchange="setLP(\''+L[0]+'\',\'first\',this.value)"></label></div>';
-   h+='<div class="tw"><table class="am"><tr><th>#</th><th>Date</th><th class="num">Beginning</th><th class="num">Scheduled</th><th class="num">Actual (edit)</th><th class="num">Interest</th><th class="num">Principal</th><th class="num">Ending</th></tr>';
-   rows.forEach((r,i)=>{if(i>=NMONTHS)return;const av=r.act!==undefined&&r.act!==null?r.act:'';h+='<tr><td>'+(i+1)+'</td><td class="mono">'+fmtD(r.dt)+'</td><td class="num">'+f(r.beg)+'</td><td class="num">'+f(r.sch)+'</td><td class="num"><input class="adji" style="width:96px" value="'+esc(av)+'" placeholder="sched" onchange="setAct(\''+L[0]+'\',\''+r.key+'\',this.value)"></td><td class="num">'+f(r.int)+'</td><td class="num">'+f(r.prin)+'</td><td class="num">'+f(r.end)+'</td></tr>';});
+   h+=qboPaymentDetail(o)+'<div class="tw"><table class="am"><tr><th>#</th><th>Scheduled date</th><th class="num">Beginning</th><th class="num">Scheduled</th><th class="num">Actual allocated (edit)</th><th class="num">Interest</th><th class="num">Principal</th><th class="num">Ending</th></tr>';
+   rows.forEach((r,i)=>{if(i>=NMONTHS)return;const av=r.act!==undefined&&r.act!==null?r.act:'';h+='<tr><td>'+(i+1)+'</td><td class="mono">'+fmtD(r.dt)+'</td><td class="num">'+f(r.beg)+'</td><td class="num">'+f(r.sch)+'</td><td class="num"><input class="adji" style="width:96px" value="'+esc(av)+'" placeholder="sched" onchange="setAct(\''+L[0]+'\',\''+r.key+'\',this.value)">'+qboCashHint(o,r.key)+'</td><td class="num">'+f(r.int)+'</td><td class="num">'+f(r.prin)+'</td><td class="num">'+f(r.end)+'</td></tr>';});
    h+='</table></div></div>';
   }
   h+='</div>';});
@@ -489,20 +511,21 @@ function schedRows(){const rows=DATA.iaz;return SCHED.map(s0=>{const s=s0.slice(
 function renderSched(){
  const el=document.getElementById('sched');if(current!=='iaz'){el.hidden=true;return;}el.hidden=false;
  let tot=[0,0];
- let h='<h3>Loan balances and amortization schedules</h3><div class="hint" style="margin-bottom:10px">Each loan’s amortization schedule is directly below its balances. Open it to view or edit the schedule. Yellow boxes are inputs; actual payments override scheduled payments (0 means a missed payment, with interest still accruing). Changes save with the page.</div><div class="tw"><table class="lnt"><tr><th>Note</th><th class="num y-a">Book 9/30/25</th><th class="num y-a">Schedule</th><th class="num y-a">Variance</th><th class="num y-b">Book 12/31/25</th><th class="num y-b">Schedule</th><th class="num y-b">Variance</th><th>Source · terms</th></tr>';
+ let h='<h3>Loan balances and amortization schedules</h3><div class="hint" style="margin-bottom:10px">Each loan’s amortization schedule is directly below its balances. Open it to view or edit the schedule. Yellow boxes are inputs; actual allocated payments override scheduled payments. Imported zero means no allocated payment identified in the reviewed QBO records; it does not resolve any flagged payment. Actual cash dates are retained. Interest remains a monthly estimate. Changes save with the page.</div><div class="tw"><table class="lnt"><tr><th>Note</th><th class="num y-a">Book 9/30/25</th><th class="num y-a">Model estimate</th><th class="num y-a">Model difference</th><th class="num y-b">Book 12/31/25</th><th class="num y-b">Model estimate</th><th class="num y-b">Model difference</th><th>Source · terms</th></tr>';
  schedRows().forEach(({s,r})=>{const cells=[];
   for(let i=0;i<2;i++){const bk=pnum(r[3+i]);const sc=s[1+i];
    const y=i===0?'y-a':'y-b';
    if(sc===null){cells.push('<td class="num '+y+'">'+f(bk)+'</td><td class="num '+y+'" style="color:var(--muted)">open</td><td class="num '+y+'" style="color:var(--muted)">—</td>');}
    else{const v=Math.round((sc-bk)*100)/100;tot[i]+=v;cells.push('<td class="num '+y+'">'+f(bk)+'</td><td class="num '+y+'">'+f(sc)+'</td><td class="num '+y+'"><b class="'+(Math.abs(v)<0.005?'var0':(v>0?'varp':'varn'))+'">'+f(v)+'</b></td>');}}
-  h+='<tr class="ln-bal"><td class="acct">'+esc(r[0])+'</td>'+cells[0]+cells[1]+'<td style="font-size:11.5px"><b>'+esc(s[3])+'</b><br>'+esc(s[4])+(s[5]?'<br><span style="color:var(--warn)">'+esc(s[5])+'</span>':'')+'</td></tr>';
+  h+='<tr class="ln-bal"><td class="acct">'+esc(r[0])+(hasQboPaymentReview(s[0])?'<div class="hint">'+(LOANS.some(L=>L[1]===s[0]&&lstate(L[0]).qboReview?.unallocatedTotal>0)?'Partial model — payment allocation open':'Cash payments captured; interest is estimated')+'</div>':'')+'</td>'+cells[0]+cells[1]+'<td style="font-size:11.5px"><b>'+esc(s[3])+'</b><br>'+esc(s[4])+(s[5]?'<br><span style="color:var(--warn)">'+esc(s[5])+'</span>':'')+'</td></tr>';
   const detail=renderLoans(s[0]);
   if(detail)h+='<tr class="loan-schedule-row" data-loan-account="'+esc(s[0])+'"><td colspan="8"><div class="ln-lbl">Amortization schedule · '+esc(s[0])+'</div>'+detail+'</td></tr>';});
- h+='<tr class="ln-tot"><td>Net true-up (excl. open notes)</td><td class="y-a"></td><td class="y-a"></td><td class="num y-a">'+f(tot[0])+'</td><td class="y-b"></td><td class="y-b"></td><td class="num y-b">'+f(tot[1])+'</td><td style="font-size:11px;font-weight:400">Positive = notes understated on the books (liability up, income down).</td></tr></table></div>';
- h+='<div class="toolbar"><button class="btn accent" onclick="applySched()">⚙ Apply schedule true-ups as adjustments</button><button class="btn ghost" onclick="clearSched()">↺ Clear those adjustments</button><span class="hint">Offsets 9/30 net to Retained Earnings and the stub movement to Net Income so the foot check stays ✓. Brown #1/#2 and AIS are left alone until there are actuals.</span></div>';
+ h+='<tr style="background:var(--band)"><td colspan="8" class="hint">Model differences are not amounts to post. Unallocated payments, opening balances, lender terms and payment timing can affect these estimates.</td></tr></table></div>';
+ h+='<div class="toolbar">'+(LOANS.some(L=>lstate(L[0]).qboReview)?'<span class="hint"><b>Payment estimates only — no automatic book adjustments.</b> Recorded loan balances and existing workpaper adjustments are unchanged.</span></div>':'<button class="btn accent" onclick="applySched()">⚙ Apply schedule true-ups as adjustments</button><button class="btn ghost" onclick="clearSched()">↺ Clear those adjustments</button><span class="hint">Offsets 9/30 net to Retained Earnings and the stub movement to Net Income so the foot check stays ✓. Brown #1/#2 and AIS are left alone until there are actuals.</span></div>');
  el.innerHTML=h;
 }
-function applySched(){let tot=[0,0];
+function applySched(){
+ if(LOANS.some(L=>lstate(L[0]).qboReview)){alert('Actual payments have been captured. No automatic book adjustment is supported by this estimate.');return;}let tot=[0,0];
  schedRows().forEach(({s,idx,r})=>{if(s[1]===null)return;const rw=row('iaz'+idx);rw.adj=rw.adj||{};
   for(let i=0;i<2;i++){const v=Math.round((s[1+i]-pnum(r[3+i]))*100)/100;tot[i]+=v;rw.adj[i===0?'a':'b']=v.toFixed(2);}
   if(!rw.status||['needdoc','open','adjust','docd'].includes(rw.status))rw.status='ties';});
