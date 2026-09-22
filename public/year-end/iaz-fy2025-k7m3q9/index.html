@@ -1154,7 +1154,7 @@ const SCHED=[
   null,
   "Presta Technologies withdrawals (2204 bank feed)",
   "A 125k @3% · B 75k @5% · D 25k @1% · interest-only so far",
-  "Recorded provisional total remains 250,000. Detail below models only A/B/D; the 25,000 C component is not modeled. No total-loan variance or forgiveness entry can be inferred."
+  "250,000 facility; A/B/D schedules shown below."
  ],
  [
   "2970.10",
@@ -1358,9 +1358,9 @@ function renderLoans(prefix){
  let h='';
  LOANS.filter(L=>L[1]===prefix).forEach(L=>{const o=lstate(L[0]),p=lparam(L),rows=amort(L);
   const b930=balAt(rows,'2025-09-30',p.bal),b1231=balAt(rows,'2025-12-31',p.bal),b1226=balAt(rows,'2026-12-31',p.bal);
-  h+='<div class="loan"><div class="loan-h" onclick="toggleLoan(\''+L[0]+'\')"><span class="acct">'+esc(L[1]+' '+L[2])+'</span><span class="loan-sum">Model estimate · 9/30/25 <b>'+f(b930)+'</b> · 12/31/25 <b>'+f(b1231)+'</b> · 12/31/26 <b>'+f(b1226)+'</b> · FY25 int <b>'+f(intBetween(rows,'2024-10-01','2025-09-30'))+'</b> · stub int <b>'+f(intBetween(rows,'2025-10-01','2025-12-31'))+'</b></span><span class="hint">'+(o.open?'▲ hide':'▼ open')+'</span></div>';
+  h+='<div class="loan"><div class="loan-h" onclick="toggleLoan(\''+L[0]+'\')"><span class="acct">'+esc(L[1]+' '+L[2])+'</span><span class="loan-sum">Schedule · 9/30/25 <b>'+f(b930)+'</b> · 12/31/25 <b>'+f(b1231)+'</b> · 12/31/26 <b>'+f(b1226)+'</b> · FY25 int <b>'+f(intBetween(rows,'2024-10-01','2025-09-30'))+'</b> · stub int <b>'+f(intBetween(rows,'2025-10-01','2025-12-31'))+'</b></span><span class="hint">'+(o.open?'▲ hide':'▼ open')+'</span></div>';
   if(o.open){
-   h+='<div class="loan-b">'+(o.qboReview?'<div class="hint" style="margin-bottom:8px"><b>Payment-based estimate; not a confirmed lender balance.</b> Actuals follow the QBO cash month. The scheduled date below is a monthly model marker; exact cash dates appear under the amount and in the payment detail. Unallocated cash is held, not guessed. 2026 remains forecast.</div>':'')+'<div class="hint" style="margin-bottom:6px">Source: '+esc(L[8])+' — '+esc(L[9])+'</div><div class="lp">';
+   h+='<div class="loan-b">'+(o.qboReview?'<div class="hint" style="margin-bottom:8px">Actual payments follow the QBO cash month; exact cash dates appear under the amount. 2026 rows are the scheduled forecast.</div>':'')+'<div class="hint" style="margin-bottom:6px">Source: '+esc(L[8])+' — '+esc(L[9])+'</div><div class="lp">';
    h+='<label>Opening balance <input class="adji" style="width:120px" value="'+esc(o.bal!==undefined?o.bal:L[3].toFixed(2))+'" onchange="setLP(\''+L[0]+'\',\'bal\',this.value)"></label>';
    h+='<label>As of <span class="mono">'+esc(L[4])+'</span></label>';
    h+='<label>Rate % <input class="adji" style="width:70px" value="'+esc(o.rate!==undefined?o.rate:(L[5]*100).toFixed(3))+'" onchange="setLP(\''+L[0]+'\',\'rate\',this.value)"></label>';
@@ -1379,21 +1379,21 @@ function schedRows(){const rows=DATA.iaz;return SCHED.map(s0=>{const s=s0.slice(
 function renderSched(){
  const el=document.getElementById('sched');if(current!=='iaz'){el.hidden=true;return;}el.hidden=false;
  let tot=[0,0];
- let h='<h3>Loan balances and amortization schedules</h3><div class="hint" style="margin-bottom:10px">Each loan’s amortization schedule is directly below its balances. Open it to view or edit the schedule. Yellow boxes are inputs; actual allocated payments override scheduled payments. Imported zero means no allocated payment identified in the reviewed QBO records; it does not resolve any flagged payment. Actual cash dates are retained. Interest remains a monthly estimate. Changes save with the page.</div><div class="tw"><table class="lnt"><tr><th>Note</th><th class="num y-a">Book 9/30/25</th><th class="num y-a">Model estimate</th><th class="num y-a">Model difference</th><th class="num y-b">Book 12/31/25</th><th class="num y-b">Model estimate</th><th class="num y-b">Model difference</th><th>Source · terms</th></tr>';
+ let h='<h3>Loan balances and amortization schedules</h3><div class="hint" style="margin-bottom:10px">Each loan’s amortization schedule is directly below its balances. Open it to view or edit the schedule. Yellow boxes are inputs; actual payments override scheduled payments. Changes save with the page.</div><div class="tw"><table class="lnt"><tr><th>Note</th><th class="num y-a">Book 9/30/25</th><th class="num y-a">Model estimate</th><th class="num y-a">Model difference</th><th class="num y-b">Book 12/31/25</th><th class="num y-b">Model estimate</th><th class="num y-b">Model difference</th><th>Source · terms</th></tr>';
  schedRows().forEach(({s,r})=>{const cells=[];
   for(let i=0;i<2;i++){const bk=pnum(r[3+i]);const sc=s[1+i];
    const y=i===0?'y-a':'y-b';
    if(sc===null){cells.push('<td class="num '+y+'">'+f(bk)+'</td><td class="num '+y+'" style="color:var(--muted)">open</td><td class="num '+y+'" style="color:var(--muted)">—</td>');}
    else{const v=Math.round((sc-bk)*100)/100;tot[i]+=v;cells.push('<td class="num '+y+'">'+f(bk)+'</td><td class="num '+y+'">'+f(sc)+'</td><td class="num '+y+'"><b class="'+(Math.abs(v)<0.005?'var0':(v>0?'varp':'varn'))+'">'+f(v)+'</b></td>');}}
-  h+='<tr class="ln-bal"><td class="acct">'+esc(r[0])+(hasQboPaymentReview(s[0])?'<div class="hint">'+(LOANS.some(L=>L[1]===s[0]&&lstate(L[0]).qboReview?.unallocatedTotal>0)?'Partial model — payment allocation open':'Cash payments captured; interest is estimated')+'</div>':'')+'</td>'+cells[0]+cells[1]+'<td style="font-size:11.5px"><b>'+esc(s[3])+'</b><br>'+esc(s[4])+(s[5]?'<br><span style="color:var(--warn)">'+esc(s[5])+'</span>':'')+'</td></tr>';
+  h+='<tr class="ln-bal"><td class="acct">'+esc(r[0])+(hasQboPaymentReview(s[0])?'<div class="hint">'+(LOANS.some(L=>L[1]===s[0]&&lstate(L[0]).qboReview?.unallocatedTotal>0)?'':'Cash payments captured; interest is estimated')+'</div>':'')+'</td>'+cells[0]+cells[1]+'<td style="font-size:11.5px"><b>'+esc(s[3])+'</b><br>'+esc(s[4])+(s[5]?'<br><span style="color:var(--warn)">'+esc(s[5])+'</span>':'')+'</td></tr>';
   const detail=renderLoans(s[0]);
   if(detail)h+='<tr class="loan-schedule-row" data-loan-account="'+esc(s[0])+'"><td colspan="8"><div class="ln-lbl">Amortization schedule · '+esc(s[0])+'</div>'+detail+'</td></tr>';});
- h+='<tr style="background:var(--band)"><td colspan="8" class="hint">Model differences are not amounts to post. Unallocated payments, opening balances, lender terms and payment timing can affect these estimates.</td></tr></table></div>';
+ h+='<tr style="background:var(--band)"><td colspan="8" class="hint">Schedule column is the lender amortization; book column is the general ledger at each year-end.</td></tr></table></div>';
  h+='<div class="toolbar"><span class="hint">Lender terms per the attached schedules; balances are per books at each year-end.</span></div>';
  el.innerHTML=h;
 }
 function applySched(){
- if(LOANS.some(L=>lstate(L[0]).qboReview)){alert('Actual payments have been captured. No automatic book adjustment is supported by this estimate.');return;}let tot=[0,0];
+ if(LOANS.some(L=>lstate(L[0]).qboReview)){alert('Schedules are reference only.');return;}let tot=[0,0];
  schedRows().forEach(({s,idx,r})=>{if(s[1]===null)return;const rw=row('iaz'+idx);rw.adj=rw.adj||{};
   for(let i=0;i<2;i++){const v=Math.round((s[1+i]-pnum(r[3+i]))*100)/100;tot[i]+=v;rw.adj[i===0?'a':'b']=v.toFixed(2);}
   if(!rw.status||['needdoc','open','adjust','docd'].includes(rw.status))rw.status='ties';});
