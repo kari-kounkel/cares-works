@@ -45,6 +45,10 @@ h1{font-family:var(--serif);font-size:34px;line-height:1.05;color:var(--slate-de
 .tab.active{background:var(--card);color:var(--slate-deep)}
 .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:14px 0}
 .mc{background:var(--ink);color:#fff;border-radius:10px;padding:12px 14px;border-bottom:3px solid var(--neon)}
+.view-a .c-b,.view-b .c-a{display:none!important}
+.yearsel{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;margin-left:auto}
+.yearsel button{font-family:var(--body);font-weight:600;font-size:12px;border:0;background:var(--card);color:var(--slate-soft);padding:5px 12px;cursor:pointer}
+.yearsel button.on{background:var(--blue);color:#fff}
 .scorecap{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:2px 0 -6px}
 .tabnotes{margin:0 0 14px}
 .tabnotes label{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
@@ -132,7 +136,7 @@ table.am td{padding:4px 8px;font-size:12px}
 
 <div class="savebar"><span><span class="dot" id="sdot"></span><span id="smsg">Loading shared state…</span></span><span class="hint">Every status, note and adjustment you change is saved for everyone who opens this link. <button class="cbtn" onclick="askWho()" title="Shown as last saved by">✎ your name</button></span></div>
 
-<div class="tabs" id="tabs"></div>
+<div style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap"><div class="tabs" id="tabs" style="flex:1"></div><div class="yearsel" id="yearsel" title="Show one year-end or both"><button data-v="both" onclick="setView('both')">Both</button><button data-v="a" onclick="setView('a')">9/30/2025 only</button><button data-v="b" onclick="setView('b')">12/31/2025 only</button></div></div>
 <div class="panel">
   <div style="padding:14px 16px 0">
     <div class="scorecap">Scorecard — accounts on this tab by status (the Status dropdown on each row)</div>
@@ -378,12 +382,12 @@ function render(){
  const order=['BS | Bank Accounts','BS | Accounts Receivable','BS | Other Current Assets','BS | Fixed Assets','BS | Current Liabilities','BS | Credit Cards','BS | Other Current Liabilities','BS | Notes Payable','BS | Long-term Liabilities','BS | Equity','PL | Income','PL | Expenses'];
  let html='',lastStmt='';
  order.forEach(k=>{if(!groups[k])return;const stmt=k.startsWith('BS')?'Balance sheet':'Profit & loss';if(stmt!==lastStmt){html+='<div class="section-h">'+stmt+'</div>';lastStmt=stmt;}
-  html+='<div class="sub-h">'+k.split(' | ')[1]+'</div><div class="tw"><table><tr><th style="width:19%">Account</th><th class="num">'+meta.cols[0]+'<br><span style="font-weight:400;letter-spacing:0;text-transform:none">book → adj → adjusted</span></th><th style="width:13%">Proof — '+meta.cols[0]+'</th><th class="num">'+meta.cols[1]+'<br><span style="font-weight:400;letter-spacing:0;text-transform:none">book → adj → adjusted</span></th><th style="width:13%">Proof — '+meta.cols[1]+'</th><th>Status</th><th style="width:22%">Basis / notes</th></tr>';
+  html+='<div class="sub-h">'+k.split(' | ')[1]+'</div><div class="tw"><table><tr><th style="width:19%">Account</th><th class="num c-a">'+meta.cols[0]+'<br><span style="font-weight:400;letter-spacing:0;text-transform:none">book → adj → adjusted</span></th><th class="c-a" style="width:13%">Proof — '+meta.cols[0]+'</th><th class="num c-b">'+meta.cols[1]+'<br><span style="font-weight:400;letter-spacing:0;text-transform:none">book → adj → adjusted</span></th><th class="c-b" style="width:13%">Proof — '+meta.cols[1]+'</th><th>Status</th><th style="width:22%">Basis / notes</th></tr>';
   groups[k].forEach(([r,i])=>{const id=current+i;const sv=row(id);const status=sv.status||r[5];
    html+='<tr id="row-'+id+'"><td class="acct">'+esc(r[0])+'</td>';
    ['a','b'].forEach((col,ci)=>{const bk=r[ci+3];const av=(sv.adj&&sv.adj[col])||'';const hasv=(bk!==null&&bk!=='')||(av!==''&&av!==null);const adjd=hasv?f(pnum(bk)+pnum(av)):'';
-    html+='<td class="num"><div class="wp"><span class="bk">'+f(bk)+'</span><input class="adji" id="adj-'+id+col+'" placeholder="adj" value="'+esc(av)+'" onchange="setAdj(\''+id+'\',\''+col+'\',this.value)"><span class="adjd">'+adjd+'</span></div></td>';
-    const fl=(sv.files&&sv.files[col])||[];html+='<td><div class="attach">';fl.forEach(fo=>{html+='<a href="'+esc(fo.path)+'" target="_blank" rel="noopener">📎 '+esc(fo.name)+'</a>';});html+='</div></td>';});
+    html+='<td class="num c-'+col+'"><div class="wp"><span class="bk">'+f(bk)+'</span><input class="adji" id="adj-'+id+col+'" placeholder="adj" value="'+esc(av)+'" onchange="setAdj(\''+id+'\',\''+col+'\',this.value)"><span class="adjd">'+adjd+'</span></div></td>';
+    const fl=(sv.files&&sv.files[col])||[];html+='<td class="c-'+col+'"><div class="attach">';fl.forEach(fo=>{html+='<a href="'+esc(fo.path)+'" target="_blank" rel="noopener">📎 '+esc(fo.name)+'</a>';});html+='</div></td>';});
    html+='<td><select class="stsel" id="st-'+id+'" onchange="setS(\''+id+'\',this.value)">';Object.keys(ST).forEach(s=>{html+='<option value="'+s+'"'+(s===status?' selected':'')+'>'+ST[s]+'</option>';});html+='</select><div style="margin-top:5px"><span class="st '+status+'">'+ST[status]+'</span></div><div class="rowtools"><button class="cbtn cm" onclick="comment(\''+id+'\')">💬 comment</button></div></td>';
    html+='<td><div class="basis">'+r[7]+'</div><textarea class="note" id="note-'+id+'" placeholder="notes for the CPA / from the CPA" onchange="setN(\''+id+'\',this.value)">'+esc(sv.note||'')+'</textarea></td></tr>';
   });
@@ -399,6 +403,8 @@ function stats(){const rows=DATA[current];let c={ties:0,confirmed:0,docd:0,adjus
 }
 function setS(id,v){row(id).status=v;scheduleSave();render();}
 function setN(id,v){row(id).note=v;scheduleSave();}
+function setView(v){document.body.classList.remove('view-a','view-b');if(v!=='both')document.body.classList.add('view-'+v);document.querySelectorAll('#yearsel button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));try{localStorage.setItem('yec_view',v);}catch(e){}}
+try{setView(localStorage.getItem('yec_view')||'both');}catch(e){setView('both');}
 function setTabNote(v){state.notes=state.notes||{};state.notes[current]=v;scheduleSave();}
 function renderTabNotes(){const v=(state.notes&&state.notes[current])||'';document.getElementById('tabnotes').innerHTML='<label for="tabnote">Working notes — '+META[current].name+' (how the numbers were built, what the CPA needs to know; saved for everyone)</label><textarea id="tabnote" placeholder="e.g. how the A/R listings were built, what was traced to what, what is still open" onchange="setTabNote(this.value)">'+esc(v)+'</textarea>';}
 function setAdj(id,col,v){const r=row(id);r.adj=r.adj||{};r.adj[col]=v;scheduleSave();render();}
