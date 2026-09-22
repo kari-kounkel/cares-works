@@ -224,7 +224,7 @@ const DATA={
   ['2050 American Exp 6004','BS','Credit Cards',36635.70,50595.85,'confirmed','Amex statements','Book balance stands — statements cycle mid-month, so the following month carries the tie.'],
   ['2051 US Bank 2957 Credit Card','BS','Credit Cards',43301.18,42621.40,'confirmed','CC statements','Book balance stands — statements cycle mid-month, so the following month carries the tie.'],
   ['2052 US Bank 7358 Cash Flow Manager','BS','Credit Cards',52862.91,37488.50,'confirmed','CC statements','Book balance stands — statements cycle mid-month, so the following month carries the tie.'],
-  ['2400 Accrued Payroll','BS','Other Current Liabilities',42815.75,30081.85,'adjust','Payroll register','Live 42,815.75 / 30,081.85. Payroll register attached.'],
+  ['2400 Accrued Payroll','BS','Other Current Liabilities',42815.75,30081.85,'ties','Accrual workpaper + payroll register','Accrual calculation workpaper attached ties to book at both dates; accruals and reversals already posted.'],
   ['2500 PR Liabilities (incl 2501 tax subs)','BS','Other Current Liabilities',-72.67,15411.13,'adjust','941/940/MN notices','Clean deleted subs to $0; reconcile to agency balances.'],
   ['Payroll liabilities - other subs','BS','Other Current Liabilities',266.80,13206.91,'adjust','Payroll register / agency notices','9/30: 2502 −507.34 + 2504 774.14. 12/31: 1160 −700 + 2500.18 −1,406.64 + 2502 615.09 + 2503 331.90 + 2504 12,259.92. Clean deleted subs.'],
   ['2600 MN Department of Revenue Payable','BS','Other Current Liabilities',10379.00,6693.00,'needdoc','MN DOR notice',''],
@@ -273,7 +273,7 @@ const META={
    ['2','Book NEON020 notes A/B/D / Dr suspense (proceeds TBD)','225,000.00','225,000.00','A 125k + B 75k + D 25k. Find where proceeds landed.'],
    ['3','NEON020-C forgiveness / Cr Other Income','25,000.00','25,000.00','Forgiven 10/28/2025 (CPA: taxable?).'],
    ['4','Reverse Omega cash transfers out of Rent Expense → Due from Omega','~45,000','~45,000','Rent double-counted on top of $6,957/mo accrual.'],
-   ['5','True up Accrued Payroll to actual','TBD','TBD','Frozen at 28,913.48 — recompute each close.'],
+   ['5','Employer-tax accrual journals: 6200 Payroll Benefits → 6150 Payroll Taxes (4 journals, amounts unchanged)','reclass','reclass','Classification only; 2400 and totals unchanged. See accrual workpaper p.1.'],
    ['6','Reclass *Opening Balance Equity → Retained Earnings','10,200.00','10,200.00','OBE should be zero.']
   ],
   questions:[
