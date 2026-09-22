@@ -379,6 +379,9 @@ function render(){
  tabs();
  const rows=DATA[current],meta=META[current];
  const groups={};rows.forEach((r,i)=>{const k=r[1]+' | '+r[2];(groups[k]=groups[k]||[]).push([r,i]);});
+ // numerical account order inside each section; unnumbered rows (Net Income etc.) keep their place at the end
+ const acctNo=r=>{const m=/^(\d+)/.exec(r[0]);return m?parseInt(m[1],10):Infinity;};
+ Object.values(groups).forEach(g=>g.sort((x,y)=>(acctNo(x[0])-acctNo(y[0]))||(x[1]-y[1])));
  const order=['BS | Bank Accounts','BS | Accounts Receivable','BS | Other Current Assets','BS | Fixed Assets','BS | Current Liabilities','BS | Credit Cards','BS | Other Current Liabilities','BS | Notes Payable','BS | Long-term Liabilities','BS | Equity','PL | Income','PL | Expenses'];
  let html='',lastStmt='';
  order.forEach(k=>{if(!groups[k])return;const stmt=k.startsWith('BS')?'Balance sheet':'Profit & loss';if(stmt!==lastStmt){html+='<div class="section-h">'+stmt+'</div>';lastStmt=stmt;}
