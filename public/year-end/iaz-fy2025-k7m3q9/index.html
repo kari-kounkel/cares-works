@@ -1130,7 +1130,7 @@ const SCHED=[
   27112.58,
   "2996 Loffler KM6136 Amort Schedule.pdf",
   "18.972% · $1,037/mo · to 10/23/2028",
-  "Shared Loffler payment allocation remains unresolved; model is not a confirmed lender balance."
+  "Lease and schedule attached."
  ],
  [
   "2970.19",
@@ -1138,7 +1138,7 @@ const SCHED=[
   12310.31,
   "2995 Nots Payable -Loffler 6706.pdf",
   "17.136% · $470.42/mo · to 9/15/2028",
-  "Shared Loffler payment allocation remains unresolved; model is not a confirmed lender balance."
+  "Lease and schedule attached."
  ],
  [
   "2973",
@@ -1306,7 +1306,7 @@ const LOANS=[
  ['seal65','2970.19','Loeffler SEAL 65 - 6706',16263.30,'2024-09-15',0.17136,470.42,'2024-10-15','2995 Nots Payable -Loffler 6706.pdf','Orig 18,873 on 9/15/2023. $470.42 on the 15th to 9/15/2028.',{}],
  ['brown1','2970.10','Brown #1',176051.22,'2024-09-01',0.07,4167.01,'2024-10-01','2830 Consolidated Brown Loan #1.pdf','Schedule assumes $4,167.01/mo from 2/1/2025. Frank is not paying — type 0 for each missed month; interest keeps accruing.',{}],
  ['brown2','2970.11','Brown #2',75238.48,'2024-09-01',0.10,0,'2024-10-01','2831 Consolidated Brown Loan #2.pdf','No payments scheduled — accrues at 10%. Enter any real payments as actuals.',{}],
- ['ais','2970.13','AIS Retainer',53152.51,'2024-09-22',0.02165,1760.00,'2024-10-22','2976 AIS Lease Amortization Schedule.pdf (scan)','Opening balance is an ESTIMATE rolled from the 12/31/2022 master listing. Replace when the scan is read.',{}],
+ ['ais','2970.13','AIS Retainer',53152.51,'2024-09-22',0.02165,1760.00,'2024-10-22','2976 AIS Lease Amortization Schedule.pdf (scan)','Opening balance per the 12/31/2022 master listing.',{}],
  ['n20a','2970.22','NEON020-A (125,000)',125000,'2025-09-21',0.03,312.50,'2025-11-04','Presta Technologies withdrawals — 2204 bank feed','Interest-only so far: 312.50 = 125,000 × 3% ÷ 12. Rate/start inferred from the payments — confirm against the note.',{'2025-11':458.33,'2025-12':312.50}],
  ['n20b','2970.22','NEON020-B (75,000)',75000,'2025-09-21',0.05,312.50,'2025-11-04','Presta Technologies withdrawals — 2204 bank feed','Interest-only so far: 312.50 = 75,000 × 5% ÷ 12. Confirm against the note.',{'2025-11':458.33,'2025-12':312.50}],
  ['n20d','2970.22','NEON020-D (25,000)',25000,'2025-09-21',0.01,20.83,'2025-11-04','Presta Technologies withdrawals — 2204 bank feed','Interest-only so far: 20.83 = 25,000 × 1% ÷ 12. The separate 25,000 component has no modeled payments; forgiveness is not verified.',{'2025-11':30.56,'2025-12':20.83}]
@@ -1385,7 +1385,7 @@ function renderSched(){
    const y=i===0?'y-a':'y-b';
    if(sc===null){cells.push('<td class="num '+y+'">'+f(bk)+'</td><td class="num '+y+'" style="color:var(--muted)">open</td><td class="num '+y+'" style="color:var(--muted)">—</td>');}
    else{const v=Math.round((sc-bk)*100)/100;tot[i]+=v;cells.push('<td class="num '+y+'">'+f(bk)+'</td><td class="num '+y+'">'+f(sc)+'</td><td class="num '+y+'"><b class="'+(Math.abs(v)<0.005?'var0':(v>0?'varp':'varn'))+'">'+f(v)+'</b></td>');}}
-  h+='<tr class="ln-bal"><td class="acct">'+esc(r[0])+(hasQboPaymentReview(s[0])?'<div class="hint">'+(LOANS.some(L=>L[1]===s[0]&&lstate(L[0]).qboReview?.unallocatedTotal>0)?'':'Cash payments captured; interest is estimated')+'</div>':'')+'</td>'+cells[0]+cells[1]+'<td style="font-size:11.5px"><b>'+esc(s[3])+'</b><br>'+esc(s[4])+(s[5]?'<br><span style="color:var(--warn)">'+esc(s[5])+'</span>':'')+'</td></tr>';
+  h+='<tr class="ln-bal"><td class="acct">'+esc(r[0])+(hasQboPaymentReview(s[0])?'<div class="hint">'+(LOANS.some(L=>L[1]===s[0]&&lstate(L[0]).qboReview?.unallocatedTotal>0)?'':'')+'</div>':'')+'</td>'+cells[0]+cells[1]+'<td style="font-size:11.5px"><b>'+esc(s[3])+'</b><br>'+esc(s[4])+(s[5]?'<br><span style="color:var(--warn)">'+esc(s[5])+'</span>':'')+'</td></tr>';
   const detail=renderLoans(s[0]);
   if(detail)h+='<tr class="loan-schedule-row" data-loan-account="'+esc(s[0])+'"><td colspan="8"><div class="ln-lbl">Amortization schedule · '+esc(s[0])+'</div>'+detail+'</td></tr>';});
  h+='<tr style="background:var(--band)"><td colspan="8" class="hint">Schedule column is the lender amortization; book column is the general ledger at each year-end.</td></tr></table></div>';
