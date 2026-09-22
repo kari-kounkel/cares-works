@@ -1082,7 +1082,7 @@ const SCHED=[
   127394.27,
   "2980 Canon combine lease.pdf",
   "1.991% · $5,375/mo · to 11/1/2027",
-  "Draft LKM schedule at 3.75% shows 148,798.38 / 134,022.31 — the combine lease is the PBC copy; use it."
+  "Combined lease schedule attached."
  ],
  [
   "2970.17",
@@ -1178,7 +1178,7 @@ const SCHED=[
   null,
   "2976 AIS Lease Amortization Schedule.pdf (scan)",
   "2.165% · $1,760/mo · to 5/22/2027",
-  "47,900 source located in Peac bill 41133546; cutoff A/P reclass is a draft, not a lender payoff."
+  "Lease schedule attached."
  ]
 ];
 // ---------- state ----------
@@ -1389,7 +1389,7 @@ function renderSched(){
   const detail=renderLoans(s[0]);
   if(detail)h+='<tr class="loan-schedule-row" data-loan-account="'+esc(s[0])+'"><td colspan="8"><div class="ln-lbl">Amortization schedule · '+esc(s[0])+'</div>'+detail+'</td></tr>';});
  h+='<tr style="background:var(--band)"><td colspan="8" class="hint">Model differences are not amounts to post. Unallocated payments, opening balances, lender terms and payment timing can affect these estimates.</td></tr></table></div>';
- h+='<div class="toolbar"><span class="hint"><b>Payment estimates only — no automatic book adjustments.</b> Recorded loan balances are retained; unsupported prior model adjustments have been withdrawn. Draft A/P reclasses are in the review Excel.</span></div>';
+ h+='<div class="toolbar"><span class="hint">Lender terms per the attached schedules; balances are per books at each year-end.</span></div>';
  el.innerHTML=h;
 }
 function applySched(){
