@@ -97,7 +97,24 @@ textarea.note{width:100%;border:1px solid var(--line);border-radius:6px;padding:
 .list h3{margin:0 0 10px;font-family:var(--serif);font-weight:400;font-size:20px;color:var(--slate-deep)}
 .list li{margin:5px 0}
 .je{border-left:4px solid var(--orange)}
-.loan-schedule-row>td{padding:0 12px 14px;background:var(--card)}
+/* Loan section shading: balance rows sit on white with a blue rail; each schedule sits in a gray well
+   beneath its own balances; the two year groups are tinted blue (9/30) and green (12/31). */
+.lnt th.y-a,.lnt td.y-a{background:#f0f6ff}
+.lnt th.y-b,.lnt td.y-b{background:#f0fbf4}
+.lnt th.y-a{color:var(--blueDark)} .lnt th.y-b{color:var(--greenDark)}
+.lnt th.y-a,.lnt td.y-a{border-left:2px solid #cfe1ff} .lnt th.y-b,.lnt td.y-b{border-left:2px solid #c9ecd6}
+.lnt td.y-a:nth-child(4),.lnt td.y-b:nth-child(7){border-right:2px solid transparent}
+.lnt tr.ln-bal>td{border-top:2px solid var(--line);padding-top:10px;padding-bottom:8px}
+.lnt tr.ln-bal>td.acct{border-left:4px solid var(--blue);font-size:13.5px}
+.lnt tr.ln-bal .var0{color:var(--good)} .lnt tr.ln-bal .varp{color:var(--warn)} .lnt tr.ln-bal .varn{color:var(--blueDark)}
+.lnt tr.ln-tot>td{background:var(--ink);color:#fff;font-weight:600;border-top:2px solid var(--ink)}
+.lnt tr.ln-tot>td.y-a,.lnt tr.ln-tot>td.y-b{background:var(--ink);border-left-color:var(--ink);color:#fff}
+.loan-schedule-row>td{padding:0 12px 14px 22px;background:#f4f6f9;border-left:4px solid var(--line)}
+.ln-lbl{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding:8px 0 4px}
+.loan{background:var(--card)}
+.loan-h{background:#e9f1fb}
+.loan-b{background:var(--card)}
+table.am th{background:#eef2f7}
 .loan-schedule-row .loan{margin:0 0 8px}
 .loan-schedule-row .loan:last-child{margin-bottom:0}
 .loan{border:1px solid var(--line);border-radius:8px;margin:8px 0;overflow:hidden}
@@ -483,15 +500,16 @@ function schedRows(){const rows=DATA.iaz;return SCHED.map(s0=>{const s=s0.slice(
 function renderSched(){
  const el=document.getElementById('sched');if(current!=='iaz'){el.hidden=true;return;}el.hidden=false;
  let tot=[0,0];
- let h='<h3>Loan balances and amortization schedules</h3><div class="hint" style="margin-bottom:10px">Each loan’s amortization schedule is directly below its balances. Open it to view or edit the schedule. Yellow boxes are inputs; actual payments override scheduled payments (0 means a missed payment, with interest still accruing). Changes save with the page.</div><div class="tw"><table><tr><th>Note</th><th class="num">Book 9/30/25</th><th class="num">Schedule</th><th class="num">Variance</th><th class="num">Book 12/31/25</th><th class="num">Schedule</th><th class="num">Variance</th><th>Source · terms</th></tr>';
+ let h='<h3>Loan balances and amortization schedules</h3><div class="hint" style="margin-bottom:10px">Each loan’s amortization schedule is directly below its balances. Open it to view or edit the schedule. Yellow boxes are inputs; actual payments override scheduled payments (0 means a missed payment, with interest still accruing). Changes save with the page.</div><div class="tw"><table class="lnt"><tr><th>Note</th><th class="num y-a">Book 9/30/25</th><th class="num y-a">Schedule</th><th class="num y-a">Variance</th><th class="num y-b">Book 12/31/25</th><th class="num y-b">Schedule</th><th class="num y-b">Variance</th><th>Source · terms</th></tr>';
  schedRows().forEach(({s,r})=>{const cells=[];
   for(let i=0;i<2;i++){const bk=pnum(r[3+i]);const sc=s[1+i];
-   if(sc===null){cells.push('<td class="num">'+f(bk)+'</td><td class="num" style="color:var(--muted)">open</td><td class="num" style="color:var(--muted)">—</td>');}
-   else{const v=Math.round((sc-bk)*100)/100;tot[i]+=v;cells.push('<td class="num">'+f(bk)+'</td><td class="num">'+f(sc)+'</td><td class="num"><b>'+f(v)+'</b></td>');}}
-  h+='<tr><td class="acct">'+esc(r[0])+'</td>'+cells[0]+cells[1]+'<td style="font-size:11.5px"><b>'+esc(s[3])+'</b><br>'+esc(s[4])+(s[5]?'<br><span style="color:var(--warn)">'+esc(s[5])+'</span>':'')+'</td></tr>';
+   const y=i===0?'y-a':'y-b';
+   if(sc===null){cells.push('<td class="num '+y+'">'+f(bk)+'</td><td class="num '+y+'" style="color:var(--muted)">open</td><td class="num '+y+'" style="color:var(--muted)">—</td>');}
+   else{const v=Math.round((sc-bk)*100)/100;tot[i]+=v;cells.push('<td class="num '+y+'">'+f(bk)+'</td><td class="num '+y+'">'+f(sc)+'</td><td class="num '+y+'"><b class="'+(Math.abs(v)<0.005?'var0':(v>0?'varp':'varn'))+'">'+f(v)+'</b></td>');}}
+  h+='<tr class="ln-bal"><td class="acct">'+esc(r[0])+'</td>'+cells[0]+cells[1]+'<td style="font-size:11.5px"><b>'+esc(s[3])+'</b><br>'+esc(s[4])+(s[5]?'<br><span style="color:var(--warn)">'+esc(s[5])+'</span>':'')+'</td></tr>';
   const detail=renderLoans(s[0]);
-  if(detail)h+='<tr class="loan-schedule-row" data-loan-account="'+esc(s[0])+'"><td colspan="8">'+detail+'</td></tr>';});
- h+='<tr style="background:var(--band);font-weight:600"><td>Net true-up (excl. open notes)</td><td></td><td></td><td class="num">'+f(tot[0])+'</td><td></td><td></td><td class="num">'+f(tot[1])+'</td><td style="font-size:11px;font-weight:400">Positive = notes understated on the books (liability up, income down).</td></tr></table></div>';
+  if(detail)h+='<tr class="loan-schedule-row" data-loan-account="'+esc(s[0])+'"><td colspan="8"><div class="ln-lbl">Amortization schedule · '+esc(s[0])+'</div>'+detail+'</td></tr>';});
+ h+='<tr class="ln-tot"><td>Net true-up (excl. open notes)</td><td class="y-a"></td><td class="y-a"></td><td class="num y-a">'+f(tot[0])+'</td><td class="y-b"></td><td class="y-b"></td><td class="num y-b">'+f(tot[1])+'</td><td style="font-size:11px;font-weight:400">Positive = notes understated on the books (liability up, income down).</td></tr></table></div>';
  h+='<div class="toolbar"><button class="btn accent" onclick="applySched()">⚙ Apply schedule true-ups as adjustments</button><button class="btn ghost" onclick="clearSched()">↺ Clear those adjustments</button><span class="hint">Offsets 9/30 net to Retained Earnings and the stub movement to Net Income so the foot check stays ✓. Brown #1/#2 and AIS are left alone until there are actuals.</span></div>';
  el.innerHTML=h;
 }
