@@ -43,6 +43,8 @@ h1{font-family:var(--serif);font-size:34px;line-height:1.05;color:var(--slate-de
 .tabs{display:flex;gap:6px;margin:8px 0 0;flex-wrap:wrap}
 .tab{font-family:var(--body);font-weight:600;font-size:13px;border:1px solid var(--line);border-bottom:none;background:var(--band);color:var(--slate-soft);padding:9px 16px;border-radius:9px 9px 0 0;cursor:pointer}
 .tab.active{background:var(--card);color:var(--slate-deep)}
+.tab.off{color:var(--muted);background:transparent;border-style:dashed;cursor:not-allowed;opacity:.7}
+.tab.off .soon{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;border:1px solid var(--line);border-radius:999px;padding:1px 7px;margin-left:6px;vertical-align:middle}
 .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:14px 0}
 .mc{background:var(--ink);color:#fff;border-radius:10px;padding:12px 14px;border-bottom:3px solid var(--neon)}
 .view-a .c-b,.view-b .c-a{display:none!important}
@@ -363,8 +365,8 @@ async function initCaps(){ /* no artifact runtime here: saving is by token throu
 function comment(id){ /* comments were a claude.ai feature; the Basis / notes box on each row is the shared note now */ }
 
 // ---------- render ----------
-const HIDDEN_TABS=['omega']; // Omega not updated yet — hidden from this CPA team (flip to [] to show)
-function tabs(){let h='';Object.keys(DATA).filter(e=>!HIDDEN_TABS.includes(e)).forEach(e=>{h+='<button class="tab'+(e===current?' active':'')+'" onclick="show(\''+e+'\')">'+META[e].name+'</button>';});document.getElementById('tabs').innerHTML=h;}
+const DISABLED_TABS={omega:'Not updated yet — coming after the IAZ books close'}; // shown grayed, not clickable; remove the key to open it
+function tabs(){let h='';Object.keys(DATA).forEach(e=>{const off=DISABLED_TABS[e];h+=off?'<button class="tab off" disabled title="'+esc(off)+'">'+META[e].name+' <span class="soon">soon</span></button>':'<button class="tab'+(e===current?' active':'')+'" onclick="show(\''+e+'\')">'+META[e].name+'</button>';});document.getElementById('tabs').innerHTML=h;}
 function show(e){current=e;render();}
 function tieCheck(){
  const rows=DATA[current],meta=META[current];let a=[0,0],l=[0,0],eq=[0,0],aA=[0,0],lA=[0,0],eqA=[0,0];
