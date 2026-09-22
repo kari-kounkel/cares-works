@@ -97,6 +97,9 @@ textarea.note{width:100%;border:1px solid var(--line);border-radius:6px;padding:
 .list h3{margin:0 0 10px;font-family:var(--serif);font-weight:400;font-size:20px;color:var(--slate-deep)}
 .list li{margin:5px 0}
 .je{border-left:4px solid var(--orange)}
+.loan-schedule-row>td{padding:0 12px 14px;background:var(--card)}
+.loan-schedule-row .loan{margin:0 0 8px}
+.loan-schedule-row .loan:last-child{margin-bottom:0}
 .loan{border:1px solid var(--line);border-radius:8px;margin:8px 0;overflow:hidden}
 .loan-h{display:flex;gap:14px;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--card-2);cursor:pointer;flex-wrap:wrap}
 .loan-sum{font-family:var(--mono);font-size:11.5px;color:var(--slate-soft)}
@@ -156,7 +159,7 @@ table.am td{padding:4px 8px;font-size:12px}
 </div>
 
 <div class="list" id="sched"></div>
-<div class="list" id="loans"></div>
+
 
 <div class="foot"><b>Powered by CARES Workflows</b> · Proprietary to CARES Consulting, Inc. &amp; Kari Hoglund Kounkel © 2026<br>tools.caresmn.com</div>
 </div>
@@ -399,7 +402,7 @@ function render(){
   html+='</table></div>';
  });
  document.getElementById('board').innerHTML=html;
- stats();tieCheck();renderTabNotes();renderSched();renderLoans();
+ stats();tieCheck();renderTabNotes();renderSched();
 }
 function stats(){const rows=DATA[current];let c={ties:0,confirmed:0,docd:0,adjust:0,needdoc:0,open:0},att=0;
  rows.forEach((r,i)=>{const sv=row(current+i);const s=sv.status||r[5];c[s]=(c[s]||0)+1;if(sv.files){att+=((sv.files.a||[]).length+(sv.files.b||[]).length);}});
@@ -455,10 +458,9 @@ function setLP(k,f,v){lstate(k)[f]=v;scheduleSave();render();}
 function setAct(k,key,v){const o=lstate(k);o.act=o.act||{};o.act[key]=v;scheduleSave();render();}
 function toggleLoan(k){const o=lstate(k);o.open=!o.open;render();}
 function fmtD(d){return (d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getDate().toString().padStart(2,'0')+'/'+d.getFullYear();}
-function renderLoans(){
- const el=document.getElementById('loans');if(current!=='iaz'){el.hidden=true;return;}el.hidden=false;
- let h='<h3>Amortization schedules — one per note, editable</h3><div class="hint" style="margin-bottom:10px">Each schedule opens at the lender schedule balance after the September 2024 payment. Yellow boxes are inputs; type an actual payment to override the scheduled one (0 = missed month, interest still accrues). Saved with the page.</div>';
- LOANS.forEach(L=>{const o=lstate(L[0]),p=lparam(L),rows=amort(L);
+function renderLoans(prefix){
+ let h='';
+ LOANS.filter(L=>L[1]===prefix).forEach(L=>{const o=lstate(L[0]),p=lparam(L),rows=amort(L);
   const b930=balAt(rows,'2025-09-30',p.bal),b1231=balAt(rows,'2025-12-31',p.bal),b1226=balAt(rows,'2026-12-31',p.bal);
   h+='<div class="loan"><div class="loan-h" onclick="toggleLoan(\''+L[0]+'\')"><span class="acct">'+esc(L[1]+' '+L[2])+'</span><span class="loan-sum">9/30/25 <b>'+f(b930)+'</b> · 12/31/25 <b>'+f(b1231)+'</b> · 12/31/26 <b>'+f(b1226)+'</b> · FY25 int <b>'+f(intBetween(rows,'2024-10-01','2025-09-30'))+'</b> · stub int <b>'+f(intBetween(rows,'2025-10-01','2025-12-31'))+'</b></span><span class="hint">'+(o.open?'▲ hide':'▼ open')+'</span></div>';
   if(o.open){
@@ -473,7 +475,7 @@ function renderLoans(){
    h+='</table></div></div>';
   }
   h+='</div>';});
- el.innerHTML=h;
+ return h;
 }
 
 // ---------- loan panel ----------
@@ -481,12 +483,14 @@ function schedRows(){const rows=DATA.iaz;return SCHED.map(s0=>{const s=s0.slice(
 function renderSched(){
  const el=document.getElementById('sched');if(current!=='iaz'){el.hidden=true;return;}el.hidden=false;
  let tot=[0,0];
- let h='<h3>Loan panel — book vs amortization schedules</h3><div class="hint" style="margin-bottom:10px">Schedule balances come from the editable schedules below — change a rate, payment or actual there and this panel follows.</div><div class="tw"><table><tr><th>Note</th><th class="num">Book 9/30/25</th><th class="num">Schedule</th><th class="num">Variance</th><th class="num">Book 12/31/25</th><th class="num">Schedule</th><th class="num">Variance</th><th>Source · terms</th></tr>';
+ let h='<h3>Loan balances and amortization schedules</h3><div class="hint" style="margin-bottom:10px">Each loan’s amortization schedule is directly below its balances. Open it to view or edit the schedule. Yellow boxes are inputs; actual payments override scheduled payments (0 means a missed payment, with interest still accruing). Changes save with the page.</div><div class="tw"><table><tr><th>Note</th><th class="num">Book 9/30/25</th><th class="num">Schedule</th><th class="num">Variance</th><th class="num">Book 12/31/25</th><th class="num">Schedule</th><th class="num">Variance</th><th>Source · terms</th></tr>';
  schedRows().forEach(({s,r})=>{const cells=[];
   for(let i=0;i<2;i++){const bk=pnum(r[3+i]);const sc=s[1+i];
    if(sc===null){cells.push('<td class="num">'+f(bk)+'</td><td class="num" style="color:var(--muted)">open</td><td class="num" style="color:var(--muted)">—</td>');}
    else{const v=Math.round((sc-bk)*100)/100;tot[i]+=v;cells.push('<td class="num">'+f(bk)+'</td><td class="num">'+f(sc)+'</td><td class="num"><b>'+f(v)+'</b></td>');}}
-  h+='<tr><td class="acct">'+esc(r[0])+'</td>'+cells[0]+cells[1]+'<td style="font-size:11.5px"><b>'+esc(s[3])+'</b><br>'+esc(s[4])+(s[5]?'<br><span style="color:var(--warn)">'+esc(s[5])+'</span>':'')+'</td></tr>';});
+  h+='<tr><td class="acct">'+esc(r[0])+'</td>'+cells[0]+cells[1]+'<td style="font-size:11.5px"><b>'+esc(s[3])+'</b><br>'+esc(s[4])+(s[5]?'<br><span style="color:var(--warn)">'+esc(s[5])+'</span>':'')+'</td></tr>';
+  const detail=renderLoans(s[0]);
+  if(detail)h+='<tr class="loan-schedule-row" data-loan-account="'+esc(s[0])+'"><td colspan="8">'+detail+'</td></tr>';});
  h+='<tr style="background:var(--band);font-weight:600"><td>Net true-up (excl. open notes)</td><td></td><td></td><td class="num">'+f(tot[0])+'</td><td></td><td></td><td class="num">'+f(tot[1])+'</td><td style="font-size:11px;font-weight:400">Positive = notes understated on the books (liability up, income down).</td></tr></table></div>';
  h+='<div class="toolbar"><button class="btn accent" onclick="applySched()">⚙ Apply schedule true-ups as adjustments</button><button class="btn ghost" onclick="clearSched()">↺ Clear those adjustments</button><span class="hint">Offsets 9/30 net to Retained Earnings and the stub movement to Net Income so the foot check stays ✓. Brown #1/#2 and AIS are left alone until there are actuals.</span></div>';
  el.innerHTML=h;
