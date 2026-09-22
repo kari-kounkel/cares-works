@@ -1379,7 +1379,7 @@ function schedRows(){const rows=DATA.iaz;return SCHED.map(s0=>{const s=s0.slice(
 function renderSched(){
  const el=document.getElementById('sched');if(current!=='iaz'){el.hidden=true;return;}el.hidden=false;
  let tot=[0,0];
- let h='<h3>Loan balances and amortization schedules</h3><div class="hint" style="margin-bottom:10px">Each loan’s amortization schedule is directly below its balances. Open it to view or edit the schedule. Yellow boxes are inputs; actual payments override scheduled payments. Changes save with the page.</div><div class="tw"><table class="lnt"><tr><th>Note</th><th class="num y-a">Book 9/30/25</th><th class="num y-a">Model estimate</th><th class="num y-a">Model difference</th><th class="num y-b">Book 12/31/25</th><th class="num y-b">Model estimate</th><th class="num y-b">Model difference</th><th>Source · terms</th></tr>';
+ let h='<h3>Loan balances and amortization schedules</h3><div class="hint" style="margin-bottom:10px">Each loan’s amortization schedule is directly below its balances. Open it to view or edit the schedule. Yellow boxes are inputs; actual payments override scheduled payments. Changes save with the page.</div><div class="tw"><table class="lnt"><tr><th>Note</th><th class="num y-a">Book 9/30/25</th><th class="num y-a">Schedule</th><th class="num y-a">Model difference</th><th class="num y-b">Book 12/31/25</th><th class="num y-b">Schedule</th><th class="num y-b">Model difference</th><th>Source · terms</th></tr>';
  schedRows().forEach(({s,r})=>{const cells=[];
   for(let i=0;i<2;i++){const bk=pnum(r[3+i]);const sc=s[1+i];
    const y=i===0?'y-a':'y-b';
