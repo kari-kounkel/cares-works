@@ -228,7 +228,7 @@ const DATA={
   ['2610 Accrued State Income Tax','BS','Other Current Liabilities',-260.00,-260.00,'adjust','—','Negative (debit) in a liability — investigate/reclass.'],
   ['2620 Accrued Federal Income Tax','BS','Other Current Liabilities',-500.00,-500.00,'adjust','—','Negative (debit) in a liability — investigate/reclass.'],
   ['2715 Due to/from Owner','BS','Other Current Liabilities',81892.52,78277.52,'needdoc','Shareholder loan agmt','Confirm note; screen for personal expenses.'],
-  ['2970.16 Konica Minolta KM-1','BS','Notes Payable',570913.88,517794.45,'adjust','KM-1 amort + lease','How it got here: Konica bills were recorded to A/P instead of the note. Estimated interest payments were recorded; when the payments that were due but not paid were removed, the interest entries stayed — the note and interest expense still carry interest for payments that never happened. Schedule: 602,259.99 / 568,674.31.'],
+  ['2970.16 Konica Minolta KM-1','BS','Notes Payable',570913.88,517794.45,'adjust','KM-1 amort + lease','Schedule (2990 KM-1 Amortization, 1.654%, $12,009.90/mo to 1/31/2030): 602,259.99 / 568,674.31.'],
   ['2970.14 Canon 868683 Flatbed','BS','Notes Payable',174051.16,157926.16,'adjust','Canon lease + amort','Schedule (2980 Canon combine lease, 1.991%, $5,375/mo to 11/1/2027): 142,833.97 / 127,394.27 — variance vs live book in the loan panel. The June engine was one payment ahead.'],
   ['2970.17 Konica ROLLEM CPO','BS','Notes Payable',209490.08,201988.85,'adjust','ROLLEM amort + lease','Schedule (2991 Rollem CPO Amortization, 1.828%, $2,728.65/mo to 9/30/2030): 156,346.74 / 148,863.86 — variance vs live book in the loan panel. Check double-posts.'],
   ['2970.15 Highland Capital Iridesse','BS','Notes Payable',141891.94,136272.70,'adjust','Highland note + amort','Schedule (2988 Highland Capital, 8.204%, $6,050/mo to 11/20/2027): 143,664.33 / 128,356.69 — variance vs live book in the loan panel. Check the Oct–Dec principal splits.'],
@@ -267,12 +267,11 @@ const META={
  iaz:{name:'I A Z Corporation dba Minuteman Press Uptown',short:'IAZ',cols:['9/30/2025 FYE','12/31/2025'],
   entries:[
    ['1','Loan true-ups to folder amortization schedules / offset Ask My Accountant (CPA to split interest vs principal)','net −58,459.15 (9/30)','net −42,723.54 (12/31)','Per-note variances in the Loan panel. Brown #1/#2 and AIS excluded — still open.'],
-   ['2','Reverse Konica(1835) lease bills in A/P → KM-1 note','115,892.10','115,892.10','Stops A/P inflation; lifts KM-1 to correct.'],
-   ['3','Book NEON020 notes A/B/D / Dr suspense (proceeds TBD)','225,000.00','225,000.00','A 125k + B 75k + D 25k. Find where proceeds landed.'],
-   ['4','NEON020-C forgiveness / Cr Other Income','25,000.00','25,000.00','Forgiven 10/28/2025 (CPA: taxable?).'],
-   ['5','Reverse Omega cash transfers out of Rent Expense → Due from Omega','~45,000','~45,000','Rent double-counted on top of $6,957/mo accrual.'],
-   ['6','True up Accrued Payroll to actual','TBD','TBD','Frozen at 28,913.48 — recompute each close.'],
-   ['7','Reclass *Opening Balance Equity → Retained Earnings','10,200.00','10,200.00','OBE should be zero.']
+   ['2','Book NEON020 notes A/B/D / Dr suspense (proceeds TBD)','225,000.00','225,000.00','A 125k + B 75k + D 25k. Find where proceeds landed.'],
+   ['3','NEON020-C forgiveness / Cr Other Income','25,000.00','25,000.00','Forgiven 10/28/2025 (CPA: taxable?).'],
+   ['4','Reverse Omega cash transfers out of Rent Expense → Due from Omega','~45,000','~45,000','Rent double-counted on top of $6,957/mo accrual.'],
+   ['5','True up Accrued Payroll to actual','TBD','TBD','Frozen at 28,913.48 — recompute each close.'],
+   ['6','Reclass *Opening Balance Equity → Retained Earnings','10,200.00','10,200.00','OBE should be zero.']
   ],
   questions:[
    ['q','Tie FLEX revenue to sales-tax/monthly reports (decisive FLEX check). Sept 2025 YEAR END sales report is attached on 4000.'],
@@ -289,7 +288,7 @@ const META={
 };
 // Loan schedules — CARES OneDrive \ Loans and Leases (per-note amortization PDFs). [acct-prefix, 9/30/25, 12/31/25, source, terms, note]
 const SCHED=[
- ['2970.16',602259.99,568674.31,'2990 Konica Minolta KM-1 Amortization.pdf','1.654% · $12,009.90/mo · to 1/31/2030','Konica bills were recorded to A/P instead of the note. Estimated interest payments were recorded; the payments due-but-not-paid were later removed but the interest was not, so the note still carries interest for payments that never happened.'],
+ ['2970.16',602259.99,568674.31,'2990 Konica Minolta KM-1 Amortization.pdf','1.654% · $12,009.90/mo · to 1/31/2030',''],
  ['2970.14',142833.97,127394.27,'2980 Canon combine lease.pdf','1.991% · $5,375/mo · to 11/1/2027','Draft LKM schedule at 3.75% shows 148,798.38 / 134,022.31 — the combine lease is the PBC copy; use it.'],
  ['2970.17',156346.74,148863.86,'2991 Konica Minolta Rollem CPO Amortization.pdf','1.828% · $2,728.65/mo · to 9/30/2030',''],
  ['2970.15',143664.33,128356.69,'2988 Note Payable-Highland Capital.pdf','8.204% · $6,050/mo · to 11/20/2027',''],
@@ -419,7 +418,7 @@ function setAdj(id,col,v){const r=row(id);r.adj=r.adj||{};r.adj[col]=v;scheduleS
 // ---------- amortization schedules (editable, saved with the page) ----------
 // [key, acct-prefix, label, opening balance, as-of, rate, scheduled payment, first payment date, source, note, prefilled actuals {YYYY-MM:amt}]
 const LOANS=[
- ['km1','2970.16','Konica Minolta KM-1',735223.51,'2024-09-30',0.01654,12009.90,'2024-10-31','2990 Konica Minolta KM-1 Amortization.pdf','Payments on the last day of each month to 1/31/2030. Konica bills were recorded to A/P instead of the note; estimated interest was recorded and the unpaid payments removed, but the interest was not.',{}],
+ ['km1','2970.16','Konica Minolta KM-1',735223.51,'2024-09-30',0.01654,12009.90,'2024-10-31','2990 Konica Minolta KM-1 Amortization.pdf','Payments on the last day of each month to 1/31/2030.',{}],
  ['canon','2970.14','Canon 868683 Flatbed',203830.65,'2024-09-01',0.01991,5375.00,'2024-10-01','2980 Canon combine lease.pdf','Three leases combined; $5,375 on the 1st to 11/1/2027, then 3,560 and 2,893 tail payments.',{}],
  ['rollem','2970.17','Konica ROLLEM CPO',185938.93,'2024-09-30',0.01828,2728.65,'2024-10-31','2991 Konica Minolta Rollem CPO Amortization.pdf','$2,728.65 on the last day of each month to 9/30/2030.',{}],
  ['highland','2970.15','Highland Capital Iridesse',201859.75,'2024-09-20',0.08204,6050.00,'2024-10-20','2988 Note Payable-Highland Capital.pdf','$6,050 on the 20th to 11/20/2027.',{}],
