@@ -1,10 +1,10 @@
 /* ==================================================================
-   MMP INLINE EDITOR — Christine's click-to-edit tool.
+   MMP INLINE EDITOR — the marketing lead's click-to-edit tool.
    Reads/writes public.mmp_content in the cares-works Supabase.
    Add to any page with a <body data-page-slug="home"> attribute.
    Every editable block needs data-block-id="something-unique".
 
-   Edit mode: append ?edit=christine to the URL.
+   Edit mode: append ?edit=jessie to the URL.
    Preview toggle in the edit bar shows the live-visitor view.
    .ck-image-slot[data-block-id] blocks upload to Storage on click.
    ================================================================== */
@@ -12,7 +12,7 @@
   var SUPABASE_URL = 'https://qcikhcnclduakriextsz.supabase.co';
   var SUPABASE_ANON = 'sb_publishable_GifRjDSjTWuHSiN-y7b7ZQ_AFOMvkkh';
   var STORAGE_BUCKET = 'mmp-content';
-  var EDIT_TOKEN = 'christine';
+  var EDIT_TOKEN = 'jessie';
 
   var pageSlug = document.body.getAttribute('data-page-slug');
   if (!pageSlug) return;
@@ -20,7 +20,7 @@
   var params = new URLSearchParams(location.search);
   var editRequested = params.get('edit') === EDIT_TOKEN;
 
-  // Sticky edit mode: keep ?edit=christine on every internal link so
+  // Sticky edit mode: keep ?edit=jessie on every internal link so
   // she stays in edit mode while clicking around. One bookmark works
   // for every page on both sites.
   if (editRequested) {
@@ -313,7 +313,7 @@
         block_id: el.getAttribute('data-block-id'),
         content: currentContent(el),
         updated_at: new Date().toISOString(),
-        updated_by: 'christine'
+        updated_by: 'jessie'
       };
     });
 
