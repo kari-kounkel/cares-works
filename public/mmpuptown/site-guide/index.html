@@ -12,170 +12,245 @@
 <style>
   .guide-head {
     background: linear-gradient(135deg, var(--green) 0%, var(--green-deep) 100%);
-    color: var(--white); padding: 46px 24px 52px; text-align: center;
+    color: var(--white); padding: 34px 32px 38px; position: relative; overflow: hidden;
   }
-  .guide-head .logo { display: block; width: 210px; margin: 0 auto 22px; }
-  .guide-head h1 { font-size: clamp(28px, 4.6vw, 40px); font-weight: 900; letter-spacing: -.02em; line-height: 1.1; }
-  .guide-head p { color: rgba(255,255,255,.9); font-size: 17px; max-width: 540px; margin: 12px auto 0; }
-  .start-btn { margin-top: 26px; background: var(--white); color: var(--green-deep); border-color: var(--white); }
-  .start-btn:hover { background: var(--cream); }
-  .start-note { display: block; margin-top: 12px; font-size: 13px; color: rgba(255,255,255,.75); }
-  .guide-wrap { max-width: 760px; margin: 0 auto; padding: 46px 24px 80px; }
-  .guide-wrap section { margin-bottom: 46px; }
-  .guide-wrap h2 {
-    font-size: 24px; font-weight: 800; color: var(--ink); margin-bottom: 14px;
-    padding-bottom: 9px; border-bottom: 2px solid var(--green-light);
+  .guide-head::before {
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    background-image: repeating-linear-gradient(45deg, transparent, transparent 22px, rgba(255,255,255,.04) 22px, rgba(255,255,255,.04) 44px);
   }
-  .guide-wrap h3 { font-size: 17px; font-weight: 700; margin: 22px 0 8px; }
-  .guide-wrap p { color: var(--ink-soft); font-size: 16px; line-height: 1.65; margin-bottom: 12px; }
-  .guide-wrap ol, .guide-wrap ul { margin: 0 0 14px 22px; color: var(--ink-soft); font-size: 16px; line-height: 1.7; }
-  .guide-wrap li { margin-bottom: 7px; }
-  .linkbox {
-    background: var(--cream); border: 1px solid var(--line); border-left: 4px solid var(--green);
-    border-radius: 7px; padding: 16px 20px; margin: 16px 0;
+  .head-inner {
+    max-width: 1180px; margin: 0 auto; position: relative;
+    display: flex; align-items: center; gap: 30px; flex-wrap: wrap;
   }
-  .linkbox .lb-label {
-    font-size: 11.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
-    color: var(--ink-mute); display: block; margin-bottom: 5px;
+  .head-inner .logo { width: 186px; flex-shrink: 0; }
+  .head-text { flex: 1; min-width: 260px; }
+  .head-text h1 { font-size: clamp(25px, 3.2vw, 34px); font-weight: 900; letter-spacing: -.02em; line-height: 1.12; }
+  .head-text p { color: rgba(255,255,255,.88); font-size: 15.5px; margin-top: 7px; max-width: 60ch; }
+
+  .guide-layout {
+    max-width: 1180px; margin: 0 auto; padding: 34px 32px 64px;
+    display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 46px; align-items: start;
   }
-  .linkbox a { font-size: 16.5px; font-weight: 700; color: var(--green-deep); word-break: break-all; }
+  @media (max-width: 980px) { .guide-layout { grid-template-columns: 1fr; gap: 30px; padding: 26px 20px 50px; } }
+
+  .guide-main section { margin-bottom: 34px; }
+  .guide-main section:last-child { margin-bottom: 0; }
+  .guide-main h2 {
+    font-size: 21px; font-weight: 800; color: var(--ink); margin-bottom: 11px;
+    padding-bottom: 7px; border-bottom: 2px solid var(--green-light);
+  }
+  .guide-main h3 { font-size: 15.5px; font-weight: 700; margin: 16px 0 6px; }
+  .guide-main p { color: var(--ink-soft); font-size: 15.5px; line-height: 1.6; margin-bottom: 10px; }
+  .guide-main ol, .guide-main ul { margin: 0 0 11px 20px; color: var(--ink-soft); font-size: 15.5px; line-height: 1.62; }
+  .guide-main li { margin-bottom: 5px; }
+  .two-up { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 26px; }
+  @media (max-width: 700px) { .two-up { grid-template-columns: 1fr; gap: 0; } }
+
   .warn {
     background: var(--orange-light); border-left: 4px solid var(--orange);
-    border-radius: 7px; padding: 15px 20px; margin: 16px 0;
+    border-radius: 6px; padding: 12px 16px; margin: 12px 0;
   }
-  .warn p { color: var(--orange-deep); margin: 0; font-size: 15.5px; }
-  .warn p + p { margin-top: 8px; }
-  table.guide { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 15.5px; }
+  .warn p { color: var(--orange-deep); margin: 0; font-size: 14.5px; }
+
+  table.guide { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14.5px; }
   table.guide th, table.guide td {
-    text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--line); vertical-align: top;
+    text-align: left; padding: 9px 13px; border-bottom: 1px solid var(--line); vertical-align: top;
   }
-  table.guide th { background: var(--cream); font-size: 12.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-mute); }
+  table.guide th { background: var(--cream); font-size: 11.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-mute); }
   table.guide td { color: var(--ink-soft); }
+
+  /* ---- sticky side panel ---- */
+  .guide-aside { position: sticky; top: 20px; display: flex; flex-direction: column; gap: 16px; }
+  @media (max-width: 980px) { .guide-aside { position: static; } }
+  .panel { background: var(--cream); border: 1px solid var(--line); border-radius: 9px; padding: 18px; }
+  .panel.go { background: var(--green-light); border-color: #bcdcc9; }
+  .panel h4 {
+    font-size: 11.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--ink-mute); margin-bottom: 10px;
+  }
+  .panel .btn { width: 100%; text-align: center; }
+  .panel .go-note { font-size: 12.5px; color: var(--ink-soft); margin-top: 9px; line-height: 1.45; }
+  .linkrow { display: block; padding: 9px 0; border-bottom: 1px solid var(--line); }
+  .linkrow:last-of-type { border-bottom: none; }
+  .linkrow .lr-label { display: block; font-size: 12px; font-weight: 700; color: var(--ink); }
+  .linkrow .lr-url { display: block; font-size: 11.5px; color: var(--green-deep); word-break: break-all; margin-top: 2px; }
+  .jump { list-style: none; margin: 0; padding: 0; }
+  .jump li { margin: 0; }
+  .jump a {
+    display: block; padding: 6px 0; font-size: 13.5px; color: var(--ink-soft);
+    border-bottom: 1px solid var(--line);
+  }
+  .jump li:last-child a { border-bottom: none; }
+  .jump a:hover { color: var(--green); }
+
   .guide-foot {
-    border-top: 1px solid var(--line); padding: 22px 24px 60px;
-    text-align: center; color: var(--ink-mute); font-size: 13.5px;
+    border-top: 1px solid var(--line); padding: 20px 32px 46px;
+    text-align: center; color: var(--ink-mute); font-size: 13px; line-height: 1.6;
   }
 </style>
 </head>
 <body>
 
 <header class="guide-head">
-  <span class="logo"><svg viewBox="0 0 230 64" xmlns="http://www.w3.org/2000/svg">
-    <g transform="translate(4 4)"><path d="M 28 2 A 26 22 0 1 1 28 50" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/><path d="M 28 2 A 26 22 0 1 0 28 50" fill="none" stroke="#ec7621" stroke-width="5" stroke-linecap="round"/><text x="28" y="40" font-family="Open Sans, sans-serif" font-weight="900" font-size="38" fill="#ffffff" text-anchor="middle" font-style="italic">M</text></g>
-    <text x="66" y="24" font-family="Open Sans, sans-serif" font-weight="800" font-size="17" fill="#ffffff" font-style="italic">Minuteman</text>
-    <text x="66" y="44" font-family="Open Sans, sans-serif" font-weight="800" font-size="17" fill="#ffffff" font-style="italic">Press Uptown</text>
-  </svg></span>
-  <h1>How to update the website</h1>
-  <p>You can change any wording and any photo on the site yourself, from a browser. Nothing to install, and nobody to wait for.</p>
-  <a class="btn btn-primary btn-lg start-btn" href="/mmpuptown/?edit=jessie">Open the site in edit mode &rarr;</a>
-  <span class="start-note">Takes you to the home page with editing switched on. Come back here any time.</span>
+  <div class="head-inner">
+    <span class="logo"><svg viewBox="0 0 230 64" xmlns="http://www.w3.org/2000/svg">
+      <g transform="translate(4 4)"><path d="M 28 2 A 26 22 0 1 1 28 50" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/><path d="M 28 2 A 26 22 0 1 0 28 50" fill="none" stroke="#ec7621" stroke-width="5" stroke-linecap="round"/><text x="28" y="40" font-family="Open Sans, sans-serif" font-weight="900" font-size="38" fill="#ffffff" text-anchor="middle" font-style="italic">M</text></g>
+      <text x="66" y="24" font-family="Open Sans, sans-serif" font-weight="800" font-size="17" fill="#ffffff" font-style="italic">Minuteman</text>
+      <text x="66" y="44" font-family="Open Sans, sans-serif" font-weight="800" font-size="17" fill="#ffffff" font-style="italic">Press Uptown</text>
+    </svg></span>
+    <div class="head-text">
+      <h1>How to update the website</h1>
+      <p>You can change any wording and any photo on the site yourself, from a browser. Nothing to install, and nobody to wait for.</p>
+    </div>
+  </div>
 </header>
 
-<div class="guide-wrap">
+<div class="guide-layout">
 
-  <section>
-    <h2>Your link</h2>
-    <p>This is the link that turns on editing. Bookmark it.</p>
-    <div class="linkbox">
-      <span class="lb-label">The main site</span>
-      <a href="/mmpuptown/?edit=jessie">tools.caresmn.com/mmpuptown/?edit=jessie</a>
+  <main class="guide-main">
+
+    <section id="link">
+      <h2>Your link</h2>
+      <p>The link in the panel is what turns editing on. Bookmark it.</p>
+      <ul>
+        <li><strong>Edit mode follows you.</strong> Once you&rsquo;re in it, clicking to another page keeps you in it.</li>
+        <li><strong>Drop the <code>?edit=jessie</code> part</strong> and you see the site exactly as a customer does.</li>
+      </ul>
+      <div class="warn">
+        <p><strong>Treat the link like a shared password.</strong> There&rsquo;s no username or sign-in yet, so anyone who has it can change the site. Don&rsquo;t post it anywhere public.</p>
+      </div>
+    </section>
+
+    <section id="words">
+      <h2>Changing the words</h2>
+      <p>In edit mode, every bit of text you can change shows a dashed outline.</p>
+      <ol>
+        <li>Click the text. A cursor appears and you type, like in a Word document.</li>
+        <li>Click <strong>Save &amp; Publish</strong> in the bar at the bottom.</li>
+      </ol>
+      <p>It&rsquo;s live the moment you save. No second step, no approval queue. Made a mistake? Click back in and fix it the same way.</p>
+      <div class="two-up">
+        <div>
+          <h3>Where this works</h3>
+          <p>Nine pages: Home, About, Mission, Products, Print Store, News, Contact, Request a Quote, and the union shop. Around 417 pieces of text and photo.</p>
+        </div>
+        <div>
+          <h3>Where it doesn&rsquo;t</h3>
+          <p>The menu across the top, the footer, and the three Shop pages (product grid, product pages, cart). Those are built from code, so there&rsquo;s nothing to click.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="photos">
+      <h2>Changing a photo</h2>
+      <p>Photos work the same way, with an orange dashed outline instead.</p>
+      <ol>
+        <li>Click the photo, or the empty box where one should go.</li>
+        <li>Pick a file from your computer. JPG or PNG.</li>
+        <li>It uploads and appears straight away. Then <strong>Save &amp; Publish</strong>.</li>
+      </ol>
+      <p>The logo at the top of every page is swapped the same way.</p>
+      <p><strong>On size:</strong> photos are used at full width, so something around 1200 pixels wide looks sharp. A small photo pulled off a phone screenshot will look soft. Photos straight from a phone camera are plenty big.</p>
+    </section>
+
+    <section id="checking">
+      <h2>Checking your work, and the yellow notes</h2>
+      <p>The edit bar has a <strong>Preview</strong> toggle. It hides the editing marks so you see the page the way a customer does. Reloading without the <code>?edit=jessie</code> part does the same.</p>
+      <div class="two-up">
+        <div>
+          <h3>Yellow notes</h3>
+          <p>Headed &ldquo;JESSIE:&rdquo; &mdash; suggestions about what a section still needs.</p>
+        </div>
+        <div>
+          <h3>Orange tags</h3>
+          <p>Like &ldquo;image needed&rdquo; &mdash; a spot still waiting on something.</p>
+        </div>
+      </div>
+      <p><strong>Customers never see either one.</strong> They only appear in edit mode. Leave them as long as they&rsquo;re useful, and delete them once a section is done.</p>
+      <p>A few notes mention &ldquo;Christine&rsquo;s sitemap.&rdquo; Christine planned the original page layout; those references were left in because they explain why a page is built the way it is.</p>
+    </section>
+
+    <section id="ask">
+      <h2>The Ask button in the corner</h2>
+      <p>Bottom right of every page is a small <strong>Ask</strong> button. A visitor clicks it, types a question, and gets an answer straight away instead of hunting through the site or waiting for the shop to open.</p>
+      <p>The version on the site is a cut-down one: it asks the visitor for fewer details, so they can ask a quick question without filling anything in.</p>
+      <p>The full version collects more from whoever asks &mdash; their email so the conversation can be followed up, file attachments, a saved PDF of the conversation, and SMS alerts. A question at ten at night becomes a lead instead of a visitor who leaves. See it at <a href="https://chat.karikounkel.com" target="_blank" rel="noopener">chat.karikounkel.com</a>.</p>
+      <p><strong>Worth raising with Frank:</strong> the shop can have its own version. Minuteman&rsquo;s name and branding on it, set up to answer what the shop actually gets asked &mdash; hours, turnaround times, what file formats to send, what union printing means, how to get a quote. Right now the button says Ask Kari and answers as her. If Frank wants the shop&rsquo;s own, Kari sets it up.</p>
+    </section>
+
+    <section id="stuck">
+      <h2>If this stops working</h2>
+      <p>Don&rsquo;t get stuck, and don&rsquo;t worry about breaking anything. This editor is new, and now and then it will misbehave.</p>
+      <p>If edit mode won&rsquo;t turn on, if <strong>Save &amp; Publish</strong> doesn&rsquo;t stick, or if a page won&rsquo;t let you change something:</p>
+      <ol>
+        <li>Stop retrying. Nothing you do here can damage the site.</li>
+        <li>Write down what you want changed &mdash; which page, what it says now, and what it should say instead.</li>
+        <li>Send it over and it gets done.</li>
+      </ol>
+      <p><strong>Any format is fine.</strong> A Word document, a Google Doc, an email, a list in a text message, even a photo of a printout with your marks on it. Screenshots help &mdash; enough of the page to see which bit you mean.</p>
+      <p>Same goes for anything the editor can&rsquo;t reach: a new page, a menu change, store products or prices, or notes you want added for whoever edits next.</p>
+      <div class="warn">
+        <p>Never hold a change back because the tool is being awkward. Getting it in writing is always good enough.</p>
+      </div>
+    </section>
+
+    <section id="kari">
+      <h2>What to ask Kari for</h2>
+      <p>You can change any wording and any photo yourself. Anything structural, ask Kari.</p>
+      <table class="guide">
+        <thead><tr><th>You can do this yourself</th><th>Ask Kari</th></tr></thead>
+        <tbody>
+          <tr><td>Rewrite any text on any page</td><td>A new page, or a page removed</td></tr>
+          <tr><td>Swap any photo, including the logo</td><td>Menu changes</td></tr>
+          <tr><td>Update the news posts</td><td>Products, prices or options in the store</td></tr>
+          <tr><td>Delete the yellow notes once handled</td><td>The contact form, which doesn&rsquo;t send anywhere yet</td></tr>
+        </tbody>
+      </table>
+      <h3>Two things still open</h3>
+      <ul>
+        <li><strong>Store prices are placeholders.</strong> The real ones live in FLEX and haven&rsquo;t been loaded, so the store says so on the page.</li>
+        <li><strong>Product photos come from the current mpuptown.com site.</strong> They can be replaced with photos of the shop&rsquo;s own work whenever you have them.</li>
+      </ul>
+    </section>
+
+  </main>
+
+  <aside class="guide-aside">
+    <div class="panel go">
+      <h4>Start here</h4>
+      <a class="btn btn-primary" href="/mmpuptown/?edit=jessie">Open in edit mode &rarr;</a>
+      <p class="go-note">Opens the home page with editing switched on. Come back to this guide any time.</p>
     </div>
-    <div class="linkbox">
-      <span class="lb-label">The union shop &mdash; a separate site</span>
-      <a href="/mmpunionshop/?edit=jessie">tools.caresmn.com/mmpunionshop/?edit=jessie</a>
+
+    <div class="panel">
+      <h4>Your links</h4>
+      <a class="linkrow" href="/mmpuptown/?edit=jessie">
+        <span class="lr-label">Main site &mdash; edit mode</span>
+        <span class="lr-url">tools.caresmn.com/mmpuptown/?edit=jessie</span>
+      </a>
+      <a class="linkrow" href="/mmpunionshop/?edit=jessie">
+        <span class="lr-label">Union shop &mdash; edit mode</span>
+        <span class="lr-url">tools.caresmn.com/mmpunionshop/?edit=jessie</span>
+      </a>
+      <a class="linkrow" href="/mmpuptown/">
+        <span class="lr-label">The site as customers see it</span>
+        <span class="lr-url">tools.caresmn.com/mmpuptown/</span>
+      </a>
     </div>
-    <ul>
-      <li><strong>Edit mode follows you.</strong> Once you&rsquo;re in it, clicking to another page keeps you in it.</li>
-      <li><strong>Drop the <code>?edit=jessie</code> part</strong> and you see the site exactly as a customer does.</li>
-    </ul>
-    <div class="warn">
-      <p><strong>Treat this link like a shared password.</strong> There&rsquo;s no username or sign-in yet, so anyone who has it can change the site. Don&rsquo;t post it anywhere public.</p>
+
+    <div class="panel">
+      <h4>On this page</h4>
+      <ul class="jump">
+        <li><a href="#link">Your link</a></li>
+        <li><a href="#words">Changing the words</a></li>
+        <li><a href="#photos">Changing a photo</a></li>
+        <li><a href="#checking">Checking your work</a></li>
+        <li><a href="#ask">The Ask button</a></li>
+        <li><a href="#stuck">If this stops working</a></li>
+        <li><a href="#kari">What to ask Kari for</a></li>
+      </ul>
     </div>
-  </section>
-
-  <section>
-    <h2>Changing the words</h2>
-    <p>In edit mode, every bit of text you can change shows a dashed outline.</p>
-    <ol>
-      <li>Click the text. A cursor appears and you type, like in a Word document.</li>
-      <li>Click <strong>Save &amp; Publish</strong> in the bar at the bottom.</li>
-    </ol>
-    <p>It&rsquo;s live the moment you save. No second step, no approval queue. Made a mistake? Click back in and fix it the same way.</p>
-    <h3>Where this works</h3>
-    <p>Nine pages: Home, About, Mission, Products, Print Store, News, Contact, Request a Quote, and the union shop. Around 417 pieces of text and photo in total.</p>
-    <p>What you can&rsquo;t change this way: the menu across the top, the footer, and the three Shop pages (the product grid, the product pages, the cart). Those are built from code, so there&rsquo;s nothing to click.</p>
-  </section>
-
-  <section>
-    <h2>Changing a photo</h2>
-    <p>Photos work the same way, with an orange dashed outline instead.</p>
-    <ol>
-      <li>Click the photo, or the empty box where one should go.</li>
-      <li>Pick a file from your computer. JPG or PNG.</li>
-      <li>It uploads and appears straight away. Then <strong>Save &amp; Publish</strong>.</li>
-    </ol>
-    <p>The logo at the top of every page is swapped the same way.</p>
-    <p><strong>On size:</strong> photos are used at full width, so something around 1200 pixels wide looks sharp. A small photo pulled off a phone screenshot will look soft. Photos straight from a phone camera are plenty big.</p>
-  </section>
-
-  <section>
-    <h2>Checking your work, and the yellow notes</h2>
-    <p>The edit bar has a <strong>Preview</strong> toggle. It hides the editing marks so you see the page the way a customer does. Reloading without the <code>?edit=jessie</code> part does the same thing.</p>
-    <p>While editing you&rsquo;ll see two kinds of notes:</p>
-    <ul>
-      <li><strong>Yellow notes</strong> headed &ldquo;JESSIE:&rdquo; &mdash; suggestions about what a section still needs.</li>
-      <li><strong>Orange tags</strong> like &ldquo;image needed&rdquo; &mdash; a spot still waiting on something.</li>
-    </ul>
-    <p><strong>Customers never see either one.</strong> They only appear in edit mode. Leave them as long as they&rsquo;re useful, and delete them once a section is done.</p>
-    <p>A few notes mention &ldquo;Christine&rsquo;s sitemap.&rdquo; Christine planned the original page layout; those references were left in because they explain why a page is built the way it is.</p>
-  </section>
-
-  <section>
-    <h2>The Ask button in the corner</h2>
-    <p>Bottom right of every page is a small <strong>Ask</strong> button. A visitor clicks it, types a question, and gets an answer straight away instead of hunting through the site or waiting for the shop to open.</p>
-    <p>The version on the site is a cut-down one: it asks the visitor for fewer details, so they can ask a quick question without filling anything in.</p>
-    <p>The full version collects more from whoever asks &mdash; their email so the conversation can be followed up, file attachments, a saved PDF of the conversation, and SMS alerts. A question at ten at night becomes a lead instead of a visitor who leaves.</p>
-    <div class="linkbox">
-      <span class="lb-label">See the full version</span>
-      <a href="https://chat.karikounkel.com" target="_blank" rel="noopener">chat.karikounkel.com</a>
-    </div>
-    <p><strong>Worth raising with Frank:</strong> the shop can have its own version of this. Minuteman&rsquo;s name and branding on it, set up to answer what the shop actually gets asked &mdash; hours, turnaround times, what file formats to send, what union printing means, how to get a quote. Right now the button says Ask Kari and answers as her. If Frank wants the shop&rsquo;s own, Kari sets it up.</p>
-  </section>
-
-  <section>
-    <h2>If this stops working</h2>
-    <p>Don&rsquo;t get stuck, and don&rsquo;t worry about breaking anything. This editor is new, and now and then it will misbehave.</p>
-    <p>If edit mode won&rsquo;t turn on, if <strong>Save &amp; Publish</strong> doesn&rsquo;t stick, or if a page won&rsquo;t let you change something:</p>
-    <ol>
-      <li>Stop retrying. Nothing you do here can damage the site.</li>
-      <li>Write down what you want changed &mdash; which page, what it says now, and what it should say instead.</li>
-      <li>Send it over and it gets done.</li>
-    </ol>
-    <p><strong>Any format is fine.</strong> A Word document, a Google Doc, an email, a list in a text message, even a photo of a printout with your marks on it. Whatever is quickest for you. Screenshots help &mdash; enough of the page to see which bit you mean.</p>
-    <p>The same goes for anything the editor can&rsquo;t reach: a new page, a change to the menu, store products or prices, or notes you want added for whoever edits next. Write it out the same way and send it.</p>
-    <div class="warn">
-      <p>Never hold a change back because the tool is being awkward. Getting it in writing is always good enough.</p>
-    </div>
-  </section>
-
-  <section>
-    <h2>What to ask Kari for</h2>
-    <p>You can change any wording and any photo yourself. Anything structural, ask Kari.</p>
-    <table class="guide">
-      <thead><tr><th>You can do this yourself</th><th>Ask Kari</th></tr></thead>
-      <tbody>
-        <tr><td>Rewrite any text on any page</td><td>A new page, or a page removed</td></tr>
-        <tr><td>Swap any photo, including the logo</td><td>Menu changes</td></tr>
-        <tr><td>Update the news posts</td><td>Products, prices or options in the store</td></tr>
-        <tr><td>Delete the yellow notes once handled</td><td>The contact form, which doesn&rsquo;t send anywhere yet</td></tr>
-      </tbody>
-    </table>
-    <h3>Two things still open</h3>
-    <ul>
-      <li><strong>Store prices are placeholders.</strong> The real ones live in FLEX and haven&rsquo;t been loaded, so the store says so on the page.</li>
-      <li><strong>Product photos come from the current mpuptown.com site.</strong> They can be replaced with photos of the shop&rsquo;s own work whenever you have them.</li>
-    </ul>
-  </section>
+  </aside>
 
 </div>
 
@@ -184,5 +259,6 @@
   Questions about the site itself: Kari, CARES Consulting.
 </div>
 
+<script src="https://chat.karikounkel.com/widget.js" data-mode="support" defer></script>
 </body>
 </html>
