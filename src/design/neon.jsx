@@ -80,9 +80,17 @@ export const HERO_BTN_GLOW_ORANGE = `0 4px 18px rgba(34,197,94,0.55), 0 0 40px r
 // --- Building blocks ---------------------------------------------------------
 
 // NeonBox — white interior, neon-color outline + layered glow. THE card.
+//
+// boxSizing matters here and is not decoration. The served index.html has no
+// global reset (the `* { box-sizing: border-box }` in src/index.html is on a
+// file Vite never loads), so a card with height:100% in a grid was measuring
+// 100% of its row PLUS 48px of padding PLUS 4px of border — 52px taller than
+// the space it was given. With a 22px gap that put every card 30px on top of
+// the row below it. Landing page, free tools, plainly visible.
 export function NeonBox({ color, rgb, scale = 1, style = {}, children }) {
   return (
     <div style={{
+      boxSizing: "border-box",
       background: N.white,
       borderRadius: 14,
       border: `2px solid ${color}`,
@@ -157,47 +165,93 @@ export function LogoHero({ right = null, hrefHome = "/dashboard" }) {
   );
 }
 
-// SpotlightCallout — reads spotlight_current from Supabase and renders the hero right-side card.
-// Falls back to a default when the table/row is missing so the page doesn't break.
+// FeaturedTool — the hero's right-hand callout.
+//
+// It used to be a hand-edited "NEW DROP" row in `spotlight_current`, which meant
+// it stopped being new the moment nobody remembered to edit it. Now it rotates
+// itself: one published tool per week, deterministic, so every member sees the
+// same feature and it changes on its own. Set `is_pinned = true` on the
+// spotlight_current row to override the rotation with a hand-picked feature.
+function weeklyIndex(n) {
+  if (!n) return 0;
+  const EPOCH = Date.UTC(2026, 0, 5); // a Monday — rotation turns over Mondays
+  const weeks = Math.floor((Date.now() - EPOCH) / 604800000);
+  return ((weeks % n) + n) % n;
+}
+
 export function SpotlightCallout() {
-  const [spot, setSpot] = useState(null);
+  const [pick, setPick] = useState(null);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase.from("spotlight_current").select("*").limit(1).maybeSingle();
-      if (data) setSpot(data);
+      const { data: row } = await supabase.from("spotlight_current").select("*").limit(1).maybeSingle();
+
+      if (row && row.is_pinned) {
+        setPick({
+          eyebrow: row.eyebrow || "FEATURED TOOL",
+          name: row.item_name,
+          pitch: row.item_pitch,
+          ctaLabel: row.cta_label || "Open it",
+          href: row.cta_href,
+          accent: row.accent === "pink" ? N.pink : row.accent === "orange" ? N.orange : N.blueHot,
+          note: null,
+        });
+        setLoaded(true);
+        return;
+      }
+
+      const { data: tools } = await supabase.from("tools")
+        .select("title, slug, href, description, why_use, tag, tier")
+        .eq("is_published", true)
+        .order("sort_order", { ascending: true });
+
+      if (tools && tools.length) {
+        const i = weeklyIndex(tools.length);
+        const t = tools[i];
+        const isFree = t.tier === "free";
+        setPick({
+          eyebrow: t.tag === "NEW" ? "NEW THIS WEEK" : "FEATURED TOOL",
+          name: t.title,
+          pitch: t.why_use || t.description,
+          ctaLabel: "Open " + t.title,
+          href: t.href || "/tools/" + t.slug,
+          accent: isFree ? N.pink : N.blueHot,
+          note: "A different tool every week · " + (i + 1) + " of " + tools.length,
+        });
+      } else if (row) {
+        setPick({
+          eyebrow: row.eyebrow || "FEATURED TOOL",
+          name: row.item_name,
+          pitch: row.item_pitch,
+          ctaLabel: row.cta_label || "Open it",
+          href: row.cta_href,
+          accent: N.blueHot,
+          note: null,
+        });
+      }
       setLoaded(true);
     })();
   }, []);
 
-  const s = spot || {
-    eyebrow: "THIS WEEK'S SPOTLIGHT",
-    item_type: "NEW DROP",
-    item_name: "The Vendor Decoder",
-    item_pitch: "Turn your vendor list into a posting playbook. Every account lands where it belongs — no more asking \"wait, where does Amazon go this time?\"",
-    cta_label: "Open the Vendor Decoder",
-    cta_href: "/tools/vendor-decoder",
-    accent: "blue",
-  };
-  if (!loaded) return null;
-
-  const accentColor = s.accent === "pink" ? N.pink : s.accent === "orange" ? N.orange : N.blueHot;
+  if (!loaded || !pick) return null;
 
   return (
     <div>
       <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.18em", color: N.pink, fontWeight: 700, marginBottom: 10, display: "flex", alignItems: "center", gap: 8 }}>
         <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: 100, background: N.pink, boxShadow: `0 0 10px ${N.pink}` }} />
-        {s.eyebrow}
+        {pick.eyebrow}
       </div>
       <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 26, color: N.ink, lineHeight: 1.2, marginBottom: 8 }}>
-        {s.item_type.toLowerCase().includes("drop") ? "New drop: " : ""}
-        <span style={{ color: accentColor }}>{s.item_name}</span>
+        <span style={{ color: pick.accent }}>{pick.name}</span>
       </h2>
-      <p style={{ fontSize: 14, color: N.muted, lineHeight: 1.55, marginBottom: 14 }}>{s.item_pitch}</p>
-      <a href={s.cta_href} style={{ display: "inline-block", padding: "9px 18px", background: N.blue, color: N.white, borderRadius: 8, fontSize: 13, fontWeight: 700, textDecoration: "none", boxShadow: "0 4px 14px rgba(0,128,255,0.4)" }}>
-        {s.cta_label} →
+      <p style={{ fontSize: 14, color: N.muted, lineHeight: 1.55, marginBottom: 14 }}>{pick.pitch}</p>
+      <a href={pick.href} style={{ display: "inline-block", padding: "9px 18px", background: N.blue, color: N.white, borderRadius: 8, fontSize: 13, fontWeight: 700, textDecoration: "none", boxShadow: "0 4px 14px rgba(0,128,255,0.4)" }}>
+        {pick.ctaLabel} →
       </a>
+      {pick.note && (
+        <div style={{ marginTop: 10, fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.08em", color: N.mutedLite }}>{pick.note}</div>
+      )}
     </div>
   );
 }
