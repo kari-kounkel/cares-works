@@ -1,0 +1,44 @@
+{
+  "date": "2026-10-06",
+  "status": "local-verified-not-published",
+  "preview": "http://127.0.0.1:5266/flowsuite/fleet/",
+  "checks": {
+    "syntax": true,
+    "desktopOverflow": false,
+    "phone390Overflow": false,
+    "phone360Overflow": false,
+    "checkinPropagation": 3,
+    "vehicleExceptionPreserved": true,
+    "reset": true,
+    "april2028": {
+      "in": 523800,
+      "out": 487230,
+      "net": 36570,
+      "ledgerMatches": true
+    },
+    "horizonMonthCounts": {
+      "days30": 1,
+      "days90": 3,
+      "years3": 36,
+      "allFromApril2028": 38
+    },
+    "futureLoanRowsFromApril2028": 44,
+    "lastPayment": {
+      "date": "2031-05-15",
+      "principal": 2487,
+      "interest": 13,
+      "payment": 2500,
+      "remaining": 0
+    },
+    "browserErrors": 0
+  },
+  "release": {
+    "createdCandidate": false,
+    "published": false,
+    "blockers": [
+      "Vercel 403 invalidToken during baseline read",
+      "Required authenticated smoke/protection configuration absent"
+    ],
+    "method": "npm run deploy:production only"
+  }
+}
