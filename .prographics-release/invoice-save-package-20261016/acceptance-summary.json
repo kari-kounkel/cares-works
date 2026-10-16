@@ -1,0 +1,75 @@
+{
+  "deployment": "dpl_CMLTYb519vhFEmbnP8GCwrJBnBam",
+  "live": "https://tools.caresmn.com/prographics",
+  "phase": "production-accepted-after-revalidation",
+  "source": "C:/dev/cares-works/.prographics-release/guarded-1feeef53-2c3a-4eb9-a7c9-c747e77b1430",
+  "previousDeployment": "dpl_7eJk4pxYz54i4vNMaD5xLEERxp9F",
+  "regressionTests": {
+    "passed": 47,
+    "failed": 0,
+    "finalScopedRecheckPassed": 14
+  },
+  "originalRoleDatabaseTests": "PASS",
+  "liveRoles": [
+    "Kari",
+    "Betty",
+    "Dave"
+  ],
+  "liveSaveTests": [
+    {
+      "name": "Original 8746 and 8741 reopen with zero shipping preserved; no writes",
+      "status": "PASS"
+    },
+    {
+      "name": "New invoice item/description/quantity/price share one row",
+      "status": "PASS"
+    },
+    {
+      "name": "Missing fields display validation beside Save; no request sent",
+      "status": "PASS"
+    },
+    {
+      "name": "API error visible beside Save; filled draft retained",
+      "status": "PASS"
+    },
+    {
+      "name": "Dave creates and saves one Key Guys test draft; direct database readback succeeds",
+      "status": "PASS"
+    },
+    {
+      "name": "Saved invoice editor aligned; no PO/vendor-cost or accounting-post controls",
+      "status": "PASS"
+    },
+    {
+      "name": "Reopened invoice retains prices; invalid row identified without a write",
+      "status": "PASS"
+    },
+    {
+      "name": "Dave edits, saves, refreshes and reopens; database and form values agree",
+      "status": "PASS"
+    },
+    {
+      "name": "Mobile invoice retains fields and horizontal item rows",
+      "status": "PASS"
+    }
+  ],
+  "testDraftRemoved": true,
+  "originalInvoicesAndOrders": {
+    "checked": 6595,
+    "missing": 0,
+    "changed": 0
+  },
+  "originalBankEntries": 825,
+  "journals": 268,
+  "glLines": 538,
+  "rolesFunctionsPoliciesUnchanged": true,
+  "concurrentLiveRecordsPreserved": {
+    "invoices": 1,
+    "bankEntries": 1
+  },
+  "nonprofitAndMarcoSourcePreserved": true,
+  "historicalInvoicesPosted": false,
+  "productionSQLExecuted": false,
+  "initialPublicationFailure": "Smoke failed: /prographics browser console error: Failed to load module script: Expected a JavaScript-or-Wasm module script but the server responded with a MIME type of \"text/html\". Strict MIME type checking is enforced for module scripts per HTML spec.",
+  "exactYesterdayUnsavedDraftAvailable": false
+}

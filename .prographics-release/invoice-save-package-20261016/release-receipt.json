@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "base": "dpl_7eJk4pxYz54i4vNMaD5xLEERxp9F",
+  "scope": "shared",
+  "source": "C:\\dev\\cares-works\\.prographics-release\\guarded-1feeef53-2c3a-4eb9-a7c9-c747e77b1430",
+  "phase": "production-accepted-after-revalidation",
+  "deployment": "dpl_CMLTYb519vhFEmbnP8GCwrJBnBam",
+  "url": "cares-works-20kqimc40-kari-kounkels-projects.vercel.app",
+  "initialPublicationFailure": "Smoke failed: /prographics browser console error: Failed to load module script: Expected a JavaScript-or-Wasm module script but the server responded with a MIME type of \"text/html\". Strict MIME type checking is enforced for module scripts per HTML spec.",
+  "liveAcceptance": {
+    "base": "https://tools.caresmn.com",
+    "originalRoles": [
+      "Kari",
+      "Betty",
+      "Dave"
+    ],
+    "invoiceSaveTests": 9,
+    "testDraftRemoved": true,
+    "initialModuleErrorClearedOnFreshResponse": true
+  }
+}
