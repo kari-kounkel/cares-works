@@ -1,0 +1,11 @@
+{
+  "src/pages/LedgerWorkspace.jsx": "5993562d0c771e56738008c3a902329c386a783c59cee3c39aabe615ff8fd2aa",
+  "src/pages/InvoicePublic.jsx": "8bfb00061288f9a41b490f96ffcb9291ac6a63e438af9a46140ed9f489e2eb0f",
+  "src/lib/prographicsInvoiceWorkflow.js": "b6f0f6cd3ce1bbe5ec1e894267b7387d1cbb140f8487c4733a4e9b4506d411ac",
+  "src/lib/prographicsOperationalBalances.js": "36632dcfe41740c25cefb53cb1ee76b72de6edc9785c7d83831f6b55a5bbe17f",
+  "src/lib/prographicsRehab.js": "bf097e2bb1320948760ba329b28e402540e6ff90cd4cc0b19f5a13983c390ce8",
+  "src/lib/prographicsInteractions.js": "16d032cce3839416bad99da6bea51f97583464d206414da184ccfb331815bb06",
+  "src/lib/prographicsDraftRecovery.js": "d405ede6bc01ed08625ab5c5d86a4c42038bed08bb4d152f2eea083cbf82847b",
+  "src/lib/prographicsEditing.js": "fae1d08f734cdd958f7028a30ca706f81b28d780e7741091a65dc7fff5817d87",
+  "supabase/functions/send-invoice-email/index.ts": "4e471c7859199ff07931d731b88effaca7c87b44c6c69496a8bdeeeed7b751d2"
+}

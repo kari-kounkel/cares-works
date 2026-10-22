@@ -1,0 +1,12 @@
+{
+  "baselineDeployment": "dpl_CMLTYb519vhFEmbnP8GCwrJBnBam",
+  "liveDeployment": "dpl_FjduJ44oQjydBx5XqPM33RyYXKs1",
+  "changedRuntimeSource": [
+    "src/lib/prographicsInvoiceWorkflow.js",
+    "src/lib/prographicsOperationalBalances.js",
+    "src/pages/InvoicePublic.jsx",
+    "src/pages/LedgerWorkspace.jsx"
+  ],
+  "otherRuntimeFilesByteIdentical": true,
+  "packageFrontendMatchesPublishedSource": true
+}

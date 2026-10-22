@@ -1,0 +1,76 @@
+{
+  "verifiedAt": "2026-10-22T14:53:00.946060+00:00",
+  "liveUrl": "https://tools.caresmn.com/prographics",
+  "deployment": "dpl_FjduJ44oQjydBx5XqPM33RyYXKs1",
+  "source": ".prographics-release/guarded-6383746e-cb23-4bb3-861c-39772d14c6c0",
+  "sharedRoutes": [
+    {
+      "route": "/",
+      "status": "passed",
+      "authenticated": false
+    },
+    {
+      "route": "/login",
+      "status": "passed",
+      "authenticated": false
+    },
+    {
+      "route": "/prographics",
+      "status": "passed",
+      "authenticated": true
+    },
+    {
+      "route": "/mmpuptown/",
+      "status": "passed",
+      "authenticated": false
+    },
+    {
+      "route": "/mmpuptown/admin/",
+      "status": "passed",
+      "authenticated": false
+    },
+    {
+      "route": "/mmpunionshop/",
+      "status": "passed",
+      "authenticated": false
+    },
+    {
+      "route": "/store/demo-company/",
+      "status": "passed",
+      "authenticated": false
+    }
+  ],
+  "roles": [
+    "Kari",
+    "Betty",
+    "Dave"
+  ],
+  "invoiceFinancialTests": "hosted UI and isolated current database",
+  "liveInvoiceTests": "scoped nonfinancial Dave create/save/edit/SENT/VIEWED/refresh, positive filled prices and duplicate-click check",
+  "realEmail": {
+    "recipient": "kari@karikounkel.com",
+    "providerReceipt": "afd56c7e-b66a-42cf-b669-301be3cd57f9",
+    "sameRequestReplayedWithoutSend": true
+  },
+  "originalIntegrity": {
+    "storedDocuments": 6597,
+    "payments": 16,
+    "journals": 271,
+    "glLines": 546,
+    "originalBankRowsUnchanged": 837,
+    "originalInboxRowsUnchanged": 246,
+    "rolesUnchanged": true
+  },
+  "auditException": {
+    "cause": "Missing base smoke read-only flag allowed existing automatic bank sync",
+    "newRealUnpostedBankRows": 7,
+    "newProviderRemovalNotices": 3,
+    "originalBankRowsUnchanged": true,
+    "newRowsPosted": 0,
+    "newRowsReconciled": 0,
+    "retainedForControllerReview": true,
+    "futureSmokeSyncBlockedByDefault": true
+  },
+  "remainingApplicationBlockers": [],
+  "liveFinancialTransactionsPerformedForTesting": false
+}

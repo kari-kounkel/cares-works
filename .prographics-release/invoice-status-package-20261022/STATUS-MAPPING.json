@@ -1,0 +1,105 @@
+{
+  "productionBaseline": "dpl_CMLTYb519vhFEmbnP8GCwrJBnBam",
+  "recordCount": 6597,
+  "statusMapping": [
+    {
+      "doc_type": "invoice",
+      "rawStatus": "paid",
+      "count": 5761,
+      "mappingCounts": {
+        "PAID": 5761
+      }
+    },
+    {
+      "doc_type": "order",
+      "rawStatus": "historical",
+      "count": 753,
+      "mappingCounts": {
+        "Order workflow unchanged": 753
+      }
+    },
+    {
+      "doc_type": "invoice",
+      "rawStatus": "void",
+      "count": 57,
+      "mappingCounts": {
+        "Preserved void/archive disposition": 57
+      }
+    },
+    {
+      "doc_type": "invoice",
+      "rawStatus": "in_progress",
+      "count": 5,
+      "mappingCounts": {
+        "SENT": 3,
+        "IN PROGRESS": 1,
+        "VIEWED": 1
+      }
+    },
+    {
+      "doc_type": "invoice",
+      "rawStatus": "draft",
+      "count": 2,
+      "mappingCounts": {
+        "IN PROGRESS": 2
+      }
+    },
+    {
+      "doc_type": "invoice",
+      "rawStatus": "viewed",
+      "count": 5,
+      "mappingCounts": {
+        "VIEWED": 5
+      }
+    },
+    {
+      "doc_type": "invoice",
+      "rawStatus": "sent",
+      "count": 11,
+      "mappingCounts": {
+        "SENT": 10,
+        "PAID": 1
+      }
+    },
+    {
+      "doc_type": "order",
+      "rawStatus": "order",
+      "count": 1,
+      "mappingCounts": {
+        "Order workflow unchanged": 1
+      }
+    },
+    {
+      "doc_type": "order",
+      "rawStatus": "invoiced",
+      "count": 2,
+      "mappingCounts": {
+        "Order workflow unchanged": 2
+      }
+    }
+  ],
+  "exceptions": {
+    "legacyPaidWithoutAllocation": 5746,
+    "legacyPaidOutsideArchiveWithoutAllocation": 54,
+    "oldViewedNeedingCustomerVerification": 5,
+    "sentWithoutDate": 10,
+    "viewedWithoutDate": 0,
+    "legacyViewDatesNeedingVerification": 12
+  },
+  "precedence": [
+    "Recorded full payment",
+    "Original legacy PAID source assertion retained with unverified allocation flag",
+    "Recorded view evidence",
+    "Recorded send evidence",
+    "IN PROGRESS"
+  ],
+  "codeOnly": {
+    "issued": "IN PROGRESS unless actual delivery or payment evidence takes precedence",
+    "Partial": "SENT or VIEWED with remaining amount, derived from delivery; no independent status",
+    "Draft": "IN PROGRESS unless stronger evidence exists",
+    "Historical": "Order/archive context preserved",
+    "PO sent": "Order workflow unchanged",
+    "Invoiced": "Converted-order workflow unchanged",
+    "deleted": "Order-conversion guard only; no invoice workflow mapping"
+  }
+}
