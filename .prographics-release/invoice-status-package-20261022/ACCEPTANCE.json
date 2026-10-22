@@ -72,5 +72,6 @@
     "futureSmokeSyncBlockedByDefault": true
   },
   "remainingApplicationBlockers": [],
-  "liveFinancialTransactionsPerformedForTesting": false
+  "productionAccountingPostingsPerformedForTesting": false,
+  "unintendedLiveBankFeedImport": true
 }

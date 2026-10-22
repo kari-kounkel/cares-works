@@ -53,7 +53,7 @@ Supported paid corrections retain original invoices in immutable revision snapsh
 | Check | Result / scope |
 |---|---|
 | All four statuses editable/saveable | PASS — hosted browser with current isolated database, Dave’s actual verified role |
-| Partial/final payment, paid amount correction, credit/tax adjustment | PASS — original engine in isolated clone; no production financial test transactions |
+| Partial/final payment, paid amount correction, credit/tax adjustment | PASS — original engine in isolated clone; no production payment or journal entries for testing |
 | Closed-period protection, duplicate payments/saves | PASS — isolated original-role SQL tests |
 | Actual Dave unfinished and filled-price create/save/reopen/edit/refresh | PASS — protected candidate and live, marked nonfinancial invoices only |
 | SENT/VIEWED edits, payment terms, cancellation, input retention | PASS — hosted SQL/browser and live nonfinancial checks |
